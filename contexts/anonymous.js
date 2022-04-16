@@ -1,7 +1,8 @@
-const { client } = require('nightwatch');
+const { client } = require('nightwatch/api');
 const { Given, When, Then, And, But } = require('cucumber');
 
-When(/^I go to "([^"]*)"$/, urlAddress => {
-  return client.url(urlAddress).waitForElementVisible('body', 1000);
+
+Given('I am an anonymous user', function () {
+  return 'binding';
 });
 

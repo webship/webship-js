@@ -3,9 +3,6 @@
   "version": "1.0.0",
   "description": "Webship JS freamwork",
   "main": "index.js",
-  "scripts": {
-    "test": "test"
-  },
   "keywords": [
     "webship",
     "automated",
@@ -14,11 +11,13 @@
   ],
   "author": "Webship.co",
   "license": "MIT",
+  "scripts": {
+    "webship": "cucumber-js --require conf.js --require contexts --format node_modules/cucumber-pretty"
+  },
   "dependencies": {
     "chromedriver": "^99.0.0",
     "cucumber": "~6",
     "cucumber-pretty": "~6",
-    "nightwatch": "^2.1.0",
-    "nightwatch-api": "~3"
+    "nightwatch": "^2.1.0"
   }
 }
