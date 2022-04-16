@@ -1,0 +1,21 @@
+{
+  "name": "webship-js",
+  "version": "1.0.0",
+  "description": "Webship JS freamwork",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "keywords": [
+    "webship",
+    "automated",
+    "testing",
+    "test"
+  ],
+  "author": "Webship.co",
+  "license": "MIT",
+  "dependencies": {
+    "cucumber": "^7.0.0-rc.0",
+    "nightwatch-api": "^3.0.2"
+  }
+}
