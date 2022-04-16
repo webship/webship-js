@@ -15,7 +15,10 @@
   "author": "Webship.co",
   "license": "MIT",
   "dependencies": {
-    "cucumber": "^7.0.0-rc.0",
-    "nightwatch-api": "^3.0.2"
+    "chromedriver": "^99.0.0",
+    "cucumber": "~6",
+    "cucumber-pretty": "~6",
+    "nightwatch": "^2.1.0",
+    "nightwatch-api": "~3"
   }
 }
