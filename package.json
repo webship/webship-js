@@ -12,7 +12,7 @@
   "author": "Webship.co",
   "license": "MIT",
   "scripts": {
-    "webship": "cucumber-js --require conf.js --require contexts --format node_modules/cucumber-pretty"
+    "test": "cucumber-js --require nightwatch.config.js --require cucumber.config.js --require step-definitions --format node_modules/cucumber-pretty"
   },
   "dependencies": {
     "chromedriver": "^99.0.0",
