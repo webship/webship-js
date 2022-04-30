@@ -20,11 +20,10 @@
   },
   "homepage": "https://github.com/webshipco/webship-js",
   "dependencies": {
-    "@cucumber/cucumber": "^8.0.0-rc.2",
-    "chromedriver": "^97.0.4",
-    "geckodriver": "^3.0.1"
-  },
-  "devDependencies": {
-    "nightwatch": "^2.0.7"
+    "nightwatch": "~2",
+    "@cucumber/cucumber": "*",
+    "chromedriver": "*",
+    "cucumber-pretty": "*",
+    "geckodriver": "*"
   }
 }
