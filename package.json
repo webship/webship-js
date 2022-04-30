@@ -1,23 +1,30 @@
 {
   "name": "webship-js",
   "version": "1.0.0",
-  "description": "Webship JS freamwork",
+  "description": "Webship JS automated functional testing.",
   "main": "index.js",
-  "keywords": [
-    "webship",
-    "automated",
-    "testing",
-    "test"
-  ],
-  "author": "Webship.co",
-  "license": "MIT",
-  "scripts": {
-    "test": "cucumber-js --require nightwatch.config.js --require cucumber.config.js --require step-definitions --format node_modules/cucumber-pretty"
+  "directories": {
+    "test": "test"
   },
+  "scripts": {
+    "test": "nightwatch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/webshipco/webship-js.git"
+  },
+  "author": "Ravi Sawlani",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/webshipco/webship-js/issues"
+  },
+  "homepage": "https://github.com/webshipco/webship-js",
   "dependencies": {
-    "chromedriver": "^99.0.0",
-    "cucumber": "~6",
-    "cucumber-pretty": "~6",
-    "nightwatch": "^2.1.0"
+    "@cucumber/cucumber": "^8.0.0-rc.2",
+    "chromedriver": "^97.0.4",
+    "geckodriver": "^3.0.1"
+  },
+  "devDependencies": {
+    "nightwatch": "^2.0.7"
   }
 }
