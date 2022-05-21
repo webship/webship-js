@@ -11,14 +11,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/webshipco/webship-js.git"
+    "url": "git+https://github.com/webship/webship-js.git"
   },
   "author": "Ravi Sawlani",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/webshipco/webship-js/issues"
+    "url": "https://github.com/webship/webship-js/issues"
   },
-  "homepage": "https://github.com/webshipco/webship-js",
+  "homepage": "https://github.com/webship/webship-js",
   "dependencies": {
     "nightwatch": "~2",
     "@cucumber/cucumber": "*",

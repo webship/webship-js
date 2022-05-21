@@ -1,3 +1,7 @@
 # Webship JS
 
-Webship JS automated functional testing.
+Webship JS has a ready step definitions for automated functional testing.
+
+### Using:
+Nightwatch.js
+Cucumber-js
