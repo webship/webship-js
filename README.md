@@ -3,5 +3,5 @@
 Webship JS has a ready step definitions for automated functional testing.
 
 ### Using:
-Nightwatch.js
-Cucumber-js
+* Nightwatch.js
+* Cucumber-js
