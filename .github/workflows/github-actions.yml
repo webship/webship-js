@@ -1,8 +1,7 @@
 name: github-actions
 on: [push]
 jobs:
-  container-job:
-
+    build:
       ## Setup Apache2 and PHP8.1
            name: Setup Apache2 and PHP8.1
            run: |
