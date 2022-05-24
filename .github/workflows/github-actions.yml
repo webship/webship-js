@@ -8,10 +8,6 @@ jobs:
       postgres:
         image: postgres
     steps:
-      - name: Check out repository code
-        uses: actions/checkout@v3
-      - name: Install dependencies
-        run: npm ci
 
       ## Setup Apache2 and PHP8.1
           name: Setup Apache2 and PHP8.1
@@ -33,7 +29,7 @@ jobs:
             echo -e "max_file_uploads = 40" | sudo tee /etc/php/8.1/apache2/php.ini > /dev/null
             sudo service apache2 restart
 
-       ## Install composer ~2
+      ## Install composer ~2
           name: Install composer ~2
           run: |
             sudo curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin/ --filename=composer --2;
