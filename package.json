@@ -20,10 +20,10 @@
   },
   "homepage": "https://github.com/webship/webship-js",
   "dependencies": {
-    "nightwatch": "~2",
     "@cucumber/cucumber": "*",
     "chromedriver": "*",
     "cucumber-pretty": "*",
-    "geckodriver": "*"
+    "geckodriver": "*",
+    "nightwatch": "^2.1.7"
   }
 }
