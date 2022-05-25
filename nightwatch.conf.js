@@ -39,25 +39,47 @@ module.exports = {
   },
 
   test_settings: {
-    default: {
-      disable_error_log: false,
-      launch_url: 'https://nightwatchjs.org',
-
-      screenshots: {
-        enabled: false,
-        path: 'screens',
-        on_failure: true
+      default: {
+        launch_url: "http://webshipjs.test",
+        selenium_port: 4444,
+        selenium_host: "127.0.0.1",
+        silent: true,
+        screenshots: {
+            enabled: true,
+            path: "./reports/screenshots"
+        },
+        
+        desiredCapabilities: {
+          browserName: 'chrome',
+          'goog:chromeOptions': {
+            // More info on Chromedriver: https://sites.google.com/a/chromium.org/chromedriver/
+            //
+            // w3c:false tells Chromedriver to run using the legacy JSONWire protocol (not required in Chrome 78)
+            w3c: false,
+            args: [
+              '--headless',
+              '--start-maximized',
+              '--disable-gpu',
+              '--window-size=1600,1200',
+              '--no-sandbox',
+              '--disable-dev-shm-usage',
+              '--disable-setuid-sandbox',
+              '--disable-web-security',
+              '--DNS-prefetch-disable',
+              '--disable-translate',
+              '--ignore-certificate-errors',
+              '--test-type',
+              '--disable-extensions',
+              '--incognito',
+              '--disable-infobars',
+              '--remote-debugging-port=9222',
+              '--allowed-ips=*',
+              '--whitelisted-ips=*',
+              '--allow-insecure-localhost'
+            ]
+          }
+        }
       },
-
-      desiredCapabilities: {
-        browserName: 'firefox'
-      },
-
-      webdriver: {
-        start_process: true,
-        server_path: ''
-      }
-    },
 
     safari: {
       desiredCapabilities: {

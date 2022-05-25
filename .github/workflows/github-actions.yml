@@ -7,6 +7,17 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    env:
+      TEST_BASE_URL: http://webshipjs.test
+      SELENIUM_HOST: http://selenium:4444/wd/hub
+
+    services:
+      selenium:
+        image: selenium/standalone-chrome
+        # options: --health-cmd "curl http://selenium:4444" --health-interval=5s
+        ports: 
+          - 4444:4444
+
     steps:
       - uses: actions/checkout@v3
       - name: Use Node.js
