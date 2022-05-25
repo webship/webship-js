@@ -1,4 +1,4 @@
-name: webship-js CI
+name: Webship-js CI
 
 on: [push]
 
