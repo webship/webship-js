@@ -2,3 +2,4 @@ node_modules
 *.log
 .vscode
 tests_output
+tests/reports/cucumber-report-*
