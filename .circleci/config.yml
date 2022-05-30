@@ -124,10 +124,25 @@ commands:
             cp -r /var/www/html/test/webship-js-code /var/www/html/test/webship-js
             cd /var/www/html/test/webship-js
 
-      ## Run webship-js.
+    jobs:
+  webship-js-testing:
+    <<: *defaults
+    steps:
+      - webship-js-build
+       ## Automated Functional Acceptance Testing
       - run:
-          name: Run webship-js
+          name: Automated Functional Acceptance Testing
+          no_output_timeout: 30m
           command: |
+            cd /var/www/html/test/webship-js
             yarn install
             yarn test
 
+workflows:
+  version: 2
+  webship-js-workflow:
+    jobs:
+      - webship-js-testing:
+          filters:
+            branches:
+              only: /^1.0.x/
