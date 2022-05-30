@@ -29,5 +29,5 @@ yarn i webship-js
 ## How to configure your project to test using webship-js step
 
 ```
-yarn i webship-js
+yarn test
 ```
