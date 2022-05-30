@@ -14,7 +14,7 @@ Webship JS has a ready step definitions for automated functional testing.
 All you need to know about [webship-js](https://webship.gitbook.io/webship-js-docs/).
 
 
-#Inatall Webship-js
+# Install Webship-js
 
 ```
 npm i webship-js
