@@ -126,7 +126,7 @@ commands:
 
     jobs:
   webship-js-testing:
-    <<: *defaults
+    <<: &defaults^
     steps:
       - webship-js-build
        ## Automated Functional Acceptance Testing
