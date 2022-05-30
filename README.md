@@ -10,12 +10,18 @@ Webship JS has a ready step definitions for automated functional testing.
 * Cucumber-js
 
 
-### Document
+### Webship-js Documentations
 All you need to know about [webship-js Docs](https://webship.gitbook.io/webship-js-docs/).
 
 
-# Install Webship-js
+# How to install using NPM
 
 ```
 npm i webship-js
+```
+
+# How to install using Yarn
+
+```
+yarn i webship-js
 ```
