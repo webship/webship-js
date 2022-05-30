@@ -1,7 +1,7 @@
 version: 2.1
 defaults: &defaults
 commands:
-  Webship-js-build:
+  Webship_js-build:
     steps:
       - checkout         
       ## Usefull must have utils.
