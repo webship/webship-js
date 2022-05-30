@@ -14,13 +14,19 @@ Webship JS has a ready step definitions for automated functional testing.
 All you need to know about [webship-js Docs](https://webship.gitbook.io/webship-js-docs/).
 
 
-# How to install using NPM
+## How to install using NPM
 
 ```
 npm i webship-js
 ```
 
-# How to install using Yarn
+## How to install using Yarn
+
+```
+yarn i webship-js
+```
+
+## How to configure your project to test using webship-js step
 
 ```
 yarn i webship-js
