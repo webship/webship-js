@@ -1,12 +1,17 @@
-image: node:latest
+default:
+  image: node:16
 
 stages:
   - build-test
+
+services:
+  - selenium/standalone-chrome
 
 local_integration_test:
   stage: build-test  
   script:
     - npm install
+    - npm run test:ci --host=selenium__standalone-chrome
     - npm test
     
  
