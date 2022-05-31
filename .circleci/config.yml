@@ -79,6 +79,8 @@ commands:
               name: Automated Functional Acceptance Testing
               no_output_timeout: 30m
               command: |
+                pwd
+                ll
                 yarn install
                 yarn test
 
