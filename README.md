@@ -26,8 +26,48 @@ npm i webship-js
 yarn i webship-js
 ```
 
-## How to configure your project to test using webship-js step
+## How to configure your project to test using webship-js steps
+
+### Install node js and yarn
 
 ```
-yarn test
+sudo apt install nodejs
+sudo npm install yarn
 ```
+
+### Install Java
+
+```
+sudo apt install java
+```
+
+### Download Latest Chrome Driver
+
+```
+CHROME_DRIVER_VERSION=$(wget -qO- chromedriver.storage.googleapis.com/LATEST_RELEASE);
+echo $CHROME_DRIVER_VERSION;
+wget http://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip
+unzip chromedriver_linux64.zip
+chmod +x chromedriver
+mkdir -p $HOME/.composer/vendor/bin
+mv -f chromedriver $HOME/.composer/vendor/bin/
+rm chromedriver_linux64.zip
+```
+
+### Install/Update Chrome Driver
+
+```
+export CHROME_BIN=/usr/bin/google-chrome
+wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+sudo apt-get clean
+sudo apt-get update
+sudo apt-get install dpkg
+sudo dpkg -i google-chrome-stable_current_amd64.deb
+rm google-chrome-stable_current_amd64.deb
+google-chrome --version
+```
+
+### Run selenium standalone server
+
+
+
