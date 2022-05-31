@@ -1,8 +1,16 @@
 image: node:latest
 stages:
   - build-test
+  
+e2e:chrome:
+  stage: confidence-check
+  services:
+    - selenium/standalone-chrome
+  script:
+    - npm run confidence-check --host=selenium__standalone-chrome
+
 local_integration_test:
-  stage: build-test
+  stage: build-test  
   script:
     - npm install
     - node server.js &
