@@ -5,10 +5,9 @@ defaults: &defaults
       auth:
         username: mydockerhub-user
         password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
-commands:
-  webship-js-build:
     steps:
       - checkout         
+      
       ## Usefull must have utils.
       - run:
           name: Usefull must have utils
@@ -17,7 +16,12 @@ commands:
             sudo apt -qqy upgrade
             sudo apt -yqq install vim links lynx git diffutils htop curl wget p7zip-full unzip zip sed gcc g++ make libfreetype6-dev libaio1 libaio-dev libonig-dev libpng-dev
             sudo apt -yqq install xvfb libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 libnss3
-
+      
+      ## Download Selenium.
+      - run:
+          name: Download Selenium
+          command: curl -O http://selenium-release.storage.googleapis.com/3.5/selenium-server-standalone-3.5.3.jar
+      
       ## Configure and run the virtual display.
       - run:
           name: Configure and run the virtual display.
@@ -69,11 +73,8 @@ commands:
 
       ## Run Selenium Standalone server.
       - run:
-          name: Run Selenium Standalone server
-          command: |
-            if [[ ! -f /home/circleci/selenium-server-standalone-3.141.59.jar ]]; then wget -O /home/circleci/selenium-server-standalone-3.141.59.jar https://github.com/SeleniumHQ/selenium/releases/download/selenium-3.141.59/selenium-server-standalone-3.141.59.jar; fi
-            cd /home/circleci/
-            java -jar selenium-server-standalone-3.141.59.jar -port 4444
+          name: Start Selenium
+          command: java -jar selenium-server-standalone-3.5.3.jar -log test-reports/selenium.log
           background: true
   
 jobs:
