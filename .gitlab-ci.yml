@@ -4,14 +4,35 @@ default:
 stages:
   - build-test
 
-services:
-  - selenium/standalone-chrome
+variables:
+  BROWSER: chrome
+
+.job_template:
+  before_script:
+    - pip3 install -r requirements.txt
+  script:
+    - pytest --browser=$BROWSER --local='false'
+
+e2e:remote:chrome:
+  extends: .job_template
+  services:
+    - selenium/standalone-chrome
+  only:
+    variables:
+      - $BROWSER == 'chrome'
+
+e2e:remote:firefox:
+  extends: .job_template
+  services:
+    - selenium/standalone-firefox
+  only:
+    variables:
+      - $BROWSER == 'firefox'
 
 local_integration_test:
   stage: build-test  
   script:
     - npm install
-    - npm run test:ci --host=selenium__standalone-chrome
     - npm test
     
  
