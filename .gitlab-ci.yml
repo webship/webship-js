@@ -2,25 +2,17 @@ image: node:latest
 
 stages:
   - build-test
-  - deploy
-  - confidence-check
-deploy_terraform:
-  stage: deploy
+  
+UI Pytest Chrome:
+  stage: Test Pytest
+  before_script:
+    - make install
   script:
-    # Your Review App deployment scripts - for a working example please check https://gitlab.com/Flockademic/Flockademic/blob/5a45f1c2412e93810fab50e2dab8949e2d0633c7/.gitlab-ci.yml#L315
-    - echo
-e2e:firefox:
-  stage: confidence-check
+    - pytest -vvv --driver Remote --capability browserName chrome --host selenium --port 4444 tests/pytest/test_SeleniumPytest.py
   services:
-    - selenium/standalone-firefox
-  script:
-    - npm run confidence-check --host=selenium__standalone-firefox
-e2e:chrome:
-  stage: confidence-check
-  services:
-    - selenium/standalone-chrome
-  script:
-    - npm run confidence-check --host=selenium__standalone-chrome
+    - name: selenium/standalone-chrome
+      alias: selenium
+
 
 local_integration_test:
   stage: build-test  
