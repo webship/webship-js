@@ -2,13 +2,14 @@ image: node:latest
 
 stages:
   - build-test
-
-
-e2e:chrome:
-  stage: e2e
-  script: 
-    - npm install 
-    - npm test 
-  services:
-    - selenium/standalone-chrome
+services:
+  - selenium/standalone-chrome
+  
+local_integration_test:
+  stage: build-test  
+  script:
+    - npm run confidence-check --host=selenium__standalone-chrome
+    - npm install
+    - npm test
+    
  
