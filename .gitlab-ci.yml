@@ -2,12 +2,13 @@ image: node:latest
 
 stages:
   - build-test
-  
-local_integration_test:
-  stage: build-test  
-  script:
-    - npm install
-    - node server.js &
-    - npm test
+
+
+e2e:chrome:
+  stage: e2e
+  script: 
+    - npm install 
+    - npm test 
   services:
     - selenium/standalone-chrome
+ 
