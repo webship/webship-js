@@ -285,7 +285,7 @@ module.exports = {
       // Selenium Server is running locally and is managed by Nightwatch
       selenium: {
         start_process: true,
-        port: 4444,
+        port: process.env.SELENIUM_PORT,
         server_path: (Services.seleniumServer ? Services.seleniumServer.path : ''),
         cli_args: {
           'webdriver.gecko.driver': (Services.geckodriver ? Services.geckodriver.path : ''),
