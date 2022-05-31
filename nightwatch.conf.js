@@ -41,7 +41,7 @@ module.exports = {
   test_settings: {
       default: {
         launch_url: "http://webship.co",
-        selenium_port: 4444,
+        selenium_port: process.env.SELENIUM_PORT,
         selenium_host: process.env.SELENIUM_HOST,
         silent: true,
         screenshots: {
