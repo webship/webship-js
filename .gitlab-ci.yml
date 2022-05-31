@@ -1,19 +1,12 @@
-image: markhobson/maven-chrome:jdk-17
+image: node:latest
 
 stages:
-  - build
-  - test
+  - build-test
 
-variables:
-  MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
-
-build:
-  stage: build
+local_integration_test:
+  stage: build-test  
   script:
-    - mvn $MAVEN_OPTS clean package
-    - mvn compile
-
-test:
-  stage: test
-  script:
-    - mvn test
+    - npm install
+    - npm test
+    
+ 
