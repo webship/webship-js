@@ -1,15 +1,19 @@
-image: node:latest
+image: markhobson/maven-chrome:jdk-17
 
 stages:
-  - build-test
-services:
-  - selenium/standalone-chrome
-  
-local_integration_test:
-  stage: build-test  
+  - build
+  - test
+
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+
+build:
+  stage: build
   script:
-    - npm run confidence-check --host=selenium__standalone-chrome
-    - npm install
-    - npm test
-    
- 
+    - mvn $MAVEN_OPTS clean package
+    - mvn compile
+
+test:
+  stage: test
+  script:
+    - mvn test
