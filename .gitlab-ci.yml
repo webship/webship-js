@@ -1,20 +1,11 @@
 image: node:latest
+
+variables:
+  selenium_remote_url: "http://gitlab-selenium-server:4444/wd/hub"
+
 stages:
   - build-test
-
-e2e:firefox:
-  stage: confidence-check
-  services:
-    - selenium/standalone-firefox
-  script:
-    - npm run confidence-check --host=http://selenium:4444/wd/hub
-e2e:chrome:
-  stage: confidence-check
-  services:
-    - selenium/standalone-chrome
-  script:
-    - npm run confidence-check --host=http://selenium:4444/wd/hub
-
+  
 local_integration_test:
   stage: build-test  
   script:
