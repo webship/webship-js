@@ -41,8 +41,8 @@ module.exports = {
   test_settings: {
       default: {
         launch_url: "http://webship.co",
-        selenium_port: process.env.SELENIUM_PORT,
-        selenium_host: process.env.SELENIUM_HOST,
+        selenium_port: 4444,
+        selenium_host: "127.0.0.1:4444",
         silent: true,
         screenshots: {
             enabled: true,
@@ -285,7 +285,7 @@ module.exports = {
       // Selenium Server is running locally and is managed by Nightwatch
       selenium: {
         start_process: true,
-        port: process.env.SELENIUM_PORT,
+        port: 4444,
         server_path: (Services.seleniumServer ? Services.seleniumServer.path : ''),
         cli_args: {
           'webdriver.gecko.driver': (Services.geckodriver ? Services.geckodriver.path : ''),
