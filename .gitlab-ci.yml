@@ -4,20 +4,21 @@ default:
 stages:
   - build-test
 
-services:
-    - name: selenium/standalone-chrome:latest
-    - name: selenium/standalone-firefox:latest
-
-variables:
-  selenium_port: 4444
-  selenium_host: "http://selenium:4444/wd/hub"
-  ports: -4444:4444
+e2e:firefox:
+  stage: testwdio
+  before_script:
+    - cd wdioTests
+  services:
+    - selenium/standalone-firefox:latest
+  script:
+    - npm install
+    - npm run testwdio --host=selenium__standalone-firefox
 
 
 local_integration_test:
   stage: build-test  
   script:
-    - npm install
-    - npm test
+    - yarn install
+    - yarn test
     
  
