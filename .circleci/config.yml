@@ -1,6 +1,6 @@
 version: 2.1
 commands:
-  wbship-js-build:
+  webship-js-build:
     steps:
       - checkout         
       ## Usefull must have utils.
@@ -71,9 +71,9 @@ commands:
           background: true
   
     jobs:
-      Webship-js-testing:
+      webship-js-testing:
         steps:
-          - Webship-js-build
+          - webship-js-build
           ## Automated Functional Acceptance Testing
           - run:
               name: Automated Functional Acceptance Testing
