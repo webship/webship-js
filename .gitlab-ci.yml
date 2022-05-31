@@ -1,4 +1,5 @@
-image: node:8.10
+
+image: node:latest
 stages:
   - deploy
   - confidence-check
