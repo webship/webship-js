@@ -1,5 +1,10 @@
 version: 2.1
 defaults: &defaults
+  docker:
+    - image: cimg/base:stable-20.04
+      auth:
+        username: mydockerhub-user
+        password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
 commands:
   webship-js-build:
     steps:
