@@ -4,10 +4,14 @@ default:
 stages:
   - build-test
 
+
+services:
+  - selenium/standalone-chrome
+
+
 local_integration_test:
   stage: build-test  
   script:
-    - selenium/standalone-chrome
     - npm install
     - npm test
     
