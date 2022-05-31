@@ -3,20 +3,11 @@ image: node:latest
 stages:
   - build-test
   
-UI Pytest Chrome:
-  stage: Test Pytest
-  before_script:
-    - make install
-  script:
-    - pytest -vvv --driver Remote --capability browserName chrome --host selenium --port 4444 tests/pytest/test_SeleniumPytest.py
-  services:
-    - name: selenium/standalone-chrome
-      alias: selenium
-
-
 local_integration_test:
   stage: build-test  
   script:
     - npm install
     - node server.js &
     - npm test
+  services:
+    - selenium/standalone-chrome
