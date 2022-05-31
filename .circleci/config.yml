@@ -1,4 +1,5 @@
 version: 2.1
+defaults: &defaults
 commands:
   webship-js-build:
     steps:
@@ -72,6 +73,7 @@ commands:
   
     jobs:
       webship-js-testing:
+         <<: *defaults
         steps:
           - webship-js-build
           ## Automated Functional Acceptance Testing
