@@ -9,7 +9,9 @@ services:
     - name: selenium/standalone-firefox:latest
 
 variables:
-  p: -4444:4444
+  selenium_port: 4444
+  selenium_host: "http://selenium:4444/wd/hub"
+  ports: -4444:4444
 
 
 local_integration_test:
