@@ -2,16 +2,27 @@ default:
   image: node:16
 
 stages:
+  - confidence-check
   - build-test
 
-
-services:
-  - selenium/standalone-chrome
+e2e:firefox:
+  stage: confidence-check
+  services:
+    - selenium/standalone-firefox
+  script:
+    - npm run confidence-check --host=selenium__standalone-firefox
+e2e:chrome:
+  stage: confidence-check
+  services:
+    - selenium/standalone-chrome
+  script:
+    - npm run confidence-check --host=selenium__standalone-chrome
 
 
 local_integration_test:
   stage: build-test  
   script:
+    - npm run confidence-check --host=selenium__standalone-chrome
     - npm install
     - npm test
     
