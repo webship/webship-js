@@ -1,14 +1,14 @@
 
-image: docker
+image: node:16
 
 services:
   - selenium/standalone-chrome:latest
 
-stages:
-  - build-test
-
 variables:
   SELENIUM_URL: "http://selenium__standalone-chrome:4444/wd/hub"
+
+stages:
+  - build-test
 
 local_integration_test:
   stage: build-test  
