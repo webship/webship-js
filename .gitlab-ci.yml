@@ -1,25 +1,8 @@
-default:
-  image: node:16
-
-before_script:
-  - |
-    cd /builds/qarachit/protractor-selenium-sample-gitlab
-    wget https://s3.amazonaws.com/lambda-tunnel/LT_Linux.zip
-    #Extracting tunnel binary
-    sudo apt-get install unzip
-    unzip LT_Linux.zip
-    #Executing tunnel library
-    ./LT -user ${LAMBDATEST_EMAIL} -key ${LAMBDATEST_KEY} &
-    sleep 30
-    #Installing Dependencies
-    echo 'export LT_USERNAME="{your_lambdatest_username}"' >> ~/.bashrc
-    echo 'export LT_ACCESS_KEY="{your_lambda_access_key}"' >> ~/.bashrc
-    npm install
-    npm install -g protractor
-  
-job:
+e2e_tests:
+  # Replace '10.14' with the latest Node.js LTS version
+  # available on Docker Hub
+  image: circleci/node:10.14-browsers
+  before_script:
+    - npm install
   script:
-    #Running Test!
-    protractor single.conf.js
-    npm test
- 
+    - npm test
