@@ -1,8 +1,24 @@
-e2e_tests:
-  # Replace '10.14' with the latest Node.js LTS version
-  # available on Docker Hub
-  image: circleci/node:10.14-browsers
-  before_script:
-    - npm install
+default:
+  image: node:16
+
+services:
+  - postgres:latest
+  - selenium/standalone-chrome:latest
+
+stages:
+  - build-test
+
+variables:
+  POSTGRES_DB: "test_db"
+  POSTGRES_USER: "runner"
+  POSTGRES_PASSWORD: ""
+  RAILS_ENV: "test"
+  SELENIUM_URL: "http://selenium__standalone-chrome:4444/wd/hub"
+
+local_integration_test:
+  stage: build-test  
   script:
-    - npm test
+    - yarn install
+    - yarn test
+    
+ 
