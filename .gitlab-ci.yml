@@ -1,24 +1,25 @@
 default:
   image: node:16
 
-variables:
-   HUB_PORT_4444_TCP_ADDR: "selenium__hub"
-   HUB_PORT_4444_TCP_PORT: "4444"
-services:
-   - selenium/hub:latest
-   - selenium/node-phantomjs:latest
-
-stages:
-   - test
-test:
-   stage: test
-   before_script:
-     - apt-get update
-     - apt-get install -y default-jdk default-jre
-     - node ./node_modules/protractor/bin/webdriver-manager update
-   script:
-     - ./node_modules/.bin/protractor protractor.ci.conf.js
-     - npm install
-     - npm test
-    
+before_script:
+  - |
+    cd /builds/qarachit/protractor-selenium-sample-gitlab
+    wget https://s3.amazonaws.com/lambda-tunnel/LT_Linux.zip
+    #Extracting tunnel binary
+    sudo apt-get install unzip
+    unzip LT_Linux.zip
+    #Executing tunnel library
+    ./LT -user ${LAMBDATEST_EMAIL} -key ${LAMBDATEST_KEY} &
+    sleep 30
+    #Installing Dependencies
+    echo 'export LT_USERNAME="{your_lambdatest_username}"' >> ~/.bashrc
+    echo 'export LT_ACCESS_KEY="{your_lambda_access_key}"' >> ~/.bashrc
+    npm install
+    npm install -g protractor
+  
+job:
+  script:
+    #Running Test!
+    protractor single.conf.js
+    npm test
  
