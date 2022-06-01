@@ -2,17 +2,12 @@ default:
   image: node:16
 
 services:
-  - postgres:latest
   - selenium/standalone-chrome:latest
 
 stages:
   - build-test
 
 variables:
-  POSTGRES_DB: "test_db"
-  POSTGRES_USER: "runner"
-  POSTGRES_PASSWORD: ""
-  RAILS_ENV: "test"
   SELENIUM_URL: "http://selenium__standalone-chrome:4444/wd/hub"
 
 local_integration_test:
