@@ -13,8 +13,7 @@ variables:
 local_integration_test:
   stage: build-test  
   script:
-    - yarn install
-    - yarn install Node.js
-    - yarn test
+    - npm install
+    - npm test
     
  
