@@ -4,16 +4,13 @@ default:
 stages:
   - build-test
 
-e2e:firefox:
-  stage: testwdio
-  before_script:
-    - cd wdioTests
-  services:
-    - selenium/standalone-firefox:latest
-  script:
-    - npm install
-    - npm run testwdio --host=selenium__standalone-firefox
-
+Regression_Suite:
+     stage: test
+     tags:
+       - selenium
+     script:
+       - echo "Env = $env",  "Suite = $suite" , "Browser = $browser"
+       - mvn clean install -Denv="$env" -Dsuite="$suite"
 
 local_integration_test:
   stage: build-test  
