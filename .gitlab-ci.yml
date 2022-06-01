@@ -1,9 +1,20 @@
-image: maven:latest
+
+image: docker
+
+services:
+  - selenium/standalone-chrome:latest
+
 stages:
-  - test
-test:
-  stage: test
+  - build-test
+
+variables:
+  SELENIUM_URL: "http://selenium__standalone-chrome:4444/wd/hub"
+
+local_integration_test:
+  stage: build-test  
   script:
-    - mvn clean test -Dtest=RunCucumberTest
-    - npm install
-    - npm test
+    - yarn install
+    - yarn install Node.js
+    - yarn test
+    
+ 
