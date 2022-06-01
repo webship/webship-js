@@ -1,16 +1,15 @@
 default:
   image: node:16
 
+variables:
+   HUB_PORT_4444_TCP_ADDR: "selenium__hub"
+   HUB_PORT_4444_TCP_PORT: "4444"
+services:
+   - selenium/hub:latest
+   - selenium/node-phantomjs:latest
+
 stages:
   - build-test
-
-Regression_Suite:
-     stage: test
-     tags:
-       - selenium
-     script:
-       - echo "Env = $env",  "Suite = $suite" , "Browser = $browser"
-       - mvn clean install -Denv="$env" -Dsuite="$suite"
 
 local_integration_test:
   stage: build-test  
