@@ -1,19 +1,9 @@
-default:
-  image: node:16
-
-services:
-  - selenium/standalone-chrome:latest
-
+image: maven:latest
 stages:
-  - build-test
-
-variables:
-  SELENIUM_URL: "http://selenium__standalone-chrome:4444/wd/hub"
-
-local_integration_test:
-  stage: build-test  
+  - test
+test:
+  stage: test
   script:
-    - yarn install
-    - yarn test
-    
- 
+    - mvn clean test -Dtest=RunCucumberTest
+    - npm install
+    - npm test
