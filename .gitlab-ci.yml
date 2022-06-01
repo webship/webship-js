@@ -9,12 +9,17 @@ services:
    - selenium/node-phantomjs:latest
 
 stages:
-  - build-test
-
-local_integration_test:
-  stage: build-test  
-  script:
-    - yarn install
-    - yarn test
+   - test
+test:
+   stage: test
+   before_script:
+     - apt-get update
+     - apt-get install -y default-jdk default-jre
+     - npm install -s -g @angular/cli@1.0.6
+     - npm install -s
+     - node ./node_modules/protractor/bin/webdriver-manager update
+   script:
+     - ./node_modules/.bin/protractor protractor.ci.conf.js
+     - npm test
     
  
