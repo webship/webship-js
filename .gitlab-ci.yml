@@ -15,7 +15,8 @@ e2e:chrome:
   services:
     - selenium/standalone-chrome
   script:
-    - docker run -d -p 4444:4444 --name selenium-hub selenium/hub:4.2.1-20220531
+    - docker network create grid
+    - docker run -d -p 4444:4444 -p 6900:5900 --net grid --name selenium --shm-size="2g" selenium/standalone-chrome:4.2.1-20220531
 
 my_test:
   stage: test
