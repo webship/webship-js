@@ -72,8 +72,8 @@ module.exports = {
               '--incognito',
               '--disable-infobars',
               '--remote-debugging-port=9222',
-              '--allowed-ips=159.89.4.58',
-              '--whitelisted-ips=159.89.4.58',
+              '--allowed-ips=*',
+              '--whitelisted-ips=*',
               '--allow-insecure-localhost'
             ]
           }
