@@ -1,25 +1,13 @@
-image: node:16
+image: node:16.0
 stages:
-  - deploy
   - confidence-check
-  - test
-
-deploy_terraform:
-  stage: deploy
-  script:
-    # Your Review App deployment scripts - for a working example please check https://gitlab.com/Flockademic/Flockademic/blob/5a45f1c2412e93810fab50e2dab8949e2d0633c7/.gitlab-ci.yml#L315
-    - echo
 
 e2e:chrome:
   stage: confidence-check
   services:
     - selenium/standalone-chrome
-  script:
-    - npm install
-    - npm run confidence-check --host=selenium__standalone-chrome -p 4444:4444
-
-my_test:
-  stage: test
+  before_script:
+    - pip3 install -r requirements.txt
   script:
     - yarn install
     - yarn test
