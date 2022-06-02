@@ -11,6 +11,6 @@ test:
 
     script:
     - npm install
-    - npm run confidence-check --host=selenium__standalone-chrome
+    - npm run http://selenium:4444/wd/hub --host=selenium__standalone-chrome
     - yarn install
     - yarn test
