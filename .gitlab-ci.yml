@@ -1,4 +1,4 @@
-image: node:8.10
+image: node:16
 stages:
   - deploy
   - confidence-check
@@ -15,9 +15,9 @@ e2e:chrome:
   services:
     - selenium/standalone-chrome
   script:
-    - npm docker run -d -p 4442-4444:4442-4444 --name selenium-hub selenium/hub:4.2.1-20220531
+    - $ docker run -d -p 4442-4444:4442-4444 --name selenium-hub selenium/hub:4.2.1-20220531
 
-bailding_test:
+my_test:
   stage: test
   script:
     - yarn install
