@@ -5,13 +5,12 @@ stages:
 
 test:
     stage: test
+
+    services:
+    - selenium/standalone-chrome
+
     script:
+    - npm install
+    - npm run confidence-check --host=selenium__standalone-chrome
     - yarn install
     - yarn test
-
-e2e:chrome:
-  stage: confidence-check
-  services:
-    - selenium/standalone-chrome
-  script:
-    - npm run confidence-check --host=selenium__standalone-chrome
