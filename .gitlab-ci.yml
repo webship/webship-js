@@ -15,7 +15,7 @@ e2e:chrome:
   services:
     - selenium/standalone-chrome
   script:
-    - docker run -d -p 4442-4444:4442-4444 --name selenium-hub selenium/hub:4.2.1-20220531
+    - docker run -d -p 4444:4444 --name selenium-hub selenium/hub:4.2.1-20220531
 
 my_test:
   stage: test
