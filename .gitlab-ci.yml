@@ -1,19 +1,19 @@
 image: node:16
 stages:
   - test
+  - confidence-check
+    
+e2e:chrome:
+  stage: confidence-check
+  services:
+    - selenium/standalone-chrome
+  script:
+    - npm install selenium-assistant --save-dev
+    - npm install chromedriver --save-dev
+    - npm run confidence-check --host=selenium__standalone-chrome
 
 test:
     stage: test
-
-    services:
-    - selenium/standalone-chrome:latest
-
-    variables:
-     selenium_remote_url: "http://selenium__standalone-chrome:4444/wd/hub/"
-
     script:
-    - npm install selenium-assistant --save-dev
-    - npm install chromedriver --save-dev
-    - java -jar selenium-server-standalone-3.141.59.jar -port 4444
     - yarn install
     - yarn test
