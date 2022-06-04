@@ -12,7 +12,6 @@ test:
       SELENIUM_URL: "http://selenium__standalone-chrome:4444/wd/hub/"
 
     before_script:
-      - bundle install #Install the required gems
       - export SELENIUM_ENV=remote
 
     script:
