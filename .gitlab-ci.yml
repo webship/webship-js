@@ -1,7 +1,7 @@
 image: node:16
 stages:
   - deploy
-  - e2e
+  - confidence-check
   - test
 
 deploy_terraform:
@@ -11,12 +11,17 @@ deploy_terraform:
     - echo
     
 e2e:chrome:
-  stage: e2e
-  script: 
-    - npm install --prefix nightwatchE2E/
-    - npm test --prefix nightwatchE2E/ -- --env ci
+  stage: confidence-check
   services:
-    - selenium/standalone-chrome
+    - selenium/standalone-chrome:latest
+
+  before_script:
+    - npm install
+
+  script:
+    - npm install selenium-assistant --save-dev
+    - npm install chromedriver --save-dev
+    - npm run confidence-check --host=http://selenium:4444/wd/hub
 
 test:
     stage: test
