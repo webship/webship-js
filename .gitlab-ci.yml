@@ -14,9 +14,10 @@ e2e:chrome:
   stage: confidence-check
   services:
     - selenium/standalone-chrome
-  dependencies:
-   - prepare
   script:
+    - npm install
+    - npm install selenium-assistant --save-dev
+    - npm install chromedriver --save-dev
     - if [[ $CI_COMMIT_REF_NAME == $BRANCH_IN_MAINTENANCE ]]; then echo 'Running checks in maintenance mode.'; export MAINTENANCE_MODE=true; fi;
     - npm run confidence-check --host=selenium__standalone-chrome
 
