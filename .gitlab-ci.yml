@@ -6,13 +6,10 @@ test:
     stage: test
 
     services:
-    - selenium/standalone-chrome:3.8.1
+    - selenium/standalone-chrome:latest
 
     variables:
-      SELENIUM_URL: "http://selenium__standalone-chrome:4444/wd/hub/"
-
-    before_script:
-      - export SELENIUM_ENV=remote
+     selenium_remote_url: "http://selenium__standalone-chrome:4444/wd/hub/"
 
     script:
     - yarn install
