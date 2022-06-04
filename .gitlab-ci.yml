@@ -1,7 +1,6 @@
 image: node:16
 stages:
   - test
-  - confidence-check
 
 test:
     stage: test
@@ -10,7 +9,6 @@ test:
     - selenium/standalone-chrome
 
     script:
-    - npm install
-    - npm run http://selenium:4444/wd/hub --host=selenium__standalone-chrome
     - yarn install
+    - yarn run http://selenium:4444/wd/hub --host=selenium__standalone-chrome
     - yarn test
