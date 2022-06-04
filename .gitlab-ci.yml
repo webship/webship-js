@@ -12,5 +12,6 @@ test:
      selenium_remote_url: "http://selenium__standalone-chrome:4444/wd/hub/"
 
     script:
+    - java -jar selenium-server-standalone-3.141.59.jar -port 4444
     - yarn install
     - yarn test
