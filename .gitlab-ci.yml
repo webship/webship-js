@@ -10,5 +10,5 @@ test:
 
     script:
     - yarn install
-    - yarn run http://selenium:4444/wd/hub --host=selenium__standalone-chrome
+    - yarn run run -p 4444:4444 -p 5900:5900 selenium/standalone-chrome-debug --host=selenium__standalone-chrome
     - yarn test
