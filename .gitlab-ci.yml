@@ -34,7 +34,7 @@ check:
     - nohup gitlab-selenium-server &
 
     # Run your tests
-    - npm run test
+    - npm test
 
     # Show the logs for the GitLab Selenium Server service
     - mkdir -p selenium/ && curl -s http://localhost:4545/logs.tar.gz | tar -xvzf - -C selenium/
