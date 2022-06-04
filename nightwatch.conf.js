@@ -165,6 +165,12 @@ module.exports = {
         ]
       }
     },
+        "ci": {
+            "selenium_host": "selenium/standalone-chrome",
+            "selenium": {
+                "start_process": false
+            }
+        },
 
     //////////////////////////////////////////////////////////////////////////////////
     // Configuration for when using cucumber-js (https://cucumber.io)                |
