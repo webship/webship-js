@@ -1,24 +1,40 @@
-default:
-  image: node:16
-
+image: node:16
 stages:
-  - build-test
+  - deploy
+  - confidence-check
+  - test
 
-e2e:firefox:
-  stage: testwdio
-  before_script:
-    - cd wdioTests
+deploy_terraform:
+  stage: deploy
+  script:
+    # Your Review App deployment scripts - for a working example please check https://gitlab.com/Flockademic/Flockademic/blob/5a45f1c2412e93810fab50e2dab8949e2d0633c7/.gitlab-ci.yml#L315
+    - echo
+
+install:
+  image: docker:stable
+  script:
+    - docker run -d -p 4444:4444 -v /dev/shm:/dev/shm selenium/standalone-firefox:4.0.0-beta-4-prerelease-20210527
+    - docker run -d -p 4444:4444 -v /dev/shm:/dev/shm selenium/standalone-chrome:4.0.0-beta-4-prerelease-20210527
+  artifacts:
+    paths:
+      - test
+
+e2e:chrome:
+  stage: confidence-check
   services:
-    - selenium/standalone-firefox:latest
-  script:
+    - selenium/standalone-chrome:latest
+
+  before_script:
     - npm install
-    - npm run testwdio --host=selenium__standalone-firefox
 
-
-local_integration_test:
-  stage: build-test  
   script:
+    - npm install selenium-assistant --save-dev
+    - npm install chromedriver --save-dev
+    - if [[ $CI_COMMIT_REF_NAME == $BRANCH_IN_MAINTENANCE ]]; then echo 'Running checks in maintenance mode.'; export MAINTENANCE_MODE=true; fi;
+    - npm run confidence-check --host=selenium__standalone-chrome
+
+test:
+    stage: test
+    script:
     - yarn install
     - yarn test
-    
- 
