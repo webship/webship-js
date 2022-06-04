@@ -6,9 +6,15 @@ test:
     stage: test
 
     services:
-    - selenium/standalone-chrome
+    - selenium/standalone-chrome:3.8.1
+
+    variables:
+      SELENIUM_URL: "http://selenium__standalone-chrome:4444/wd/hub/"
+
+    before_script:
+      - bundle install #Install the required gems
+      - export SELENIUM_ENV=remote
 
     script:
     - yarn install
-    - yarn run run -p 4444:4444 -p 5900:5900 selenium/standalone-chrome-debug --host=selenium__standalone-chrome
     - yarn test
