@@ -2,7 +2,6 @@ image: node:16
 
 stages:
   - check
-  - test
 
 check:
   stage: check
@@ -33,6 +32,8 @@ check:
     - nohup chromedriver --port=4444 --url-base=wd/hub &
     - nohup gitlab-selenium-server &
 
+    - npm i @cucumber/cucumber
+
     # Run your tests
     - npm test
 
@@ -47,8 +48,3 @@ check:
     SELENIUM_REMOTE_URL: http://localhost:4545/wd/hub
     GITLAB_TARGET_SELENIUM_REMOTE_URL: http://localhost:4444/wd/hub
 
-test:
-    stage: test
-    script:
-    - yarn install
-    - yarn test
