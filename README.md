@@ -2,6 +2,7 @@
 
 [![Webship-js CI](https://github.com/webship/webship-js/actions/workflows/github-actions.yml/badge.svg?branch=1.0.x)](https://github.com/webship/webship-js/actions)
 [![CircleCI](https://circleci.com/gh/webship/webship-js/tree/1.0.x.svg?style=svg)](https://circleci.com/gh/webship/webship-js/tree/1.0.x)
+[![pipeline status](https://gitlab.com/webship/webship-js/badges/master/pipeline.svg)](https://gitlab.com/webship/webship-js/commits/master)
 
 Webship JS has a ready step definitions for automated functional testing.
 
