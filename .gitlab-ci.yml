@@ -31,7 +31,7 @@ check:
     # The `&` at the end causes it to run in the background and not block the following commands
     - nohup chromedriver --port=4444 --url-base=wd/hub &
     - nohup gitlab-selenium-server &
-
+    # Install cucumber
     - npm i @cucumber/cucumber
 
     # Run your tests
