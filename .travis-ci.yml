@@ -1,0 +1,27 @@
+dist: trusty
+language: java
+ 
+jdk:
+  - openjdk-11-jre
+ 
+before_script:
+  - docker run -d -p 4444:4444 -v /dev/shm:/dev/shm selenium/standalone-firefox:4.0.0-rc-1-prerelease-20210618
+  - docker ps
+ 
+script:
+  - mvn clean install -DsuiteXmlFile=testng.xml -Dbrowser=GRID_FIREFOX -DgridHubURL=http://localhost:4444/wd/hub
+ 
+cache:
+  directories:
+    - .autoconf
+    - $HOME/.m2
+ 
+deploy:
+  provider: releases
+  api_key: ${api_key}
+  skip_cleanup: true
+  file: [ "target/surefire-reports/emailable-report.html",
+          "target/surefire-reports/index.html" ]
+  on:
+    all_branches: true
+    tags: false
