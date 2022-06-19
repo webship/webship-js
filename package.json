@@ -21,9 +21,8 @@
         "tag":["green"]
   },
   "scripts": {
-    "webship-theme": "{\"theme\":{\"datatable border\":[\"green\"],\"datatable content\":[\"green\",\"italic\"],\"docstring content\":[\"green\",\"italic\"],\"docstring delimiter\":[\"green\"],\"feature description\":[\"green\"],\"feature keyword\":[\"bold\",\"green\"],\"rule keyword\":[\"yellow\"],\"scenario keyword\":[\"greenBright\"],\"scenario name\":[\"green\",\"underline\"],\"step keyword\":[\"bgGreen\",\"black\",\"italic\"],\"step text\":[\"greenBright\",\"italic\"],\"tag\":[\"green\"]}}",
 
-    "test": "nightwatch --format @cucumber/pretty-formatter --format-options '{\"colorsEnabled\": true}' --format json:./tests/reports/cucumber-report-$( date '+%Y-%m-%d_%H-%M' ).json --format html:./tests/reports/cucumber-report-$( date '+%Y-%m-%d_%H-%M' ).html"
+    "test": "nightwatch --format @cucumber/pretty-formatter --format-options '{\"colorsEnabled\": true}' --format-options '{\"theme\": {\"feature description\":[\"blueBright\"],\"feature keyword\":[\"bold\",\"blue\"],\"feature name\":[\"magenta\",\"underline\"],\"scenario keyword\":[\"bold\",\"magenta\"],\"scenario name\":[\"magenta\",\"underline\"],\"step keyword\":[\"bold\",\"green\"],\"step text\":[\"greenBright\",\"italic\"]}}' --format json:./tests/reports/cucumber-report-$( date '+%Y-%m-%d_%H-%M' ).json --format html:./tests/reports/cucumber-report-$( date '+%Y-%m-%d_%H-%M' ).html"
     
   },
   "repository": {
