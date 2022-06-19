@@ -33,6 +33,7 @@ check:
     - nohup gitlab-selenium-server &
     # Install cucumber
     - npm i @cucumber/cucumber
+    - npm i @cucumber/pretty-formatter
 
     # Run your tests
     - npm test
