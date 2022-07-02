@@ -1,12 +1,36 @@
 image: node:16
-
 pipelines:
-  default:
-    - parallel:
+  branches:
+    1.0.x:
+      - step:
+          name: "Webship-js CI"
+          caches:
+            - node
+          script:
+            - npm install
+            - npm run http://selenium:4444/wd/hub --host=selenium__standalone-chrome
+            - yarn install
+            - yarn test
+      - parallel:
         - step:
-            name: Build and Test
+            name: "Selenium Tests"
             caches:
               - node
+            services:
+              - hub
+              - chrome
             script:
-              - yarn install
-              - yarn test
+              - ./vendor/bin/phpunit --testsuite=selenium --cache-result-file=app/cache/.phpunit.result.cache
+definitions:
+  caches:
+     - node
+  services:
+    hub:
+      image: selenium/hub
+      environment:
+        BROWSER: chrome
+    chrome:
+      image: selenium/node-chrome:3.141.5
+      environment:
+        HUB_PORT_4444_TCP_ADDR: 127.0.0.1
+        HUB_PORT_4444_TCP_PORT: "4444"
