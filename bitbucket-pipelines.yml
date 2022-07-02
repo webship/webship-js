@@ -17,6 +17,9 @@ pipelines:
               - npm test
         - step:
             name: Selenium linting
+            services:
+              - hub
+              - chrome
             script:
               - npm install selenium
               - npm run http://selenium:4444/wd/hub --host=selenium__standalone-chrome
