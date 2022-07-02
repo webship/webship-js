@@ -2,13 +2,13 @@ image: node:16
 
 pipelines:
   default:
-    - parallel:
-        - step:
-            name: Webship-js CI
-            caches:
-              - node
-            script:
-              - npm install
-              - npm run http://selenium:4444/wd/hub --host=selenium__standalone-chrome
-              - yarn install
-              - yarn test
+    - step:
+        name: Webship-js CI
+        caches:
+          - node
+        script:
+          - npm install
+          - npm run start:test:server
+          - npm run http://selenium:4444/wd/hub --host=selenium__standalone-chrome
+          - npm test
+    
