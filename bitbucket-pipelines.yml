@@ -6,9 +6,22 @@ pipelines:
         name: Webship-js CI
         caches:
           - node
-        script:
+s        script:
           - npm install
           - npm run start:test:server
           - npm run http://selenium:4444/wd/hub --host=selenium__standalone-chrome
           - npm test
+        definitions:
+          caches:
+            - node
+          services:
+            hub:
+              image: selenium/hub
+              environment:
+                BROWSER: chrome
+            chrome:
+              image: selenium/node-chrome:3.141.5
+              environment:
+                HUB_PORT_4444_TCP_ADDR: 127.0.0.1
+                HUB_PORT_4444_TCP_PORT: "4444"
     
