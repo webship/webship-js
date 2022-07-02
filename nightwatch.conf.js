@@ -43,6 +43,7 @@ module.exports = {
         launch_url: "http://webship.co",
         selenium_port: 4444,
         selenium_host: "127.0.0.1",
+        // selenium_host: "192.168.0.103",
         silent: true,
         screenshots: {
             enabled: true,
@@ -57,7 +58,7 @@ module.exports = {
             // w3c:false tells Chromedriver to run using the legacy JSONWire protocol (not required in Chrome 78)
             w3c: false,
             args: [
-              '--headless',
+              // '--headless',
               '--start-maximized',
               '--disable-gpu',
               '--window-size=1600,1200',

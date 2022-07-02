@@ -1,0 +1,12 @@
+image: node:16
+
+pipelines:
+  default:
+    - parallel:
+        - step:
+            name: Build and Test
+            caches:
+              - node
+            script:
+              - yarn install
+              - yarn test
