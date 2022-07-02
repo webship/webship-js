@@ -1,22 +1,38 @@
+#  Template NodeJS build
+
+#  This template allows you to validate your NodeJS code.
+#  The workflow allows running tests and code linting on the default branch.
+
 image: node:16
+
 pipelines:
-  branches:
-    1.0.x:
-      - step:
-          name: "Webship-js CI"
-          caches:
-            - node
-          script:
-            - npm install
-            - npm run http://selenium:4444/wd/hub --host=selenium__standalone-chrome
-            - npm test
-      - parallel:
+  default:
+    - parallel:
         - step:
-            name: "Selenium Tests"
+            name: Build and Test
             caches:
               - node
-            services:
-              - hub
-              - chrome
             script:
-              - ./vendor/bin/phpunit --testsuite=selenium --cache-result-file=app/cache/.phpunit.result.cache
+              - npm install
+              - npm test
+        - step:
+            name: Selenium linting
+            script:
+              - npm install selenium
+              - npm run http://selenium:4444/wd/hub --host=selenium__standalone-chrome
+            caches:
+              - node
+
+definitions:
+  caches:
+     - node
+  services:
+    hub:
+      image: selenium/hub
+      environment:
+        BROWSER: chrome
+    chrome:
+      image: selenium/node-chrome:3.141.5
+      environment:
+        HUB_PORT_4444_TCP_ADDR: 127.0.0.1
+        HUB_PORT_4444_TCP_PORT: "4444"
