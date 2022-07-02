@@ -7,6 +7,17 @@ image: node:16
 
 pipelines:
   default:
+    custom:
+   selenium-test:
+    - step:
+        script:
+          - docker version
+          - docker build . -t sagargadewar/selenium-test-local
+          - docker run -w /usr/src sagargadewar/selenium-test-local mvn clean verify
+        services:
+          - docker
+        caches:
+          - docker
     - parallel:
         - step:
             name: Build and Test
@@ -16,9 +27,10 @@ pipelines:
               - npm install
               - npm test
         - step:
-            name: Code linting
+            name: Selenium linting
+            services:
+              - hub
+              - chrome
             script:
-              - npm install eslint
-              - npx eslint .
-            caches:
-              - node
+              - npm install selenium
+              - npm run http://selenium:4444/wd/hub --host=selenium__standalone-chrome
