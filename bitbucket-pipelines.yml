@@ -16,12 +16,9 @@ pipelines:
               - npm install
               - npm test
         - step:
-            name: Selenium linting
-            services:
-              - hub
-              - chrome
+            name: Code linting
             script:
-              - npm install selenium
-              - npm run http://selenium:4444/wd/hub --host=selenium__standalone-chrome
+              - npm install eslint
+              - npx eslint .
             caches:
               - node
