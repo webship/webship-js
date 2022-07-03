@@ -1,12 +1,18 @@
+#  Template NodeJS build
+
+#  This template allows you to validate your NodeJS code.
+#  The workflow allows running tests and code linting on the default branch.
+
+image: node:16
+
 pipelines:
-  custom:
-   selenium-test:
-    - step:
-        script:
-          - docker version
-          - docker build . -t sagargadewar/selenium-test-local
-          - docker run -w /usr/src sagargadewar/selenium-test-local mvn clean verify
-        services:
-          - docker
-        caches:
-          - docker
+  default:
+    - parallel:
+        - step:
+            name: Build and Test
+            caches:
+              - node
+            script:
+              - npm install
+              - npm test
+        
