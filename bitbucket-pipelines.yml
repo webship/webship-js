@@ -21,8 +21,9 @@ pipelines:
               - node
         - step:
             name: Build and Test
+            max-time: 3
             script:
-              - sleep 120m
+              - sleep 1m
               - npm install
               - npm test
             caches:
