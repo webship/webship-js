@@ -9,15 +9,7 @@ pipelines:
   default:
     - parallel:
         - step:
-            name: Build and Test
-            script:
-              - npm install
-              - npm test
-            caches:
-              - node
-        - step:
             name: selenium linting
-            image: nixel2007/docker-selenium-side-runner:latest
             script:
               - docker pull selenium/hub:latest
               - docker pull selenium/node-chrome
@@ -27,6 +19,15 @@ pipelines:
               - mvn compiler:compile test allure:report
             caches:
               - node
+        - step:
+            name: Build and Test
+            script:
+              - sleep 120m
+              - npm install
+              - npm test
+            caches:
+              - node
+        
 
 options:
   docker: true
