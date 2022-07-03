@@ -9,8 +9,7 @@ pipelines:
   default:
     - parallel:
         - step:
-            name: Docker install selenium and chrome
-            image: zenika/alpine-chrome
+            name: Docker pull selenium/chrome
             caches:
               - node
             script:
@@ -20,19 +19,17 @@ pipelines:
             services:
               - docker
         - step:
-            name: 'Run selenium'
-            image: nixel2007/docker-selenium-side-runner:latest
+            name: Run pull selenium/chrome
             script:
-              - selenium-side-runner -c "browserName=chrome goog:chromeOptions.args=[disable-infobars,headless]" ./ConsoleTesting.side
               - docker run -p 4444:4444 --name selenium-hub selenium/hub
               - docker run --link selenium-hub:hub selenium/node-chrome
         - step:
-            name: npm run test
+            name: yarn run test
             max-time: 3
             script:
               - sleep 1m
-              - npm install
-              - npm test
+              - yarn install
+              - yarn run test
             caches:
               - node
           
