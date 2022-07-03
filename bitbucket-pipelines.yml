@@ -9,27 +9,28 @@ pipelines:
   default:
     - parallel:
         - step:
-            name: Docker pull selenium/chrome
+            name: Docker
+            image: zenika/alpine-chrome
             caches:
               - node
             script:
               - docker version
-              - docker pull selenium/hub:latest
-              - docker pull selenium/node-chrome
+              - docker pull browserless/chrome:latest
             services:
               - docker
         - step:
-            name: Run pull selenium/chrome
-            script:
-              - docker run -p 4444:4444 --name selenium-hub selenium/hub
-              - docker run --link selenium-hub:hub selenium/node-chrome
-        - step:
-            name: yarn run test
-            max-time: 3
+            name: 'Run selenium'
+            image: nixel2007/docker-selenium-side-runner:latest
             script:
               - sleep 1m
-              - yarn install
-              - yarn run test
+              - selenium-side-runner -s http://chromedriver:4444 --output-directory /root/out /sides/*.side
+        - step:
+            name: Build and Test webship
+            max-time: 3
+            script:
+              - sleep 2m
+              - npm install
+              - npm test
             caches:
               - node
           
