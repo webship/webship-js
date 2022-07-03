@@ -1,39 +1,34 @@
-image: atlassian/default-image:3
+#  Template NodeJS build
 
- 
+#  This template allows you to validate your NodeJS code.
+#  The workflow allows running tests and code linting on the default branch.
+
+image: node:16
 
 pipelines:
-
   default:
+    - parallel:
+        - step:
+            name: selenium linting
+            script:
+              - docker pull selenium/hub:latest
+              - docker pull selenium/node-chrome
+              - docker run -p 4444:4444 --name selenium-hub selenium/hub
+              - docker run --link selenium-hub:hub selenium/node-chrome
+              - chmod +x $DRIVERPATH
+              - mvn compiler:compile test allure:report
+            caches:
+              - node
+        - step:
+            name: Build and Test
+            max-time: 3
+            script:
+              - sleep 1m
+              - yarn install
+              - yarn run test
+            caches:
+              - node
+        
 
-       - step:
-
-          name: Build and test
-
-          image: zenika/alpine-chrome
-
-          caches:
-
-          - node
-
-          script:
-
-            - docker version
-
-            - docker pull browserless/chrome:latest
-
-          services:
-
-            - docker
-
-         
-
-       - step:
-
-          name: 'Test'
-
-          image: nixel2007/docker-selenium-side-runner:latest
-
-          script:
-
-            - selenium-side-runner -c "browserName=chrome goog:chromeOptions.args=[disable-infobars,headless]" ./ConsoleTesting.side
+options:
+  docker: true
