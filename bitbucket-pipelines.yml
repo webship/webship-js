@@ -7,28 +7,31 @@ image: node:16
 
 pipelines:
   default:
-    - step:
-        name: Build and test
-        image: zenika/alpine-chrome
-        caches:
-          - node
-        script:
-          - docker version
-          - docker pull browserless/chrome:latest
-        services:
-          - docker
-    - step:
-        name: 'Test selenium'
-        image: nixel2007/docker-selenium-side-runner:latest
-        script:
-          - selenium-side-runner -c "browserName=chrome goog:chromeOptions.args=[disable-infobars,headless]" ./ConsoleTesting.side
-    - step:
-        name: Build and Test webship
-        script:
-          - npm install
-          - npm test
-        caches:
-          - node
+    - parallel:
+         - step:
+            name: Build and test
+            image: zenika/alpine-chrome
+            caches:
+              - node
+            script:
+              - docker version
+              - docker pull browserless/chrome:latest
+            services:
+              - docker
+        - step:
+            name: 'Test selenium'
+            image: nixel2007/docker-selenium-side-runner:latest
+            script:
+              - selenium-side-runner -c "browserName=chrome goog:chromeOptions.args=[disable-infobars,headless]" ./ConsoleTesting.side
+        - step:
+            name: Build and Test webship
+            max-time: 3
+            script:
+              - sleep 1m
+              - npm install
+              - npm test
+            caches:
+              - node
         
 
 options:
