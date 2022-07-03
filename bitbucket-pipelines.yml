@@ -8,7 +8,7 @@ image: node:16
 pipelines:
   default:
     - parallel:
-         - step:
+        - step:
             name: Build and test
             image: zenika/alpine-chrome
             caches:
@@ -32,7 +32,7 @@ pipelines:
               - npm test
             caches:
               - node
-        
+          
 
 options:
   docker: true
