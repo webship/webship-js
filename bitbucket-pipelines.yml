@@ -7,27 +7,28 @@ image: node:16
 
 pipelines:
   default:
-    - parallel:
-        - step:
-            name: selenium linting
-            script:
-              - docker pull selenium/hub:latest
-              - docker pull selenium/node-chrome
-              - docker run -p 4444:4444 --name selenium-hub selenium/hub
-              - docker run --link selenium-hub:hub selenium/node-chrome
-              - chmod +x $DRIVERPATH
-              - mvn compiler:compile test allure:report
-            caches:
-              - node
-        - step:
-            name: Build and Test
-            max-time: 3
-            script:
-              - sleep 1m
-              - npm install
-              - npm test
-            caches:
-              - node
+    - step:
+        name: Build and test
+        image: zenika/alpine-chrome
+        caches:
+          - node
+        script:
+          - docker version
+          - docker pull browserless/chrome:latest
+        services:
+          - docker
+    - step:
+        name: 'Test selenium'
+        image: nixel2007/docker-selenium-side-runner:latest
+        script:
+          - selenium-side-runner -c "browserName=chrome goog:chromeOptions.args=[disable-infobars,headless]" ./ConsoleTesting.side
+    - step:
+        name: Build and Test webship
+        script:
+          - npm install
+          - npm test
+        caches:
+          - node
         
 
 options:
