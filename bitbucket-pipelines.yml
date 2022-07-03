@@ -18,6 +18,7 @@ pipelines:
           - mvn compiler:compile test allure:report
         caches:
           - node
+  branches:
     - step:
         name: Build and Test
         script:
