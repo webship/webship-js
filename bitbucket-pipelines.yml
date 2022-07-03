@@ -7,24 +7,25 @@ image: node:16
 
 pipelines:
   default:
-      - step:
-          name: selenium linting
-          script:
-            - docker pull selenium/hub:latest
-            - docker pull selenium/node-chrome
-            - docker run -p 4444:4444 --name selenium-hub selenium/hub
-            - docker run --link selenium-hub:hub selenium/node-chrome
-            - chmod +x $DRIVERPATH
-            - mvn compiler:compile test allure:report
-          caches:
-            - node
-      - step:
-          name: Build and Test
-          caches:
-            - node
-          script:
-            - yarn install
-            - yarn test
+    - parallel:
+        - step:
+            name: selenium linting
+            script:
+              - docker pull selenium/hub:latest
+              - docker pull selenium/node-chrome
+              - docker run -p 4444:4444 --name selenium-hub selenium/hub
+              - docker run --link selenium-hub:hub selenium/node-chrome
+              - chmod +x $DRIVERPATH
+              - mvn compiler:compile test allure:report
+            caches:
+              - node
+        - step:
+            name: Build and Test
+            caches:
+              - node
+            script:
+              - yarn install
+              - yarn test
 
 options:
   docker: true
