@@ -1,40 +1,39 @@
-#  Template NodeJS build
+image: atlassian/default-image:3
 
-#  This template allows you to validate your NodeJS code.
-#  The workflow allows running tests and code linting on the default branch.
-
-image: node:16
+ 
 
 pipelines:
-  default:
-    - parallel:
-        - step:
-            name: Docker
-            image: zenika/alpine-chrome
-            caches:
-              - node
-            script:
-              - docker version
-              - docker pull browserless/chrome:latest
-            services:
-              - docker
-        - step:
-            name: 'Run selenium'
-            image: nixel2007/docker-selenium-side-runner:latest
-            script:
-              - sleep 1m
-              - selenium-side-runner -s http://chromedriver:4444 --output-directory /root/out /sides/*.side
-        - step:
-            name: Build and Test webship
-            max-time: 3
-            script:
-              - sleep 2m
-              - npm install
-              - npm test
-            caches:
-              - node
-          
 
-options:
-  docker: true
-  start_process: true
+  default:
+
+       - step:
+
+          name: Build and test
+
+          image: zenika/alpine-chrome
+
+          caches:
+
+          - node
+
+          script:
+
+            - docker version
+
+            - docker pull browserless/chrome:latest
+
+          services:
+
+            - docker
+
+         
+
+       - step:
+
+          name: 'Test'
+
+          image: nixel2007/docker-selenium-side-runner:latest
+
+          script:
+
+            - selenium-side-runner -c "browserName=chrome goog:chromeOptions.args=[disable-infobars,headless]" ./ConsoleTesting.side
