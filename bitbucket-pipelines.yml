@@ -24,8 +24,8 @@ pipelines:
             caches:
               - node
             script:
-              - yarn install
-              - yarn test
+              - npm install
+              - npm test
 
 options:
   docker: true
