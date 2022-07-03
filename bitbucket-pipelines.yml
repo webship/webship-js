@@ -18,14 +18,14 @@ pipelines:
           - mvn compiler:compile test allure:report
         caches:
           - node
-  - parallel:
-      - step:
-          name: Build and Test
-          script:
-            - npm install
-            - npm test
-          caches:
-            - node
+    - parallel:
+        - step:
+            name: Build and Test
+            script:
+              - npm install
+              - npm test
+            caches:
+              - node
 
 options:
   docker: true
