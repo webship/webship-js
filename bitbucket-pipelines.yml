@@ -13,6 +13,12 @@ pipelines:
             caches:
               - node
             script:
-              - npm install
-              - npm test
-        
+              - yarn install
+              - yarn test
+        - step:
+            name: Code linting
+            script:
+              - yarn install eslint
+              - npx eslint .
+            caches:
+              - node
