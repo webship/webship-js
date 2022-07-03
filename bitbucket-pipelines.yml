@@ -21,11 +21,11 @@ pipelines:
               - node
         - step:
             name: Build and Test
-            caches:
-              - node
             script:
               - npm install
               - npm test
+            caches:
+              - node
 
 options:
   docker: true
