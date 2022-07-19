@@ -15,18 +15,6 @@ Webship JS has a ready step definitions for automated functional testing.
 All you need to know about [webship-js Docs](https://webship.gitbook.io/webship-js-docs/).
 
 
-## How to install using NPM
-
-```
-npm i webship-js
-```
-
-## How to install using Yarn
-
-```
-yarn i webship-js
-```
-
 ## How to configure your project to test using webship-js steps
 
 ### Install node js and yarn
@@ -70,5 +58,27 @@ google-chrome --version
 
 ### Run selenium standalone server
 
+```
+if [[ ! -f /home/circleci/selenium-server-standalone-3.141.59.jar ]]; then wget -O /home/circleci/selenium-server-standalone-3.141.59.jar https://github.com/SeleniumHQ/selenium/releases/download/selenium-3.141.59/selenium-server-standalone-3.141.59.jar; fi
+cd /home/circleci/
+java -jar selenium-server-standalone-3.141.59.jar -port 4444
+```         
 
 
+## How to install using NPM
+
+```
+npm install webship-js
+```
+
+## How to install using Yarn
+
+```
+yarn install webship-js
+```
+
+ ## Automated Functional Acceptance Testing
+
+ ```
+yarn test
+```
