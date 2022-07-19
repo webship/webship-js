@@ -64,6 +64,11 @@ cd /home/circleci/
 java -jar selenium-server-standalone-3.141.59.jar -port 4444
 ```         
 
+## How to install using Yarn
+
+```
+yarn install webship-js
+```
 
 ## How to install using NPM
 
@@ -71,14 +76,14 @@ java -jar selenium-server-standalone-3.141.59.jar -port 4444
 npm install webship-js
 ```
 
-## How to install using Yarn
-
-```
-yarn install webship-js
-```
-
  ## Automated Functional Acceptance Testing
 
- ```
+```
 yarn test
+```
+
+Or
+
+```
+npm test
 ```
