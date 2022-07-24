@@ -7,8 +7,8 @@
 Webship JS has a ready step definitions for automated functional testing.
 
 ### Using:
-* Nightwatch.js
-* Cucumber-js
+* [Cucumber-js](https://github.com/cucumber/cucumber-js)
+* [Nightwatch.js](https://github.com/nightwatchjs/nightwatch)
 
 
 ### Webship-js Documentations
