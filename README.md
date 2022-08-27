@@ -67,7 +67,7 @@ java -jar selenium-server-standalone-3.141.59.jar -port 4444
 ## How to install using Yarn
 
 ```
-yarn install webship-js
+yarn add webship-js
 ```
 
 ## How to install using NPM
