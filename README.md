@@ -59,8 +59,8 @@ google-chrome --version
 ### Run selenium standalone server
 
 ```
-if [[ ! -f /home/circleci/selenium-server-standalone-3.141.59.jar ]]; then wget -O /home/circleci/selenium-server-standalone-3.141.59.jar https://github.com/SeleniumHQ/selenium/releases/download/selenium-3.141.59/selenium-server-standalone-3.141.59.jar; fi
-cd /home/circleci/
+cd ~
+wget https://github.com/SeleniumHQ/selenium/releases/download/selenium-3.141.59/selenium-server-standalone-3.141.59.jar
 java -jar selenium-server-standalone-3.141.59.jar -port 4444
 ```         
 
