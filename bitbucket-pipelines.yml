@@ -11,12 +11,15 @@ pipelines:
         - step:
             name: selenium linting
             script:
+              - docker version
               - docker pull selenium/hub:latest
               - docker pull selenium/node-chrome
               - docker run -p 4444:4444 --name selenium-hub selenium/hub
               - docker run --link selenium-hub:hub selenium/node-chrome
               - chmod +x $DRIVERPATH
               - mvn compiler:compile test allure:report
+            services:
+              - docker
             caches:
               - node
         - step:
