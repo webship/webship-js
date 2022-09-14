@@ -32,7 +32,6 @@ pipelines:
             caches:
               - node
         
-        
 
 options:
   docker: true
