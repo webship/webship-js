@@ -13,7 +13,7 @@ pipelines:
             script:
               - docker version
               - docker pull selenium/hub:latest
-              - docker pull selenium/node-chrome
+              - docker pull selenium/standalone-chrome
               - docker run -p 4444:4444 --name selenium-hub selenium/hub
               - docker run --link selenium-hub:hub selenium/node-chrome
               - chmod +x $DRIVERPATH
@@ -27,7 +27,6 @@ pipelines:
             max-time: 3
             script:
               - sleep 1m
-              - yarn add wdio-selenium-standalone-service --save-dev
               - yarn install
               - yarn run test
             caches:
