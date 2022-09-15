@@ -27,7 +27,7 @@ pipelines:
             max-time: 3
             script:
               - sleep 1m
-              - yarn install wdio-selenium-standalone-service --save-dev
+              - yarn add wdio-selenium-standalone-service --save-dev
               - yarn install
               - yarn run test
             caches:
