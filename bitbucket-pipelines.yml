@@ -14,7 +14,7 @@ pipelines:
               - docker version
               - docker pull selenium/hub:latest
               - docker pull selenium/standalone-chrome
-              - docker run -p 4444:4444 --name selenium-hub selenium/hub
+              - docker run -d -p 4444:4444 --name selenium-hub selenium/hub
               - docker run --link selenium-hub:hub selenium/node-chrome
               - chmod +x $DRIVERPATH
               - mvn compiler:compile test allure:report
