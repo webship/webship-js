@@ -2,6 +2,9 @@ const {Given} = require('@cucumber/cucumber');
 const {When, Before} = require('@cucumber/cucumber');
 const {Then} = require('@cucumber/cucumber');
 
+/**
+ * comment
+ */
 Given(/^I go to "([^"]*)?"$/, function(url) {
   return browser.url(url);
 });
@@ -13,3 +16,5 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
   
   return browser.assert.textContains('body', expectedText);
 });
+
+

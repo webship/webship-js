@@ -1,0 +1,47 @@
+#!/usr/bin/env node
+
+const fs = require('fs');
+
+fs.readFile('tests/step-definitions/webship.js', 'utf8', (err, data) => {
+    if(err){
+        throw new Error(err);
+    }
+    const SplitByLine_Arr = data.split("\n");
+    const Trim_Arr = SplitByLine_Arr.map(element => {
+        return element.trim();
+      });
+    const StartWith_Arr = Trim_Arr.filter(StartWithFun);
+    const Steps_Arr = CleanStepLine(StartWith_Arr);
+
+    console.log(Steps_Arr);
+});
+
+function StartWithFun(ArrLine) {
+   return (ArrLine.startsWith('Given') || ArrLine.startsWith('Then') || ArrLine.startsWith('When') || ArrLine.startsWith('But')|| ArrLine.startsWith('*'));
+  }
+
+  function CleanStepLine(Arr) {
+    var StepComment = '';
+    var NewArr = Array();
+
+    Arr.forEach((element, index) => {
+        if(element.startsWith("*")){
+            StepComment = StepComment + element.substring(1) + '\r\n';
+            // console.log(StepComment);
+        }
+        else if(element.startsWith("/**") || element.startsWith("*/")){
+
+        }
+        else
+        {
+            const Filter1 = element.split("$/");
+            const Filter2 = Filter1[0].replace("(/^", ' ');
+
+            NewArr.push(Filter2 + '\r\n' + StepComment);
+            StepComment = '';
+        }
+      
+    });
+    return NewArr;
+   }
+  

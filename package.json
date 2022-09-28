@@ -7,9 +7,7 @@
     "test": "test"
   },
   "scripts": {
-
     "test": "nightwatch --format @cucumber/pretty-formatter --format-options '{\"colorsEnabled\": true}' --format-options '{\"theme\": {\"feature keyword\":[\"bold\",\"blue\"],\"feature name\":[\"blue\",\"underline\"],\"feature description\":[\"blueBright\"],\"scenario keyword\":[\"bold\",\"magenta\"],\"scenario name\":[\"magenta\",\"underline\"],\"step keyword\":[\"bold\",\"green\"],\"step text\":[\"greenBright\",\"italic\"]}}' --format json:./tests/reports/cucumber-report-$( date '+%Y-%m-%d_%H-%M' ).json --format html:./tests/reports/cucumber-report-$( date '+%Y-%m-%d_%H-%M' ).html"
-    
   },
   "repository": {
     "type": "git",
@@ -23,11 +21,11 @@
   "homepage": "https://github.com/webship/webship-js",
   "dependencies": {
     "@cucumber/cucumber": "*",
-    "chromedriver": "*",
     "@cucumber/pretty-formatter": "^1.0.0-alpha.2",
+    "chromedriver": "*",
     "eslint": "^7.32.0",
-    "mocha": "^9.1.3",
     "geckodriver": "*",
+    "mocha": "^9.1.3",
     "nightwatch": "^2.1.7"
   }
 }
