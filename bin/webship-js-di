@@ -13,7 +13,9 @@ fs.readFile('tests/step-definitions/webship.js', 'utf8', (err, data) => {
     const StartWith_Arr = Trim_Arr.filter(StartWithFun);
     const Steps_Arr = CleanStepLine(StartWith_Arr);
 
-    console.log(Steps_Arr);
+    Steps_Arr.forEach(element => {
+        console.log(element);
+    });
 });
 
 function StartWithFun(ArrLine) {
