@@ -3,7 +3,8 @@ const {When, Before} = require('@cucumber/cucumber');
 const {Then} = require('@cucumber/cucumber');
 
 /**
- * comment
+ * some description
+ * for first given function
  */
 Given(/^I go to "([^"]*)?"$/, function(url) {
   return browser.url(url);

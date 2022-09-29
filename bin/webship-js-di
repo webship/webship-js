@@ -27,12 +27,12 @@ function StartWithFun(ArrLine) {
     var NewArr = Array();
 
     Arr.forEach((element, index) => {
-        if(element.startsWith("*")){
-            StepComment = StepComment + element.substring(1) + '\r\n';
-            // console.log(StepComment);
+
+        if(element.startsWith("* ")){
+            StepComment = StepComment + element.substring(2) + '\r\n';
         }
         else if(element.startsWith("/**") || element.startsWith("*/")){
-
+           
         }
         else
         {
