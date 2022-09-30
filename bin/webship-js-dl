@@ -1,28 +1,48 @@
 #!/usr/bin/env node
 
 const fs = require('fs');
+conf = require("./../nightwatch.conf.js");
+var FoldersPath = conf.src_folders;
 
-fs.readFile('tests/step-definitions/webship.js', 'utf8', (err, data) => {
-    if(err){
-        throw new Error(err);
-    }
-    const SplitByLine_Arr = data.split("\n");
-    const Trim_Arr = SplitByLine_Arr.map(element => {
-        return element.trim();
-      });
-    const StartWith_Arr = Trim_Arr.filter(StartWithFun);
-    const Steps_Arr = CleanStepLine(StartWith_Arr);
+console.log(process.argv);
 
-    Steps_Arr.forEach(element => {
-      console.log(element);
-   });
+for(var i=2; i<process.argv.length; i++)
+  FoldersPath.push(process.argv[i]);
+
+FoldersPath.forEach(Folder_Path => {
+
+  fs.readdir(Folder_Path, function (err, files) {
+
+    if (err) {
+        return console.log('Unable to scan directory: ' + err);
+    } 
+    
+    files.forEach(file => {
+      fs.readFile('./' + Folder_Path + '/' + file, 'utf8', (err, data) => {
+        if(err){
+            throw new Error(err);
+        }
+        const SplitByLine_Arr = data.split("\n");
+        const Trim_Arr = SplitByLine_Arr.map(element => {
+            return element.trim();
+          });
+        const StartWith_Arr = Trim_Arr.filter(StartWithFun);
+        const Steps_Arr = CleanStepLine(StartWith_Arr);
+    
+        Steps_Arr.forEach(element => {
+          console.log(element);
+          });
+        });
+    });
+  });
 });
+
 
 function StartWithFun(ArrLine) {
    return (ArrLine.startsWith('Given') || ArrLine.startsWith('Then') || ArrLine.startsWith('When') || ArrLine.startsWith('But'));
   }
 
-  function CleanStepLine(Arr) {
+function CleanStepLine(Arr) {
     Arr.forEach((element, index) => {
        const Filter1 = element.split("$/");
        const Filter2 = Filter1[0].replace("(/^", ' ');
