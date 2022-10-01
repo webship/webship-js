@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 
 const fs = require('fs');
+
 conf = require("./../nightwatch.conf.js");
 var FoldersPath = conf.src_folders;
-
-console.log(process.argv);
 
 for(var i=2; i<process.argv.length; i++)
   FoldersPath.push(process.argv[i]);
@@ -24,31 +23,48 @@ FoldersPath.forEach(Folder_Path => {
         }
         const SplitByLine_Arr = data.split("\n");
         const Trim_Arr = SplitByLine_Arr.map(element => {
-            return element.trim();
-          });
-        const StartWith_Arr = Trim_Arr.filter(StartWithFun);
-        const Steps_Arr = CleanStepLine(StartWith_Arr);
+          return element.trim();
+        });
+        const StartWith_Arr = Trim_Arr.filter(StartWith);
+        const Steps_Arr = CleanStepsList(StartWith_Arr);
     
         Steps_Arr.forEach(element => {
           console.log(element);
-          });
         });
+      });
     });
   });
 });
 
+/**
+ * Start with Function.
+ *
+ * Return list of array items start with (Given, Then, When).
+ *
+ * @param ArrLine 
+ * @returns array
+ */
+function StartWith(ArrLine) {
+  return (ArrLine.startsWith('Given') 
+       || ArrLine.startsWith('Then') 
+       || ArrLine.startsWith('When'));
+}
 
-function StartWithFun(ArrLine) {
-   return (ArrLine.startsWith('Given') || ArrLine.startsWith('Then') || ArrLine.startsWith('When') || ArrLine.startsWith('But'));
-  }
+/**
+ * Clean Steps List
+ * 
+ * Return list of array items cleand from unreadable chars
+ * 
+ * @param ListArr 
+ * @returns 
+ */
+function CleanStepsList(ListArr) {
+  ListArr.forEach((element, index) => {
+    const Filter1 = element.split("$/");
+    const Filter2 = Filter1[0].replace("(/^", ' ');
 
-function CleanStepLine(Arr) {
-    Arr.forEach((element, index) => {
-       const Filter1 = element.split("$/");
-       const Filter2 = Filter1[0].replace("(/^", ' ');
-
-        Arr[index] = Filter2;
-    });
-    return Arr;
-   }
+    ListArr[index] = Filter2;
+  });
+  return Arr;
+}
   

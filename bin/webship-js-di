@@ -11,58 +11,77 @@ for(var i=2; i<process.argv.length; i++)
 
 FoldersPath.forEach(Folder_Path => {
 
-    fs.readdir(Folder_Path, function (err, files) {
-  
-      if (err) {
-          return console.log('Unable to scan directory: ' + err);
-      } 
-      
-      files.forEach(file => {
-        fs.readFile('./' + Folder_Path + '/' + file, 'utf8', (err, data) => {
-          if(err){
-              throw new Error(err);
-          }
-          const SplitByLine_Arr = data.split("\n");
-          const Trim_Arr = SplitByLine_Arr.map(element => {
-              return element.trim();
-            });
-          const StartWith_Arr = Trim_Arr.filter(StartWithFun);
-          const Steps_Arr = CleanStepLine(StartWith_Arr);
-      
-          Steps_Arr.forEach(element => {
-            console.log(element);
-            });
-          });
+  fs.readdir(Folder_Path, function (err, files) {
+
+    if (err) {
+        return console.log('Unable to scan directory: ' + err);
+    } 
+    
+    files.forEach(file => {
+      fs.readFile('./' + Folder_Path + '/' + file, 'utf8', (err, data) => {
+        if(err){
+          throw new Error(err);
+        }
+        const SplitByLine_Arr = data.split("\n");
+        const Trim_Arr = SplitByLine_Arr.map(element => {
+          return element.trim();
+        });
+        const StartWith_Arr = Trim_Arr.filter(StartWith);
+        const Steps_Arr = CleanStepsList(StartWith_Arr);
+    
+        Steps_Arr.forEach(element => {
+          console.log(element);
+        });
       });
     });
   });
+});
 
-function StartWithFun(ArrLine) {
-   return (ArrLine.startsWith('Given') || ArrLine.startsWith('Then') || ArrLine.startsWith('When') || ArrLine.startsWith('But')|| ArrLine.startsWith('*'));
-  }
+/**
+ * Start with Function.
+ *
+ * Return list of array items start with (Given, Then, When,*).
+ *
+ * @param ArrLine 
+ * @returns array
+ */
+function StartWith(ArrLine) {
+  return (ArrLine.startsWith('Given') 
+        || ArrLine.startsWith('Then') 
+        || ArrLine.startsWith('When') 
+        || ArrLine.startsWith('*'));
+}
 
-  function CleanStepLine(Arr) {
-    var StepComment = '';
-    var NewArr = Array();
+/**
+ * Clean Steps List
+ * 
+ * Return list of array items cleand from unreadable chars
+ * 
+ * @param ListArr 
+ * @returns 
+ */
+function CleanStepsList(ListArr) {
+  var StepComment = '';
+  var NewArr = Array();
 
-    Arr.forEach((element, index) => {
+  ListArr.forEach((element, index) => {
 
-        if(element.startsWith("* ")){
-            StepComment = StepComment + element.substring(2) + '\r\n';
-        }
-        else if(element.startsWith("/**") || element.startsWith("*/")){
-           
-        }
-        else
-        {
-            const Filter1 = element.split("$/");
-            const Filter2 = Filter1[0].replace("(/^", ' ');
+    if(element.startsWith("* ")){
+        StepComment = StepComment + element.substring(2) + '\r\n';
+    }
+    else if(element.startsWith("/**") || element.startsWith("*/")){
+        
+    }
+    else
+    {
+      const Filter1 = element.split("$/");
+      const Filter2 = Filter1[0].replace("(/^", ' ');
 
-            NewArr.push(Filter2 + '\r\n' + StepComment);
-            StepComment = '';
-        }
+      NewArr.push(Filter2 + '\r\n' + StepComment);
+      StepComment = '';
+    }
       
-    });
-    return NewArr;
-   }
+  });
+  return NewArr;
+}
   
