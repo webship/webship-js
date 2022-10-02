@@ -66,11 +66,8 @@ function CleanStepsList(ListArr) {
 
   ListArr.forEach((element, index) => {
 
-    if(element.startsWith("* ")){
+    if(element.startsWith("* ") || element.startsWith("/**") || element.startsWith("*/")){
         StepComment = StepComment + element.substring(2) + '\r\n';
-    }
-    else if(element.startsWith("/**") || element.startsWith("*/")){
-        
     }
     else
     {

@@ -63,8 +63,8 @@ function CleanStepsList(ListArr) {
     const Filter1 = element.split("$/");
     const Filter2 = Filter1[0].replace("(/^", ' ');
 
-    ListArr[index] = Filter2;
+    ListArr[index] = Filter2 + '\r\n';
   });
-  return Arr;
+  return ListArr;
 }
   
