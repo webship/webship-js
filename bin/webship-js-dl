@@ -1,0 +1,140 @@
+#!/usr/bin/env node
+
+var fs = require('fs');
+var conf = require("../nightwatch.conf.js");
+
+/**
+ * Folders Path Array variable
+ *
+ * Set and Get folders path exist in (--config) tag and (--src_folder) tag added in nodejs command line
+ */
+ let FoldersPath = []; 
+ function setFoldersPath(value)
+ {  
+    value.forEach(element => {
+      FoldersPath.push(element);
+    });
+ }  
+
+ /**
+ * Output Format name variable
+ *
+ * Set and Get Output Format exist in (--format) tag added in nodejs command line
+ */
+  let OutputFormat = 'stdout-spaces'; 
+  function setOutputFormat(value) 
+  {  OutputFormat = value; }
+
+
+for(var i=2; i<process.argv.length; i++){
+  if(process.argv[i].startsWith('--config')){
+    var path = process.argv[i].split('=')[1];
+    var confpathsArr = [];
+    var ConfigPath = require(path);
+
+    confpathsArr = ConfigPath.src_folders;
+    
+    setFoldersPath(confpathsArr);
+
+  }
+  else if(process.argv[i].startsWith('--src_folders')){
+    src_folders_Path(process.argv[i]);
+  }
+  else if(process.argv[i].startsWith('--format')){
+    setOutputFormat(process.argv[i].split('=')[1]);
+  }
+}
+
+if(FoldersPath.length == 0)
+  FoldersPath = conf.src_folders;
+
+FoldersPath.forEach(Folder_Path => {
+
+  fs.readdir(Folder_Path, function (err, files) {
+
+    if (err) {
+        return console.log('Unable to scan directory: ' + err);
+    } 
+    
+    files.forEach(file => {
+      fs.readFile('./' + Folder_Path + '/' + file, 'utf8', (err, data) => {
+        if(err){
+          throw new Error(err);
+        }
+        const SplitByLine_Arr = data.split("\n");
+        const Trim_Arr = SplitByLine_Arr.map(element => {
+          return element.trim();
+        });
+
+        const StartWith_Arr = StartWithFilter(Trim_Arr);
+        const Steps_Arr = CleanStepsList(StartWith_Arr);
+        
+        Steps_Arr.forEach(element => {
+          if(OutputFormat.startsWith('stdout')){
+            console.log(element);
+          }
+          else if(OutputFormat.startsWith('html')){
+            console.log('<div>' + element + '</div>');
+          }
+          else
+          {console.log(element);}
+        });        
+      });
+    });
+  });
+});
+
+
+/**
+ * Start with Function.
+ *
+ * Return list of array items that start with (Given, Then, When).
+ *
+ * @param StepDef_Arr 
+ * @returns array
+ */
+ function StartWith(StepDef_Arr) {
+  return( StepDef_Arr.startsWith('Given') 
+        || StepDef_Arr.startsWith('Then') 
+        || StepDef_Arr.startsWith('When'));
+}
+
+/**
+ * Filter Step Definitions
+ * 
+ * @param {*} StepDef_Arr 
+ * @returns 
+ */
+function StartWithFilter(StepDef_Arr){
+  return StepDef_Arr.filter(StartWith);
+}
+
+/**
+ * Clean Steps List
+ * 
+ * Return list of array items cleand from unreadable chars
+ * 
+ * @param ListArr 
+ * @returns 
+ */
+function CleanStepsList(ListArr) {
+  var StepComment = '';
+  var NewArr = Array();
+
+  ListArr.forEach((element, index) => {
+
+    const Filter1 = element.split("$/");
+    const Filter2 = Filter1[0].replace("(/^", ' ');
+
+    NewArr.push(Filter2);
+  });
+  return NewArr;
+}
+
+function src_folders_Path(path){
+  
+  path = path.split('=')[1];
+  const paths = path.split(' ');
+
+  setFoldersPath(paths);
+}

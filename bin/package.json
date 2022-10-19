@@ -1,7 +1,0 @@
-{
-  "type":"module",
-  "bin":{
-    "webship-js-di":"./webship-js-di.js",
-    "webship-js-dl":"./webship-js-dl.js"
-  }
-  }
