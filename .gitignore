@@ -1,5 +1,7 @@
 node_modules
+/*/node_modules
 *.log
 .vscode
 tests_output
 tests/reports/cucumber-report-*
+yarn.lock

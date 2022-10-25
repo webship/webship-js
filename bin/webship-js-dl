@@ -1,140 +1,128 @@
 #!/usr/bin/env node
 
-var fs = require('fs');
-var conf = require("../nightwatch.conf.js");
+const fs = require('fs');
+const conf = require('../nightwatch.conf.js');
 
 /**
  * Folders Path Array variable
  *
- * Set and Get folders path exist in (--config) tag and (--src_folder) tag added in nodejs command line
+ * Set and Get folders path exist in (--config) tag and
+ * (--src_folder) tag added in nodejs command line
  */
- let FoldersPath = []; 
- function setFoldersPath(value)
- {  
-    value.forEach(element => {
-      FoldersPath.push(element);
-    });
- }  
-
- /**
- * Output Format name variable
- *
- * Set and Get Output Format exist in (--format) tag added in nodejs command line
- */
-  let OutputFormat = 'stdout-spaces'; 
-  function setOutputFormat(value) 
-  {  OutputFormat = value; }
-
-
-for(var i=2; i<process.argv.length; i++){
-  if(process.argv[i].startsWith('--config')){
-    var path = process.argv[i].split('=')[1];
-    var confpathsArr = [];
-    var ConfigPath = require(path);
-
-    confpathsArr = ConfigPath.src_folders;
-    
-    setFoldersPath(confpathsArr);
-
-  }
-  else if(process.argv[i].startsWith('--src_folders')){
-    src_folders_Path(process.argv[i]);
-  }
-  else if(process.argv[i].startsWith('--format')){
-    setOutputFormat(process.argv[i].split('=')[1]);
-  }
+let foldersPath = [];
+function setFoldersPath(value) {
+  value.forEach((element) => {
+    foldersPath.push(element);
+  });
 }
 
-if(FoldersPath.length == 0)
-  FoldersPath = conf.src_folders;
-
-FoldersPath.forEach(Folder_Path => {
-
-  fs.readdir(Folder_Path, function (err, files) {
-
-    if (err) {
-        return console.log('Unable to scan directory: ' + err);
-    } 
-    
-    files.forEach(file => {
-      fs.readFile('./' + Folder_Path + '/' + file, 'utf8', (err, data) => {
-        if(err){
-          throw new Error(err);
-        }
-        const SplitByLine_Arr = data.split("\n");
-        const Trim_Arr = SplitByLine_Arr.map(element => {
-          return element.trim();
-        });
-
-        const StartWith_Arr = StartWithFilter(Trim_Arr);
-        const Steps_Arr = CleanStepsList(StartWith_Arr);
-        
-        Steps_Arr.forEach(element => {
-          if(OutputFormat.startsWith('stdout')){
-            console.log(element);
-          }
-          else if(OutputFormat.startsWith('html')){
-            console.log('<div>' + element + '</div>');
-          }
-          else
-          {console.log(element);}
-        });        
-      });
-    });
-  });
-});
-
+/**
+ * Output Format name variable
+ *
+ * Set and Get Output Format exist in (--format) tag added
+ * in nodejs command line
+ */
+let outputFormat = 'stdout-spaces';
+function setOutputFormat(value) { outputFormat = value; }
 
 /**
  * Start with Function.
  *
  * Return list of array items that start with (Given, Then, When).
  *
- * @param StepDef_Arr 
- * @returns array
+ * @param {array} stepsList The full step-definitions file lines list
+ * @return {array} The array has only lines startsWith words chosen
  */
- function StartWith(StepDef_Arr) {
-  return( StepDef_Arr.startsWith('Given') 
-        || StepDef_Arr.startsWith('Then') 
-        || StepDef_Arr.startsWith('When'));
+function startWith(stepsList) {
+  return (stepsList.startsWith('Given') ||
+        stepsList.startsWith('Then') ||
+        stepsList.startsWith('When'));
 }
 
 /**
  * Filter Step Definitions
- * 
- * @param {*} StepDef_Arr 
- * @returns 
+ *
+ * @param {array} stepsList The step definitions array is sent to filter
+ * by startsWith words chosen
+ * @return {array} Step definitions filtered array
  */
-function StartWithFilter(StepDef_Arr){
-  return StepDef_Arr.filter(StartWith);
+function callStartsWith(stepsList) {
+  return stepsList.filter(startWith);
 }
 
 /**
  * Clean Steps List
- * 
+ *
  * Return list of array items cleand from unreadable chars
- * 
- * @param ListArr 
- * @returns 
+ *
+ * @param {array} stepsList The step definitions array before clean
+ * unreadable signs
+ * @return {array} The step definitions cleaned array
  */
-function CleanStepsList(ListArr) {
-  var StepComment = '';
-  var NewArr = Array();
+function stepsCleanList(stepsList) {
+  const newStepsList = [];
 
-  ListArr.forEach((element, index) => {
+  stepsList.forEach((element) => {
+    const filter1 = element.split('$/');
+    const filter2 = filter1[0].replace('(/^', ' ');
 
-    const Filter1 = element.split("$/");
-    const Filter2 = Filter1[0].replace("(/^", ' ');
-
-    NewArr.push(Filter2);
+    newStepsList.push(filter2);
   });
-  return NewArr;
+  return newStepsList;
 }
 
-function src_folders_Path(path){
-  
-  path = path.split('=')[1];
-  const paths = path.split(' ');
+function srcFolderPaths(path) {
+  const splitConfig = path.split('=');
+  const pathsLine = splitConfig[1];
+  const paths = pathsLine.split(' ');
 
   setFoldersPath(paths);
 }
+
+for (let i = 2; i < process.argv.length; i++) {
+  if (process.argv[i].startsWith('--config')) {
+    const splitConfig = process.argv[i].split('=');
+    const path = splitConfig[1];
+    const configPath = require(path);
+
+    let configPathsArray = [];
+    configPathsArray = configPath.src_folders;
+
+    setFoldersPath(configPathsArray);
+  } else if (process.argv[i].startsWith('--src_folders')) {
+    srcFolderPaths(process.argv[i]);
+  } else if (process.argv[i].startsWith('--format')) {
+    setOutputFormat(process.argv[i].split('=')[1]);
+  }
+}
+
+if (foldersPath.length === 0) foldersPath = conf.src_folders;
+
+foldersPath.forEach((folderPath) => {
+  fs.readdir(folderPath, (err, files) => {
+    if (err) {
+      return console.log(`Unable to scan directory: ${err}`);
+    }
+
+    files.forEach((file) => {
+      fs.readFile(`./${folderPath}/${file}`, 'utf8', (data) => {
+        if (err) {
+          throw new Error(err);
+        }
+        const contentLines = data.split('\n');
+        const contentTrimmed = contentLines.map((element) => element.trim());
+
+        const stepsStartWith = callStartsWith(contentTrimmed);
+        const stepsList = stepsCleanList(stepsStartWith);
+
+        stepsList.forEach((element) => {
+          if (outputFormat.startsWith('stdout')) {
+            console.log(element);
+          } else if (outputFormat.startsWith('html')) {
+            console.log(`<div>${element}</div>`);
+          } else { console.log(element); }
+        });
+      });
+    });
+  });
+});
