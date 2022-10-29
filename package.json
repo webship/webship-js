@@ -12,9 +12,7 @@
   },
   "scripts": {
     "test": "nightwatch --format @cucumber/pretty-formatter --format-options '{\"colorsEnabled\": true}' --format-options '{\"theme\": {\"feature keyword\":[\"bold\",\"blue\"],\"feature name\":[\"blue\",\"underline\"],\"feature description\":[\"blueBright\"],\"scenario keyword\":[\"bold\",\"magenta\"],\"scenario name\":[\"magenta\",\"underline\"],\"step keyword\":[\"bold\",\"green\"],\"step text\":[\"greenBright\",\"italic\"]}}' --format json:./tests/reports/cucumber-report-$( date '+%Y-%m-%d_%H-%M' ).json --format html:./tests/reports/cucumber-report-$( date '+%Y-%m-%d_%H-%M' ).html",
-    "lint:js": "node ./node_modules/eslint/bin/eslint.js --config=.eslintrc.json .",
-    "lint:js-dl": "node ./node_modules/eslint/bin/eslint.js --config=.eslintrc.json bin/webship-js-dl",
-    "lint:js-di": "node ./node_modules/eslint/bin/eslint.js --config=.eslintrc.json bin/webship-js-di"
+    "lint:js": "node ./node_modules/eslint/bin/eslint.js --config=.eslintrc.json ."
   },
   "repository": {
     "type": "git",
@@ -36,5 +34,9 @@
     "eslint-plugin-import": "^2.25.4",
     "mocha": "^9.1.3",
     "nightwatch": "^2.1.7"
-  }
+  },
+  "bin":{
+    "webship-js-dl" : "./bin/webship-js-dl.js",
+    "webship-js-di" : "./bin/webship-js-di.js"
+  } 
 }

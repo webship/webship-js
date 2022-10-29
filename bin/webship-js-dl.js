@@ -105,7 +105,7 @@ foldersPath.forEach((folderPath) => {
     }
 
     files.forEach((file) => {
-      fs.readFile(`./${folderPath}/${file}`, 'utf8', (data) => {
+      fs.readFile(`./${folderPath}/${file}`, 'utf8', (err, data) => {
         if (err) {
           throw new Error(err);
         }
