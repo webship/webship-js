@@ -3,8 +3,8 @@ const { When, Before } = require('@cucumber/cucumber');
 const { Then } = require('@cucumber/cucumber');
 
 /**
- * some description
- * for first given function
+ * webship.js step definitions
+ * inside webship-js backage
  */
 Given(/^I go to "([^"]*)?"$/, (url) => browser.url(url));
 
