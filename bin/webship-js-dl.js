@@ -79,6 +79,13 @@ function srcFolderPaths(path) {
   setFoldersPath(paths);
 }
 
+/**
+ * "foldersPath" array
+ * 
+ * Fill "foldersPath" array process, that has paths of 
+ * all folders contain step definitions js files
+ */
+
 for (let i = 2; i < process.argv.length; i++) {
   if (process.argv[i].startsWith('--config')) {
     const splitConfig = process.argv[i].split('=');
@@ -97,6 +104,13 @@ for (let i = 2; i < process.argv.length; i++) {
 }
 
 if (foldersPath.length === 0) foldersPath = conf.src_folders;
+
+/**
+ * Step definitions list
+ * 
+ * Get clear step definitions list from js 
+ * step definitions files
+ */
 
 foldersPath.forEach((folderPath) => {
   fs.readdir(folderPath, (err, files) => {
