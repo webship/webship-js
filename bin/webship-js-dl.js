@@ -7,7 +7,7 @@ const conf = require('../nightwatch.conf.js');
  * Folders Path Array variable
  *
  * Set and Get folders path exist in (--config) tag and
- * (--src_folder) tag added in nodejs command line
+ * (--src_folder) tag added in nodejs command line.
  */
 let foldersPath = [];
 function setFoldersPath(value) {
@@ -20,7 +20,7 @@ function setFoldersPath(value) {
  * Output Format name variable
  *
  * Set and Get Output Format exist in (--format) tag added
- * in nodejs command line
+ * in nodejs command line.
  */
 let outputFormat = 'stdout-spaces';
 function setOutputFormat(value) { outputFormat = value; }
@@ -30,8 +30,8 @@ function setOutputFormat(value) { outputFormat = value; }
  *
  * Return list of array items that start with (Given, Then, When).
  *
- * @param {array} stepsList The full step-definitions file lines list
- * @return {array} The array has only lines startsWith words chosen
+ * @param {array} stepsList The full step-definitions file lines list.
+ * @return {array} The array has only lines startsWith words chosen.
  */
 function startWith(stepsList) {
   return (stepsList.startsWith('Given') ||
@@ -43,8 +43,8 @@ function startWith(stepsList) {
  * Filter Step Definitions
  *
  * @param {array} stepsList The step definitions array is sent to filter
- * by startsWith words chosen
- * @return {array} Step definitions filtered array
+ * by startsWith words chosen.
+ * @return {array} Step definitions filtered array.
  */
 function callStartsWith(stepsList) {
   return stepsList.filter(startWith);
@@ -53,11 +53,11 @@ function callStartsWith(stepsList) {
 /**
  * Clean Steps List
  *
- * Return list of array items cleand from unreadable chars
+ * Return list of array items cleand from unreadable chars.
  *
  * @param {array} stepsList The step definitions array before clean
- * unreadable signs
- * @return {array} The step definitions cleaned array
+ * unreadable signs.
+ * @return {array} The step definitions cleaned array.
  */
 function stepsCleanList(stepsList) {
   const newStepsList = [];
@@ -83,7 +83,7 @@ function srcFolderPaths(path) {
  * "foldersPath" array
  * 
  * Fill "foldersPath" array process, that has paths of 
- * all folders contain step definitions js files
+ * all folders contain step definitions js files.
  */
 
 for (let i = 2; i < process.argv.length; i++) {
@@ -109,7 +109,7 @@ if (foldersPath.length === 0) foldersPath = conf.src_folders;
  * Step definitions list
  * 
  * Get clear step definitions list from js 
- * step definitions files
+ * step definitions files.
  */
 
 foldersPath.forEach((folderPath) => {
