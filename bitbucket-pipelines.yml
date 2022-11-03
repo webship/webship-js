@@ -7,19 +7,28 @@ image: node:16
 
 pipelines:
   default:
-    - step:
-      name: webship-js-build
-      caches:
-        - node
-      script:
-        - yarn install
-        - yarn test
-      services:
-        - selenium-chrome
-
-definitions:
-  services:
-    selenium-chrome:
-      image: java -jar selenium-server-standalone-3.141.59.jar
-      ports:
-        - "4444:4444"
+    - parallel:
+        - step:
+            name: selenium linting
+            script:
+              - pull selenium/hub:latest
+              - pull selenium/standalone-chrome
+              - run java -jar selenium-server-standalone-3.141.59.jar -port 4444
+            services:
+              - docker
+            caches:
+              - node
+        - step:
+            name: Build and Test
+            caches:
+              - node
+            script:
+              - npm install
+              - npm test
+        - step:
+            name: Code linting
+            script:
+              - npm install eslint
+              - npx eslint .
+            caches:
+              - node
