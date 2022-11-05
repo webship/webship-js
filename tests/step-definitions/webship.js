@@ -3,15 +3,26 @@ const { When, Before } = require('@cucumber/cucumber');
 const { Then } = require('@cucumber/cucumber');
 
 /**
- * webship.js step definitions
- * inside webship-js backage
+ * Navigate to a url.
+ * 
+ * Exmaple:
+ *  - Given I go to "https://webship.co"
  */
-Given(/^I go to "([^"]*)?"$/, (url) => browser.url(url));
+Given(/^I go to "([^"]*)?"$/, function(url) {
+  return browser.url(url);
+});
 
-Then(/^I should( not)* see "([^"]*)?"$/, (negativeCase, expectedText) => {
+/**
+ * Asserting a text in the page.
+ * 
+ * Exmaple:
+ * - Then I should see "Welcome"
+ * - Then I should not see "Access denied"
+ */
+Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
   if (negativeCase) {
     return browser.assert.not.textContains('body', expectedText);
   }
-
+  
   return browser.assert.textContains('body', expectedText);
 });
