@@ -51,13 +51,6 @@ commands:
           name: Setup Apache2
           command: |
             sudo apt install -yqq apache2
-
-      ## Run Selenium Standalone server.
-      - run:
-          name: Run Selenium Standalone server
-          command: |
-            java -jar selenium-server-standalone-3.141.59.jar -port 4444
-          background: true
   
 jobs:
   webship-js-testing:
