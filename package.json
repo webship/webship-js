@@ -27,7 +27,6 @@
   "dependencies": {
     "@cucumber/cucumber": "*",
     "@cucumber/pretty-formatter": "^1.0.0-alpha.2",
-    "geckodriver": "*",
     "eslint": "~8.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.25.4",
@@ -35,7 +34,8 @@
     "nightwatch": "^2.1.7"
   },
   "devDependencies" : {
-    "chromedriver": "*"
+    "chromedriver": "*",
+    "geckodriver": "*"
   },  
   "bin":{
     "webship-js-dl" : "./bin/webship-js-dl.js",
