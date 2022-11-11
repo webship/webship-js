@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const conf = require('../nightwatch.conf.js');
+const argparse = require('../js/argparse.js');
 
 /**
  * Folders Path Array variable
@@ -35,12 +36,21 @@ function setOutputFormat(value) { outputFormat = value; }
  * @return {array} The array has only lines startsWith words chosen.
  */
 function startWith(stepsList) {
-  return (stepsList.startsWith('Given') ||
-       stepsList.startsWith('Then') ||
-       stepsList.startsWith('When') ||
-       stepsList.startsWith('/**') ||
-       stepsList.startsWith('* ') ||
-       stepsList.startsWith('*/'));
+  if(process.argv.display_list_information == 'i'){
+    return (stepsList.startsWith('Given') ||
+        stepsList.startsWith('Then') ||
+        stepsList.startsWith('When') ||
+        stepsList.startsWith('/**') ||
+        stepsList.startsWith('* ') ||
+        stepsList.startsWith('*/'));
+  }
+  else{
+    if(process.argv.display_list_information == 'l'){
+      return (stepsList.startsWith('Given') ||
+          stepsList.startsWith('Then') ||
+          stepsList.startsWith('When'));
+    }
+  }
 }
 
 /**
@@ -89,9 +99,7 @@ function stepsCleanList(stepsList) {
 }
 
 function srcFolderPaths(path) {
-  const splitConfig = path.split('=');
-  const pathsLine = splitConfig[1];
-  const paths = pathsLine.split(' ');
+  const paths = path.split(' ');
 
   setFoldersPath(paths);
 }
@@ -103,24 +111,18 @@ function srcFolderPaths(path) {
  * all folders contain step definitions js files.
  */
 
-for (let i = 2; i < process.argv.length; i++) {
-  if (process.argv[i].startsWith('--config')) {
-    const splitConfig = process.argv[i].split('=');
-    const path = splitConfig[1];
-    const configPath = require(path);
+  const configPath = require(process.argv.config);
 
-    let configPathsArray = [];
-    configPathsArray = configPath.src_folders;
+  let configPathsArray = [];
+  configPathsArray = configPath.src_folders;
 
-    setFoldersPath(configPathsArray);
-  } else if (process.argv[i].startsWith('--src_folders')) {
-    srcFolderPaths(process.argv[i]);
-  } else if (process.argv[i].startsWith('--format')) {
-    setOutputFormat(process.argv[i].split('=')[1]);
+  setFoldersPath(configPathsArray);
+
+  if (foldersPath.length === 0){
+    srcFolderPaths(process.argv.src_folders);
   }
-}
 
-if (foldersPath.length === 0) foldersPath = conf.src_folders;
+  setOutputFormat(process.argv.format);
 
 /**
  * Step definitions list
@@ -128,7 +130,6 @@ if (foldersPath.length === 0) foldersPath = conf.src_folders;
  * Get clear step definitions list from js 
  * step definitions files.
  */
-
 foldersPath.forEach((folderPath) => {
   fs.readdir(folderPath, (err, files) => {
     if (err) {
@@ -147,11 +148,11 @@ foldersPath.forEach((folderPath) => {
         const stepsList = stepsCleanList(stepsStartWith);
 
         stepsList.forEach((element) => {
-          if (outputFormat.startsWith('stdout')) {
-            console.log(element + "\n");
-          } else if (outputFormat.startsWith('html')) {
-            console.log(`<div>${element}</div>`);
-          } else { console.log(element); }
+          if (process.argv.format == 1) {
+            console.log(element + '\n');
+          } else if (process.argv.format == 2) {
+            console.log(element + '\n');
+          }
         });
       });
     });
