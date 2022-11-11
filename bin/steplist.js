@@ -148,7 +148,7 @@ foldersPath.forEach((folderPath) => {
 
         stepsList.forEach((element) => {
           if (outputFormat.startsWith('stdout')) {
-            console.log(element);
+            console.log(element + "\n");
           } else if (outputFormat.startsWith('html')) {
             console.log(`<div>${element}</div>`);
           } else { console.log(element); }
