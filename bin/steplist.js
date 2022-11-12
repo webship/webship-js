@@ -1,8 +1,58 @@
 #!/usr/bin/env node
+'use strict';
 
 const fs = require('fs');
 const conf = require('../nightwatch.conf.js');
-const argparse = require('../js/argparse.js');
+
+/**
+ * -----------------------------------------------------
+ * Parse arguments
+ * -----------------------------------------------------
+ */
+const { ArgumentParser } = require('argparse');
+const { version } = require('../package.json');
+ 
+const parser = new ArgumentParser({
+  description: 'Argparse example'
+});
+
+parser.add_argument('-v', '--version', { action: 'version', version });
+parser.add_argument('-l', '--list', 
+{ 
+  help: 'Display step definitions list without information.',
+  action: 'store_true',
+  default: true,
+});
+
+parser.add_argument('-i', '--information', 
+{ 
+  help: 'Display step definitions list with information.',
+  action: 'store_true',
+});
+
+parser.add_argument('-c', '--config', 
+{ 
+  help: 'Add your nightwatch config file, Example: -c="config.js" OR -c=config.js OR -c config.js',
+  default: '../nightwatch.conf.js',
+});
+
+parser.add_argument('-s', '--src_folders', 
+{ 
+  help: 'Add your step definitions folder/s path, Example: -s="path/to/folder1" OR -s="path/to/folder1 path/to/folder2", You can add as much as you want of folder paths',
+  default: "tests/step-definitions",
+});
+
+parser.add_argument('-f', '--format', 
+{ 
+  help: 'Choose step definitions list format style, just add a number. (1) stdout-space. (2) stdout-dashes. Example: -f=1 OR -f 2',
+  default: "1",
+});
+ 
+var argsParse = parser.parse_args();
+
+/**
+ * -----------------------------------------------------
+ */
 
 /**
  * Folders Path Array variable
@@ -36,7 +86,7 @@ function setOutputFormat(value) { outputFormat = value; }
  * @return {array} The array has only lines startsWith words chosen.
  */
 function startWith(stepsList) {
-  if(process.argv.display_list_information == 'i'){
+  if(argsParse.information == true){
     return (stepsList.startsWith('Given') ||
         stepsList.startsWith('Then') ||
         stepsList.startsWith('When') ||
@@ -44,12 +94,10 @@ function startWith(stepsList) {
         stepsList.startsWith('* ') ||
         stepsList.startsWith('*/'));
   }
-  else{
-    if(process.argv.display_list_information == 'l'){
+  else if(argsParse.list == true){
       return (stepsList.startsWith('Given') ||
           stepsList.startsWith('Then') ||
           stepsList.startsWith('When'));
-    }
   }
 }
 
@@ -111,7 +159,7 @@ function srcFolderPaths(path) {
  * all folders contain step definitions js files.
  */
 
-  const configPath = require(process.argv.config);
+  const configPath = require(argsParse.config);
 
   let configPathsArray = [];
   configPathsArray = configPath.src_folders;
@@ -119,10 +167,10 @@ function srcFolderPaths(path) {
   setFoldersPath(configPathsArray);
 
   if (foldersPath.length === 0){
-    srcFolderPaths(process.argv.src_folders);
+    srcFolderPaths(argsParse.src_folders);
   }
 
-  setOutputFormat(process.argv.format);
+  setOutputFormat(argsParse.format);
 
 /**
  * Step definitions list
@@ -148,9 +196,9 @@ foldersPath.forEach((folderPath) => {
         const stepsList = stepsCleanList(stepsStartWith);
 
         stepsList.forEach((element) => {
-          if (process.argv.format == 1) {
+          if (argsParse.format == 1) {
             console.log(element + '\n');
-          } else if (process.argv.format == 2) {
+          } else if (argsParse.format == 2) {
             console.log(element + '\n');
           }
         });
