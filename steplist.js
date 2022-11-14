@@ -2,7 +2,7 @@
 'use strict';
 
 const fs = require('fs');
-const conf = require('../nightwatch.conf.js');
+const conf = require('./nightwatch.conf.js');
 
 /**
  * -----------------------------------------------------
@@ -10,7 +10,7 @@ const conf = require('../nightwatch.conf.js');
  * -----------------------------------------------------
  */
 const { ArgumentParser } = require('argparse');
-const { version } = require('../package.json');
+const { version } = require('./package.json');
  
 const parser = new ArgumentParser({
   description: 'Argparse example'
@@ -33,7 +33,7 @@ parser.add_argument('-i', '--information',
 parser.add_argument('-c', '--config', 
 { 
   help: 'Add your nightwatch config file, Example: -c="config.js" OR -c=config.js OR -c config.js',
-  default: '../nightwatch.conf.js',
+  default: './nightwatch.conf.js',
 });
 
 parser.add_argument('-s', '--src_folders', 
@@ -115,7 +115,7 @@ function callStartsWith(stepsList) {
 /**
  * Clean Steps List
  *
- * Return list of array items cleand from unreadable chars.
+ * Return list of array items was clean from unreadable chars.
  *
  * @param {array} stepsList The step definitions array before 
  * clean unreadable signs.

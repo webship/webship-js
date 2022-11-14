@@ -37,10 +37,7 @@
     "chromedriver": "*",
     "geckodriver": "*"
   },
-  "files": [
-    "bin/"
-  ],
   "bin": {
-    "steplist": "./bin/steplist.js"
+    "steplist": "./steplist.js"
   }
 }
