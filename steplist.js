@@ -2,7 +2,21 @@
 'use strict';
 
 const fs = require('fs');
-const conf = require('./nightwatch.conf.js');
+var insidProject = false;
+var basePath = '';
+var projectPath = '';
+
+const currentPath = process.argv[1].split("node_modules");
+basePath = currentPath[0].substring(0, currentPath[0].lastIndexOf("/"));
+basePath = basePath + '/';
+projectPath = basePath + "node_modules/webship-js/"; 
+
+  if(currentPath.length > 1){
+    insidProject = true;    
+  } 
+  else{
+    insidProject = false;
+  }
 
 /**
  * -----------------------------------------------------
@@ -11,43 +25,43 @@ const conf = require('./nightwatch.conf.js');
  */
 const { ArgumentParser } = require('argparse');
 const { version } = require('./package.json');
- 
+
 const parser = new ArgumentParser({
   description: 'Argparse example'
 });
 
 parser.add_argument('-v', '--version', { action: 'version', version });
-parser.add_argument('-l', '--list', 
-{ 
-  help: 'Display step definitions list without information.',
-  action: 'store_true',
-  default: true,
-});
+parser.add_argument('-l', '--list',
+  {
+    help: 'Display step definitions list without information.',
+    action: 'store_true',
+    default: true,
+  });
 
-parser.add_argument('-i', '--information', 
-{ 
-  help: 'Display step definitions list with information.',
-  action: 'store_true',
-});
+parser.add_argument('-i', '--info',
+  {
+    help: 'Display step definitions list with information.',
+    action: 'store_true',
+  });
 
-parser.add_argument('-c', '--config', 
-{ 
-  help: 'Add your nightwatch config file, Example: -c="config.js" OR -c=config.js OR -c config.js',
-  default: './nightwatch.conf.js',
-});
+parser.add_argument('-c', '--config',
+  {
+    help: 'Add your nightwatch config file, Example: -c="nightwatch.conf.js" OR -c=nightwatch.conf.js OR -c nightwatch.conf.js',
+    default: 'nightwatch.conf.js',
+  });
 
-parser.add_argument('-s', '--src_folders', 
-{ 
-  help: 'Add your step definitions folder/s path, Example: -s="path/to/folder1" OR -s="path/to/folder1 path/to/folder2", You can add as much as you want of folder paths',
-  default: "tests/step-definitions",
-});
+parser.add_argument('-s', '--src_folders',
+  {
+    help: 'Add your step definitions folder/s path, Example: -s="path/to/folder1" OR -s="path/to/folder1 path/to/folder2", You can add as much as you want of folder paths',
+    default: "",
+  });
 
-parser.add_argument('-f', '--format', 
-{ 
-  help: 'Choose step definitions list format style, just add a number. (1) stdout-space. (2) stdout-dashes. Example: -f=1 OR -f 2',
-  default: "1",
-});
- 
+parser.add_argument('-f', '--format',
+  {
+    help: 'Choose step definitions list format style. \n(1) stdout-spaces. \n(2) stdout-dashes \n(3) html-spaces. \n(4) html-dashes. Example: -f=stdout-dashes OR -f stdout-dashes',
+    default: "stdout-spaces",
+  });
+
 var argsParse = parser.parse_args();
 
 /**
@@ -61,20 +75,22 @@ var argsParse = parser.parse_args();
  * (--src_folder) tag added in nodejs command line.
  */
 let foldersPath = [];
-function setFoldersPath(value) {
+function setFoldersPath(value, type) {
   value.forEach((element) => {
-    foldersPath.push(element);
+    var elementPath = '';
+      if(insidProject == true && !process.argv.find(element => element == type)){
+        elementPath = projectPath + element;
+      }
+      else if(insidProject == false && !process.argv.find(element => element == type)){
+        elementPath = basePath + element;
+      }
+      else{
+        elementPath = element;
+      }
+
+    foldersPath.push(elementPath);
   });
 }
-
-/**
- * Output Format name variable
- *
- * Set and Get Output Format exist in (--format) tag added
- * in nodejs command line.
- */
-let outputFormat = 'stdout-spaces';
-function setOutputFormat(value) { outputFormat = value; }
 
 /**
  * Start with Function.
@@ -86,18 +102,18 @@ function setOutputFormat(value) { outputFormat = value; }
  * @return {array} The array has only lines startsWith words chosen.
  */
 function startWith(stepsList) {
-  if(argsParse.information == true){
+  if (argsParse.info == true) {
     return (stepsList.startsWith('Given') ||
-        stepsList.startsWith('Then') ||
-        stepsList.startsWith('When') ||
-        stepsList.startsWith('/**') ||
-        stepsList.startsWith('* ') ||
-        stepsList.startsWith('*/'));
+      stepsList.startsWith('Then') ||
+      stepsList.startsWith('When') ||
+      stepsList.startsWith('/**') ||
+      stepsList.startsWith('* ') ||
+      stepsList.startsWith('*/'));
   }
-  else if(argsParse.list == true){
-      return (stepsList.startsWith('Given') ||
-          stepsList.startsWith('Then') ||
-          stepsList.startsWith('When'));
+  else if (argsParse.list == true) {
+    return (stepsList.startsWith('Given') ||
+      stepsList.startsWith('Then') ||
+      stepsList.startsWith('When'));
   }
 }
 
@@ -134,9 +150,12 @@ function stepsCleanList(stepsList) {
     } else if (!element.startsWith('/**') && !element.startsWith('*/')) {
       const filter1 = element.split('$/');
       const filter2 = filter1[0].replace('(/^', ' ');
-
+      
       if (stepComment !== '') {
-        if (outputFormat.startsWith('html')) newStepsList.push(`${filter2}\r\n<div>${stepComment}</div>`);
+        if (argsParse.format.startsWith('html')){
+          stepComment = `<div class="info">${stepComment}</div>\r\n`;
+          newStepsList.push(`${filter2}\r\n${stepComment}`);
+        } 
         else newStepsList.push(`${filter2}\r\n${stepComment}`);
       } else newStepsList.push(filter2);
 
@@ -149,7 +168,7 @@ function stepsCleanList(stepsList) {
 function srcFolderPaths(path) {
   const paths = path.split(' ');
 
-  setFoldersPath(paths);
+  setFoldersPath(paths, '-s');
 }
 
 /**
@@ -159,18 +178,28 @@ function srcFolderPaths(path) {
  * all folders contain step definitions js files.
  */
 
-  const configPath = require(argsParse.config);
+if(insidProject == true && !process.argv.find(element => element == "-c")){
+  argsParse.config = projectPath + argsParse.config;
+}
+else if(insidProject == false && !process.argv.find(element => element == "-c")){
+  argsParse.config = basePath + argsParse.config;
+}
 
-  let configPathsArray = [];
-  configPathsArray = configPath.src_folders;
+const configPath = require(argsParse.config);
 
-  setFoldersPath(configPathsArray);
+let configPathsArray = [];
 
-  if (foldersPath.length === 0){
-    srcFolderPaths(argsParse.src_folders);
-  }
+configPathsArray = configPath.src_folders;
+setFoldersPath(configPathsArray, '-c');
 
-  setOutputFormat(argsParse.format);
+if (foldersPath.length === 0) {
+  configPathsArray = argsParse.src_folders;
+  setFoldersPath(configPathsArray, '-c');
+}
+
+if(process.argv.find(element => element == '-s')){
+  srcFolderPaths(argsParse.src_folders);
+}
 
 /**
  * Step definitions list
@@ -185,7 +214,7 @@ foldersPath.forEach((folderPath) => {
     }
 
     files.forEach((file) => {
-      fs.readFile(`./${folderPath}/${file}`, 'utf8', (err, data) => {
+      fs.readFile(`${folderPath}/${file}`, 'utf8', (err, data) => {
         if (err) {
           throw new Error(err);
         }
@@ -196,10 +225,14 @@ foldersPath.forEach((folderPath) => {
         const stepsList = stepsCleanList(stepsStartWith);
 
         stepsList.forEach((element) => {
-          if (argsParse.format == 1) {
+          if (argsParse.format == 'stdout-spaces') {
             console.log(element + '\n');
-          } else if (argsParse.format == 2) {
+          } else if (argsParse.format == 'stdout-dashes') {
             console.log(element + '\n');
+          } else if (argsParse.format == 'html-spaces') {
+            console.log('<div>' + element + '</div>');
+          } else if (argsParse.format == 'html-dashes') {
+            console.log('<div>' + element + '</div>');
           }
         });
       });
