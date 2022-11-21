@@ -12,7 +12,7 @@ basePath = basePath + '/';
 projectPath = basePath + "node_modules/webship-js/"; 
 
   if(currentPath.length > 1){
-    insidProject = true;    
+    insidProject = true;
   } 
   else{
     insidProject = false;
@@ -63,6 +63,9 @@ parser.add_argument('-f', '--format',
   });
 
 var argsParse = parser.parse_args();
+if(currentPath.length > 1){
+  argsParse.format = 'html-spaces';
+} 
 
 /**
  * -----------------------------------------------------
@@ -230,10 +233,11 @@ foldersPath.forEach((folderPath) => {
           } else if (argsParse.format == 'stdout-dashes') {
             console.log(element + '\n');
           } else if (argsParse.format == 'html-spaces') {
-            console.log('<div>' + element + '</div>');
+            console.log('<div>' + element + '</div><br/>');
           } else if (argsParse.format == 'html-dashes') {
-            console.log('<div>' + element + '</div>');
+            console.log('<div>' + element + '</div><br/>');
           }
+          
         });
       });
     });
