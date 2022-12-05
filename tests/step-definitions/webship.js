@@ -23,5 +23,16 @@ const { Then } = require('@cucumber/cucumber');
     return browser.url('/');
   });
 
+/**
+ * Opens specified page
+ * Example: Given I am on "https://webship.co"
+ *
+ * @Given /^(?:|I )am on "(?P<page>[^"]+)"$/
+ */
+ Given(/^(?:|I )am on "(?P<page>[^"]+)"$/, function(url) {
+  return browser.url(url);
+});
+
+
 
 
