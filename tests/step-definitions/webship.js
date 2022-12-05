@@ -11,3 +11,17 @@ const { Then } = require('@cucumber/cucumber');
  Given(/^(?:|I )am on (?:|the )homepage$/, function(url) {
   return browser.url(url);
 });
+
+/**
+ * Opens homepage
+ * Example: When I go to the homepage
+ * Example: And I go to "/"
+ *
+ * @When /^(?:|I )go to (?:|the )homepage$/
+ */
+ When(/^(?:|I )go to (?:|the )homepage$/, function(url) {
+    return browser.url('/');
+  });
+
+
+
