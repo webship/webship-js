@@ -64,3 +64,13 @@ const { Then } = require('@cucumber/cucumber');
  When(/^(?:|I )move backward one page$/, function() {
   return history.back();
 });
+
+/**
+ * Moves forward one page in history
+ * Example: And I move forward one page
+ *
+ * @When /^(?:|I )move forward one page$/
+ */
+ When(/^(?:|I )move forward one page$/, function() {
+  return history.forward();
+});
