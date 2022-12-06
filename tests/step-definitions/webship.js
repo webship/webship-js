@@ -74,3 +74,37 @@ const { Then } = require('@cucumber/cucumber');
  When(/^(?:|I )move forward one page$/, function() {
   return history.forward();
 });
+
+/**
+ * Presses button with specified id|name|title|alt|value
+ * Example: When I press "Log In"
+ * Example: And I press "Log In"
+ *
+ * @When /^(?:|I )press "(?P<button>(?:[^"]|\\")*)"$/
+ */
+ When(/^(?:|I )press "(?P<button>(?:[^"]|\\")*)"$/, function(Button) {
+  return getButtonByValue(Button).click();
+});
+
+
+
+
+
+
+/**
+ * Button object 
+ *
+ * Find button object by type and value and return. 
+ */
+function getButtonByValue(value) {
+  var els = document.getElementsByTagName('input');
+
+  for (var i = 0, length = els.length; i < length; i++) {
+      var el = els[i];
+
+      if (el.type.toLowerCase() == 'button' && el.value.toLowerCase() == value.toLowerCase()) {
+          return el;
+          break;
+      }
+  }
+}
