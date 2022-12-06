@@ -44,5 +44,13 @@ const { Then } = require('@cucumber/cucumber');
   return browser.url(url);
 });
 
-
-
+/**
+ * Reloads current page
+ * Example: When I reload the page
+ * Example: And I reload the page
+ *
+ * @When /^(?:|I )reload the page$/
+ */
+ When(/^(?:|I ) reload (?:|the )page$/, function(url) {
+  return location.reload();
+});
