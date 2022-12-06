@@ -51,6 +51,16 @@ const { Then } = require('@cucumber/cucumber');
  *
  * @When /^(?:|I )reload the page$/
  */
- When(/^(?:|I ) reload (?:|the )page$/, function(url) {
+ When(/^(?:|I ) reload (?:|the )page$/, function() {
   return location.reload();
+});
+
+/**
+ * Moves backward one page in history
+ * Example: When I move backward one page
+ *
+ * @When /^(?:|I )move backward one page$/
+ */
+ When(/^(?:|I )move backward one page$/, function() {
+  return history.back();
 });

@@ -4,5 +4,5 @@ I want to be able to test the webship.co site
 So that I know it is working
 
   Scenario: Check the webship.co site
-    Given I go to "https://webship.co"
+    Given I am on "https://webship.co"
      Then I should see "Webship.co"
