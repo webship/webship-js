@@ -86,10 +86,22 @@ const { Then } = require('@cucumber/cucumber');
   return getButtonByValue(Button).click();
 });
 
+/**
+ * Clicks link with specified id|title|alt|text
+ * Example: When I follow "Log In"
+ * Example: And I follow "Log In"
+ *
+ * @When /^(?:|I )follow "(?P<link>(?:[^"]|\\")*)"$/
+ */
+ When(/^(?:|I )follow "(?P<link>(?:[^"]|\\")*)"$/, function(Link) {
+  return getLinkByValue(Link).click();
+});
 
-
-
-
+/**
+ * -----------------------------------------------------
+ * Functions
+ * -----------------------------------------------------
+ */
 
 /**
  * Button object 
@@ -104,6 +116,24 @@ function getButtonByValue(value) {
 
       if (el.type.toLowerCase() == 'button' && el.value.toLowerCase() == value.toLowerCase()) {
           return el;
+          break;
+      }
+  }
+}
+
+/**
+ * Link object 
+ *
+ * Find link object by text and value and return. 
+ */
+ function getLinkByValue(value) {
+  var els = document.getElementsByTagName('a');
+
+  for (var i = 0, length = els.length; i < length; i++) {
+      var el = els[i];
+
+      if (el.text == value) {
+        return el;
           break;
       }
   }
