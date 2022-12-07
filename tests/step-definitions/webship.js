@@ -3,6 +3,31 @@ const { When, Before } = require('@cucumber/cucumber');
 const { Then } = require('@cucumber/cucumber');
 
 /**
+ * Navigate to a url.
+ * 
+ * Example:
+ *  - Given I go to "https://webship.co"
+ */
+ Given(/^I go to "([^"]*)?"$/, function(url) {
+  return browser.url(url);
+});
+
+/**
+ * Asserting a text in the page.
+ * 
+ * Example:
+ * - Then I should see "Welcome"
+ * - Then I should not see "Access denied"
+ */
+Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
+  if (negativeCase) {
+    return browser.assert.not.textContains('body', expectedText);
+  }
+  
+  return browser.assert.textContains('body', expectedText);
+});
+
+/**
  * Opens homepage.
  * Example: Given I am on "/"
  * 
