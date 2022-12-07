@@ -2,15 +2,6 @@ const { Given } = require('@cucumber/cucumber');
 const { When, Before } = require('@cucumber/cucumber');
 const { Then } = require('@cucumber/cucumber');
 
-/**
- * Navigate to a url.
- * 
- * Example:
- *  - Given I go to "https://webship.co"
- */
- Given(/^I go to "([^"]*)?"$/, function(url) {
-  return browser.url(url);
-});
 
 /**
  * Asserting a text in the page.
