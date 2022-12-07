@@ -82,8 +82,8 @@ const { Then } = require('@cucumber/cucumber');
  *
  * @When /^(?:|I )press "(?P<button>(?:[^"]|\\")*)"$/
  */
- When(/^(?:|I )press "(?P<button>(?:[^"]|\\")*)"$/, function(Button) {
-  return getButtonByValue(Button).click();
+ When(/^(?:|I )press "(?P<button>(?:[^"]|\\")*)"$/, function(button) {
+  return getButtonByValue(button).click();
 });
 
 /**
@@ -93,9 +93,36 @@ const { Then } = require('@cucumber/cucumber');
  *
  * @When /^(?:|I )follow "(?P<link>(?:[^"]|\\")*)"$/
  */
- When(/^(?:|I )follow "(?P<link>(?:[^"]|\\")*)"$/, function(Link) {
-  return getLinkByValue(Link).click();
+ When(/^(?:|I )follow "(?P<link>(?:[^"]|\\")*)"$/, function(link) {
+  return getLinkByValue(link).click();
 });
+
+/**
+ * Fills in form field with specified id|name|label|value
+ * Example: When I fill in "username" with: "bwayne"
+ *
+ * @When /^(?:|I )fill in "(?P<field>(?:[^"]|\\")*)" with "(?P<value>(?:[^"]|\\")*)"$/
+ */
+ When(/^(?:|I )fill in "(?P<field>(?:[^"]|\\")*)" with "(?P<value>(?:[^"]|\\")*)"$/, function(field, value) {
+  var els = document.getElementsByName(field);
+  els[0].value = value;
+  return els;
+});
+
+/**
+ * Fills in form field with specified id|name|label|value
+ * Example: When I fill in "username" with:
+ *
+ * @When /^(?:|I )fill in "(?P<field>(?:[^"]|\\")*)" with:$/
+ */
+ When(/^(?:|I )fill in "(?P<field>(?:[^"]|\\")*)" with:$/, function(field, value) {
+  var els = document.getElementsByName(field);
+  els[0].value = '';
+  return els;
+});
+
+
+
 
 /**
  * -----------------------------------------------------
