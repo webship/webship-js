@@ -58,7 +58,7 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
  *
  * @When /^I go to "([^"]*)?"$/
  */
- Given(/^I go to "([^"]*)?"$/, function(url) {
+ When(/^I go to "([^"]*)?"$/, function(url) {
   return browser.url(url);
 });
 
