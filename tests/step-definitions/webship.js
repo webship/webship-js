@@ -9,6 +9,8 @@ const { Then } = require('@cucumber/cucumber');
  * Example:
  * - Then I should see "Welcome"
  * - Then I should not see "Access denied"
+ * 
+ * @Then /^I should( not)* see "([^"]*)?"$/
  */
 Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
   if (negativeCase) {
@@ -22,7 +24,7 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
  * Opens homepage.
  * Example: Given I am on "/"
  * 
- * @Given /^I am on (the )homepage$/
+ * @Given /^I am on( the)* homepage$/
  */
  Given(/^I am on( the)* homepage$/, function(url) {
   return browser.url(url);
@@ -33,7 +35,7 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
  * Example: When I go to the homepage
  * Example: And I go to "/"
  *
- * @When /^( I )go to ( the )homepage$/
+ * @When /^ I go to( the)* homepage$/
  */
  When(/^ I go to( the)* homepage$/, function(url) {
     return browser.url('/');
@@ -43,9 +45,9 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
  * Opens specified page
  * Example: Given I am on "https://webship.co"
  *
- * @Given /^( I )am on "(?P<page>[^"]+)"$/
+ * @Given /^I go to "([^"]*)?"$/
  */
- Given(/^ I am on "([^"]*)?"$/, function(url) {
+ Given(/^I go to "([^"]*)?"$/, function(url) {
   return browser.url(url);
 });
 
@@ -54,7 +56,7 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
  * Example: And I am on "https://webship.co"
  * Example: When I go to "https://webship.co"
  *
- * @When /^( I )go to "(?P<page>[^"]+)"$/
+ * @When /^I go to "([^"]*)?"$/
  */
  Given(/^I go to "([^"]*)?"$/, function(url) {
   return browser.url(url);
@@ -65,7 +67,7 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
  * Example: When I reload the page
  * Example: And I reload the page
  *
- * @When /^( I )reload the page$/
+ * @When /^I reload( the)* page$/
  */
  When(/^I reload( the)* page$/, function() {
   return location.reload();
@@ -75,7 +77,7 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
  * Moves backward one page in history
  * Example: When I move backward one page
  *
- * @When /^( I )move backward one page$/
+ * @When /^I move backward one page$/
  */
  When(/^I move backward one page$/, function() {
   return history.back();
@@ -85,7 +87,7 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
  * Moves forward one page in history
  * Example: And I move forward one page
  *
- * @When /^( I )move forward one page$/
+ * @When /^I move forward one page$/
  */
  When(/^I move forward one page$/, function() {
   return history.forward();
@@ -96,7 +98,7 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
  * Example: When I press "Log In"
  * Example: And I press "Log In"
  *
- * @When /^( I )press "(?P<button>(?:[^"]|\\")*)"$/
+ * @When /^I press "([^"]*)?"$/
  */
  When(/^I press "([^"]*)?"$/, function(button) {
   return getButtonByValue(button).click();
@@ -107,7 +109,7 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
  * Example: When I follow "Log In"
  * Example: And I follow "Log In"
  *
- * @When /^( I )follow "(?P<link>(?:[^"]|\\")*)"$/
+ * @When /^I follow "([^"]*)?"$/
  */
  When(/^I follow "([^"]*)?"$/, function(link) {
   return getLinkByValue(link).click();
@@ -117,7 +119,7 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
  * Fills in form field with specified id|name|label|value
  * Example: When I fill in "username" with: "bwayne"
  *
- * @When /^( I )fill in "(?P<field>(?:[^"]|\\")*)" with "(?P<value>(?:[^"]|\\")*)"$/
+ * @When /^I fill in "([^"]*)?" with "([^"]*)?"$/
  */
  When(/^I fill in "([^"]*)?" with "([^"]*)?"$/, function(field, value) {
   var els = document.getElementsByName(field);
@@ -129,7 +131,7 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
  * Fills in form field with specified id|name|label|value
  * Example: When I fill in "username" with:
  *
- * @When /^( I )fill in "(?P<field>(?:[^"]|\\")*)" with:$/
+ * @When /^I fill in "([^"]*)?" with:$/
  */
  When(/^I fill in "([^"]*)?" with:$/, function(field) {
   var els = document.getElementsByName(field);
@@ -141,13 +143,36 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
  * Fills in form field with specified id|name|label|value
  * Example: And I fill in "bwayne" for "username"
  *
- * @When /^( I )fill in "(?P<value>(?:[^"]|\\")*)" for "(?P<field>(?:[^"]|\\")*)"$/
+ * @When /^I fill in "([^"]*)?" for "([^"]*)?"$/
  */
  When(/^I fill in "([^"]*)?" for "([^"]*)?"$/, function(value, field) {
   var els = document.getElementsByName(field);
   els[0].value = value;
   return els;
 });
+
+/**
+ * Fills in form fields with provided table
+ * Example: When I fill in the following"
+ *              | username | bruceWayne |
+ *              | password | iLoveBats123 |
+ * Example: And I fill in the following"
+ *              | username | bruceWayne |
+ *              | password | iLoveBats123 |
+ *
+ * @When /^I fill in the following:$/
+ */
+ When(/^I fill in the following:$/, function(table) {
+  var tableEle = [];
+  table.rows().forEach(row => {
+  
+    var els = document.getElementsByName(row[0]); 
+    els[0].value = row[1];
+    tableEle.push(els);
+  });
+  return tableEle;
+});
+ 
 
 
 
