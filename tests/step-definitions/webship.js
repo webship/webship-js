@@ -52,17 +52,6 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
 });
 
 /**
- * Opens specified page
- * Example: And I am on "https://webship.co"
- * Example: When I go to "https://webship.co"
- *
- * @When /^I go to "([^"]*)?"$/
- */
- When(/^I go to "([^"]*)?"$/, function(url) {
-  return browser.url(url);
-});
-
-/**
  * Reloads current page
  * Example: When I reload the page
  * Example: And I reload the page
