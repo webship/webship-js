@@ -135,8 +135,8 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
  * @When /^I fill in "([^"]*)?" for "([^"]*)?"$/
  */
  When(/^I fill in "([^"]*)?" for "([^"]*)?"$/, function(value, field) {
-  var els = document.getElementsByName(field);
-  els[0].value = value;
+  var els = getElement(field);
+  els.value = value;
   return els;
 });
 
@@ -156,7 +156,7 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
   table.rows().forEach(row => {
   
     var els = getElement(row[0]); 
-    els[0].value = row[1];
+    els.value = row[1];
     tableEle.push(els);
   });
   return tableEle;
