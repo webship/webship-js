@@ -111,8 +111,8 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
  * @When /^I fill in "([^"]*)?" with "([^"]*)?"$/
  */
  When(/^I fill in "([^"]*)?" with "([^"]*)?"$/, function(field, value) {
-  var els = document.getElementsByName(field);
-  els[0].value = value;
+  var els = getElement(field);
+  els.value = value;
   return els;
 });
 
@@ -123,8 +123,8 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
  * @When /^I fill in "([^"]*)?" with:$/
  */
  When(/^I fill in "([^"]*)?" with:$/, function(field) {
-  var els = document.getElementsByName(field);
-  els[0].value = '';
+  var els = getElement(field);
+  els.value = '';
   return els;
 });
 
