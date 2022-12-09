@@ -142,7 +142,7 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
 
 /**
  * Fills in form fields with provided table
- * Example: When I fill in the following"
+ * Example: When I fill in the "([^"]*)?"following"
  *              | username | bruceWayne |
  *              | password | iLoveBats123 |
  * Example: And I fill in the following"
@@ -161,15 +161,76 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
   });
   return tableEle;
 });
- 
-
-
 
 /**
  * -----------------------------------------------------
  * Functions
  * -----------------------------------------------------
  */
+
+/**
+ * Get Element 
+ *
+ * Find field with specified id|name|label|value. 
+ */
+ function getElement(fieldDefinition) {
+  console.log("Field Definition: " + fieldDefinition);
+
+  console.log('id');
+
+  var el = document.getElementById(fieldDefinition);
+  if(el != null){
+    console.log(el);
+    return el;
+  }
+  console.log('Name');
+
+  var el = document.getElementsByName(fieldDefinition);
+  if(el.length > 0){
+    console.log(el);
+    return el[0];
+  }
+  console.log('label');
+
+  var labels = document.getElementsByTagName('label');
+  var el;
+  for (var i = 0; i < labels.length; i++) {
+    const lblText = labels[i].innerText.replace(":", '');
+    const fieldKey = fieldDefinition.replace(":", '');
+
+      if (lblText == fieldKey) {
+        el = document.getElementById(labels[i].htmlFor);
+        if(el != null){
+          break;
+        }
+      }
+  }
+  
+  if(el != null){
+    console.log(el);
+    if(el.length > 0){
+        return el;
+      }
+  }
+  
+  console.log('input value');
+  
+  var els = document.getElementsByTagName('input');
+  var el;
+
+  for (var i = 0, length = els.length; i < length; i++) {
+      var localEl = els[i];
+
+      if (localEl.value.toLowerCase() == fieldDefinition.toLowerCase()) {
+        el = localEl;
+        break;
+      }
+  }
+  if(el != null){
+    console.log(el);
+    return el;
+  }
+}
 
 /**
  * Button object 
@@ -196,6 +257,25 @@ function getButtonByValue(value) {
  */
  function getLinkByValue(value) {
   var els = document.getElementsByTagName('a');
+
+  for (var i = 0, length = els.length; i < length; i++) {
+      var el = els[i];
+
+      if (el.text == value) {
+        return el;
+          break;
+      }
+  }
+}
+
+/**
+ * Find Element 
+ *
+ * Looking for element by id|name|label|value and return
+ * if exist or not. 
+ */
+ function FindElement(field) {
+  var els = document.getElementsByTagName(field);
 
   for (var i = 0, length = els.length; i < length; i++) {
       var el = els[i];
