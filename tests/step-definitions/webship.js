@@ -161,6 +161,20 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
   });
   return tableEle;
 });
+ 
+/**
+ * Selects option in select field with specified id|name|label|value
+ * Example: When I select "Bats" from "user_fears"
+ * Example: And I select "Bats" from "user_fears"
+ *
+ * @When /^I select "([^"]*)?" from "([^"]*)?"$/
+ */
+ When(/^I select "([^"]*)?" from "([^"]*)?"$/, function(value, fieldDefinition) {
+  var els = getElement(fieldDefinition);
+  els.value = value;
+  return els;
+});
+
 
 /**
  * -----------------------------------------------------
@@ -174,23 +188,16 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
  * Find field with specified id|name|label|value. 
  */
  function getElement(fieldDefinition) {
-  console.log("Field Definition: " + fieldDefinition);
-
-  console.log('id');
 
   var el = document.getElementById(fieldDefinition);
   if(el != null){
-    console.log(el);
     return el;
   }
-  console.log('Name');
 
   var el = document.getElementsByName(fieldDefinition);
   if(el.length > 0){
-    console.log(el);
     return el[0];
   }
-  console.log('label');
 
   var labels = document.getElementsByTagName('label');
   var el;
@@ -207,13 +214,10 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
   }
   
   if(el != null){
-    console.log(el);
     if(el.length > 0){
         return el;
       }
   }
-  
-  console.log('input value');
   
   var els = document.getElementsByTagName('input');
   var el;
@@ -227,7 +231,6 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
       }
   }
   if(el != null){
-    console.log(el);
     return el;
   }
 }
