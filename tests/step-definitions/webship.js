@@ -155,7 +155,7 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
   var tableEle = [];
   table.rows().forEach(row => {
   
-    var els = document.getElementsByName(row[0]); 
+    var els = getElement(row[0]); 
     els[0].value = row[1];
     tableEle.push(els);
   });
