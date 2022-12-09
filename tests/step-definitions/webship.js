@@ -171,7 +171,12 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
  */
  When(/^I select "([^"]*)?" from "([^"]*)?"$/, function(value, fieldDefinition) {
   var els = getElement(fieldDefinition);
-  els.value = value;
+  for (var i = 0; i < els.options.length; i++) {
+    if (els.options[i].text === value) {
+        els.selectedIndex = i;
+        break;
+    }
+  }
   return els;
 });
 
