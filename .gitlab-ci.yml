@@ -36,6 +36,7 @@ check:
     - npm i @cucumber/pretty-formatter
 
     # Run your tests
+    - npm start
     - npm test
 
     # Show the logs for the GitLab Selenium Server service

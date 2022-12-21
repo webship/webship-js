@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      TEST_BASE_URL: https://webship.co
+      TEST_BASE_URL: http://localhost:8080/
       SELENIUM_HOST: http://selenium:4444/wd/hub
 
     services:
@@ -25,4 +25,5 @@ jobs:
         with:
           node-version: '16.x'
       - run: yarn install
+      - run: yarn start
       - run: yarn test
