@@ -13,7 +13,9 @@
   "scripts": {
     "test": "nightwatch --format @cucumber/pretty-formatter --format-options '{\"colorsEnabled\": true}' --format-options '{\"theme\": {\"feature keyword\":[\"bold\",\"blue\"],\"feature name\":[\"blue\",\"underline\"],\"feature description\":[\"blueBright\"],\"scenario keyword\":[\"bold\",\"magenta\"],\"scenario name\":[\"magenta\",\"underline\"],\"step keyword\":[\"bold\",\"green\"],\"step text\":[\"greenBright\",\"italic\"]}}' --format json:./tests/reports/cucumber-report-$( date '+%Y-%m-%d_%H-%M' ).json --format html:./tests/reports/cucumber-report-$( date '+%Y-%m-%d_%H-%M' ).html",
     "lint:js": "node ./node_modules/eslint/bin/eslint.js --config=.eslintrc.json .",
-    "build": "webpack"
+    "build": "webpack",
+    "start": "npx kill-port 8080 && npm run devServer",
+    "devServer": "webpack serve --open --port 8080"
   },
   "repository": {
     "type": "git",
@@ -33,7 +35,7 @@
     "eslint": "~8.0",
     "eslint-config-airbnb-base": "~15.0",
     "eslint-plugin-import": "~2.25",
-    "lodash": "~4.0",
+    "lodash": "~4.17.21",
     "webpack": "~5.0"
   },
   "devDependencies": {
