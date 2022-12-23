@@ -36,9 +36,8 @@ check:
     - npm i @cucumber/pretty-formatter
 
     # Run your tests
+    - npm install kill-port
     - npm start
-    - yarn add kill-port
-    - yarn start
     - npm test
 
     # Show the logs for the GitLab Selenium Server service

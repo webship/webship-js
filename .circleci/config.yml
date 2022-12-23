@@ -81,8 +81,8 @@ jobs:
           name: Automated Functional Acceptance Testing
           no_output_timeout: 30m
           command: |
+            npm install kill-port
             yarn install
-            yarn add kill-port
             yarn start
             yarn test
 workflows:
