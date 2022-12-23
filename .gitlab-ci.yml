@@ -37,6 +37,8 @@ check:
 
     # Run your tests
     - npm start
+    - yarn add kill-port
+    - yarn start
     - npm test
 
     # Show the logs for the GitLab Selenium Server service

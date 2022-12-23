@@ -82,6 +82,7 @@ jobs:
           no_output_timeout: 30m
           command: |
             yarn install
+            yarn add kill-port
             yarn start
             yarn test
 workflows:
