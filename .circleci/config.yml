@@ -56,7 +56,11 @@ commands:
             sudo chmod +x chromedriver
             sudo mv -f chromedriver /usr/bin/
             rm chromedriver_linux64.zip
-      
+      ## Install kill-port
+      - run:
+          name: Install kill-port
+          command: |
+            sudo npm install --save kill-port
        ## Setup Apache2
       - run:
           name: Setup Apache2
@@ -81,7 +85,6 @@ jobs:
           name: Automated Functional Acceptance Testing
           no_output_timeout: 30m
           command: |
-            npm install kill-port
             yarn install
             yarn start
             yarn test

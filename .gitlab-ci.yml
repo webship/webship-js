@@ -34,9 +34,10 @@ check:
     # Install cucumber & pretty formatter .
     - npm i @cucumber/cucumber
     - npm i @cucumber/pretty-formatter
+    # Install kill-port .
+    - npm install --save kill-port
 
     # Run your tests
-    - npm install kill-port
     - npm start
     - npm test
 
