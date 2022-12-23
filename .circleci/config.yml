@@ -56,11 +56,7 @@ commands:
             sudo chmod +x chromedriver
             sudo mv -f chromedriver /usr/bin/
             rm chromedriver_linux64.zip
-      ## Install kill-port
-      - run:
-          name: Install kill-port
-          command: |
-            sudo npm install --save kill-port
+      
        ## Setup Apache2
       - run:
           name: Setup Apache2

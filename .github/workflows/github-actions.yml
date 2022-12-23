@@ -25,6 +25,5 @@ jobs:
         with:
           node-version: '16.x'
       - run: yarn install
-      - run: yarn add kill-port
       - run: yarn start
       - run: yarn test
