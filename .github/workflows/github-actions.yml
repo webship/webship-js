@@ -18,6 +18,13 @@ jobs:
         ports: 
           - 4444:4444
 
+      webpack:
+        image: webpack/webpack-dev-server
+          - run: npm install webpack-dev-server --save-dev
+          - run: webpack serve --open --port 8080
+        ports: 
+          - 8080:8080
+
     steps:
       - uses: actions/checkout@v3
       - name: Use Node.js
@@ -25,5 +32,4 @@ jobs:
         with:
           node-version: '16.x'
       - run: yarn install
-      - run: yarn start
       - run: yarn test
