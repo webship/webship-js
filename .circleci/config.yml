@@ -79,19 +79,16 @@ jobs:
       ## Automated Functional Acceptance Testing
       - run:
           name: Automated Functional Acceptance Testing install
-          no_output_timeout: 30m
           command: |
             yarn install
       - run:
           name: Automated Functional Acceptance Testing start
-          no_output_timeout: 30m
           command: |
             yarn start
           background: true
 
       - run:
           name: Automated Functional Acceptance Testing test
-          no_output_timeout: 30m
           command: |
             yarn test
 workflows:
