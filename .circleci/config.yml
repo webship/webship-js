@@ -70,6 +70,15 @@ commands:
             cd /home/circleci/
             java -jar selenium-server-standalone-3.141.59.jar -port 4444
           background: true
+      - run:
+          name: Automated Functional Acceptance Testing install
+          command: |
+            yarn install
+      - run:
+          name: Automated Functional Acceptance Testing start
+          command: |
+            yarn start
+          background: true
   
 jobs:
   webship-js-testing:
@@ -77,17 +86,6 @@ jobs:
     steps:
       - webship-js-build
       ## Automated Functional Acceptance Testing
-      - run:
-          name: Automated Functional Acceptance Testing install
-          command: |
-            yarn install
-    steps:
-      - run:
-          name: Automated Functional Acceptance Testing start
-          command: |
-            yarn start
-          background: true
-    steps:
       - run:
           name: Automated Functional Acceptance Testing test
           command: |
