@@ -81,12 +81,13 @@ jobs:
           name: Automated Functional Acceptance Testing install
           command: |
             yarn install
+    steps:
       - run:
           name: Automated Functional Acceptance Testing start
           command: |
             yarn start
           background: true
-
+    steps:
       - run:
           name: Automated Functional Acceptance Testing test
           command: |
