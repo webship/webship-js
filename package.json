@@ -34,15 +34,11 @@
     "args-parser": "~1.0",
     "eslint": "~8.0",
     "eslint-config-airbnb-base": "~15.0",
-    "eslint-plugin-import": "~2.25",
-    "lodash": "~4.17.21",
-    "webpack": "~5.0"
+    "eslint-plugin-import": "~2.25"
   },
   "devDependencies": {
     "chromedriver": "*",
-    "geckodriver": "*",
-    "webpack-cli": "~5.0",
-    "webpack-dev-server": "~4.0"
+    "geckodriver": "*"
   },
   "bin": {
     "steplist": "./steplist.js"

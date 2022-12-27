@@ -78,7 +78,7 @@ commands:
             npx webpack
             npm run build
             npm install webpack-dev-server --save-dev
-            webpack serve --open --port 8080
+            webpack serve -open -port 8080
           background: true
   
 jobs:
