@@ -70,16 +70,6 @@ commands:
             cd /home/circleci/
             java -jar selenium-server-standalone-3.141.59.jar -port 4444
           background: true
-      - run:
-          name: Run Webpack server
-          command: |
-            npm install webpack webpack-cli --save-dev
-            npm install --save lodash
-            npx webpack
-            npm run build
-            npm install webpack-dev-server --save-dev
-            webpack serve -open -port 8080
-          background: true
   
 jobs:
   webship-js-testing:
@@ -92,6 +82,7 @@ jobs:
           no_output_timeout: 30m
           command: |
             yarn install
+            yarn start
             yarn test
 workflows:
   version: 2

@@ -14,20 +14,22 @@ const { Then } = require('@cucumber/cucumber');
  */
 Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
   if (negativeCase) {
-    return browser.assert.not.textContains('body', expectedText);
+    return browser.assert.not.textContains('html', expectedText);
   }
   
-  return browser.assert.textContains('body', expectedText);
+  return browser.assert.textContains('html', expectedText);
 });
 
 /**
  * Opens homepage.
- * Example: Given I am on "/"
+ * 
+ * Example: Given I am on homepage
+ * Example: Given I am on the homepage
  * 
  * @Given /^I am on( the)* homepage$/
  */
  Given(/^I am on( the)* homepage$/, function(url) {
-  return browser.url(url);
+  return browser.url(browser.launch_url);
 });
 
 /**
@@ -35,20 +37,27 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
  * Example: When I go to the homepage
  * Example: And I go to "/"
  *
- * @When /^ I go to( the)* homepage$/
  */
- When(/^ I go to( the)* homepage$/, function(url) {
-    return browser.url('/');
+ When(/^ I go to( the)* homepage$/, function() {
+    return browser.url(browser.launch_url);
   });
 
 /**
  * Opens specified page
- * Example: Given I am on "https://webship.co"
+ * Example: Given I am on "about-us.html"
  *
- * @Given /^I go to "([^"]*)?"$/
  */
- Given(/^I go to "([^"]*)?"$/, function(url) {
-  return browser.url(url);
+ Given(/^I am on "([^"]*)?"$/, function(url) {
+  return browser.url(browser.launch_url + url);
+});
+
+/**
+ * Opens specified page
+ * Example: When I go to "contact-us.html"
+ *
+ */
+ When(/^I go to "([^"]*)?"$/, function(url) {
+  return browser.url(browser.launch_url + url);
 });
 
 /**
@@ -56,10 +65,9 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
  * Example: When I reload the page
  * Example: And I reload the page
  *
- * @When /^I reload( the)* page$/
  */
- When(/^I reload( the)* page$/, function() {
-  return location.reload();
+ When(/^I reload( the)* page$/, function(url) {
+  return browser.refresh(browser.getCurrentUrl());
 });
 
 /**
