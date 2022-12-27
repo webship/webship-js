@@ -18,9 +18,5 @@ jobs:
         with:
           node-version: '16.x'
       - run: yarn install
-    
-    steps: |
       - run: yarn start
-
-    steps: |
       - run: yarn test
