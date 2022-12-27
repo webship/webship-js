@@ -17,6 +17,9 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '16.x'
+      - name: Install
       - run: yarn install
+      - name: Start
       - run: yarn start
+      - name: Test
       - run: yarn test
