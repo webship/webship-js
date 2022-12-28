@@ -78,16 +78,16 @@ jobs:
       - webship-js-build
       ## Automated Functional Acceptance Testing
       - run:
-          name: Automated Functional Acceptance Testing install
+          name: Install yarn
           command: |
             yarn install
       - run:
-          name: Automated Functional Acceptance Testing start
+          name: Start virtual server
           command: |
             yarn start
           background: true
       - run:
-          name: Automated Functional Acceptance Testing test
+          name: Test
           command: |
             yarn test
 workflows:

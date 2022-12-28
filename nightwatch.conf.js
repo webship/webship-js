@@ -79,6 +79,10 @@ module.exports = {
           ],
         },
       },
+      webdriver: {
+        start_process: true,
+        server_path: (Services.chromedriver ? Services.chromedriver.path : '')
+      }
     },
 
     safari: {
