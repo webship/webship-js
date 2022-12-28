@@ -20,6 +20,6 @@ jobs:
       - name: Install
         run: yarn install
       - name: Start
-        run: yarn start
+        run: yarn start &
       - name: Test
         run: yarn test
