@@ -57,11 +57,6 @@ commands:
             sudo mv -f chromedriver /usr/bin/
             rm chromedriver_linux64.zip
       
-       ## Setup Apache2
-      - run:
-          name: Setup Apache2
-          command: |
-            sudo apt install -yqq apache2
       ## Run Selenium Standalone server.
       - run:
           name: Run Selenium Standalone server
