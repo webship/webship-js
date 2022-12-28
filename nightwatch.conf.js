@@ -79,7 +79,9 @@ module.exports = {
           ],
         },
       },
-   
+      webdriver: {
+        start_process: true,
+      }
     },
 
     safari: {
@@ -90,7 +92,6 @@ module.exports = {
         },
       },
       webdriver: {
-        start_process: true,
         server_path: '',
       },
     },
@@ -109,7 +110,6 @@ module.exports = {
         },
       },
       webdriver: {
-        start_process: true,
         server_path: '',
         cli_args: [
           // very verbose geckodriver logs
@@ -156,7 +156,6 @@ module.exports = {
       },
 
       webdriver: {
-        start_process: true,
         // Download msedgedriver from https://docs.microsoft.com/en-us/microsoft-edge/webdriver-chromium/
         //  and set the location below:
         server_path: '',
