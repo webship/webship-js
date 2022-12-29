@@ -79,6 +79,9 @@ module.exports = {
           ],
         },
       },
+      webdriver: {
+        start_process: true,
+      }
     },
 
     safari: {
@@ -133,7 +136,6 @@ module.exports = {
       },
 
       webdriver: {
-        start_process: true,
         server_path: '',
         cli_args: [
           // --verbose
@@ -282,7 +284,6 @@ module.exports = {
     selenium_server: {
       // Selenium Server is running locally and is managed by Nightwatch
       selenium: {
-        start_process: true,
         port: 4444,
         server_path: (Services.seleniumServer ? Services.seleniumServer.path : ''),
         cli_args: {
