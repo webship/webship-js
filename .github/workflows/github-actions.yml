@@ -21,8 +21,6 @@ jobs:
         run: yarn install
       - name: Start
         run: yarn start &
-      - name: Install Google Chrome 
-        run: |
-              chmod +x ./scripts/InstallChrome.sh
       - name: Test
+        uses: actions/chromedriver@v1
         run: yarn test
