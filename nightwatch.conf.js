@@ -79,9 +79,6 @@ module.exports = {
           ],
         },
       },
-      webdriver: {
-        start_process: true,
-      }
     },
 
     safari: {
@@ -136,6 +133,7 @@ module.exports = {
       },
 
       webdriver: {
+        start_process: true,
         server_path: '',
         cli_args: [
           // --verbose
