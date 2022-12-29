@@ -22,6 +22,6 @@ jobs:
       - name: Start
         run: yarn start &
       - name: Install webdriver package
-        run: webdriver-manager
+        run: yarn add webdriver-manager
       - name: Test
         run: yarn test
