@@ -79,9 +79,6 @@ module.exports = {
           ],
         },
       },
-      webdriver: {
-        start_process: true,
-      }
     },
 
     safari: {
@@ -92,6 +89,7 @@ module.exports = {
         },
       },
       webdriver: {
+        start_process: true,
         server_path: '',
       },
     },
@@ -110,6 +108,7 @@ module.exports = {
         },
       },
       webdriver: {
+        start_process: true,
         server_path: '',
         cli_args: [
           // very verbose geckodriver logs
@@ -136,7 +135,8 @@ module.exports = {
       },
 
       webdriver: {
-        server_path: '',
+        start_process: true,
+        server_path: 'http://localhost:8080/',
         cli_args: [
           // --verbose
         ],
@@ -158,6 +158,7 @@ module.exports = {
       webdriver: {
         // Download msedgedriver from https://docs.microsoft.com/en-us/microsoft-edge/webdriver-chromium/
         //  and set the location below:
+        start_process: true,
         server_path: '',
         cli_args: [
           // --verbose
@@ -284,6 +285,7 @@ module.exports = {
     selenium_server: {
       // Selenium Server is running locally and is managed by Nightwatch
       selenium: {
+        start_process: true,
         port: 4444,
         server_path: (Services.seleniumServer ? Services.seleniumServer.path : ''),
         cli_args: {
