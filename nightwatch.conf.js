@@ -303,6 +303,9 @@ module.exports = {
           w3c: true,
         },
       },
+      webdriver: {
+        start_process: true,
+      }
     },
 
     'selenium.firefox': {
