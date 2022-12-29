@@ -21,7 +21,8 @@ jobs:
         run: yarn install
       - name: Start
         run: yarn start &
-      - name: Install webdriver package
-        run: yarn add webdriver-manager
+      - name: Install Google Chrome 
+        run: |
+              chmod +x ./scripts/InstallChrome.sh
       - name: Test
         run: yarn test
