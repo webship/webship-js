@@ -26,7 +26,11 @@ module.exports = {
   // See https://nightwatchjs.org/guide/#external-globals
   globals_path: '',
 
-  webdriver: {},
+  webdriver: {
+    start_process: true,
+    port: 4444,
+    server_path: require('Chromedriver').path,
+  },
 
   test_runner: {
     type: 'cucumber',
@@ -136,7 +140,7 @@ module.exports = {
 
       webdriver: {
         start_process: true,
-        server_path: 'http://localhost:8080/',
+        server_path: '',
         cli_args: [
           // --verbose
         ],
