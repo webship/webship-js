@@ -70,8 +70,8 @@ commands:
       - run:
           name: Replace config file
           command: |
-            rm /nightwatch.conf.js
-            cp /assets/config_templates/nightwatch-circleci-chrome.conf.js /nightwatch.conf.js
+            sudo rm -f /nightwatch.conf.js
+            sudo cp /assets/config_templates/nightwatch-circleci-chrome.conf.js /nightwatch.conf.js
   
 jobs:
   webship-js-testing:
