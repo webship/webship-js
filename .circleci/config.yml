@@ -65,6 +65,13 @@ commands:
             cd /home/circleci/
             java -jar selenium-server-standalone-3.141.59.jar -port 4444
           background: true
+
+      ## Replace the standard config file with the CircleCi config file.
+      - run:
+          name: Replace config file
+          command: |
+            rm /nightwatch.conf.js
+            cp /assets/config_templates/nightwatch-circleci-chrome.conf.js /nightwatch.conf.js
   
 jobs:
   webship-js-testing:

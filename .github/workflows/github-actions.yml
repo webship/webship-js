@@ -13,18 +13,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - uses: nanasess/setup-chromedriver@v1
-        with:
-          # Optional: do not specify to match Chrome's version
-          chromedriver-version: '88.0.4324.96'
-      - run: |
-          export DISPLAY=:99
-          chromedriver --url-base=/wd/hub &
-          sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 & # optional
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '16.x'
+      - name: Replace config file
+        run: npm rm -f /nightwatch.conf.js
+        run: cp /assets/config_templates/nightwatch-github-chrome.conf.js /nightwatch.conf.js
       - name: Install
         run: yarn install
       - name: Start
