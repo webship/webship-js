@@ -20,7 +20,7 @@ jobs:
       - name: Replace config file
         run: npm rm -f /nightwatch.conf.js
       - name: Copy github config file
-        run: cp /assets/config_templates/nightwatch-github-chrome.conf.js /nightwatch.conf.js
+        run: npm cp -f /assets/config_templates/nightwatch-github-chrome.conf.js /nightwatch.conf.js
       - name: Install
         run: yarn install
       - name: Start
