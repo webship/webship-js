@@ -29,7 +29,7 @@ module.exports = {
   webdriver: {
     start_process: true,
     port: 4444,
-    server_path: require('Chromedriver').path,
+    server_path: require('chromedriver').path,
   },
 
   test_runner: {
