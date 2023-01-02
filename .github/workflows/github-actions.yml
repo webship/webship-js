@@ -17,11 +17,8 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '16.x'
-      - name: Replace config file
-        run: npm rm -f /nightwatch.conf.js
-      - name: Copy github config file
-        run: npm cp -f /assets/config_templates/nightwatch-github-chrome.conf.js /nightwatch.conf.js
-      - name: Install
+        run: node webship-init -ci github -os linux -b chrome
+       - name: Install
         run: yarn install
       - name: Start
         run: yarn start &
