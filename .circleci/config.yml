@@ -79,7 +79,7 @@ jobs:
       - run:
           name: Generate nightwatch.conf.js
           command: |
-            node webship-init -ci cicleci -os linux -b chrome
+            node webship-init -ci circleci -os linux -b chrome
       - run:
           name: Start virtual server
           command: |
