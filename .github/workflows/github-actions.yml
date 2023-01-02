@@ -17,9 +17,10 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '16.x'
-        run: node webship-init -ci github -os linux -b chrome
-       - name: Install
+      - name: Install
         run: yarn install
+      - name: Generate nightwatch.conf.js
+        run: node webship-init -ci github -os linux -b chrome
       - name: Start
         run: yarn start &
       - name: Test

@@ -30,7 +30,6 @@ commands:
             curl -sL https://deb.nodesource.com/setup_16.x | sudo bash -
             sudo apt install -y nodejs 
             sudo npm install -g yarn
-            node webship-init -ci cicleci -os linux -b chrome
       ## Install Java.
       - run:
           name: Install Java
@@ -84,6 +83,10 @@ jobs:
           name: Install yarn
           command: |
             yarn install
+      - run:
+          name: Generate nightwatch.conf.js
+          command: |
+            node webship-init -ci cicleci -os linux -b chrome
       - run:
           name: Start virtual server
           command: |
