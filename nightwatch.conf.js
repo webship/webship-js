@@ -5,16 +5,6 @@ module.exports = {
   // if this is not specified, the test source must be passed as the second argument to the test runner.
   src_folders: ['tests/step-definitions'],
 
-  webdriver: {
-    start_process: true,
-    port: 4444,
-    server_path: require('chromedriver').path,
-    cli_args: [
-      // very verbose geckodriver logs
-      // '-vv'
-    ]
-  },
-
   test_runner: {
     type: 'cucumber',
     options: {
@@ -22,7 +12,6 @@ module.exports = {
       additional_config: '',
       parallel: 2,
     },
-
   },
 
   test_settings: {

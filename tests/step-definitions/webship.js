@@ -1,3 +1,5 @@
+const fun = require('./functions.js');
+
 const { Given } = require('@cucumber/cucumber');
 const { When, Before } = require('@cucumber/cucumber');
 const { Then } = require('@cucumber/cucumber');
@@ -12,11 +14,11 @@ const { Then } = require('@cucumber/cucumber');
  * 
  * @Then /^I should( not)* see "([^"]*)?"$/
  */
-Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
+Then(/^I should( not)* see "([^"]*)?"$/, function (negativeCase, expectedText) {
   if (negativeCase) {
     return browser.assert.not.textContains('html', expectedText);
   }
-  
+
   return browser.assert.textContains('html', expectedText);
 });
 
@@ -28,7 +30,7 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
  * 
  * @Given /^I am on( the)* homepage$/
  */
- Given(/^I am on( the)* homepage$/, function(url) {
+Given(/^I am on( the)* homepage$/, function (url) {
   return browser.url(browser.launch_url);
 });
 
@@ -38,16 +40,16 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
  * Example: And I go to "/"
  *
  */
- When(/^ I go to( the)* homepage$/, function() {
-    return browser.url(browser.launch_url);
-  });
+When(/^ I go to( the)* homepage$/, function () {
+  return browser.url(browser.launch_url);
+});
 
 /**
  * Opens specified page
  * Example: Given I am on "about-us.html"
  *
  */
- Given(/^I am on "([^"]*)?"$/, function(url) {
+Given(/^I am on "([^"]*)?"$/, function (url) {
   return browser.url(browser.launch_url + url);
 });
 
@@ -56,28 +58,8 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
  * Example: When I go to "contact-us.html"
  *
  */
- When(/^I go to "([^"]*)?"$/, function(url) {
+When(/^I go to "([^"]*)?"$/, function (url) {
   return browser.url(browser.launch_url + url);
-});
-
-/**
- * Reloads current page
- * Example: When I reload the page
- * Example: And I reload the page
- *
- */
- When(/^I reload( the)* page$/, function(url) {
-  return browser.refresh(browser.getCurrentUrl());
-});
-
-/**
- * Moves backward one page in history
- * Example: When I move backward one page
- *
- * @When /^I move backward one page$/
- */
- When(/^I move backward one page$/, function() {
-  return history.back();
 });
 
 /**
@@ -86,8 +68,18 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
  *
  * @When /^I move forward one page$/
  */
- When(/^I move forward one page$/, function() {
-  return history.forward();
+ When(/^I move forward one page$/, function () {
+  return browser.forward();
+});
+
+/**
+ * Moves backward one page in history
+ * Example: When I move backward one page
+ *
+ * @When /^I move backward one page$/
+ */
+When(/^I move backward one page$/, function () {
+  return browser.back();
 });
 
 /**
@@ -97,8 +89,18 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
  *
  * @When /^I press "([^"]*)?"$/
  */
- When(/^I press "([^"]*)?"$/, function(button) {
-  return getButtonByValue(button).click();
+When(/^I press "([^"]*)?"$/, function (button) {
+  return browser.click(fun.getElement(button));
+});
+
+/**
+ * Reloads current page
+ * Example: When I reload the page
+ * Example: And I reload the page
+ *
+ */
+ When(/^I reload( the)* page$/, function (url) {
+  return browser.refresh(browser.getCurrentUrl());
 });
 
 /**
@@ -108,7 +110,7 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
  *
  * @When /^I follow "([^"]*)?"$/
  */
- When(/^I follow "([^"]*)?"$/, function(link) {
+When(/^I follow "([^"]*)?"$/, function (link) {
   return getLinkByValue(link).click();
 });
 
@@ -118,7 +120,7 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
  *
  * @When /^I fill in "([^"]*)?" with "([^"]*)?"$/
  */
- When(/^I fill in "([^"]*)?" with "([^"]*)?"$/, function(field, value) {
+When(/^I fill in "([^"]*)?" with "([^"]*)?"$/, function (field, value) {
   var els = getElement(field);
   els.value = value;
   return els;
@@ -130,7 +132,7 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
  *
  * @When /^I fill in "([^"]*)?" with:$/
  */
- When(/^I fill in "([^"]*)?" with:$/, function(field) {
+When(/^I fill in "([^"]*)?" with:$/, function (field) {
   var els = getElement(field);
   els.value = '';
   return els;
@@ -142,7 +144,7 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
  *
  * @When /^I fill in "([^"]*)?" for "([^"]*)?"$/
  */
- When(/^I fill in "([^"]*)?" for "([^"]*)?"$/, function(value, field) {
+When(/^I fill in "([^"]*)?" for "([^"]*)?"$/, function (value, field) {
   var els = getElement(field);
   els.value = value;
   return els;
@@ -159,17 +161,17 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
  *
  * @When /^I fill in the following:$/
  */
- When(/^I fill in the following:$/, function(table) {
+When(/^I fill in the following:$/, function (table) {
   var tableEle = [];
   table.rows().forEach(row => {
-  
-    var els = getElement(row[0]); 
+
+    var els = getElement(row[0]);
     els.value = row[1];
     tableEle.push(els);
   });
   return tableEle;
 });
- 
+
 /**
  * Selects option in select field with specified id|name|label|value
  * Example: When I select "Bats" from "user_fears"
@@ -177,128 +179,13 @@ Then(/^I should( not)* see "([^"]*)?"$/, function(negativeCase, expectedText) {
  *
  * @When /^I select "([^"]*)?" from "([^"]*)?"$/
  */
- When(/^I select "([^"]*)?" from "([^"]*)?"$/, function(value, fieldDefinition) {
+When(/^I select "([^"]*)?" from "([^"]*)?"$/, function (value, fieldDefinition) {
   var els = getElement(fieldDefinition);
   for (var i = 0; i < els.options.length; i++) {
     if (els.options[i].text === value) {
-        els.selectedIndex = i;
-        break;
+      els.selectedIndex = i;
+      break;
     }
   }
   return els;
 });
-
-
-/**
- * -----------------------------------------------------
- * Functions
- * -----------------------------------------------------
- */
-
-/**
- * Get Element 
- *
- * Find field with specified id|name|label|value. 
- */
- function getElement(fieldDefinition) {
-
-  var el = document.getElementById(fieldDefinition);
-  if(el != null){
-    return el;
-  }
-
-  var el = document.getElementsByName(fieldDefinition);
-  if(el.length > 0){
-    return el[0];
-  }
-
-  var labels = document.getElementsByTagName('label');
-  var el;
-  for (var i = 0; i < labels.length; i++) {
-    const lblText = labels[i].innerText.replace(":", '');
-    const fieldKey = fieldDefinition.replace(":", '');
-
-      if (lblText == fieldKey) {
-        el = document.getElementById(labels[i].htmlFor);
-        if(el != null){
-          break;
-        }
-      }
-  }
-  
-  if(el != null){
-    if(el.length > 0){
-        return el;
-      }
-  }
-  
-  var els = document.getElementsByTagName('input');
-  var el;
-
-  for (var i = 0, length = els.length; i < length; i++) {
-      var localEl = els[i];
-
-      if (localEl.value.toLowerCase() == fieldDefinition.toLowerCase()) {
-        el = localEl;
-        break;
-      }
-  }
-  if(el != null){
-    return el;
-  }
-}
-
-/**
- * Button object 
- *
- * Find button object by type and value and return. 
- */
-function getButtonByValue(value) {
-  var els = document.getElementsByTagName('input');
-
-  for (var i = 0, length = els.length; i < length; i++) {
-      var el = els[i];
-
-      if (el.type.toLowerCase() == 'button' && el.value.toLowerCase() == value.toLowerCase()) {
-          return el;
-          break;
-      }
-  }
-}
-
-/**
- * Link object 
- *
- * Find link object by text and value and return. 
- */
- function getLinkByValue(value) {
-  var els = document.getElementsByTagName('a');
-
-  for (var i = 0, length = els.length; i < length; i++) {
-      var el = els[i];
-
-      if (el.text == value) {
-        return el;
-          break;
-      }
-  }
-}
-
-/**
- * Find Element 
- *
- * Looking for element by id|name|label|value and return
- * if exist or not. 
- */
- function FindElement(field) {
-  var els = document.getElementsByTagName(field);
-
-  for (var i = 0, length = els.length; i < length; i++) {
-      var el = els[i];
-
-      if (el.text == value) {
-        return el;
-          break;
-      }
-  }
-}
