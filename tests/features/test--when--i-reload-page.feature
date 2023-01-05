@@ -1,10 +1,14 @@
-Feature: Example test for "I reload the page" 
+Feature: Example test for "When I press button" 
+
 As a tester
-I want to be able to test the I-reload-page site
+I want to be able to test button press event
 So that I know it is working
 
-  Scenario: Check the "I reload page" step definition
-    Given I am on "test--when--i-reload-page.html"
+  Scenario: Check the "When I press button" step definitions
+    Given I am on the homepage
+     When I go to "test--when--i-press-button.html"
+     When I press "Click Button"
+     Then I should see "Button Pressed Successfully"
      When I reload the page
-     Then I should see "Reloaded page"
- 
+     Then I should not see "Button Pressed Successfully"
+     

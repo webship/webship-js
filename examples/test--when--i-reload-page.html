@@ -2,9 +2,27 @@
 <html>
 <head>
   <meta charset='utf-8'>
-  <title>Home Page</title>
+  <title>Press Button</title>
+  <style>
+    .style{
+      width: 400px;
+      height: 50px;
+      font-size: 26px;
+      line-height: 50px;
+      text-align: center;
+      background-color: lightblue;
+    }
+  </style>
+  <script>
+    function onClick(){
+      const element = document.getElementById("result");
+      element.innerText = "Button Pressed Successfully";
+    }
+  </script>
 </head>
 <body>
-  <h1>Reloaded page</h1>
+  <h1>Press Button</h1>
+  <div id="result" class="style"></div><br/>
+  <input id="btnClick" class="btnClick" name="btnClick" type="button" value="Click Button" onclick="onClick()">
 </body>
 </html>
