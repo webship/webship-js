@@ -1,5 +1,3 @@
-const fun = require('./functions.js');
-
 const { Given } = require('@cucumber/cucumber');
 const { When, Before } = require('@cucumber/cucumber');
 const { Then } = require('@cucumber/cucumber');
@@ -71,7 +69,7 @@ When(/^I go to "([^"]*)?"$/, function (url) {
  When(/^I move forward one page$/, function () {
   return browser.forward();
 });
-
+  
 /**
  * Moves backward one page in history
  * Example: When I move backward one page
@@ -89,8 +87,8 @@ When(/^I move backward one page$/, function () {
  *
  * @When /^I press "([^"]*)?"$/
  */
-When(/^I press "([^"]*)?"$/, function (button) {
-  return browser.click(fun.getElement(button));
+When(/^I press "([^"]*)?"$/, function (elementValue) {
+  return browser.click("[value='" + elementValue + "']");
 });
 
 /**
@@ -189,3 +187,71 @@ When(/^I select "([^"]*)?" from "([^"]*)?"$/, function (value, fieldDefinition) 
   }
   return els;
 });
+
+
+// ****************** Functions  //
+/**
+ * Get Element 
+ *
+ * Find field with specified id|name|label|value. 
+ */
+ function getElement(elementValue) {
+  var element;
+  browser.elements('css selector', 'button', function(elements){
+    elements.value.forEach(function(eleObj, index){
+      browser.elementIdValue(eleObj.ELEMENT, function(result){
+        console.log('\n' + result.value)
+      })
+    })
+  });
+  // resultElements.forEach(
+  //   item => console.log('Element Id:', item.getId())
+  //   );
+  return '#btnClick';
+
+  // var element;
+  // var el = document.getElementById(fieldDefinition);
+  // if(el != null){
+  //   return  el;
+  // }
+
+  // var el = document.getElementsByName(fieldDefinition);
+  // if(el.length > 0){
+  //   return el[0];
+  // }
+
+  // var labels = document.getElementsByTagName('label');
+  // var el;
+  // for (var i = 0; i < labels.length; i++) {
+  //   const lblText = labels[i].innerText.replace(":", '');
+  //   const fieldKey = fieldDefinition.replace(":", '');
+
+  //     if (lblText == fieldKey) {
+  //       el = document.getElementById(labels[i].htmlFor);
+  //       if(el != null){
+  //         break;
+  //       }
+  //     }
+  // }
+  
+  // if(el != null){
+  //   if(el.length > 0){
+  //       return el;
+  //     }
+  // }
+  
+  // var els = document.getElementsByTagName('input');
+  // var el;
+
+  // for (var i = 0, length = els.length; i < length; i++) {
+  //     var localEl = els[i];
+
+  //     if (localEl.value.toLowerCase() == elementValue.toLowerCase()) {
+  //       el = localEl;
+  //       break;
+  //     }
+  // }
+  // if(el != null){
+  //   return el.id;
+  // }
+}
