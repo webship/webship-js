@@ -2,24 +2,6 @@ const { Given } = require('@cucumber/cucumber');
 const { When, Before } = require('@cucumber/cucumber');
 const { Then } = require('@cucumber/cucumber');
 
-
-/**
- * Asserting a text in the page.
- * 
- * Example:
- * - Then I should see "Welcome"
- * - Then I should not see "Access denied"
- * 
- * @Then /^I should( not)* see "([^"]*)?"$/
- */
-Then(/^I should( not)* see "([^"]*)?"$/, function (negativeCase, expectedText) {
-  if (negativeCase) {
-    return browser.assert.not.textContains('html', expectedText);
-  }
-
-  return browser.assert.textContains('html', expectedText);
-});
-
 /**
  * Opens homepage.
  * 
@@ -30,6 +12,15 @@ Then(/^I should( not)* see "([^"]*)?"$/, function (negativeCase, expectedText) {
  */
 Given(/^I am on( the)* homepage$/, function (url) {
   return browser.url(browser.launch_url);
+});
+
+/**
+ * Opens specified page
+ * Example: Given I am on "about-us.html"
+ *
+ */
+ Given(/^I am on "([^"]*)?"$/, function (url) {
+  return browser.url(browser.launch_url + url);
 });
 
 /**
@@ -44,20 +35,28 @@ When(/^ I go to( the)* homepage$/, function () {
 
 /**
  * Opens specified page
- * Example: Given I am on "about-us.html"
- *
- */
-Given(/^I am on "([^"]*)?"$/, function (url) {
-  return browser.url(browser.launch_url + url);
-});
-
-/**
- * Opens specified page
  * Example: When I go to "contact-us.html"
  *
  */
 When(/^I go to "([^"]*)?"$/, function (url) {
   return browser.url(browser.launch_url + url);
+});
+
+/**
+ * Asserting a text in the page.
+ * 
+ * Example:
+ * - Then I should see "Welcome"
+ * - Then I should not see "Access denied"
+ * 
+ * @Then /^I should( not)* see "([^"]*)?"$/
+ */
+ Then(/^I should( not)* see "([^"]*)?"$/, function (negativeCase, expectedText) {
+  if (negativeCase) {
+    return browser.assert.not.textContains('html', expectedText);
+  }
+
+  return browser.assert.textContains('html', expectedText);
 });
 
 /**
@@ -99,7 +98,7 @@ When(/^I press "([^"]*)?"$/, function (elementValue) {
  * @When /^I follow "([^"]*)?"$/
  */
  When(/^I follow "([^"]*)?"$/, function (elementValue) {
-  return browser.click("[value='" + elementValue + "']");
+  return browser.click("link text", elementValue);
 });
 
 /**
