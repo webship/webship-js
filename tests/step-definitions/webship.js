@@ -92,6 +92,17 @@ When(/^I press "([^"]*)?"$/, function (elementValue) {
 });
 
 /**
+ * Clicks link with specified id|title|alt|text
+ * Example: When I follow "Log In"
+ * Example: And I follow "Log In"
+ *
+ * @When /^I follow "([^"]*)?"$/
+ */
+ When(/^I follow "([^"]*)?"$/, function (elementValue) {
+  return browser.click("[value='" + elementValue + "']");
+});
+
+/**
  * Reloads current page
  * Example: When I reload the page
  * Example: And I reload the page
@@ -99,17 +110,6 @@ When(/^I press "([^"]*)?"$/, function (elementValue) {
  */
  When(/^I reload( the)* page$/, function (url) {
   return browser.refresh(browser.getCurrentUrl());
-});
-
-/**
- * Clicks link with specified id|title|alt|text
- * Example: When I follow "Log In"
- * Example: And I follow "Log In"
- *
- * @When /^I follow "([^"]*)?"$/
- */
-When(/^I follow "([^"]*)?"$/, function (link) {
-  return getLinkByValue(link).click();
 });
 
 /**
