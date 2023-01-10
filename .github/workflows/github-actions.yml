@@ -19,7 +19,7 @@ jobs:
           node-version: '16.x'
       - name: Install
         run: yarn install
-      - name: Generate nightwatch.conf.js
+      - name: Configure nightwatch.conf.js for Github
         run: node webship-init -ci github -os linux -b chrome
       - name: Start
         run: yarn start &

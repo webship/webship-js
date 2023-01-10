@@ -2,6 +2,9 @@ const { Given } = require('@cucumber/cucumber');
 const { When, Before } = require('@cucumber/cucumber');
 const { Then } = require('@cucumber/cucumber');
 
+const path = require('path');
+const fs = require('fs');
+
 /**
  * Opens homepage.
  * 
@@ -113,14 +116,12 @@ When(/^I press "([^"]*)?"$/, function (elementValue) {
 
 /**
  * Fills in form field with specified id|name|label|value
- * Example: When I fill in "username" with: "bwayne"
+ * Example: When I fill in "username" with "bwayne"
  *
  * @When /^I fill in "([^"]*)?" with "([^"]*)?"$/
  */
-When(/^I fill in "([^"]*)?" with "([^"]*)?"$/, function (field, value) {
-  var els = getElement(field);
-  els.value = value;
-  return els;
+When(/^I fill in "([^"]*)?" with "([^"]*)?"$/, function (fieldLabel, value) {
+  fillInputByLabel(fieldLabel, value);
 });
 
 /**
@@ -129,10 +130,8 @@ When(/^I fill in "([^"]*)?" with "([^"]*)?"$/, function (field, value) {
  *
  * @When /^I fill in "([^"]*)?" with:$/
  */
-When(/^I fill in "([^"]*)?" with:$/, function (field) {
-  var els = getElement(field);
-  els.value = '';
-  return els;
+When(/^I fill in "([^"]*)?" with:$/, function (fieldLabel) {
+  fillInputByLabel(fieldLabel, '');
 });
 
 /**
@@ -141,10 +140,8 @@ When(/^I fill in "([^"]*)?" with:$/, function (field) {
  *
  * @When /^I fill in "([^"]*)?" for "([^"]*)?"$/
  */
-When(/^I fill in "([^"]*)?" for "([^"]*)?"$/, function (value, field) {
-  var els = getElement(field);
-  els.value = value;
-  return els;
+When(/^I fill in "([^"]*)?" for "([^"]*)?"$/, function (value, fieldLabel) {
+  fillInputByLabel(fieldLabel, value);
 });
 
 /**
@@ -194,19 +191,78 @@ When(/^I select "([^"]*)?" from "([^"]*)?"$/, function (value, fieldDefinition) 
  *
  * Find field with specified id|name|label|value. 
  */
- function getElement(elementValue) {
-  var element;
-  browser.elements('css selector', 'button', function(elements){
-    elements.value.forEach(function(eleObj, index){
-      browser.elementIdValue(eleObj.ELEMENT, function(result){
-        console.log('\n' + result.value)
-      })
-    })
+ function fillInputByLabel(fieldLabel, value) {
+  
+  let element = null;
+  browser.waitForElementVisible('label');
+  browser.elements('css selector', 'label', function (elements) {
+    for (let i = 0; i < elements.value.length; i++) {
+      this.elementIdText(elements.value[i].ELEMENT, function (result) {
+        if (result.value === fieldLabel) {
+          element = elements.value[i].ELEMENT;
+          browser.elementIdAttribute(element, 'for', function(eleAttribute){
+            return browser.setValue('#' + eleAttribute.value, value);
+          });
+        }
+      });
+    }
   });
+
+  //--------------------------------------------------------
+  // var returnValue = '';
+  // var labelElement = browser.getText('label', function(result) {
+  //   this.assert.equal(typeof result, "object");
+  //   this.assert.equal(result.status, 0);
+  //   this.assert.equal(result.value, field);
+  // });
+
+  // labelElement.getAttribute("label", 'for',function(result){
+  //   returnValue = '#' + result.value;
+  //   console.log('returnValue:' + returnValue);
+  //   return returnValue;
+
+  // });
+
+
+  //-----------------------------------------------------
+
+  // var elementSelector = '#' + field;
+  
+  // let inputElement = browser.elementIdElements(elementSelector, 'css selector', 'input');
+  // if(inputElement){
+  //   return elementSelector;
+  // }
+
+  // elementSelector = '.' + field;
+  // inputElement = browser.getAttribute('css selector', field, 'input');
+  // if(inputElement){
+  //   return elementSelector;
+  // }  
+
+  // if(browser.verify.visible('#' + field)){
+  //   return '#' + field;
+  // }else if(browser.verify.visible('.' + field)){
+  //   return '.' + field;
+  // }
+
+
+
+
+
+
+
+
+
+  // browser.elements('css selector', 'input', function(elements){
+  //   elements.value.forEach(function(eleObj){
+  //     browser.elementIdValue(eleObj.ELEMENT, function(result){
+  //       console.log('\n' + result.value)
+  //     })
+  //   })
+  // });
   // resultElements.forEach(
   //   item => console.log('Element Id:', item.getId())
   //   );
-  return '#btnClick';
 
   // var element;
   // var el = document.getElementById(fieldDefinition);

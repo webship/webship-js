@@ -62,7 +62,7 @@ var argsParse = parser.parse_args();
 
 fs.unlink(projectPath + 'nightwatch.conf.js', (err) => {
   if (err) {
-      throw err;
+    throw err;
   }
 });
 
@@ -70,6 +70,6 @@ const confTemplate = projectPath + 'assets/config_templates/' + argsParse.contin
 
 fs.copyFile(confTemplate, projectPath + 'nightwatch.conf.js', (err) => {
   if (err) {
-      throw err;
+    throw err;
   }
 });
