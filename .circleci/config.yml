@@ -40,7 +40,7 @@ commands:
       - run:
           name: Install libu2f-udev
           command: |
-            yarn add libu2f-udev
+            sudo apt install libu2f-udev
       ## Install/Update Google Chrome browser.
       - run:
           name: Install/Update Google Chrome browser
