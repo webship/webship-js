@@ -15,14 +15,13 @@
       font-size: 18px;
       line-height: 50px;
       text-align: center;
-      background-color: lightblue;
     }
   </style>
 
 <script>
   function onClick(){
-    const username = document.getElementById("username");
-    const password = document.getElementById("password");
+    const username = document.getElementById("uname");
+    const password = document.getElementById("pword");
     const element = document.getElementById("result");
     element.innerText = "You enter Username: " + username.value + " and Password: " + password.value;
   }
@@ -33,11 +32,11 @@
   <h1>Login</h1>
 
   <div class="container">
-    <p><label for="username"><b>Username</b></label></p>
-    <p><input id="username" type="text" placeholder="Enter Username" name="username"></p>
+    <p><label for="uname"><b>Username</b></label></p>
+    <p><input id="uname" type="text" placeholder="Enter Username"></p>
 
-    <p><label for="password"><b>Password</b></label></p>
-    <p><input id="password" type="password" placeholder="Enter Password" name="password"></p>
+    <p><label for="pword"><b>Password</b></label></p>
+    <p><input id="pword" type="password" placeholder="Enter Password"></p>
 
     <p><input id="btnLogin" class="btnLogin" name="btnLogin" type="button" value="Login" onclick="onClick()"></p>
   
