@@ -36,6 +36,11 @@ commands:
           command: |
             sudo apt update
             sudo apt install -y openjdk-11-jre openjdk-11-jre-headless openjdk-11-jdk openjdk-11-jdk-headless
+      ## Install libu2f-udev for google-chrome-stable
+      - run:
+          name: Install libu2f-udev
+          command: |
+            yarn add libu2f-udev
       ## Install/Update Google Chrome browser.
       - run:
           name: Install/Update Google Chrome browser
