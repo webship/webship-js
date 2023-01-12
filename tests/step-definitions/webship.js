@@ -2,8 +2,7 @@ const { Given } = require('@cucumber/cucumber');
 const { When, Before } = require('@cucumber/cucumber');
 const { Then } = require('@cucumber/cucumber');
 
-const path = require('path');
-const fs = require('fs');
+const lib = require('../../lib/get-element.js');
 
 /**
  * Opens homepage.
@@ -120,8 +119,8 @@ When(/^I press "([^"]*)?"$/, function (elementValue) {
  *
  * @When /^I fill in "([^"]*)?" with "([^"]*)?"$/
  */
-When(/^I fill in "([^"]*)?" with "([^"]*)?"$/, function (fieldLabel, value) {
-  fillInputByLabel(fieldLabel, value);
+When(/^I fill in "([^"]*)?" with "([^"]*)?"$/, function (field, value) {
+  lib.fillInputWithValue(field, value);
 });
 
 /**
@@ -131,7 +130,7 @@ When(/^I fill in "([^"]*)?" with "([^"]*)?"$/, function (fieldLabel, value) {
  * @When /^I fill in "([^"]*)?" with:$/
  */
 When(/^I fill in "([^"]*)?" with:$/, function (fieldLabel) {
-  fillInputByLabel(fieldLabel, '');
+  lib.fillInputWithValue(fieldLabel, '');
 });
 
 /**
@@ -141,7 +140,7 @@ When(/^I fill in "([^"]*)?" with:$/, function (fieldLabel) {
  * @When /^I fill in "([^"]*)?" for "([^"]*)?"$/
  */
 When(/^I fill in "([^"]*)?" for "([^"]*)?"$/, function (value, fieldLabel) {
-  fillInputByLabel(fieldLabel, value);
+  lib.fillInputWithValue(fieldLabel, value);
 });
 
 /**
@@ -156,13 +155,7 @@ When(/^I fill in "([^"]*)?" for "([^"]*)?"$/, function (value, fieldLabel) {
  * @When /^I fill in the following:$/
  */
 When(/^I fill in the following:$/, function (table) {
-  var tableEle = [];
-  table.rows().forEach(row => {
-
-    var els = getElement(row[0]);
-    els.value = row[1];
-    tableEle.push(els);
-  });
+ 
   return tableEle;
 });
 
@@ -174,139 +167,6 @@ When(/^I fill in the following:$/, function (table) {
  * @When /^I select "([^"]*)?" from "([^"]*)?"$/
  */
 When(/^I select "([^"]*)?" from "([^"]*)?"$/, function (value, fieldDefinition) {
-  var els = getElement(fieldDefinition);
-  for (var i = 0; i < els.options.length; i++) {
-    if (els.options[i].text === value) {
-      els.selectedIndex = i;
-      break;
-    }
-  }
+ 
   return els;
 });
-
-
-// ****************** Functions  //
-/**
- * Get Element 
- *
- * Find field with specified id|name|label|value. 
- */
- function fillInputByLabel(fieldLabel, value) {
-  
-  let element = null;
-  browser.waitForElementVisible('label');
-  browser.elements('css selector', 'label', function (elements) {
-    for (let i = 0; i < elements.value.length; i++) {
-      this.elementIdText(elements.value[i].ELEMENT, function (result) {
-        if (result.value === fieldLabel) {
-          element = elements.value[i].ELEMENT;
-          browser.elementIdAttribute(element, 'for', function(eleAttribute){
-            return browser.setValue('#' + eleAttribute.value, value);
-          });
-        }
-      });
-    }
-  });
-
-  //--------------------------------------------------------
-  // var returnValue = '';
-  // var labelElement = browser.getText('label', function(result) {
-  //   this.assert.equal(typeof result, "object");
-  //   this.assert.equal(result.status, 0);
-  //   this.assert.equal(result.value, field);
-  // });
-
-  // labelElement.getAttribute("label", 'for',function(result){
-  //   returnValue = '#' + result.value;
-  //   console.log('returnValue:' + returnValue);
-  //   return returnValue;
-
-  // });
-
-
-  //-----------------------------------------------------
-
-  // var elementSelector = '#' + field;
-  
-  // let inputElement = browser.elementIdElements(elementSelector, 'css selector', 'input');
-  // if(inputElement){
-  //   return elementSelector;
-  // }
-
-  // elementSelector = '.' + field;
-  // inputElement = browser.getAttribute('css selector', field, 'input');
-  // if(inputElement){
-  //   return elementSelector;
-  // }  
-
-  // if(browser.verify.visible('#' + field)){
-  //   return '#' + field;
-  // }else if(browser.verify.visible('.' + field)){
-  //   return '.' + field;
-  // }
-
-
-
-
-
-
-
-
-
-  // browser.elements('css selector', 'input', function(elements){
-  //   elements.value.forEach(function(eleObj){
-  //     browser.elementIdValue(eleObj.ELEMENT, function(result){
-  //       console.log('\n' + result.value)
-  //     })
-  //   })
-  // });
-  // resultElements.forEach(
-  //   item => console.log('Element Id:', item.getId())
-  //   );
-
-  // var element;
-  // var el = document.getElementById(fieldDefinition);
-  // if(el != null){
-  //   return  el;
-  // }
-
-  // var el = document.getElementsByName(fieldDefinition);
-  // if(el.length > 0){
-  //   return el[0];
-  // }
-
-  // var labels = document.getElementsByTagName('label');
-  // var el;
-  // for (var i = 0; i < labels.length; i++) {
-  //   const lblText = labels[i].innerText.replace(":", '');
-  //   const fieldKey = fieldDefinition.replace(":", '');
-
-  //     if (lblText == fieldKey) {
-  //       el = document.getElementById(labels[i].htmlFor);
-  //       if(el != null){
-  //         break;
-  //       }
-  //     }
-  // }
-  
-  // if(el != null){
-  //   if(el.length > 0){
-  //       return el;
-  //     }
-  // }
-  
-  // var els = document.getElementsByTagName('input');
-  // var el;
-
-  // for (var i = 0, length = els.length; i < length; i++) {
-  //     var localEl = els[i];
-
-  //     if (localEl.value.toLowerCase() == elementValue.toLowerCase()) {
-  //       el = localEl;
-  //       break;
-  //     }
-  // }
-  // if(el != null){
-  //   return el.id;
-  // }
-}
