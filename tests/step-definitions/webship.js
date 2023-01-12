@@ -129,8 +129,8 @@ When(/^I fill in "([^"]*)?" with "([^"]*)?"$/, function (field, value) {
  *
  * @When /^I fill in "([^"]*)?" with:$/
  */
-When(/^I fill in "([^"]*)?" with:$/, function (fieldLabel) {
-  lib.fillInputWithValue(fieldLabel, '');
+When(/^I fill in "([^"]*)?" with:$/, function (field) {
+  lib.fillInputWithValue(field, '');
 });
 
 /**
@@ -139,13 +139,13 @@ When(/^I fill in "([^"]*)?" with:$/, function (fieldLabel) {
  *
  * @When /^I fill in "([^"]*)?" for "([^"]*)?"$/
  */
-When(/^I fill in "([^"]*)?" for "([^"]*)?"$/, function (value, fieldLabel) {
-  lib.fillInputWithValue(fieldLabel, value);
+When(/^I fill in "([^"]*)?" for "([^"]*)?"$/, function (value, field) {
+  lib.fillInputWithValue(field, value);
 });
 
 /**
  * Fills in form fields with provided table
- * Example: When I fill in the "([^"]*)?"following"
+ * Example: When I fill in the following:
  *              | username | bruceWayne |
  *              | password | iLoveBats123 |
  * Example: And I fill in the following"
@@ -155,8 +155,11 @@ When(/^I fill in "([^"]*)?" for "([^"]*)?"$/, function (value, fieldLabel) {
  * @When /^I fill in the following:$/
  */
 When(/^I fill in the following:$/, function (table) {
- 
-  return tableEle;
+
+  lib.fillInputWithValue(table.rawTable[0][0], table.rawTable[0][1]);
+  table.rows().forEach(row => {
+    lib.fillInputWithValue(row[0], row[1]);
+  });
 });
 
 /**
