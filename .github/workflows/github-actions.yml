@@ -6,7 +6,12 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-
+     name: E2E on Chrome
+    steps:
+      - uses: actions/checkout@v3
+      - uses: cypress-io/github-action@v5
+        with:
+          browser: chrome
     env:
       TEST_BASE_URL: http://localhost:8080/
       SELENIUM_HOST: http://selenium:4444/wd/hub
