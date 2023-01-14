@@ -115,7 +115,7 @@ When(/^I press "([^"]*)?"$/, function (elementValue) {
 
 /**
  * Fills in form field with specified id|name|label|value
- * Example: When I fill in "username" with "bwayne"
+ * Example: When I fill in "username" with "webshipco"
  *
  * @When /^I fill in "([^"]*)?" with "([^"]*)?"$/
  */
@@ -135,7 +135,7 @@ When(/^I fill in "([^"]*)?" with:$/, function (field) {
 
 /**
  * Fills in form field with specified id|name|label|value
- * Example: And I fill in "bwayne" for "username"
+ * Example: And I fill in "webshipco" for "username"
  *
  * @When /^I fill in "([^"]*)?" for "([^"]*)?"$/
  */
@@ -146,11 +146,11 @@ When(/^I fill in "([^"]*)?" for "([^"]*)?"$/, function (value, field) {
 /**
  * Fills in form fields with provided table
  * Example: When I fill in the following:
- *              | username | bruceWayne |
- *              | password | iLoveBats123 |
+ *              | username | webshipco |
+ *              | password | 1234 |
  * Example: And I fill in the following"
- *              | username | bruceWayne |
- *              | password | iLoveBats123 |
+ *              | username | webshipco |
+ *              | password | 1234 |
  *
  * @When /^I fill in the following:$/
  */
@@ -169,7 +169,6 @@ When(/^I fill in the following:$/, function (table) {
  *
  * @When /^I select "([^"]*)?" from "([^"]*)?"$/
  */
-When(/^I select "([^"]*)?" from "([^"]*)?"$/, function (value, fieldDefinition) {
- 
-  return els;
+When(/^I select "([^"]*)?" from "([^"]*)?"$/, function (value, selectBox) {
+  return browser.click('select[id="' + selectBox + '"] option[value="' + value + '"]');
 });
