@@ -8,9 +8,6 @@ module.exports = {
    // See https://nightwatchjs.org/guide/extending-nightwatch/#writing-custom-commands
    custom_commands_path: './lib/custom-commands',
 
-   // See https://nightwatchjs.org/guide/extending-nightwatch/#writing-custom-assertions
-   custom_assertions_path: './lib/custom-assertions',
- 
   test_runner: {
     type: 'cucumber',
     options: {
