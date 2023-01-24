@@ -164,11 +164,11 @@ When(/^I fill in the following:$/, function (table) {
 
 /**
  * Selects option in select field with specified id|name|label|value
- * Example: When I select "Bats" from "user_fears"
- * Example: And I select "Bats" from "user_fears"
+ * Example: When I select "saab" from "Cars"
+ * Example: And I select "saab" from "Cars"
  *
  * @When /^I select "([^"]*)?" from "([^"]*)?"$/
  */
-When(/^I select "([^"]*)?" from "([^"]*)?"$/, function (value, selectBox) {
-  return browser.click('select[id="' + selectBox + '"] option[value="' + value + '"]');
+When(/^I select "([^"]*)?" from "([^"]*)?"$/, function (option, selectBox) {
+  browser.smartSelectOption(option, selectBox);
 });

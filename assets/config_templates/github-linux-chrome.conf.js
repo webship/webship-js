@@ -5,6 +5,12 @@ module.exports = {
   // if this is not specified, the test source must be passed as the second argument to the test runner.
   src_folders: ['tests/step-definitions'],
 
+   // See https://nightwatchjs.org/guide/extending-nightwatch/#writing-custom-commands
+   custom_commands_path: './lib/custom-commands',
+
+   // See https://nightwatchjs.org/guide/extending-nightwatch/#writing-custom-assertions
+   custom_assertions_path: './lib/custom-assertions',
+ 
   webdriver: {
     start_process: true,
     port: 4444,

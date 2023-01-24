@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset='utf-8'>
+  <title>Select Option</title>
+  <style>
+    .style{
+      height: 50px;
+      font-size: 26px;
+      line-height: 50px;
+    }
+  </style>
+  <script>
+    function onClick(){
+      const cars = document.getElementById("cars");
+      const selectedOption = cars.options[cars.selectedIndex].text;
+      const element = document.getElementById("result");
+      element.innerText = "Option ( " + selectedOption + " ) has been selected successfully";
+    }
+  </script>
+</head>
+<body>
+  <h1>Select Option</h1>
+  <label for="cars">Choose a car:</label>
+
+  <select name="cars" id="cars">
+    <option value="volvo">Volvo</option>
+    <option value="saab">Saab</option>
+    <option value="mercedes">Mercedes</option>
+    <option value="audi">Audi</option>
+  </select>
+  <input id="btnClick" class="btnClick" name="btnClick" type="button" value="Check select" onclick="onClick()">
+  <div id="result" class="style"></div><br/>
+</body>
+</html>
