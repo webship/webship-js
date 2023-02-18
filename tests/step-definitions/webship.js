@@ -21,7 +21,7 @@ Given(/^I am on( the)* homepage$/, function (url) {
  * Example: Given I am on "about-us.html"
  *
  */
- Given(/^I am on "([^"]*)?"$/, function (url) {
+Given(/^I am on "([^"]*)?"$/, function (url) {
   return browser.url(browser.launch_url + url);
 });
 
@@ -53,7 +53,7 @@ When(/^I go to "([^"]*)?"$/, function (url) {
  * 
  * @Then /^I should( not)* see "([^"]*)?"$/
  */
- Then(/^I should( not)* see "([^"]*)?"$/, function (negativeCase, expectedText) {
+Then(/^I should( not)* see "([^"]*)?"$/, function (negativeCase, expectedText) {
   if (negativeCase) {
     return browser.assert.not.textContains('html', expectedText);
   }
@@ -67,10 +67,10 @@ When(/^I go to "([^"]*)?"$/, function (url) {
  *
  * @When /^I move forward one page$/
  */
- When(/^I move forward one page$/, function () {
+When(/^I move forward one page$/, function () {
   return browser.forward();
 });
-  
+
 /**
  * Moves backward one page in history
  * Example: When I move backward one page
@@ -99,7 +99,7 @@ When(/^I press "([^"]*)?"$/, function (elementValue) {
  *
  * @When /^I follow "([^"]*)?"$/
  */
- When(/^I follow "([^"]*)?"$/, function (elementValue) {
+When(/^I follow "([^"]*)?"$/, function (elementValue) {
   return browser.click("link text", elementValue);
 });
 
@@ -109,7 +109,7 @@ When(/^I press "([^"]*)?"$/, function (elementValue) {
  * Example: And I reload the page
  *
  */
- When(/^I reload( the)* page$/, function (url) {
+When(/^I reload( the)* page$/, function (url) {
   return browser.refresh(browser.getCurrentUrl());
 });
 
@@ -171,4 +171,26 @@ When(/^I fill in the following:$/, function (table) {
  */
 When(/^I select "([^"]*)?" from "([^"]*)?"$/, function (option, selectBox) {
   browser.smartSelectOption(option, selectBox);
+});
+
+/**
+* Checks checkbox with specified id|name|label|value
+* Example: When I check "Pearl Necklace"
+* Example: And I check "Pearl Necklace"
+*
+* @When /^I check "([^"]*)?"$/
+*/
+When(/^I check "([^"]*)?"$/, function (item) {
+  browser.smartCheckItem(item);
+});
+
+/**
+* Unchecks checkbox with specified id|name|label|value
+* Example: When I uncheck "Broadway Plays"
+* Example: And I uncheck "Broadway Plays"
+*
+* @When /^I uncheck "([^"]*)?"$/
+*/
+When(/^I uncheck "([^"]*)?"$/, function (item) {
+  browser.smartUncheckItem(item);
 });
