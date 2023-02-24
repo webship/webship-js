@@ -194,3 +194,15 @@ When(/^I check "([^"]*)?"$/, function (item) {
 When(/^I uncheck "([^"]*)?"$/, function (item) {
   browser.smartUncheckItem(item);
 });
+
+/**
+* Checks, that current page is the homepage
+* Example: Then I should be on the homepage
+* Example: And I should be on the homepage
+*
+* @Then /^I should be on( the)* homepage$/
+*/
+Then(/^I should be on( the)* homepage$/, function (url) {
+    return browser.assert.urlEquals(browser.launch_url, "I am on the homepage Now");
+});
+
