@@ -203,6 +203,17 @@ When(/^I uncheck "([^"]*)?"$/, function (item) {
 * @Then /^I should be on( the)* homepage$/
 */
 Then(/^I should be on( the)* homepage$/, function (url) {
-    return browser.assert.urlEquals(browser.launch_url, "I am on the homepage Now");
+    return browser.assert.urlEquals(browser.launch_url);
 });
 
+/**
+* Checks, that current page PATH is equal to specified
+* Example: Then I should be on "/"
+* Example: And I should be on "/bats"
+* Example: And I should be on "http://google.com"
+*
+* @Then /^I should be on "([^"]*)?"$/
+*/
+Then(/^I should be on "([^"]*)?"$/, function (url) {
+  return browser.assert.urlContains(url);
+});
