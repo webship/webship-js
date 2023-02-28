@@ -20,6 +20,7 @@ Given(/^I am on( the)* homepage$/, function (url) {
  * Opens specified page
  * Example: Given I am on "about-us.html"
  *
+ * @Given /^I am on "([^"]*)?"$/
  */
 Given(/^I am on "([^"]*)?"$/, function (url) {
   return browser.url(browser.launch_url + url);
@@ -30,8 +31,9 @@ Given(/^I am on "([^"]*)?"$/, function (url) {
  * Example: When I go to the homepage
  * Example: And I go to "/"
  *
+ * @When /^I go to( the)* homepage$/
  */
-When(/^ I go to( the)* homepage$/, function () {
+When(/^I go to( the)* homepage$/, function () {
   return browser.url(browser.launch_url);
 });
 
@@ -39,6 +41,7 @@ When(/^ I go to( the)* homepage$/, function () {
  * Opens specified page
  * Example: When I go to "contact-us.html"
  *
+ * @When /^I go to "([^"]*)?"$/
  */
 When(/^I go to "([^"]*)?"$/, function (url) {
   return browser.url(browser.launch_url + url);
@@ -108,6 +111,7 @@ When(/^I follow "([^"]*)?"$/, function (elementValue) {
  * Example: When I reload the page
  * Example: And I reload the page
  *
+ * @When /^I reload( the)* page$/
  */
 When(/^I reload( the)* page$/, function (url) {
   return browser.refresh(browser.getCurrentUrl());
