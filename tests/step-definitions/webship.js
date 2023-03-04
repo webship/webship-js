@@ -174,7 +174,7 @@ When(/^I fill in the following:$/, function (table) {
  * @When /^I select "([^"]*)?" from "([^"]*)?"$/
  */
 When(/^I select "([^"]*)?" from "([^"]*)?"$/, function (option, selectBox) {
-  browser.smartSelectOption(option, selectBox);
+  browser.pause(1000).smartSelectOption(option, selectBox).pause(1000);
 });
 
 /**

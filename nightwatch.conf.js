@@ -11,7 +11,7 @@ module.exports = {
   test_runner: {
     type: 'cucumber',
     options: {
-      feature_path: 'tests/features/*.feature',
+      feature_path: 'tests/features2/*.feature',
       additional_config: '',
       parallel: 2,
     },
@@ -36,7 +36,7 @@ module.exports = {
           // w3c:false tells Chromedriver to run using the legacy JSONWire protocol (not required in Chrome 78)
           w3c: false,
           args: [
-            '--headless',
+            // '--headless',
             '--start-maximized',
             '--disable-gpu',
             '--window-size=1600,1200',
