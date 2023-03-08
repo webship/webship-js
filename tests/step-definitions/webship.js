@@ -221,3 +221,18 @@ Then(/^I should be on( the)* homepage$/, function (url) {
 Then(/^I should be on "([^"]*)?"$/, function (url) {
   return browser.assert.urlContains(url);
 });
+
+/**
+* Checks, that HTML response contains specified string
+* Example: Then the response should contain "Batman is the hero Gotham deserves."
+* Example: And the response should contain "Batman is the hero Gotham deserves."
+*
+* @Then /^the response should contain "([^"]*)?"$/
+*/
+Then(/^the response should( not)* contain "([^"]*)?"$/, function (negativeCase, expectedText) {
+  if (negativeCase) {
+    return browser.assert.not.textContains('html', expectedText);
+  }
+
+  return browser.assert.textContains('html', expectedText);
+});
