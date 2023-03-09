@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset='utf-8'>
+  <title>Press Button</title>
+  <style>
+    .container, 
+    .container input,
+    .container button{
+      font-size: 26px;
+    }
+    .style{
+      width: 400px;
+      height: 50px;
+      font-size: 18px;
+      line-height: 50px;
+      text-align: center;
+    }
+  </style>
+
+<script>
+  function onClick(){
+    const username = document.getElementById("uname");
+    const password = document.getElementById("pword");
+    const element = document.getElementById("result");
+    element.innerText = "You enter Username: " + username.value + " and Password: " + password.value;
+  }
+</script>
+
+</head>
+<body>
+  <h1>Login</h1>
+
+  <div class="container">
+    <p><label for="uname"><b>Username</b></label></p>
+    <p><input id="uname" class="unamecss" type="text" placeholder="Enter Username" name="username"></p>
+
+    <p><label for="pword"><b>Password</b></label></p>
+    <p><input id="pword" class="pwordcss" type="password" placeholder="Enter Password" name="password"></p>
+
+    <p><input id="reset" type="reset" value="Reset"><input id="btnLogin" class="btnLogin" name="btnLogin" type="button" value="Login" onclick="onClick()"></p>
+  
+  </div>  
+
+  <div id="result" class="style"></div><br/>
+
+</body>
+</html>

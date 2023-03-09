@@ -5,8 +5,11 @@ module.exports = {
   // if this is not specified, the test source must be passed as the second argument to the test runner.
   src_folders: ['tests/step-definitions'],
 
-   // See https://nightwatchjs.org/guide/extending-nightwatch/#writing-custom-commands
+   // See https://nightwatchjs.org/guide/extending-nightwatch/adding-custom-commands.html
    custom_commands_path: './lib/custom-commands',
+
+   // See https://nightwatchjs.org/guide/extending-nightwatch/adding-custom-assertions.html
+   custom_commands_path: './lib/custom-assertions',
 
   test_runner: {
     type: 'cucumber',

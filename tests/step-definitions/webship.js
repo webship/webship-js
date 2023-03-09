@@ -236,3 +236,14 @@ Then(/^the response should( not)* contain "([^"]*)?"$/, function (negativeCase, 
 
   return browser.assert.textContains('html', expectedText);
 });
+
+/**
+* Checks, that element with specified CSS contains specified text
+* Example: Then I should see "Batman" in the "heroes_list" element
+* Example: And I should see "Batman" in the "heroes_list" element
+*
+* @Then /^I should( not)* see "([^"]*)?" in the "([^"]*)?" element$/
+*/
+Then(/^I should( not)* see "([^"]*)?" in the "([^"]*)?" element$/, function (negativeCase, expectedText, element) {
+    return browser.smartElementContains(negativeCase, expectedText, element);
+  });
