@@ -245,5 +245,5 @@ Then(/^the response should( not)* contain "([^"]*)?"$/, function (negativeCase, 
 * @Then /^I should( not)* see "([^"]*)?" in the "([^"]*)?" element$/
 */
 Then(/^I should( not)* see "([^"]*)?" in the "([^"]*)?" element$/, function (negativeCase, expectedText, element) {
-    return browser.smartElementContains(negativeCase, expectedText, element);
+    return browser.assert.smartElementContains(negativeCase, expectedText, element);
   });
