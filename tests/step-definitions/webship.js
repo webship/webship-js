@@ -247,3 +247,18 @@ Then(/^the response should( not)* contain "([^"]*)?"$/, function (negativeCase, 
 Then(/^I should( not)* see "([^"]*)?" in the "([^"]*)?" element$/, function (negativeCase, expectedText, element) {
     return browser.assert.smartElementContains(negativeCase, expectedText, element);
   });
+
+/**
+* Checks, that page contains text matching specified pattern
+* Example: Then I should see text matching "Bruce Wayne, the vigilante"
+* Example: And I should not see "Bruce Wayne, the vigilante"
+*
+* @Then /^I should( not)* see text matching "([^"]*)?"$/
+*/
+Then(/^I should( not)* see text matching "([^"]*)?"$/, function (negativeCase, expectedText) {
+  if (negativeCase) {
+    return browser.assert.not.textContains('html', expectedText);
+  }
+
+  return browser.assert.textContains('html', expectedText);
+});
