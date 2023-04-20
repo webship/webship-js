@@ -96,7 +96,7 @@ When(/^I move backward one page$/, function () {
  * @When /^I press "([^"]*)?"$/
  */
 When(/^I press "([^"]*)?"$/, function (elementValue) {
-  return browser.smartPressButton(elementValue);
+  return browser.click("[value='" + elementValue + "']");
 });
 
 /**
