@@ -235,14 +235,10 @@ Then(/^I should be on "([^"]*)?"$/, function (url) {
 */
 Then(/^the response should( not)* contain "([^"]*)?"$/, function (negativeCase, expectedText) {
   if (negativeCase) {
-    return browser
-    .pause(500)
-    .assert.not.textContains('html', expectedText);
+    return browser.assert.not.textContains('html', expectedText);
   }
 
-  return browser
-  .pause(500)
-  .assert.textContains('html', expectedText);
+  return browser.assert.textContains('html', expectedText);
 });
 
 /**
