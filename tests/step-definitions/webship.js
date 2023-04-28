@@ -59,13 +59,13 @@ When(/^I go to "([^"]*)?"$/, function (url) {
 Then(/^I should( not)* see "([^"]*)?"$/, function (negativeCase, expectedText) {
   if (negativeCase) {
     return browser
-    .pause(500)
-    .assert.not.textContains('html', expectedText);
+      .pause(500)
+      .assert.not.textContains('html', expectedText);
   }
 
   return browser
-  .pause(500)
-  .assert.textContains('html', expectedText);
+    .pause(500)
+    .assert.textContains('html', expectedText);
 });
 
 /**
@@ -211,7 +211,7 @@ When(/^I uncheck "([^"]*)?"$/, function (item) {
 * @Then /^I should be on( the)* homepage$/
 */
 Then(/^I should be on( the)* homepage$/, function (url) {
-    return browser.assert.urlEquals(browser.launch_url);
+  return browser.assert.urlEquals(browser.launch_url);
 });
 
 /**
@@ -249,8 +249,8 @@ Then(/^the response should( not)* contain "([^"]*)?"$/, function (negativeCase, 
 * @Then /^I should( not)* see "([^"]*)?" in the "([^"]*)?" element$/
 */
 Then(/^I should( not)* see "([^"]*)?" in the "([^"]*)?" element$/, function (negativeCase, expectedText, element) {
-    return browser.assert.smartElementContains(negativeCase, expectedText, element);
-  });
+  return browser.assert.smartElementContains(negativeCase, expectedText, element);
+});
 
 /**
 * Checks, that page contains text matching specified pattern
@@ -265,4 +265,18 @@ Then(/^I should( not)* see text matching "([^"]*)?"$/, function (negativeCase, e
   }
 
   return browser.assert.textContains('html', expectedText);
+});
+
+/**
+ * Checks, that element with specified CSS exists on page
+ * Example: Then I should see a "body" element
+ * Example: And I should see a "body" element
+ *
+ * @Then /^I should( not)* see a(n)* "([^"]*)?" element$/
+ */
+Then(/^I should( not)* see a(n)* "([^"]*)?" element$/, function (negativeCase, identification, element) {
+  if (negativeCase) {
+    return browser.verify.not.visible(element);
+  }
+  return browser.verify.visible(element);
 });
