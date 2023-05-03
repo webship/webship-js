@@ -2,8 +2,6 @@ const { Given } = require('@cucumber/cucumber');
 const { When, Before } = require('@cucumber/cucumber');
 const { Then } = require('@cucumber/cucumber');
 
-const lib = require('../../lib/get-element.js');
-
 /**
  * Opens homepage.
  * 
@@ -128,7 +126,7 @@ When(/^I reload( the)* page$/, function (url) {
  * @When /^I fill in "([^"]*)?" with "([^"]*)?"$/
  */
 When(/^I fill in "([^"]*)?" with "([^"]*)?"$/, function (field, value) {
-  lib.fillInputWithValue(field, value);
+  browser.smartFillTextInput(field, value);
 });
 
 /**
@@ -138,7 +136,7 @@ When(/^I fill in "([^"]*)?" with "([^"]*)?"$/, function (field, value) {
  * @When /^I fill in "([^"]*)?" with:$/
  */
 When(/^I fill in "([^"]*)?" with:$/, function (field) {
-  lib.fillInputWithValue(field, '');
+  browser.smartFillTextInput(field, '');
 });
 
 /**
@@ -148,7 +146,7 @@ When(/^I fill in "([^"]*)?" with:$/, function (field) {
  * @When /^I fill in "([^"]*)?" for "([^"]*)?"$/
  */
 When(/^I fill in "([^"]*)?" for "([^"]*)?"$/, function (value, field) {
-  lib.fillInputWithValue(field, value);
+  browser.smartFillTextInput(field, value);
 });
 
 /**
@@ -164,9 +162,9 @@ When(/^I fill in "([^"]*)?" for "([^"]*)?"$/, function (value, field) {
  */
 When(/^I fill in the following:$/, function (table) {
 
-  lib.fillInputWithValue(table.rawTable[0][0], table.rawTable[0][1]);
+  browser.smartFillTextInput(table.rawTable[0][0], table.rawTable[0][1]);
   table.rows().forEach(row => {
-    lib.fillInputWithValue(row[0], row[1]);
+    browser.smartFillTextInput(row[0], row[1]);
   });
 });
 
