@@ -56,14 +56,10 @@ When(/^I go to "([^"]*)?"$/, function (url) {
  */
 Then(/^I should( not)* see "([^"]*)?"$/, function (negativeCase, expectedText) {
   if (negativeCase) {
-    return browser
-      .pause(500)
-      .assert.not.textContains('html', expectedText);
+    return browser.assert.not.textContains('html', expectedText);
   }
 
-  return browser
-    .pause(500)
-    .assert.textContains('html', expectedText);
+  return browser.assert.textContains('html', expectedText);
 });
 
 /**
@@ -176,7 +172,7 @@ When(/^I fill in the following:$/, function (table) {
  * @When /^I select "([^"]*)?" from "([^"]*)?"$/
  */
 When(/^I select "([^"]*)?" from "([^"]*)?"$/, function (option, selectBox) {
-  browser.pause(1000).smartSelectOption(option, selectBox).pause(1000);
+  browser.smartSelectOption(option, selectBox).pause(1000);
 });
 
 /**
@@ -187,7 +183,7 @@ When(/^I select "([^"]*)?" from "([^"]*)?"$/, function (option, selectBox) {
 * @When /^I check "([^"]*)?"$/
 */
 When(/^I check "([^"]*)?"$/, function (item) {
-  browser.smartCheckItem(item);
+  browser.smartCheckItem(item).pause(1000);
 });
 
 /**
