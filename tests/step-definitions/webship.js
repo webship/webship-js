@@ -90,7 +90,8 @@ When(/^I move backward one page$/, function () {
  * @When /^I press "([^"]*)?"$/
  */
 When(/^I press "([^"]*)?"$/, function (elementValue) {
-  return browser.smartPressButton(elementValue);
+  return browser.click("[value='" + elementValue + "']");
+  // return browser.smartPressButton(elementValue);
 });
 
 /**
@@ -101,7 +102,8 @@ When(/^I press "([^"]*)?"$/, function (elementValue) {
  * @When /^I follow "([^"]*)?"$/
  */
 When(/^I follow "([^"]*)?"$/, function (elementValue) {
-  return browser.smartLinkClick(elementValue);
+  browser.click("link text", elementValue);
+  // return browser.smartLinkClick(elementValue);
 });
 
 /**
@@ -172,7 +174,7 @@ When(/^I fill in the following:$/, function (table) {
  * @When /^I select "([^"]*)?" from "([^"]*)?"$/
  */
 When(/^I select "([^"]*)?" from "([^"]*)?"$/, function (option, selectBox) {
-  browser.smartSelectOption(option, selectBox).pause(1000);
+  browser.smartSelectOption(option, selectBox).pause(200);
 });
 
 /**
@@ -183,7 +185,7 @@ When(/^I select "([^"]*)?" from "([^"]*)?"$/, function (option, selectBox) {
 * @When /^I check "([^"]*)?"$/
 */
 When(/^I check "([^"]*)?"$/, function (item) {
-  browser.smartCheckItem(item).pause(1000);
+  browser.smartCheckItem(item).pause(200);
 });
 
 /**
@@ -194,7 +196,7 @@ When(/^I check "([^"]*)?"$/, function (item) {
 * @When /^I uncheck "([^"]*)?"$/
 */
 When(/^I uncheck "([^"]*)?"$/, function (item) {
-  browser.smartUncheckItem(item);
+  browser.smartUncheckItem(item).pause(200);
 });
 
 /**
