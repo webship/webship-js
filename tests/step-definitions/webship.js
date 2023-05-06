@@ -276,3 +276,14 @@ Then(/^I should( not)* see a(n)* "([^"]*)?" element$/, function (negativeCase, i
   }
   return browser.verify.visible(element);
 });
+
+/**
+ * Checks, that element with specified CSS contains specified HTML
+ * Example: Then the "body" element should contain "color:black;"
+ * Example: And the "body" element should contain "color:black;"
+ *
+ * @Then /^the "([^"]*)?" element should( not)* contain "([^"]*)?"$/
+ */
+Then(/^the "([^"]*)?" element should( not)* contain "([^"]*)?"$/, function (element, negativeCase, elementCss) {
+  return browser.assert.smartElementContainsCss(element, negativeCase, elementCss);
+});
