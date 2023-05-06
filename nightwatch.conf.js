@@ -1,5 +1,5 @@
 const Services = {}; loadServices();
-require('events').EventEmitter.defaultMaxListeners = 0;
+require('events').EventEmitter.defaultMaxListeners = 100;
 
 module.exports = {
   // An array of folders (excluding subfolders) where your tests are located;
