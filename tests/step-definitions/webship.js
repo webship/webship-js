@@ -174,7 +174,7 @@ When(/^I fill in the following:$/, function (table) {
  * @When /^I select "([^"]*)?" from "([^"]*)?"$/
  */
 When(/^I select "([^"]*)?" from "([^"]*)?"$/, function (option, selectBox) {
-  browser.smartSelectOption(option, selectBox).pause(200);
+  browser.smartSelectOption(option, selectBox);
 });
 
 /**
@@ -185,7 +185,7 @@ When(/^I select "([^"]*)?" from "([^"]*)?"$/, function (option, selectBox) {
 * @When /^I check "([^"]*)?"$/
 */
 When(/^I check "([^"]*)?"$/, function (item) {
-  browser.smartCheckItem(item).pause(200);
+  browser.smartCheckItem(item);
 });
 
 /**
@@ -196,7 +196,7 @@ When(/^I check "([^"]*)?"$/, function (item) {
 * @When /^I uncheck "([^"]*)?"$/
 */
 When(/^I uncheck "([^"]*)?"$/, function (item) {
-  browser.smartUncheckItem(item).pause(200);
+  browser.smartUncheckItem(item);
 });
 
 /**
