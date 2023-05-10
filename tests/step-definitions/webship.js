@@ -287,3 +287,15 @@ Then(/^I should( not)* see a(n)* "([^"]*)?" element$/, function (negativeCase, i
 Then(/^the "([^"]*)?" element should( not)* contain "([^"]*)?"$/, function (element, negativeCase, elementCss) {
   return browser.assert.smartElementContainsCss(element, negativeCase, elementCss);
 });
+
+/**
+* Attaches file to field with specified id|name|label|value
+* Example: When I attach the file "bwayne_profile.png" to "profileImageUpload"
+* Example: And I attach the file "bwayne_profile.png" to "profileImageUpload"
+*
+* @When /^I attach the file "([^"]*)?" to "([^"]*)?"$/
+*/
+When(/^I attach the file "([^"]*)?" to "([^"]*)?"$/, function (fileUrl, element) {
+  
+  browser.setValue(element, require('path').resolve(__dirname + fileUrl))
+});

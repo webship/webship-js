@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset='utf-8'>
+  <title>Press Button</title>
+  <style>
+    .style {
+      font-size: 26px;
+    }
+  </style>
+  <script>
+    function onClick() {
+      const myfile = document.getElementById("fileUpload");
+      const element = document.getElementById("result");
+      const img = document.getElementById("img");
+      const filePathArr = myfile.value.split('\\');
+      element.innerText = filePathArr[filePathArr.length - 1];
+      
+    }
+  </script>
+</head>
+
+<body>
+  <label for="myfile">Select a file:</label>
+  <input type="file" id="fileUpload" name="fileUpload"><br><br>
+  <div id="result" class="style"></div><br />
+  <input type="submit" value="Submit" onclick="onClick()">
+
+</body>
+
+</html>
