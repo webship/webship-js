@@ -296,6 +296,5 @@ Then(/^the "([^"]*)?" element should( not)* contain "([^"]*)?"$/, function (elem
 * @When /^I attach the file "([^"]*)?" to "([^"]*)?"$/
 */
 When(/^I attach the file "([^"]*)?" to "([^"]*)?"$/, function (fileUrl, element) {
-  
-  browser.setValue(element, require('path').resolve(__dirname + fileUrl))
+  browser.smartUploadFile(fileUrl, element);
 });
