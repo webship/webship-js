@@ -298,3 +298,14 @@ Then(/^the "([^"]*)?" element should( not)* contain "([^"]*)?"$/, function (elem
 When(/^I attach the file "([^"]*)?" to "([^"]*)?"$/, function (fileUrl, element) {
   browser.smartUploadFile(fileUrl, element);
 });
+
+/**
+ * Checks, that form field with specified id|name|label|value has specified value
+ * Example: Then the "username" field should contain "bwayne"
+ * Example: And the "username" field should not contain "bwayne"
+ *
+ * @Then /^the "([^"]*)?" field should( not)* contain "([^"]*)?"$/
+ */
+Then(/^the "([^"]*)?" field should( not)* contain "([^"]*)?"$/, function (field, negativeCase, expectedText) {
+  return browser.assert.smartElementContains(negativeCase, expectedText, field);
+});
