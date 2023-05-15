@@ -339,7 +339,7 @@ Then(/^the "([^"]*)?" checkbox is( not)* checked$/, function (checkbox, negative
 * Example: Then the checkbox "PrivacyPolicy" should be checked
 * Example: Then the checkbox "PrivacyPolicy" should not be checked
 *
-* @Then /^the "([^"]*)?" should(not)* be checked$/
+* @Then /^the checkbox "([^"]*)?" should(not)* be checked$/
 * 
 */
 Then(/^the checkbox "([^"]*)?" should( not)* be checked$/, function (checkbox, negativeCase) {
