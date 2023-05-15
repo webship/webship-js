@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset='utf-8'>
+  <title>Item should be checked</title>
+  <style>
+    .container,
+    .container input,
+    .container button {
+      font-size: 22px;
+    }
+
+    .style {
+      width: 400px;
+      height: 50px;
+      font-size: 22px;
+      line-height: 50px;
+      text-align: center;
+    }
+  </style>
+
+  <script>
+    function onClick() {
+      const element = document.getElementById("result");
+      const PrivacyPolicy = document.getElementById("PrivacyPolicy");
+      if (PrivacyPolicy.checked) {
+        element.innerText = "Registration Done Successfully";
+      } else {
+        element.innerText = "Please check Agree to Privacy Policy";
+      }
+
+    }
+  </script>
+
+</head>
+
+<body>
+  <h1>Registration</h1>
+
+  <div class="container">
+    <p>
+      <label for="email">Email</label><br/>
+      <input type="text" placeholder="Enter Email" name="email" id="email" required>
+    </p>
+    <p>
+      <label for="psw">Password</label><br/>
+      <input type="password" placeholder="Enter Password" name="psw" id="psw" required>
+    </p>
+    <p>
+      <label for="psw-repeat">Repeat Password</label><br/>
+      <input type="password" placeholder="Repeat Password" name="psw-repeat" id="psw-repeat" required>
+    </p>
+    <hr>
+
+    <p><input type="checkbox" value="lsRememberMe" id="rememberMe"> <label for="rememberMe">Remember me</label></p>
+    <p><input type="checkbox" value="lsPrivacyPolicy" id="PrivacyPolicy"> <label for="PrivacyPolicy">I Agree to Privacy Policy</label></p>
+
+    <p><input id="registerbtn" class="registerbtn" name="registerbtn" type="button" value="Register"
+        onclick="onClick()"></p>
+
+  </div>
+
+  <div id="result" class="style"></div><br />
+
+</body>
+
+</html>

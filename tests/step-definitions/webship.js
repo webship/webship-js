@@ -309,3 +309,51 @@ When(/^I attach the file "([^"]*)?" to "([^"]*)?"$/, function (fileUrl, element)
 Then(/^the "([^"]*)?" field should( not)* contain "([^"]*)?"$/, function (field, negativeCase, expectedText) {
   return browser.assert.smartElementContains(negativeCase, expectedText, field);
 });
+
+/**
+* Checks, that checkbox with specified id|name|label|value is checked
+* Example: Then the "PrivacyPolicy" checkbox should be checked
+* Example: And the "PrivacyPolicy" checkbox should not be checked
+*
+* @Then /^the "([^"]*)?" checkbox should(not)* be checked$/
+* 
+*/
+Then(/^the "([^"]*)?" checkbox should( not)* be checked$/, function (checkbox, negativeCase) {
+  return browser.assert.smartCheckboxChecked(checkbox, negativeCase);
+});
+
+/**
+* Checks, that checkbox with specified id|name|label|value is checked
+* Example: Then the "Remember Me" checkbox is checked
+* Example: And the "Remember Me" checkbox is not checked
+*
+* @Then /^the "([^"]*)?" checkbox is( not)* checked$/
+* 
+*/
+Then(/^the "([^"]*)?" checkbox is( not)* checked$/, function (checkbox, negativeCase) {
+  return browser.assert.smartCheckboxChecked(checkbox, negativeCase);
+});
+
+/**
+* Checks, that checkbox with specified id|name|label|value is checked
+* Example: Then the checkbox "PrivacyPolicy" should be checked
+* Example: Then the checkbox "PrivacyPolicy" should not be checked
+*
+* @Then /^the "([^"]*)?" should(not)* be checked$/
+* 
+*/
+Then(/^the checkbox "([^"]*)?" should( not)* be checked$/, function (checkbox, negativeCase) {
+  return browser.assert.smartCheckboxChecked(checkbox, negativeCase);
+});
+
+/**
+* Checks, that checkbox with specified id|name|label|value is checked
+* Example: Then the checkbox "Remember Me" is checked
+* Example: And the checkbox "Remember Me" is not checked
+*
+* @Then /^the checkbox "([^"]*)?" is( not)* checked$/
+* 
+*/
+Then(/^the checkbox "([^"]*)?" is( not)* checked$/, function (checkbox, negativeCase) {
+  return browser.assert.smartCheckboxChecked(checkbox, negativeCase);
+});
