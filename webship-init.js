@@ -9,13 +9,13 @@ var projectPath = '';
 const currentPath = process.argv[1].split("node_modules");
 basePath = currentPath[0].substring(0, currentPath[0].lastIndexOf("/")) + '/';
 
-  if(currentPath.length > 1){
-    projectPath = basePath + "node_modules/webship-js/"; 
-  } 
-  else{
-    projectPath = basePath; 
+if (currentPath.length > 1) {
+  projectPath = basePath + "node_modules/webship-js/";
+}
+else {
+  projectPath = basePath;
 
-  }
+}
 
 /**
  * -----------------------------------------------------
@@ -36,16 +36,16 @@ parser.add_argument('-ci', '--continuous_integration',
   });
 
 parser.add_argument('-b', '--browser',
-{
-  help: 'Add your Browser (chrome, firefox), By default: -b chrome',
-  default: 'chrome',
-});
+  {
+    help: 'Add your Browser (chrome, firefox), By default: -b chrome',
+    default: 'chrome',
+  });
 
 parser.add_argument('-os', '--operating_system',
-{
-  help: 'Add your Operating System (linux, mac, windows), By default: -os linux',
-  default: 'linux',
-});
+  {
+    help: 'Add your Operating System (linux, mac, windows), By default: -os linux',
+    default: 'linux',
+  });
 
 var argsParse = parser.parse_args();
 

@@ -4,7 +4,6 @@ const { Then } = require('@cucumber/cucumber');
 
 /**
  * Opens homepage.
- * 
  * Example: Given I am on homepage
  * Example: Given I am on the homepage
  * 
