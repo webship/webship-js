@@ -7,6 +7,7 @@ var options = {
   reportSuiteAsScenarios: true,
   scenarioTimestamp: true,
   launchReport: true,
+  brandTitle: "Test Report",
   metadata: {
     "App Version": "7.1.0",
     "Test Environment": "development",
