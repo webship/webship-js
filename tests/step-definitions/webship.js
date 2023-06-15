@@ -101,7 +101,6 @@ When(/^I press "([^"]*)?"$/, function (elementValue) {
  * @When /^I follow "([^"]*)?"$/
  */
 When(/^I follow "([^"]*)?"$/, function (item) {
-  // browser.click("link text", elementValue);
   browser.smartLinkFollow(item);
 });
 
