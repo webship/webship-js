@@ -14,7 +14,7 @@ Given(/^I am on( the)* homepage$/, function (url) {
 });
 
 /**
- * Opens specified page
+ * Open specific page
  * Example: Given I am on "about-us.html"
  *
  * @Given /^I am on "([^"]*)?"$/
@@ -24,7 +24,7 @@ Given(/^I am on "([^"]*)?"$/, function (url) {
 });
 
 /**
- * Opens homepage
+ * Go to homepage
  * Example: When I go to the homepage
  * Example: And I go to "/"
  *
@@ -35,7 +35,7 @@ When(/^I go to( the)* homepage$/, function () {
 });
 
 /**
- * Opens specified page
+ * Go to specific page
  * Example: When I go to "contact-us.html"
  *
  * @When /^I go to "([^"]*)?"$/
@@ -63,7 +63,7 @@ Then(/^I should( not)* see "([^"]*)?"$/, function (negativeCase, expectedText) {
 
 /**
  * Moves forward one page in history
- * Example: And I move forward one page
+ * Example: When I move forward one page
  *
  * @When /^I move forward one page$/
  */
@@ -82,7 +82,7 @@ When(/^I move backward one page$/, function () {
 });
 
 /**
- * Presses button with specified id|name|title|alt|value
+ * Presses button with specified id|class|name|title|value
  * Example: When I press "Log In"
  * Example: And I press "Log In"
  *
@@ -94,15 +94,15 @@ When(/^I press "([^"]*)?"$/, function (elementValue) {
 });
 
 /**
- * Clicks link with specified id|title|alt|text
- * Example: When I follow "Log In"
+ * Clicks link with specified id|class|name|title|text
+ * Example: When I follow "Contact Us"
  * Example: And I follow "Log In"
  *
  * @When /^I follow "([^"]*)?"$/
  */
-When(/^I follow "([^"]*)?"$/, function (elementValue) {
-  browser.click("link text", elementValue);
-  // return browser.smartLinkClick(elementValue);
+When(/^I follow "([^"]*)?"$/, function (item) {
+  // browser.click("link text", elementValue);
+  browser.smartLinkFollow(item);
 });
 
 /**
@@ -117,8 +117,8 @@ When(/^I reload( the)* page$/, function (url) {
 });
 
 /**
- * Fills in form field with specified id|name|label|value
- * Example: When I fill in "username" with "webshipco"
+ * Define the step of filling values in the form field specified by id|class|name|label.
+ * Example: When I fill in "Username" with "John Smith"
  *
  * @When /^I fill in "([^"]*)?" with "([^"]*)?"$/
  */
@@ -127,7 +127,7 @@ When(/^I fill in "([^"]*)?" with "([^"]*)?"$/, function (field, value) {
 });
 
 /**
- * Fills in form field with specified id|name|label|value
+ * Fills in form field with specified id|class|name|label
  * Example: When I fill in "username" with:
  *
  * @When /^I fill in "([^"]*)?" with:$/
@@ -137,7 +137,7 @@ When(/^I fill in "([^"]*)?" with:$/, function (field) {
 });
 
 /**
- * Fills in form field with specified id|name|label|value
+ * Fills in form field with specified id|class|name|label
  * Example: And I fill in "webshipco" for "username"
  *
  * @When /^I fill in "([^"]*)?" for "([^"]*)?"$/
@@ -166,9 +166,8 @@ When(/^I fill in the following:$/, function (table) {
 });
 
 /**
- * Selects option in select field with specified id|name|label|value
- * Example: When I select "saab" from "Cars"
- * Example: And I select "saab" from "Cars"
+ * Selects option in select field with specified id|class|name|label
+ * Example: When I select "mercedes" from "Cars"
  *
  * @When /^I select "([^"]*)?" from "([^"]*)?"$/
  */
@@ -177,9 +176,8 @@ When(/^I select "([^"]*)?" from "([^"]*)?"$/, function (option, selectBox) {
 });
 
 /**
-* Checks checkbox with specified id|name|label|value
-* Example: When I check "Pearl Necklace"
-* Example: And I check "Pearl Necklace"
+* Checks checkbox specified by id|class|name|label
+* Example: When I check "Remember me"
 *
 * @When /^I check "([^"]*)?"$/
 */
@@ -188,9 +186,8 @@ When(/^I check "([^"]*)?"$/, function (item) {
 });
 
 /**
-* Unchecks checkbox with specified id|name|label|value
-* Example: When I uncheck "Broadway Plays"
-* Example: And I uncheck "Broadway Plays"
+* Unchecks checkbox specified by id|class|name|label
+* Example: When I uncheck "Remember me"
 *
 * @When /^I uncheck "([^"]*)?"$/
 */
@@ -199,9 +196,8 @@ When(/^I uncheck "([^"]*)?"$/, function (item) {
 });
 
 /**
-* Checks, that current page is the homepage
+* Verify, that current page is the homepage
 * Example: Then I should be on the homepage
-* Example: And I should be on the homepage
 *
 * @Then /^I should be on( the)* homepage$/
 */
@@ -210,9 +206,9 @@ Then(/^I should be on( the)* homepage$/, function (url) {
 });
 
 /**
-* Checks, that current page PATH is equal to specified
+* Verify, that current page path is equal to specified
 * Example: Then I should be on "/"
-* Example: And I should be on "/bats"
+* Example: And I should be on "/user/login"
 * Example: And I should be on "http://google.com"
 *
 * @Then /^I should be on "([^"]*)?"$/
@@ -222,9 +218,9 @@ Then(/^I should be on "([^"]*)?"$/, function (url) {
 });
 
 /**
-* Checks, that HTML response contains specified string
-* Example: Then the response should contain "Batman is the hero Gotham deserves."
-* Example: And the response should contain "Batman is the hero Gotham deserves."
+* Checks, that HTML response contains specific text specified by id|class|name|label
+* Example: Then the response should contain "Welcome visitor, How can I help you?"
+* Example: Then the response should not contain "Error: Ambiguous messages that are unclear"
 *
 * @Then /^the response should contain "([^"]*)?"$/
 */
@@ -237,9 +233,9 @@ Then(/^the response should( not)* contain "([^"]*)?"$/, function (negativeCase, 
 });
 
 /**
-* Checks, that element with specified CSS contains specified text
-* Example: Then I should see "Batman" in the "heroes_list" element
-* Example: And I should see "Batman" in the "heroes_list" element
+* Assert, that element contains a specific text value specified by id|class|name|label
+* Example: Then I should see "John Smith" in the "Username" element
+* Example: Then I should see "Joe Smith" in the "Username" element
 *
 * @Then /^I should( not)* see "([^"]*)?" in the "([^"]*)?" element$/
 */
@@ -248,9 +244,9 @@ Then(/^I should( not)* see "([^"]*)?" in the "([^"]*)?" element$/, function (neg
 });
 
 /**
-* Checks, that page contains text matching specified pattern
-* Example: Then I should see text matching "Bruce Wayne, the vigilante"
-* Example: And I should not see "Bruce Wayne, the vigilante"
+* Assert, that page contains text matching specified pattern
+* Example: Then I should see text matching "Welcome visitor, How can I help you?"
+* Example: Then I should not see text matching "Error: Ambiguous messages that are unclear"
 *
 * @Then /^I should( not)* see text matching "([^"]*)?"$/
 */
@@ -263,9 +259,8 @@ Then(/^I should( not)* see text matching "([^"]*)?"$/, function (negativeCase, e
 });
 
 /**
- * Checks, that element with specified CSS exists on page
+ * Assert, that element exists on page specified by id|class|name|label
  * Example: Then I should see a "body" element
- * Example: And I should see a "body" element
  *
  * @Then /^I should( not)* see a(n)* "([^"]*)?" element$/
  */
@@ -277,9 +272,8 @@ Then(/^I should( not)* see a(n)* "([^"]*)?" element$/, function (negativeCase, i
 });
 
 /**
- * Checks, that element with specified CSS contains specified HTML
- * Example: Then the "body" element should contain "color:black;"
- * Example: And the "body" element should contain "color:black;"
+ * Assert, that element contains a specific CSS style specified by id|class|name|label|tag.
+ * Example: Then the "body" element should contain "color:white;"
  *
  * @Then /^the "([^"]*)?" element should( not)* contain "([^"]*)?"$/
  */
@@ -288,9 +282,8 @@ Then(/^the "([^"]*)?" element should( not)* contain "([^"]*)?"$/, function (elem
 });
 
 /**
-* Attaches file to field with specified id|name|label|value
-* Example: When I attach the file "bwayne_profile.png" to "profileImageUpload"
-* Example: And I attach the file "bwayne_profile.png" to "profileImageUpload"
+* Attaches file to field with specified id|class|name|label
+* Example: When I attach the file "profileIcon.jpg" to "profileIconUpload"
 *
 * @When /^I attach the file "([^"]*)?" to "([^"]*)?"$/
 */
@@ -299,9 +292,8 @@ When(/^I attach the file "([^"]*)?" to "([^"]*)?"$/, function (fileUrl, element)
 });
 
 /**
- * Checks, that form field with specified id|name|label|value has specified value
- * Example: Then the "username" field should contain "bwayne"
- * Example: And the "username" field should not contain "bwayne"
+ * Assert, that form field with specified id|class|name|label has specified value
+ * Example: Then the "username" field should contain "John Smith"
  *
  * @Then /^the "([^"]*)?" field should( not)* contain "([^"]*)?"$/
  */
@@ -310,9 +302,8 @@ Then(/^the "([^"]*)?" field should( not)* contain "([^"]*)?"$/, function (field,
 });
 
 /**
-* Checks, that checkbox with specified id|name|label|value is checked
+* Assert, that checkbox with specified id|class|name|label is should be checked
 * Example: Then the "PrivacyPolicy" checkbox should be checked
-* Example: And the "PrivacyPolicy" checkbox should not be checked
 *
 * @Then /^the "([^"]*)?" checkbox should(not)* be checked$/
 * 
@@ -322,9 +313,8 @@ Then(/^the "([^"]*)?" checkbox should( not)* be checked$/, function (checkbox, n
 });
 
 /**
-* Checks, that checkbox with specified id|name|label|value is checked
+* Check, whether the checkbox specified by id|class|name|label is checked or not.
 * Example: Then the "Remember Me" checkbox is checked
-* Example: And the "Remember Me" checkbox is not checked
 *
 * @Then /^the "([^"]*)?" checkbox is( not)* checked$/
 * 
@@ -334,7 +324,7 @@ Then(/^the "([^"]*)?" checkbox is( not)* checked$/, function (checkbox, negative
 });
 
 /**
-* Checks, that checkbox with specified id|name|label|value is checked
+* Assert, that checkbox with specified id|name|label|value is checked
 * Example: Then the checkbox "PrivacyPolicy" should be checked
 * Example: Then the checkbox "PrivacyPolicy" should not be checked
 *
@@ -346,7 +336,7 @@ Then(/^the checkbox "([^"]*)?" should( not)* be checked$/, function (checkbox, n
 });
 
 /**
-* Checks, that checkbox with specified id|name|label|value is checked
+* Assert, that checkbox with specified id|name|label|value is checked
 * Example: Then the checkbox "Remember Me" is checked
 * Example: And the checkbox "Remember Me" is not checked
 *

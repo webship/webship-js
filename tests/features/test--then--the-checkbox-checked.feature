@@ -1,6 +1,6 @@
-Feature: Example test the checkbox if checked or not
+Feature: Test register page
   As a tester
-  I want to be able to test uncheck a checkbox item
+  I want to be able to test the register page work
 
   Scenario: Check the "Then checkbox is/should be checked" step definitions
     Given I am on "test--then--the-checkbox-checked.html"
