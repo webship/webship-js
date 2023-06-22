@@ -12,21 +12,19 @@ Webship JS has a ready step definitions for automated functional testing.
 
 
 ### Webship-js Documentations
-All you need to know about [webship-js Docs](https://webship.co/documentation/webship-js).
+All you need to know about [webship-js Docs](https://webship.co/docs/webship-js/1.0.x).
 
-
-## How to configure your project to test using webship-js steps
-
-### Install node js and yarn
-
-### Install Latest Chrome Driver
-
-### Run selenium standalone server
 
 ## Install webship-js using Yarn
 
 ```
 yarn add webship-js
+```
+
+## Install files required by the webship-js tool
+
+```
+bash <(wget -O - https://raw.githubusercontent.com/webship/wbash/v1/webship-js/v1/template.sh)
 ```
 
  ## Automated Functional Acceptance Testing

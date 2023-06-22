@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset='utf-8'>
+  <title>I wait time</title>
+  <style>
+    .container,
+    .container input,
+    .container button {
+      font-size: 26px;
+    }
+
+    .style {
+      font-size: 22px;
+      line-height: 50px;
+    }
+  </style>
+
+</head>
+
+<body>
+  <h1>Waiting a Specific number of Time</h1>
+
+  <div class="container">
+  <b><div id="result" class="style">Waiting . . .</div></b>
+
+</body>
+
+<script>
+  const element = document.getElementById("result");
+  const timeWate = 3;
+
+  setTimeout(() => { 
+    element.innerText = 'Welcome with waiting full time';
+  }, timeWate * 1000);
+
+</script>
+</html>

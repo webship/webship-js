@@ -3,5 +3,5 @@ node_modules
 *.log
 .vscode
 tests_output
-tests/reports/cucumber-report-*
+tests/reports/cucumber_report*
 yarn.lock
