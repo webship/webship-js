@@ -353,7 +353,7 @@ until the element present.
 * Example: When I wait 5 seconds
 * Example: When I wait max of 6 seconds
 *
-* @Then /^I wait( max of)* "([^"]*)?" second(s)*$/
+* @When /^I wait( max of)* "([^"]*)?" second(s)*$/
 * 
 */
 When(/^I wait( max of)* (\d*) second(s)*$/, function (maxof, number, withS) {
@@ -371,7 +371,7 @@ until the element present.
 * Example: When I wait 5 minutes
 * Example: When I wait max of 6 minutes
 *
-* @Then /^I wait( max of)* "([^"]*)?" second(s)*$/
+* @When /^I wait( max of)* "([^"]*)?" second(s)*$/
 * 
 */
 When(/^I wait( max of)* (\d*) minute(s)*$/, function (maxof, number, withS) {
