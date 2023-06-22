@@ -82,7 +82,7 @@ When(/^I move backward one page$/, function () {
 });
 
 /**
- * Presses button with specified id|class|name|title|value
+ * Presses button with specified id|class|name|value
  * Example: When I press "Log In"
  * Example: And I press "Log In"
  *
@@ -94,14 +94,14 @@ When(/^I press "([^"]*)?"$/, function (elementValue) {
 });
 
 /**
- * Clicks link with specified id|class|name|title|text
- * Example: When I follow "Contact Us"
- * Example: And I follow "Log In"
+ * Clicks link with specified id|class|name|text
+ * Example: When I click "Contact Us"
+ * Example: And I click "aboutUs"
  *
- * @When /^I follow "([^"]*)?"$/
+ * @When /^I click "([^"]*)?"$/
  */
-When(/^I follow "([^"]*)?"$/, function (item) {
-  browser.smartLinkFollow(item);
+When(/^I click "([^"]*)?"$/, function (item) {
+  browser.smartClickLink(item);
 });
 
 /**
