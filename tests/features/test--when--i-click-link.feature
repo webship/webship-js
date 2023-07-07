@@ -1,16 +1,15 @@
-Feature: Example test for "When I click 'link'"
+Feature: An example to click link
 
   As a tester
-  I want to be able to test when a link is clicked,
-  it will go to the link path page
+  I want to be able to click link
 
-  Scenario: Check the "When I click link" by link text step definitions
+  Scenario: Check click link by link text
     Given I am on "test--when--i-click-link.html"
       When I click "About us link"
       And I wait max of 2 seconds
       Then I should see "About Us"
 
-  Scenario: Check the "When I click link" by link css class step definitions
+  Scenario: Check click link by link css class
     Given I am on "test--when--i-click-link.html"
       When I click "aboutUs"
       And I wait max of 2 seconds

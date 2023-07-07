@@ -1,9 +1,9 @@
-Feature: Example test for "When I check 'item'"
+Feature: An example to check the checkbox
 
   As a tester
-  I want to be able to test check a checkbox item
+  I want to be able to check a checkbox
 
-  Scenario: Check the "When I check 'item'" step definitions
+  Scenario: Check the checkbox
     Given I am on "test--when--i-check-uncheck-checkbox.html"
     When I check "vehicle1"
     And I press "Submit"

@@ -1,6 +1,6 @@
-Feature: Example test for: Then the "filed" should contain "value"
+Feature: An example to test if the field contains certain value
   As a tester
-  I want to be able to check field if has a particular value or not
+  I want to be able to check field if has a certain value or not
 
   Scenario: Check field if has a particular value or not
     Given I am on homepage

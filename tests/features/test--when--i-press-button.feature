@@ -1,11 +1,10 @@
-Feature: Example test for "When I press button" 
+Feature: An example to press a button
 
-As a tester
-I want to be able to test button press event
-So that I know it is working
+  As a tester
+  I want to be able to press a button
 
-  Scenario: Check the "When I press button" step definitions
+  Scenario: Check press a button
     Given I am on the homepage
-     When I go to "test--when--i-press-button.html"
-     When I press "Click Button"
-     Then I should see "Button Pressed Successfully"
+    When I go to "test--when--i-press-button.html"
+    When I press "Submit"
+    Then I should see "Button Pressed Successfully"

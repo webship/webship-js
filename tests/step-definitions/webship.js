@@ -170,8 +170,8 @@ When(/^I fill in the following:$/, function (table) {
  *
  * @When /^I select "([^"]*)?" from "([^"]*)?"$/
  */
-When(/^I select "([^"]*)?" from "([^"]*)?"$/, function (option, selectBox) {
-  browser.smartSelectOption(option, selectBox);
+When(/^I select "([^"]*)?" from "([^"]*)?"$/, function (option, dropdownlist) {
+  browser.smartSelectOption(option, dropdownlist);
 });
 
 /**
@@ -260,6 +260,9 @@ Then(/^I should( not)* see text matching "([^"]*)?"$/, function (negativeCase, e
 /**
  * Assert, that element exists on page specified by id|class|name|label
  * Example: Then I should see a "body" element
+ * Example: Then I should see an "Email" element
+ * Example: Then I should not see a "Username" element
+ * Example: Then I should not see an "img" element
  *
  * @Then /^I should( not)* see a(n)* "([^"]*)?" element$/
  */
@@ -287,7 +290,7 @@ Then(/^the "([^"]*)?" element should( not)* contain "([^"]*)?"$/, function (elem
 * @When /^I attach the file "([^"]*)?" to "([^"]*)?"$/
 */
 When(/^I attach the file "([^"]*)?" to "([^"]*)?"$/, function (fileUrl, element) {
-  browser.smartUploadFile(fileUrl, element);
+  browser.smartUploadFile("../../../tests/assets/" + fileUrl, element);
 });
 
 /**
@@ -371,7 +374,7 @@ until the element present.
 * Example: When I wait 5 minutes
 * Example: When I wait max of 6 minutes
 *
-* @When /^I wait( max of)* "([^"]*)?" second(s)*$/
+* @When /^I wait( max of)* "([^"]*)?" minute(s)*$/
 * 
 */
 When(/^I wait( max of)* (\d*) minute(s)*$/, function (maxof, number, withS) {

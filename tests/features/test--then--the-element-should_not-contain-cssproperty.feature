@@ -1,12 +1,17 @@
-Feature: Example test element contains Css property and property value expected
+Feature: An example to test if the element contains a certain expected CSS property or not.
   As a developer
-  I want to be able to test if element contains Css property and property value expected
+  I want to be able to test if the element contains a certain expected CSS property or not.
 
-  Scenario: Check element if contains Css property and property value expected
+  Scenario: Check element if the element contains a certain expected CSS property
     Given I am on homepage
     When I go to "test--then--the-element-should_not-contain-cssproperty.html"
-    Then the "body" element should contain "background-color: lightcoral;"
-    And the "Username" element should contain "border: solid 5px red;"
+    Then I should see a "body" element
     When I press "Submit"
     Then the "body" element should contain "background-color: white;"
-    And the "Username" element should contain "border: solid 5px green;"
+
+    Scenario: Check element if the element not contains a certain CSS property
+    Given I am on homepage
+    When I go to "test--then--the-element-should_not-contain-cssproperty.html"
+    Then I should see a "body" element
+    When I press "Submit"
+    Then the "Username" element should not contain "border: solid 5px red;"

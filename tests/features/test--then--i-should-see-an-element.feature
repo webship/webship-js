@@ -1,8 +1,8 @@
-Feature: Example test for "Then I should see an "element" element"
-  As a tester
+Feature: An example to test seeing for a specific element on current page
+  As a user
   I want to make sure that when I'm on a particular page, I should see a specific element
 
-  Scenario: Check "Then I should see an 'element' element" step definition
+  Scenario: Check to test seeing for a specific element
     Given I am on the homepage
     When I go to "about-us.html"
     Then I should see a "body" element
