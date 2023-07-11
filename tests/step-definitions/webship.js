@@ -201,7 +201,7 @@ When(/^I uncheck "([^"]*)?"$/, function (item) {
 * @Then /^I should be on( the)* homepage$/
 */
 Then(/^I should be on( the)* homepage$/, function (url) {
-  return browser.assert.urlEquals(browser.launch_url);
+  return browser.assert.urlEquals(browser.launch_url + "/");
 });
 
 /**
@@ -350,8 +350,7 @@ Then(/^the checkbox "([^"]*)?" is( not)* checked$/, function (checkbox, negative
 });
 
 /**
-* Wait a specific number of seconds, or a max number of seconds 
-until the element present.
+* Wait a specific number of seconds, or a max number of seconds until the element present.
 * Example: When I wait 1 second
 * Example: When I wait 5 seconds
 * Example: When I wait max of 6 seconds
@@ -368,8 +367,7 @@ When(/^I wait( max of)* (\d*) second(s)*$/, function (maxof, number, withS) {
 });
 
 /**
-* Wait a specific number of minutes, or a max number of minutes 
-until the element present.
+* Wait a specific number of minutes, or a max number of minutes until the element present.
 * Example: When I wait 1 minute
 * Example: When I wait 5 minutes
 * Example: When I wait max of 6 minutes
@@ -383,4 +381,25 @@ When(/^I wait( max of)* (\d*) minute(s)*$/, function (maxof, number, withS) {
     return browser.waitForElementPresent('body', waitTime);
   }
   return browser.pause(waitTime);
+});
+
+/**
+ * Checks, that the current page response status is equal or not equal to the specified code
+ * Example: Then the response status code should be 200
+ * Example: And the response status code should not be 404
+ *
+ * @Then /^the response status code should( not)* be (?P<code>\d+)$/
+ */
+Then(/^the response status code should( not)* be (\d+)$/, function (negativeCase, expectedStatusCode) {
+
+  return browser.url(function (currentURL) {
+    request(currentURL.value, (error, response, body) => {
+      if (negativeCase) {
+         browser.assert.not.equal(response.statusCode, expectedStatusCode);
+      }
+       browser.assert.equal(response.statusCode, expectedStatusCode);
+
+    });
+  });
+
 });

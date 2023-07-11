@@ -43,7 +43,8 @@
     "chromedriver": "*",
     "geckodriver": "*",
     "webpack-cli": "~5.0",
-    "webpack-dev-server": "~4.0"
+    "webpack-dev-server": "~4.0",
+    "request": "~2.0"
   },
   "bin": {
     "steplist": "./steplist.js"

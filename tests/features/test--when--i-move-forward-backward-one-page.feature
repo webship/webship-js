@@ -5,7 +5,7 @@ I want to be able to navigate forward and backward one page
 
   Scenario: Check to navigate forward and backward one page
     Given I am on the homepage
-     When I go to "about-us.html"
+     When I go to "/about-us.html"
      Then I should see "About Us"
      When I move backward one page
      And I wait max of 3 seconds

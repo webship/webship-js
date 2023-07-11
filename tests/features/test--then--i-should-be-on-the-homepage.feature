@@ -4,6 +4,7 @@ Feature: An example to test being on the homepage
 
   Scenario: Check being on the homepage
     Given I am on the homepage
-    When I go to "about-us.html"
+    When I go to "/about-us.html"
     And I move backward one page
+    And I wait max of 3 seconds
     Then I should be on the homepage

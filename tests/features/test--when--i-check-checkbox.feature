@@ -4,7 +4,7 @@ Feature: An example to check the checkbox
   I want to be able to check a checkbox
 
   Scenario: Check the checkbox
-    Given I am on "test--when--i-check-uncheck-checkbox.html"
+    Given I am on "/test--when--i-check-uncheck-checkbox.html"
     When I check "vehicle1"
     And I press "Submit"
     Then I should see "You have a Bike"

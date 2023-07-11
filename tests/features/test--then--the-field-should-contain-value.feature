@@ -3,8 +3,7 @@ Feature: An example to test if the field contains certain value
   I want to be able to check field if has a certain value or not
 
   Scenario: Check field if has a particular value or not
-    Given I am on homepage
-    When I go to "test--then--i-should--not--see-text-in-element.html"
+    Given I am on "/test--then--i-should--not--see-text-in-element.html"
     And I fill in "Username" with "user1"
     Then the "Username" field should contain "user1" 
     When I press "Reset"
