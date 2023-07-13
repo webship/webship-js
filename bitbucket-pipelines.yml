@@ -2,12 +2,23 @@ image: node:20
 
 pipelines:
   default:
-    - parallel:
-        - step:
-            name: Build and Test
-            caches:
-              - node
-            script:
-              - yarn install
-              - yarn start &
-              - yarn test
+    - step:
+        name: Run Sample Test Case
+        caches:
+          - node
+        script:
+          - apt-get update
+          - apt-get install -y unzip curl
+          - npm install
+          - npm run start:test:server
+          - ./run_tunnel.sh  # only needed when testing a locally hosted website
+          - npm test
+        after-script:
+          # only needed when testing with tunnel
+          - PORT=$(head -1 /tmp/port)
+          - status_code=$(curl --request DELETE --write-out %{http_code} --silent --output /dev/null http://127.0.0.1:$PORT/api/v1.0/stop)
+          - if [[ "$status_code" -ne 200 ]]; then  pkill LT; fi
+          - rm /tmp/port
+            
+            
+
