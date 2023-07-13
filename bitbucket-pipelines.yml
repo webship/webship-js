@@ -9,4 +9,5 @@ pipelines:
               - node
             script:
               - yarn install
+              - yarn start
               - yarn test
