@@ -24,7 +24,8 @@ pipelines:
               - node
             script:
               - npm install
-              - npm test
+              - yarn install
+              - yarn test
         - step:
             name: Code linting
             script:
