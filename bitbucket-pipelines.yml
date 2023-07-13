@@ -11,6 +11,8 @@ pipelines:
         - step:
             name: selenium linting
             script:
+              - mvn -version
+              - bash run_local.sh # to setup local testing
               - pull selenium/hub:latest
               - pull selenium/standalone-chrome
               - run java -jar selenium-server-standalone-3.141.59.jar -port 4444
