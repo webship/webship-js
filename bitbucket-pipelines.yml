@@ -10,8 +10,6 @@ pipelines:
           - apt-get update
           - apt-get install -y unzip curl
           - yarn install
-          - yarn run start:test:server
-          - ./run_tunnel.sh  # only needed when testing a locally hosted website
           - yarn test
         after-script:
           # only needed when testing with tunnel
