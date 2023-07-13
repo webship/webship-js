@@ -9,10 +9,10 @@ pipelines:
         script:
           - apt-get update
           - apt-get install -y unzip curl
-          - npm install
-          - npm run start:test:server
+          - yarn install
+          - yarn run start:test:server
           - ./run_tunnel.sh  # only needed when testing a locally hosted website
-          - npm test
+          - yarn test
         after-script:
           # only needed when testing with tunnel
           - PORT=$(head -1 /tmp/port)
