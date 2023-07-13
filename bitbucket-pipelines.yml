@@ -1,9 +1,4 @@
-#  Template NodeJS build
-
-#  This template allows you to validate your NodeJS code.
-#  The workflow allows running tests and code linting on the default branch.
-
-image: node:16
+image: node:20
 
 pipelines:
   default:
@@ -13,13 +8,5 @@ pipelines:
             caches:
               - node
             script:
-              - npm install
               - yarn install
               - yarn test
-        - step:
-            name: Code linting
-            script:
-              - npm install eslint
-              - npx eslint .
-            caches:
-              - node
