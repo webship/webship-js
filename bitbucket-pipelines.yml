@@ -7,8 +7,6 @@ pipelines:
         caches:
           - node
         script:
-          - apt-get update
-          - apt-get install -y unzip curl
           - yarn install
           - yarn test
             
