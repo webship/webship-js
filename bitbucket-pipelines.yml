@@ -11,12 +11,6 @@ pipelines:
           - apt-get install -y unzip curl
           - yarn install
           - yarn test
-        after-script:
-          # only needed when testing with tunnel
-          - PORT=$(head -1 /tmp/port)
-          - status_code=$(curl --request DELETE --write-out %{http_code} --silent --output /dev/null http://127.0.0.1:$PORT/api/v1.0/stop)
-          - if [[ "$status_code" -ne 200 ]]; then  pkill LT; fi
-          - rm /tmp/port
             
             
 
