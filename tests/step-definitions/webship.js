@@ -203,7 +203,7 @@ When(/^I uncheck "([^"]*)?"$/, function (item) {
 * @Then /^I should be on( the)* homepage$/
 */
 Then(/^I should be on( the)* homepage$/, function (url) {
-  return browser.assert.urlEquals(browser.launch_url + "/");
+  return browser.assert.urlEquals(browser.launch_url);
 });
 
 /**
