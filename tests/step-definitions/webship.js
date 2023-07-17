@@ -2,6 +2,8 @@ const { Given } = require('@cucumber/cucumber');
 const { When, Before } = require('@cucumber/cucumber');
 const { Then } = require('@cucumber/cucumber');
 
+const request = require('request');
+
 /**
  * Opens homepage.
  * Example: Given I am on homepage
@@ -392,12 +394,12 @@ When(/^I wait( max of)* (\d*) minute(s)*$/, function (maxof, number, withS) {
  */
 Then(/^the response status code should( not)* be (\d+)$/, function (negativeCase, expectedStatusCode) {
 
-  return browser.url(function (currentURL) {
+  browser.url(function (currentURL) {
     request(currentURL.value, (error, response, body) => {
       if (negativeCase) {
-         browser.assert.not.equal(response.statusCode, expectedStatusCode);
+      return browser.assert.not.equal(response.statusCode, expectedStatusCode);
       }
-       browser.assert.equal(response.statusCode, expectedStatusCode);
+      return browser.assert.equal(response.statusCode, expectedStatusCode);
 
     });
   });

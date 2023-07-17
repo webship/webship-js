@@ -4,10 +4,24 @@ Feature: An example to test a page response status code
 
   Scenario: Check the response status code for current page
     Given I am on the homepage
-    When I go to "/not-exist-page.html"
-    Then the response status code should be 404
+     When I go to "/not-existing-page.html"
+     Then the response status code should be 404
+      And the response status code should not be 200
 
   Scenario: Check the response status code for current page
     Given I am on the homepage
-    When I go to "/about-us.html"
-    Then the response status code should not be 404
+     When I go to "/existing-page.html"
+     Then the response status code should not be 404
+      And the response status code should be 200
+
+  Scenario: Check the response status code for current page
+    Given I am on the homepage
+     When I go to "/example-api.json"
+     Then the response status code should not be 404
+      And the response status code should be 200
+
+  Scenario: Check the response status code for current page
+    Given I am on the homepage
+     When I go to "/example-api.json?include=author"
+     Then the response status code should not be 404
+      And the response status code should be 200
