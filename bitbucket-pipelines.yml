@@ -2,6 +2,16 @@ image: node:20
 
 pipelines:
   default:
+   - step:
+        name: selenium linting
+          script:
+           - if [[ ! -f /home/circleci/selenium-server-standalone-3.141.59.jar ]]; then wget -O /home/circleci/selenium-server-standalone-3.141.59.jar https://github.com/SeleniumHQ/selenium/releases/download/selenium-3.141.59/selenium-server-standalone-3.141.59.jar; fi
+           - cd /home/circleci/
+           - java -jar selenium-server-standalone-3.141.59.jar -port 4444
+          services:
+            - docker
+          caches:
+            - node
     - step:
         name: Run Sample Test Case
         caches:
