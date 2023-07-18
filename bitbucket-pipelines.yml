@@ -6,6 +6,8 @@ pipelines:
       - step:
             name: selenium linting
             script:
+              - bash selenium/hub:latest
+              - bash selenium/standalone-chrome
               - run java -jar selenium-server-standalone-3.141.59.jar -port 4444
             caches:
               - node
