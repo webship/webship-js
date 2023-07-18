@@ -2,15 +2,6 @@ image: node:20
 
 pipelines:
   default:
-  
-  definitions:
-    services:
-      selenium-chrome:
-        image: selenium/standalone-chrome:3.141.59-oxygen
-        ports:
-          - "4444:4444"
-
-
     - step:
         name: Run Sample Test Case
         caches:
