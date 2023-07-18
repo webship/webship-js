@@ -2,29 +2,13 @@ image: node:20
 
 pipelines:
   default:
-      - step:
-        name: Run Steward (Selenium) tests with Chrome
-        caches:
-          - composer
-        artifacts:
-          - reports/**
-        script:
-          - service mysql start
-          - mysql -h localhost -u root -proot test < tests/testdb.sql
-          - composer install --no-interaction --working-dir=tests/steward
-          - composer install --no-interaction
-          - php -S 0.0.0.0:80 --docroot src &>/dev/null&
-          - cd tests/steward
-          - vendor/bin/steward run dev chrome -vv
-        services:
-          - selenium-chrome
-
-definitions:
-  services:
-    selenium-chrome:
-      image: selenium/standalone-chrome:3.141.59-oxygen
-      ports:
-        - "4444:4444"
+  
+  definitions:
+    services:
+      selenium-chrome:
+        image: selenium/standalone-chrome:3.141.59-oxygen
+        ports:
+          - "4444:4444"
 
 
     - step:
