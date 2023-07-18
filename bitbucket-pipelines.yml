@@ -1,4 +1,4 @@
-image: node:20
+image: node:16
 
 pipelines:
   default:
@@ -7,6 +7,10 @@ pipelines:
         caches:
           - node
         script:
+          - apt-get update && apt-get install -y openjdk-8-jre-headless
+          - wget -q "https://selenium-release.storage.googleapis.com/3.141/selenium-server-standalone-3.141.59.jar"
+          - npm install
+          - java -jar selenium-server-standalone-3.141.59.jar &
           - yarn install
           - yarn test
             
