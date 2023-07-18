@@ -7,8 +7,6 @@ pipelines:
           name: Run Sample Test Case
           caches:
             - node
-          services:
-            - selenium/standalone-chrome
           script:
             - yarn install
             - export SELENIUM_HOST=http://selenium:4444/wd/hub
