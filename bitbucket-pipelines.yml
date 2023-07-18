@@ -4,6 +4,14 @@ pipelines:
   default:
     - parallel:
       - step:
+            name: selenium linting
+            script:
+              - pull selenium/hub:latest
+              - pull selenium/standalone-chrome
+              - run java -jar selenium-server-standalone-3.141.59.jar -port 4444
+            caches:
+              - node
+      - step:
           name: Run Sample Test Case
           caches:
             - node
