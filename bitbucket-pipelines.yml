@@ -1,13 +1,16 @@
-image: node:16
+image: node:20
 
 pipelines:
   default:
     - step:
-        name: Build and Test
+        name: Run Sample Test Case
+        caches:
+          - node
         services:
           - selenium/standalone-chrome
         script:
           - yarn install
+          - export SELENIUM_HOST=http://selenium:4444/wd/hub
           - yarn test
             
             
