@@ -1,10 +1,14 @@
+image: node:16
+
 pipelines:
   default:
     - step:
         name: Build and Test
-        image: node:16
         services:
           - selenium/standalone-chrome
         script:
-          - npm install
-          - npm test
+          - yarn install
+          - yarn test
+            
+            
+
