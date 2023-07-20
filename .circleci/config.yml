@@ -62,9 +62,9 @@ commands:
       - run:
           name: Run Selenium Standalone server
           command: |
-            if [[ ! -f /home/circleci/selenium-server-standalone-3.141.59.jar ]]; then wget -O /home/circleci/selenium-server-standalone-3.141.59.jar https://github.com/SeleniumHQ/selenium/releases/download/selenium-3.141.59/selenium-server-standalone-3.141.59.jar; fi
+            if [[ ! -f /home/circleci/selenium-server-4.9.1.jar ]]; then wget -O /home/circleci/selenium-server-4.9.1.jar https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.9.1/selenium-server-4.9.1.jar; fi
             cd /home/circleci/
-            java -jar selenium-server-standalone-3.141.59.jar -port 4444
+            java -jar selenium-server-4.9.1.jar standalone
           background: true
           
 jobs:
