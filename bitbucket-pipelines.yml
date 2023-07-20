@@ -1,14 +1,15 @@
 image: node:16
 
+options:
+  docker: true
+
 pipelines:
   default:
     - parallel:
       - step:
             name: selenium linting
             script:
-              - bash selenium/hub:latest
-              - bash selenium/standalone-chrome
-              - run java -jar selenium-server-standalone-3.141.59.jar -port 4444
+              - java -jar selenium-server-4.4.0.jar standalone
             caches:
               - node
       - step:
@@ -17,7 +18,6 @@ pipelines:
             - node
           script:
             - yarn install
-            - export SELENIUM_HOST=http://selenium:4444/wd/hub
             - yarn test
             
             
