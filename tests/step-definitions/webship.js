@@ -245,21 +245,6 @@ Then(/^I should( not)* see "([^"]*)?" in the "([^"]*)?" element$/, function (neg
 });
 
 /**
-* Assert, that page contains text matching specified pattern
-* Example: Then I should see text matching "Welcome visitor, How can I help you?"
-* Example: Then I should not see text matching "Error: Ambiguous messages that are unclear"
-*
-* @Then /^I should( not)* see text matching "([^"]*)?"$/
-*/
-Then(/^I should( not)* see text matching "([^"]*)?"$/, function (negativeCase, expectedText) {
-  if (negativeCase) {
-    return browser.assert.not.textContains('html', expectedText);
-  }
-
-  return browser.assert.textContains('html', expectedText);
-});
-
-/**
  * Assert, that element exists on page specified by id|class|name|label
  * Example: Then I should see a "body" element
  * Example: Then I should see an "Email" element
@@ -403,5 +388,22 @@ Then(/^the response status code should( not)* be (\d+)$/, function (negativeCase
 
     });
   });
+});
 
+/**
+* Checks, that page contains text matching specified pattern
+* Example: Then I should see text matching "^T\w+" //patter of word start with 'T'
+*
+* @Then /^I should see( not)* text matching "([^"]*)?" in the "([^"]*)?" element$/
+*/
+Then(/^I should( not)* see text matching "([^"]*)?"$/, function (negativeCase, textPattern) {
+  // return browser.assert.smartTextMatching(negativeCase, textPattern);
+  browser.elements('css selector', 'body', function (elements) {
+    elements.value.forEach(function (elementsObj) {
+      if (negativeCase) {
+        return browser.assert.not.textMatches(elementsObj, textPattern);
+      }
+      return browser.assert.textMatches(elementsObj, textPattern);
+    });
+  });
 });
