@@ -9,6 +9,8 @@ pipelines:
       - step:
             name: selenium linting
             script:
+              - npm install
+              - npm install selenium-webdriver
               - java -jar selenium-server-4.4.0.jar standalone
             caches:
               - node
