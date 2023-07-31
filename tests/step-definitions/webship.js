@@ -1,6 +1,13 @@
-const { Given } = require('@cucumber/cucumber');
-const { When, Before } = require('@cucumber/cucumber');
-const { Then } = require('@cucumber/cucumber');
+const {
+  Given
+} = require('@cucumber/cucumber');
+const {
+  When,
+  Before
+} = require('@cucumber/cucumber');
+const {
+  Then
+} = require('@cucumber/cucumber');
 
 const request = require('request');
 
@@ -177,54 +184,54 @@ When(/^I select "([^"]*)?" from "([^"]*)?"$/, function (option, dropdownlist) {
 });
 
 /**
-* Checks checkbox specified by id|class|name|label
-* Example: When I check "Remember me"
-*
-* @When /^I check "([^"]*)?"$/
-*/
+ * Checks checkbox specified by id|class|name|label
+ * Example: When I check "Remember me"
+ *
+ * @When /^I check "([^"]*)?"$/
+ */
 When(/^I check "([^"]*)?"$/, function (item) {
   browser.smartCheckItem(item);
 });
 
 /**
-* Unchecks checkbox specified by id|class|name|label
-* Example: When I uncheck "Remember me"
-*
-* @When /^I uncheck "([^"]*)?"$/
-*/
+ * Unchecks checkbox specified by id|class|name|label
+ * Example: When I uncheck "Remember me"
+ *
+ * @When /^I uncheck "([^"]*)?"$/
+ */
 When(/^I uncheck "([^"]*)?"$/, function (item) {
   browser.smartUncheckItem(item);
 });
 
 /**
-* Verify, that current page is the homepage
-* Example: Then I should be on the homepage
-*
-* @Then /^I should be on( the)* homepage$/
-*/
+ * Verify, that current page is the homepage
+ * Example: Then I should be on the homepage
+ *
+ * @Then /^I should be on( the)* homepage$/
+ */
 Then(/^I should be on( the)* homepage$/, function (url) {
   return browser.assert.urlEquals(browser.launch_url);
 });
 
 /**
-* Verify, that current page path is equal to specified
-* Example: Then I should be on "/"
-* Example: And I should be on "/user/login"
-* Example: And I should be on "http://google.com"
-*
-* @Then /^I should be on "([^"]*)?"$/
-*/
+ * Verify, that current page path is equal to specified
+ * Example: Then I should be on "/"
+ * Example: And I should be on "/user/login"
+ * Example: And I should be on "http://google.com"
+ *
+ * @Then /^I should be on "([^"]*)?"$/
+ */
 Then(/^I should be on "([^"]*)?"$/, function (url) {
   return browser.assert.urlContains(url);
 });
 
 /**
-* Checks, that HTML response contains specific text specified by id|class|name|label
-* Example: Then the response should contain "Welcome visitor, How can I help you?"
-* Example: Then the response should not contain "Error: Ambiguous messages that are unclear"
-*
-* @Then /^the response should contain "([^"]*)?"$/
-*/
+ * Checks, that HTML response contains specific text specified by id|class|name|label
+ * Example: Then the response should contain "Welcome visitor, How can I help you?"
+ * Example: Then the response should not contain "Error: Ambiguous messages that are unclear"
+ *
+ * @Then /^the response should contain "([^"]*)?"$/
+ */
 Then(/^the response should( not)* contain "([^"]*)?"$/, function (negativeCase, expectedText) {
   if (negativeCase) {
     return browser.assert.not.textContains('html', expectedText);
@@ -234,12 +241,12 @@ Then(/^the response should( not)* contain "([^"]*)?"$/, function (negativeCase, 
 });
 
 /**
-* Assert, that element contains a specific text value specified by id|class|name|label
-* Example: Then I should see "John Smith" in the "Username" element
-* Example: Then I should see "Joe Smith" in the "Username" element
-*
-* @Then /^I should( not)* see "([^"]*)?" in the "([^"]*)?" element$/
-*/
+ * Assert, that element contains a specific text value specified by id|class|name|label
+ * Example: Then I should see "John Smith" in the "Username" element
+ * Example: Then I should see "Joe Smith" in the "Username" element
+ *
+ * @Then /^I should( not)* see "([^"]*)?" in the "([^"]*)?" element$/
+ */
 Then(/^I should( not)* see "([^"]*)?" in the "([^"]*)?" element$/, function (negativeCase, expectedText, element) {
   return browser.assert.smartElementContains(negativeCase, expectedText, element);
 });
@@ -271,11 +278,11 @@ Then(/^the "([^"]*)?" element should( not)* contain "([^"]*)?"$/, function (elem
 });
 
 /**
-* Attaches file to field with specified id|class|name|label
-* Example: When I attach the file "profileIcon.jpg" to "profileIconUpload"
-*
-* @When /^I attach the file "([^"]*)?" to "([^"]*)?"$/
-*/
+ * Attaches file to field with specified id|class|name|label
+ * Example: When I attach the file "profileIcon.jpg" to "profileIconUpload"
+ *
+ * @When /^I attach the file "([^"]*)?" to "([^"]*)?"$/
+ */
 When(/^I attach the file "([^"]*)?" to "([^"]*)?"$/, function (fileUrl, element) {
   browser.smartUploadFile("../../../tests/assets/" + fileUrl, element);
 });
@@ -291,60 +298,60 @@ Then(/^the "([^"]*)?" field should( not)* contain "([^"]*)?"$/, function (field,
 });
 
 /**
-* Assert, that checkbox with specified id|class|name|label is should be checked
-* Example: Then the "PrivacyPolicy" checkbox should be checked
-*
-* @Then /^the "([^"]*)?" checkbox should(not)* be checked$/
-* 
-*/
+ * Assert, that checkbox with specified id|class|name|label is should be checked
+ * Example: Then the "PrivacyPolicy" checkbox should be checked
+ *
+ * @Then /^the "([^"]*)?" checkbox should(not)* be checked$/
+ * 
+ */
 Then(/^the "([^"]*)?" checkbox should( not)* be checked$/, function (checkbox, negativeCase) {
   return browser.assert.smartCheckboxChecked(checkbox, negativeCase);
 });
 
 /**
-* Check, whether the checkbox specified by id|class|name|label is checked or not.
-* Example: Then the "Remember Me" checkbox is checked
-*
-* @Then /^the "([^"]*)?" checkbox is( not)* checked$/
-* 
-*/
+ * Check, whether the checkbox specified by id|class|name|label is checked or not.
+ * Example: Then the "Remember Me" checkbox is checked
+ *
+ * @Then /^the "([^"]*)?" checkbox is( not)* checked$/
+ * 
+ */
 Then(/^the "([^"]*)?" checkbox is( not)* checked$/, function (checkbox, negativeCase) {
   return browser.assert.smartCheckboxChecked(checkbox, negativeCase);
 });
 
 /**
-* Assert, that checkbox with specified id|name|label|value is checked
-* Example: Then the checkbox "PrivacyPolicy" should be checked
-* Example: Then the checkbox "PrivacyPolicy" should not be checked
-*
-* @Then /^the checkbox "([^"]*)?" should(not)* be checked$/
-* 
-*/
+ * Assert, that checkbox with specified id|name|label|value is checked
+ * Example: Then the checkbox "PrivacyPolicy" should be checked
+ * Example: Then the checkbox "PrivacyPolicy" should not be checked
+ *
+ * @Then /^the checkbox "([^"]*)?" should(not)* be checked$/
+ * 
+ */
 Then(/^the checkbox "([^"]*)?" should( not)* be checked$/, function (checkbox, negativeCase) {
   return browser.assert.smartCheckboxChecked(checkbox, negativeCase);
 });
 
 /**
-* Assert, that checkbox with specified id|name|label|value is checked
-* Example: Then the checkbox "Remember Me" is checked
-* Example: And the checkbox "Remember Me" is not checked
-*
-* @Then /^the checkbox "([^"]*)?" is( not)* checked$/
-* 
-*/
+ * Assert, that checkbox with specified id|name|label|value is checked
+ * Example: Then the checkbox "Remember Me" is checked
+ * Example: And the checkbox "Remember Me" is not checked
+ *
+ * @Then /^the checkbox "([^"]*)?" is( not)* checked$/
+ * 
+ */
 Then(/^the checkbox "([^"]*)?" is( not)* checked$/, function (checkbox, negativeCase) {
   return browser.assert.smartCheckboxChecked(checkbox, negativeCase);
 });
 
 /**
-* Wait a specific number of seconds, or a max number of seconds until the element present.
-* Example: When I wait 1 second
-* Example: When I wait 5 seconds
-* Example: When I wait max of 6 seconds
-*
-* @When /^I wait( max of)* "([^"]*)?" second(s)*$/
-* 
-*/
+ * Wait a specific number of seconds, or a max number of seconds until the element present.
+ * Example: When I wait 1 second
+ * Example: When I wait 5 seconds
+ * Example: When I wait max of 6 seconds
+ *
+ * @When /^I wait( max of)* "([^"]*)?" second(s)*$/
+ * 
+ */
 When(/^I wait( max of)* (\d*) second(s)*$/, function (maxof, number, withS) {
   var waitTime = number * 1000;
   if (maxof) {
@@ -354,14 +361,14 @@ When(/^I wait( max of)* (\d*) second(s)*$/, function (maxof, number, withS) {
 });
 
 /**
-* Wait a specific number of minutes, or a max number of minutes until the element present.
-* Example: When I wait 1 minute
-* Example: When I wait 5 minutes
-* Example: When I wait max of 6 minutes
-*
-* @When /^I wait( max of)* "([^"]*)?" minute(s)*$/
-* 
-*/
+ * Wait a specific number of minutes, or a max number of minutes until the element present.
+ * Example: When I wait 1 minute
+ * Example: When I wait 5 minutes
+ * Example: When I wait max of 6 minutes
+ *
+ * @When /^I wait( max of)* "([^"]*)?" minute(s)*$/
+ * 
+ */
 When(/^I wait( max of)* (\d*) minute(s)*$/, function (maxof, number, withS) {
   var waitTime = number * 60 * 1000;
   if (maxof) {
@@ -382,7 +389,7 @@ Then(/^the response status code should( not)* be (\d+)$/, function (negativeCase
   browser.url(function (currentURL) {
     request(currentURL.value, (error, response, body) => {
       if (negativeCase) {
-      return browser.assert.not.equal(response.statusCode, expectedStatusCode).end();
+        return browser.assert.not.equal(response.statusCode, expectedStatusCode).end();
       }
       return browser.assert.equal(response.statusCode, expectedStatusCode).end();
 
@@ -391,14 +398,31 @@ Then(/^the response status code should( not)* be (\d+)$/, function (negativeCase
 });
 
 /**
-* Checks, that page contains text matching specified pattern
-* Example: Then I should see text matching "^T\w+" //patter of word start with 'T'
-*
-* @Then /^I should see( not)* text matching "([^"]*)?" in the "([^"]*)?" element$/
-*/
+ * Checks, that page contains text matching specified pattern
+ * Example: Then I should see text matching "^T\w+" //pattern of word start with 'T'
+ *
+ * @Then /^I should see( not)* text matching "([^"]*)?" in the "([^"]*)?" element$/
+ */
 Then(/^I should( not)* see text matching "([^"]*)?"$/, function (negativeCase, textPattern) {
   // return browser.assert.smartTextMatching(negativeCase, textPattern);
   browser.elements('css selector', 'body', function (elements) {
+    elements.value.forEach(function (elementsObj) {
+      if (negativeCase) {
+        return browser.assert.not.textMatches(elementsObj, textPattern);
+      }
+      return browser.assert.textMatches(elementsObj, textPattern);
+    });
+  });
+});
+
+/**
+ * Checks, that page contains text matching specified pattern
+ * Example: Then I should see text matching "(0?[1-9]|[12][0-9]|3[01])[\/\-](0?[1-9]|1[012])[\/\-]\d{4}" in the "#date" element //pattern of DD/MM/YYYY or DD-MM-YYYY
+ *
+ * @Then /^I should see( not)* text matching "([^"]*)?" in the "([^"]*)?" element$/
+ */
+Then(/^I should( not)* see text matching "([^"]*)?" in the "([^"]*)?" element$/, function (negativeCase, textPattern, element) {
+  browser.elements('css selector', element, function (elements) {
     elements.value.forEach(function (elementsObj) {
       if (negativeCase) {
         return browser.assert.not.textMatches(elementsObj, textPattern);
