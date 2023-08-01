@@ -431,3 +431,19 @@ Then(/^I should( not)* see text matching "([^"]*)?" in the "([^"]*)?" element$/,
     });
   });
 });
+
+
+/**
+ * Checks, that current URL Path matches regular expression
+ * Example: Then the url should match "/contact-us.html"
+ *
+ * @Then /^the url should( not)* match "([^"]*)?"$/
+ */
+Then(/^the url should( not)* match "([^"]*)?"$/, function (negativeCase, pattern) {
+
+  if (negativeCase) {
+    return browser.assert.not.urlMatches(pattern);
+  }
+  return browser.assert.urlMatches(pattern);
+
+});
