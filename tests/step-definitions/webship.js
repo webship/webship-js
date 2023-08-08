@@ -1,13 +1,6 @@
-const {
-  Given
-} = require('@cucumber/cucumber');
-const {
-  When,
-  Before
-} = require('@cucumber/cucumber');
-const {
-  Then
-} = require('@cucumber/cucumber');
+const { Given } = require('@cucumber/cucumber');
+const { When, Before } = require('@cucumber/cucumber');
+const { Then } = require('@cucumber/cucumber');
 
 const request = require('request');
 
@@ -99,7 +92,7 @@ When(/^I move backward one page$/, function () {
  */
 When(/^I press "([^"]*)?"$/, function (elementValue) {
   return browser.click("[value='" + elementValue + "']");
-  // return browser.smartPressButton(elementValue);
+  // return browser.pressButton(elementValue);
 });
 
 /**
@@ -110,7 +103,7 @@ When(/^I press "([^"]*)?"$/, function (elementValue) {
  * @When /^I click "([^"]*)?"$/
  */
 When(/^I click "([^"]*)?"$/, function (item) {
-  browser.smartClickLink(item);
+  browser.clickLink(item);
 });
 
 /**
@@ -131,7 +124,7 @@ When(/^I reload( the)* page$/, function (url) {
  * @When /^I fill in "([^"]*)?" with "([^"]*)?"$/
  */
 When(/^I fill in "([^"]*)?" with "([^"]*)?"$/, function (field, value) {
-  browser.smartFillTextInput(field, value);
+  browser.fillTextInput(field, value);
 });
 
 /**
@@ -141,7 +134,7 @@ When(/^I fill in "([^"]*)?" with "([^"]*)?"$/, function (field, value) {
  * @When /^I fill in "([^"]*)?" with:$/
  */
 When(/^I fill in "([^"]*)?" with:$/, function (field) {
-  browser.smartFillTextInput(field, '');
+  browser.fillTextInput(field, '');
 });
 
 /**
@@ -151,7 +144,7 @@ When(/^I fill in "([^"]*)?" with:$/, function (field) {
  * @When /^I fill in "([^"]*)?" for "([^"]*)?"$/
  */
 When(/^I fill in "([^"]*)?" for "([^"]*)?"$/, function (value, field) {
-  browser.smartFillTextInput(field, value);
+  browser.fillTextInput(field, value);
 });
 
 /**
@@ -167,9 +160,9 @@ When(/^I fill in "([^"]*)?" for "([^"]*)?"$/, function (value, field) {
  */
 When(/^I fill in the following:$/, function (table) {
 
-  browser.smartFillTextInput(table.rawTable[0][0], table.rawTable[0][1]);
+  browser.fillTextInput(table.rawTable[0][0], table.rawTable[0][1]);
   table.rows().forEach(row => {
-    browser.smartFillTextInput(row[0], row[1]);
+    browser.fillTextInput(row[0], row[1]);
   });
 });
 
@@ -180,7 +173,7 @@ When(/^I fill in the following:$/, function (table) {
  * @When /^I select "([^"]*)?" from "([^"]*)?"$/
  */
 When(/^I select "([^"]*)?" from "([^"]*)?"$/, function (option, dropdownlist) {
-  browser.smartSelectOption(option, dropdownlist);
+  browser.selectOption(option, dropdownlist);
 });
 
 /**
@@ -190,7 +183,7 @@ When(/^I select "([^"]*)?" from "([^"]*)?"$/, function (option, dropdownlist) {
  * @When /^I check "([^"]*)?"$/
  */
 When(/^I check "([^"]*)?"$/, function (item) {
-  browser.smartCheckItem(item);
+  browser.checkItem(item);
 });
 
 /**
@@ -200,7 +193,7 @@ When(/^I check "([^"]*)?"$/, function (item) {
  * @When /^I uncheck "([^"]*)?"$/
  */
 When(/^I uncheck "([^"]*)?"$/, function (item) {
-  browser.smartUncheckItem(item);
+  browser.uncheckItem(item);
 });
 
 /**
@@ -209,7 +202,10 @@ When(/^I uncheck "([^"]*)?"$/, function (item) {
  *
  * @Then /^I should be on( the)* homepage$/
  */
-Then(/^I should be on( the)* homepage$/, function (url) {
+Then(/^I should( not)* be on( the)* homepage$/, function (negativeCase, theCase) {
+  if (negativeCase) {
+    return browser.assert.not.urlEquals(browser.launch_url);
+  }
   return browser.assert.urlEquals(browser.launch_url);
 });
 
@@ -248,7 +244,7 @@ Then(/^the response should( not)* contain "([^"]*)?"$/, function (negativeCase, 
  * @Then /^I should( not)* see "([^"]*)?" in the "([^"]*)?" element$/
  */
 Then(/^I should( not)* see "([^"]*)?" in the "([^"]*)?" element$/, function (negativeCase, expectedText, element) {
-  return browser.assert.smartElementContains(negativeCase, expectedText, element);
+  return browser.assert.elementContains(negativeCase, expectedText, element);
 });
 
 /**
@@ -274,7 +270,7 @@ Then(/^I should( not)* see a(n)* "([^"]*)?" element$/, function (negativeCase, i
  * @Then /^the "([^"]*)?" element should( not)* contain "([^"]*)?"$/
  */
 Then(/^the "([^"]*)?" element should( not)* contain "([^"]*)?"$/, function (element, negativeCase, elementCss) {
-  return browser.assert.smartElementContainsCss(element, negativeCase, elementCss);
+  return browser.assert.elementContainsCss(element, negativeCase, elementCss);
 });
 
 /**
@@ -284,7 +280,7 @@ Then(/^the "([^"]*)?" element should( not)* contain "([^"]*)?"$/, function (elem
  * @When /^I attach the file "([^"]*)?" to "([^"]*)?"$/
  */
 When(/^I attach the file "([^"]*)?" to "([^"]*)?"$/, function (fileUrl, element) {
-  browser.smartUploadFile("../../../tests/assets/" + fileUrl, element);
+  browser.fileUpload("../../../tests/assets/" + fileUrl, element);
 });
 
 /**
@@ -294,7 +290,7 @@ When(/^I attach the file "([^"]*)?" to "([^"]*)?"$/, function (fileUrl, element)
  * @Then /^the "([^"]*)?" field should( not)* contain "([^"]*)?"$/
  */
 Then(/^the "([^"]*)?" field should( not)* contain "([^"]*)?"$/, function (field, negativeCase, expectedText) {
-  return browser.assert.smartElementContains(negativeCase, expectedText, field);
+  return browser.assert.elementContains(negativeCase, expectedText, field);
 });
 
 /**
@@ -305,7 +301,7 @@ Then(/^the "([^"]*)?" field should( not)* contain "([^"]*)?"$/, function (field,
  * 
  */
 Then(/^the "([^"]*)?" checkbox should( not)* be checked$/, function (checkbox, negativeCase) {
-  return browser.assert.smartCheckboxChecked(checkbox, negativeCase);
+  return browser.assert.checkboxChecked(checkbox, negativeCase);
 });
 
 /**
@@ -316,7 +312,7 @@ Then(/^the "([^"]*)?" checkbox should( not)* be checked$/, function (checkbox, n
  * 
  */
 Then(/^the "([^"]*)?" checkbox is( not)* checked$/, function (checkbox, negativeCase) {
-  return browser.assert.smartCheckboxChecked(checkbox, negativeCase);
+  return browser.assert.checkboxChecked(checkbox, negativeCase);
 });
 
 /**
@@ -328,7 +324,7 @@ Then(/^the "([^"]*)?" checkbox is( not)* checked$/, function (checkbox, negative
  * 
  */
 Then(/^the checkbox "([^"]*)?" should( not)* be checked$/, function (checkbox, negativeCase) {
-  return browser.assert.smartCheckboxChecked(checkbox, negativeCase);
+  return browser.assert.checkboxChecked(checkbox, negativeCase);
 });
 
 /**
@@ -340,7 +336,7 @@ Then(/^the checkbox "([^"]*)?" should( not)* be checked$/, function (checkbox, n
  * 
  */
 Then(/^the checkbox "([^"]*)?" is( not)* checked$/, function (checkbox, negativeCase) {
-  return browser.assert.smartCheckboxChecked(checkbox, negativeCase);
+  return browser.assert.checkboxChecked(checkbox, negativeCase);
 });
 
 /**
@@ -404,7 +400,7 @@ Then(/^the response status code should( not)* be (\d+)$/, function (negativeCase
  * @Then /^I should see( not)* text matching "([^"]*)?" in the "([^"]*)?" element$/
  */
 Then(/^I should( not)* see text matching "([^"]*)?"$/, function (negativeCase, textPattern) {
-  // return browser.assert.smartTextMatching(negativeCase, textPattern);
+  // return browser.assert.textMatching(negativeCase, textPattern);
   browser.elements('css selector', 'body', function (elements) {
     elements.value.forEach(function (elementsObj) {
       if (negativeCase) {
