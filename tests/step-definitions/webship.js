@@ -56,11 +56,7 @@ When(/^I go to "([^"]*)?"$/, function (url) {
  * @Then /^I should( not)* see "([^"]*)?"$/
  */
 Then(/^I should( not)* see "([^"]*)?"$/, function (negativeCase, expectedText) {
-  if (negativeCase) {
-    return browser.assert.not.textContains('html', expectedText);
-  }
-
-  return browser.assert.textContains('html', expectedText);
+  return browser.assert.elementContains(negativeCase, expectedText, "html");
 });
 
 /**
