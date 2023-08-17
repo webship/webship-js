@@ -56,7 +56,7 @@ When(/^I go to "([^"]*)?"$/, function (url) {
  * @Then /^I should( not)* see "([^"]*)?"$/
  */
 Then(/^I should( not)* see "([^"]*)?"$/, function (negativeCase, expectedText) {
-  return browser.assert.elementContains(negativeCase, expectedText, "html");
+  return browser.assert.elementContainsText(negativeCase, expectedText, "html");
 });
 
 /**
@@ -241,7 +241,7 @@ Then(/^the response should( not)* contain "([^"]*)?"$/, function (negativeCase, 
  * @Then /^I should( not)* see "([^"]*)?" in the "([^"]*)?" element$/
  */
 Then(/^I should( not)* see "([^"]*)?" in the "([^"]*)?" element$/, function (negativeCase, expectedText, element) {
-  return browser.assert.elementContains(negativeCase, expectedText, element);
+  return browser.assert.elementContainsText(negativeCase, expectedText, element);
 });
 
 /**
@@ -287,7 +287,7 @@ When(/^I attach the file "([^"]*)?" to "([^"]*)?"$/, function (fileUrl, element)
  * @Then /^the "([^"]*)?" field should( not)* contain "([^"]*)?"$/
  */
 Then(/^the "([^"]*)?" field should( not)* contain "([^"]*)?"$/, function (field, negativeCase, expectedText) {
-  return browser.assert.elementContains(negativeCase, expectedText, field);
+  return browser.assert.elementContainsText(negativeCase, expectedText, field);
 });
 
 /**
