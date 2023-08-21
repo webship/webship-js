@@ -55,9 +55,9 @@ commands:
             wget https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/116.0.5845.96/linux64/chromedriver-linux64.zip
             unzip chromedriver-linux64.zip
             sudo chmod +x chromedriver-linux64
-            sudo cp -r chromedriver-linux64 /usr/bin/chromedriver
+            sudo mv chromedriver-linux64 /usr/bin/chromedriver
+            sudo chmod +x /usr/bin/chromedriver
             rm chromedriver-linux64.zip
-            rm -r chromedriver-linux64
       
       ## Run Selenium Standalone server.
       - run:
