@@ -48,7 +48,7 @@ commands:
       - run:
           name: Install/Update Chrome Driver
           command: |
-            npx @puppeteer/browsers install chromedriver@114.0.5735.90
+            npx @puppeteer/browsers install chromedriver@115.0.5790.102
       
       ## Run Selenium Standalone server.
       - run:

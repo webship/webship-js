@@ -17,7 +17,7 @@ jobs:
           npx @puppeteer/browsers install chrome@115.0.5790.110
       - name: Install ChromeDriver
         run: |
-          npx @puppeteer/browsers install chromedriver@114.0.5735.90
+          npx @puppeteer/browsers install chromedriver@115.0.5790.102
       - uses: actions/checkout@v3
       - name: Use Node.js
         uses: actions/setup-node@v3
