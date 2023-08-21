@@ -57,7 +57,7 @@ commands:
             sudo chmod +x chromedriver-linux64
             sudo cp -r chromedriver-linux64 /usr/bin/chromedriver
             rm chromedriver-linux64.zip
-            rm chromedriver-linux64
+            rm -r chromedriver-linux64
       
       ## Run Selenium Standalone server.
       - run:

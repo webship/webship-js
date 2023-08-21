@@ -23,7 +23,7 @@ jobs:
           sudo chmod +x chromedriver-linux64
             sudo cp -r chromedriver-linux64 /usr/bin/chromedriver
             rm chromedriver-linux64.zip
-            rm chromedriver-linux64
+            rm -r chromedriver-linux64
       - uses: actions/checkout@v3
       - name: Use Node.js
         uses: actions/setup-node@v3
