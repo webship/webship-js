@@ -14,16 +14,10 @@ jobs:
     steps:
       - name: Install Chrome
         run: |
-          wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-          sudo dpkg -i google-chrome-stable_current_amd64.deb
-      - name: Install Chromedriver
+          npx @puppeteer/browsers install chrome@116.0.5793.0
+      - name: Install ChromeDriver
         run: |
-          wget https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/116.0.5845.96/linux64/chromedriver-linux64.zip
-          unzip chromedriver-linux64.zip
-          sudo chmod +x chromedriver-linux64
-          sudo mv chromedriver-linux64 /usr/bin/chromedriver
-          sudo chmod +x /usr/bin/chromedriver
-          rm chromedriver-linux64.zip
+          npx @puppeteer/browsers install chromedriver@116.0.5793.0
       - uses: actions/checkout@v3
       - name: Use Node.js
         uses: actions/setup-node@v3
