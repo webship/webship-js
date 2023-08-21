@@ -43,12 +43,12 @@ commands:
             sudo apt install libu2f-udev
             sudo apt-get install libappindicator1 fonts-liberation libgbm1 libgtk-3-0 xdg-utils
             export CHROME_BIN=/usr/bin/google-chrome
-            npx @puppeteer/browsers install chrome@115.0.5790.110
+            npx @puppeteer/browsers install chrome@116.0.5793.0
       ## Install/Update Chrome Driver.
       - run:
           name: Install/Update Chrome Driver
           command: |
-            npx @puppeteer/browsers install chromedriver@115.0.5790.102
+            npx @puppeteer/browsers install chromedriver@116.0.5793.0
       
       ## Run Selenium Standalone server.
       - run:
