@@ -51,9 +51,9 @@ commands:
       - run:
           name: Run Selenium Standalone server
           command: |
-            if [[ ! -f /home/circleci/selenium-server-4.1.2.jar ]]; then wget -O /home/circleci/selenium-server-4.1.2.jar https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.1.0/selenium-server-4.1.2.jar; fi
+            if [[ ! -f /home/circleci/selenium-server-4.11.0.jar ]]; then wget -O /home/circleci/selenium-server-4.11.0.jar https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.11.0/selenium-server-4.11.0.jar; fi
             cd /home/circleci/
-            java -jar selenium-server-4.1.2.jar standalone
+            java -jar selenium-server-4.11.0.jar standalone
           background: true
           
 jobs:
