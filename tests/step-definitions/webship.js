@@ -32,7 +32,7 @@ Given(/^(I am|we are) on "([^"]*)?"$/, function (pronoundCase, url) {
  *
  * @When /^I go to( the)* homepage$/
  */
-When(/^(I|we) go to( the)* homepage$/, function (pronoundCase, theCase) {
+When(/^(I|we)* go to( the)* homepage$/, function (pronoundCase, theCase) {
   return browser.url(browser.launch_url);
 });
 
@@ -42,7 +42,7 @@ When(/^(I|we) go to( the)* homepage$/, function (pronoundCase, theCase) {
  *
  * @When /^I go to "([^"]*)?"$/
  */
-When(/^(I|we) go to "([^"]*)?"$/, function (pronoundCase, url) {
+When(/^(I|we)* go to "([^"]*)?"$/, function (pronoundCase, url) {
   return browser.url(browser.launch_url + url);
 });
 
@@ -55,7 +55,7 @@ When(/^(I|we) go to "([^"]*)?"$/, function (pronoundCase, url) {
  * 
  * @Then /^I should( not)* see "([^"]*)?"$/
  */
-Then(/^(I|we) should( not)* see "([^"]*)?"$/, function (pronoundCase, negativeCase, expectedText) {
+Then(/^(I|we)* should( not)* see "([^"]*)?"$/, function (pronoundCase, negativeCase, expectedText) {
   return browser.assert.elementContainsText(negativeCase, expectedText, "html");
 });
 
@@ -65,7 +65,7 @@ Then(/^(I|we) should( not)* see "([^"]*)?"$/, function (pronoundCase, negativeCa
  *
  * @When /^I move forward one page$/
  */
-When(/^(I|we) move forward one page$/, function (pronoundCase) {
+When(/^(I|we)* move forward one page$/, function (pronoundCase) {
   return browser.forward();
 });
 
@@ -75,7 +75,7 @@ When(/^(I|we) move forward one page$/, function (pronoundCase) {
  *
  * @When /^I move backward one page$/
  */
-When(/^(I|we) move backward one page$/, function (pronoundCase) {
+When(/^(I|we)* move backward one page$/, function (pronoundCase) {
   return browser.back();
 });
 
@@ -86,7 +86,7 @@ When(/^(I|we) move backward one page$/, function (pronoundCase) {
  *
  * @When /^I press "([^"]*)?"$/
  */
-When(/^(I|we) press "([^"]*)?"$/, function (pronoundCase, elementValue) {
+When(/^(I|we)* press "([^"]*)?"$/, function (pronoundCase, elementValue) {
   // return browser.pressButton(elementValue);
   return browser.click("[value='" + elementValue + "']");
 
@@ -99,7 +99,7 @@ When(/^(I|we) press "([^"]*)?"$/, function (pronoundCase, elementValue) {
  *
  * @When /^I click "([^"]*)?"$/
  */
-When(/^(I|we) click "([^"]*)?"$/, function (pronoundCase, item) {
+When(/^(I|we)* click "([^"]*)?"$/, function (pronoundCase, item) {
   browser.clickLink(item);
 });
 
@@ -110,7 +110,7 @@ When(/^(I|we) click "([^"]*)?"$/, function (pronoundCase, item) {
  *
  * @When /^I reload( the)* page$/
  */
-When(/^(I|we) reload( the)* page$/, function (pronoundCase, theCase) {
+When(/^(I|we)* reload( the)* page$/, function (pronoundCase, theCase) {
   return browser.refresh(browser.getCurrentUrl());
 });
 
@@ -120,7 +120,7 @@ When(/^(I|we) reload( the)* page$/, function (pronoundCase, theCase) {
  *
  * @When /^I fill in "([^"]*)?" with "([^"]*)?"$/
  */
-When(/^(I|we) fill in "([^"]*)?" with "([^"]*)?"$/, function (pronoundCase, field, value) {
+When(/^(I|we)* fill in "([^"]*)?" with "([^"]*)?"$/, function (pronoundCase, field, value) {
   browser.fillTextInput(field, value);
 });
 
@@ -130,7 +130,7 @@ When(/^(I|we) fill in "([^"]*)?" with "([^"]*)?"$/, function (pronoundCase, fiel
  *
  * @When /^I fill in "([^"]*)?" with:$/
  */
-When(/^(I|we) fill in "([^"]*)?" with:$/, function (pronoundCase, field) {
+When(/^(I|we)* fill in "([^"]*)?" with:$/, function (pronoundCase, field) {
   browser.fillTextInput(field, '');
 });
 
@@ -140,7 +140,7 @@ When(/^(I|we) fill in "([^"]*)?" with:$/, function (pronoundCase, field) {
  *
  * @When /^I fill in "([^"]*)?" for "([^"]*)?"$/
  */
-When(/^(I|we) fill in "([^"]*)?" for "([^"]*)?"$/, function (pronoundCase, value, field) {
+When(/^(I|we)* fill in "([^"]*)?" for "([^"]*)?"$/, function (pronoundCase, value, field) {
   browser.fillTextInput(field, value);
 });
 
@@ -155,7 +155,7 @@ When(/^(I|we) fill in "([^"]*)?" for "([^"]*)?"$/, function (pronoundCase, value
  *
  * @When /^I fill in the following:$/
  */
-When(/^(I|we) fill in the following:$/, function (pronoundCase, table) {
+When(/^(I|we)* fill in the following:$/, function (pronoundCase, table) {
 
   browser.fillTextInput(table.rawTable[0][0], table.rawTable[0][1]);
   table.rows().forEach(row => {
@@ -169,7 +169,7 @@ When(/^(I|we) fill in the following:$/, function (pronoundCase, table) {
  *
  * @When /^I select "([^"]*)?" from "([^"]*)?"$/
  */
-When(/^(I|we) select "([^"]*)?" from "([^"]*)?"$/, function (pronoundCase, option, dropdownlist) {
+When(/^(I|we)* select "([^"]*)?" from "([^"]*)?"$/, function (pronoundCase, option, dropdownlist) {
   browser.selectOption(option, dropdownlist);
 });
 
@@ -179,7 +179,7 @@ When(/^(I|we) select "([^"]*)?" from "([^"]*)?"$/, function (pronoundCase, optio
  *
  * @When /^I check "([^"]*)?"$/
  */
-When(/^(I|we) check "([^"]*)?"$/, function (pronoundCase, item) {
+When(/^(I|we)* check "([^"]*)?"$/, function (pronoundCase, item) {
   browser.checkItem(item);
 });
 
@@ -189,7 +189,7 @@ When(/^(I|we) check "([^"]*)?"$/, function (pronoundCase, item) {
  *
  * @When /^I uncheck "([^"]*)?"$/
  */
-When(/^(I|we) uncheck "([^"]*)?"$/, function (pronoundCase, item) {
+When(/^(I|we)* uncheck "([^"]*)?"$/, function (pronoundCase, item) {
   browser.uncheckItem(item);
 });
 
@@ -199,7 +199,7 @@ When(/^(I|we) uncheck "([^"]*)?"$/, function (pronoundCase, item) {
  *
  * @Then /^I should be on( the)* homepage$/
  */
-Then(/^(I|we) should( not)* be on( the)* homepage$/, function (pronoundCase, negativeCase, theCase) {
+Then(/^(I|we)* should( not)* be on( the)* homepage$/, function (pronoundCase, negativeCase, theCase) {
   if (negativeCase) {
     return browser.assert.not.urlEquals(browser.launch_url);
   }
@@ -214,7 +214,7 @@ Then(/^(I|we) should( not)* be on( the)* homepage$/, function (pronoundCase, neg
  *
  * @Then /^I should be on "([^"]*)?"$/
  */
-Then(/^(I|we) should be on "([^"]*)?"$/, function (pronoundCase, url) {
+Then(/^(I|we)* should be on "([^"]*)?"$/, function (pronoundCase, url) {
   return browser.assert.urlContains(url);
 });
 
@@ -240,7 +240,7 @@ Then(/^the response should( not)* contain "([^"]*)?"$/, function (negativeCase, 
  *
  * @Then /^I should( not)* see "([^"]*)?" in the "([^"]*)?" element$/
  */
-Then(/^(I|we) should( not)* see "([^"]*)?" in the "([^"]*)?" element$/, function (pronoundCase, negativeCase, expectedText, element) {
+Then(/^(I|we)* should( not)* see "([^"]*)?" in the "([^"]*)?" element$/, function (pronoundCase, negativeCase, expectedText, element) {
   return browser.assert.elementContainsText(negativeCase, expectedText, element);
 });
 
@@ -253,7 +253,7 @@ Then(/^(I|we) should( not)* see "([^"]*)?" in the "([^"]*)?" element$/, function
  *
  * @Then /^I should( not)* see a(n)* "([^"]*)?" element$/
  */
-Then(/^(I|we) should( not)* see a(n)* "([^"]*)?" element$/, function (pronoundCase, negativeCase, identification, element) {
+Then(/^(I|we)* should( not)* see a(n)* "([^"]*)?" element$/, function (pronoundCase, negativeCase, identification, element) {
   if (negativeCase) {
     return browser.verify.not.visible(element);
   }
@@ -276,7 +276,7 @@ Then(/^the "([^"]*)?" element should( not)* contain "([^"]*)?"$/, function (elem
  *
  * @When /^I attach the file "([^"]*)?" to "([^"]*)?"$/
  */
-When(/^(I|we) attach the file "([^"]*)?" to "([^"]*)?"$/, function (pronoundCase, fileUrl, element) {
+When(/^(I|we)* attach the file "([^"]*)?" to "([^"]*)?"$/, function (pronoundCase, fileUrl, element) {
   browser.fileUpload("../../../tests/assets/" + fileUrl, element);
 });
 
@@ -345,7 +345,7 @@ Then(/^the checkbox "([^"]*)?" is( not)* checked$/, function (checkbox, negative
  * @When /^I wait( max of)* "([^"]*)?" second(s)*$/
  * 
  */
-When(/^(I|we) wait( max of)* (\d*) second(s)*$/, function (pronoundCase, maxof, number, withS) {
+When(/^(I|we)* wait( max of)* (\d*) second(s)*$/, function (pronoundCase, maxof, number, withS) {
   var waitTime = number * 1000;
   if (maxof) {
     return browser.waitForElementPresent('body', waitTime);
@@ -362,7 +362,7 @@ When(/^(I|we) wait( max of)* (\d*) second(s)*$/, function (pronoundCase, maxof, 
  * @When /^I wait( max of)* "([^"]*)?" minute(s)*$/
  * 
  */
-When(/^(I|we) wait( max of)* (\d*) minute(s)*$/, function (pronoundCase, maxof, number, withS) {
+When(/^(I|we)* wait( max of)* (\d*) minute(s)*$/, function (pronoundCase, maxof, number, withS) {
   var waitTime = number * 60 * 1000;
   if (maxof) {
     return browser.waitForElementPresent('body', waitTime);
@@ -396,7 +396,7 @@ Then(/^the response status code should( not)* be (\d+)$/, function (negativeCase
  *
  * @Then /^I should see( not)* text matching "([^"]*)?" in the "([^"]*)?" element$/
  */
-Then(/^(I|we) should( not)* see text matching "([^"]*)?"$/, function (pronoundCase, negativeCase, textPattern) {
+Then(/^(I|we)* should( not)* see text matching "([^"]*)?"$/, function (pronoundCase, negativeCase, textPattern) {
   // return browser.assert.textMatching(negativeCase, textPattern);
   browser.elements('css selector', 'body', function (elements) {
     elements.value.forEach(function (elementsObj) {
@@ -414,7 +414,7 @@ Then(/^(I|we) should( not)* see text matching "([^"]*)?"$/, function (pronoundCa
  *
  * @Then /^I should see( not)* text matching "([^"]*)?" in the "([^"]*)?" element$/
  */
-Then(/^(I|we) should( not)* see text matching "([^"]*)?" in the "([^"]*)?" element$/, function (pronoundCase, negativeCase, textPattern, element) {
+Then(/^(I|we)* should( not)* see text matching "([^"]*)?" in the "([^"]*)?" element$/, function (pronoundCase, negativeCase, textPattern, element) {
   browser.elements('css selector', element, function (elements) {
     elements.value.forEach(function (elementsObj) {
       if (negativeCase) {
