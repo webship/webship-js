@@ -48,6 +48,8 @@ commands:
       - run:
           name: Install/Update Chrome Driver
           command: |
+            CHROME_DRIVER_VERSION=$(wget -qO- chromedriver.storage.googleapis.com/LATEST_RELEASE);
+            echo $CHROME_DRIVER_VERSION;
             npx @puppeteer/browsers install chromedriver@116.0.5793.0
       
       ## Run Selenium Standalone server.
