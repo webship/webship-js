@@ -14,9 +14,19 @@ jobs:
     steps:
       - name: Install Chrome
         run: |
-          CHROME_VERSION="116.0.5845.96-1"
+          CHROME_VERSION="115.0.5790.110-1"
           wget https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb
           sudo dpkg -i google-chrome-stable_${CHROME_VERSION}_amd64.deb
+          rm google-chrome-stable_${CHROME_VERSION}_amd64.deb
+      - name: Install Chrome Driver
+        run: |
+          CHROME_DRIVER_VERSION=114.0.5735.90;
+            echo $CHROME_DRIVER_VERSION;
+            wget http://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip
+            unzip chromedriver_linux64.zip
+            sudo chmod +x chromedriver
+            sudo mv -f chromedriver /usr/bin/
+            rm chromedriver_linux64.zip
       - uses: actions/checkout@v3
       - name: Use Node.js
         uses: actions/setup-node@v3
