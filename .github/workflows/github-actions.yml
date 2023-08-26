@@ -14,10 +14,9 @@ jobs:
     steps:
       - name: Install Chrome
         run: |
-          npx @puppeteer/browsers install chrome@116.0.5793.0
-      - name: Install ChromeDriver
-        run: |
-          npx @puppeteer/browsers install chromedriver@116.0.5793.0
+          CHROME_VERSION="115.0.5790.110"
+          wget https://dl.google.com/linux/direct/google-chrome-stable_${CHROME_VERSION}_amd64.deb
+          sudo dpkg -i google-chrome-stable_${CHROME_VERSION}_amd64.deb
       - uses: actions/checkout@v3
       - name: Use Node.js
         uses: actions/setup-node@v3
