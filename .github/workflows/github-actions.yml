@@ -18,7 +18,7 @@ jobs:
           wget https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb
           sudo dpkg -i google-chrome-stable_${CHROME_VERSION}_amd64.deb
       - uses: actions/checkout@v3
-      - uses: nanasess/setup-chromedriver@v3
+      - uses: actions/setup-chromedriver@v3
         with:
           chromedriver-version: '114.0.5735.90'
       - name: Use Node.js
