@@ -43,14 +43,21 @@ commands:
             sudo apt install libu2f-udev
             sudo apt-get install libappindicator1 fonts-liberation libgbm1 libgtk-3-0 xdg-utils
             export CHROME_BIN=/usr/bin/google-chrome
-            npx @puppeteer/browsers install chrome@116.0.5793.0
+            wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+            sudo dpkg -i google-chrome-stable_current_amd64.deb
+            rm google-chrome-stable_current_amd64.deb
+
       ## Install/Update Chrome Driver.
       - run:
           name: Install/Update Chrome Driver
           command: |
             CHROME_DRIVER_VERSION=$(wget -qO- chromedriver.storage.googleapis.com/LATEST_RELEASE);
             echo $CHROME_DRIVER_VERSION;
-            npx @puppeteer/browsers install chromedriver@116.0.5793.0
+            wget http://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip
+            unzip chromedriver_linux64.zip
+            sudo chmod +x chromedriver
+            sudo mv -f chromedriver /usr/bin/
+            rm chromedriver_linux64.zip
       
       ## Run Selenium Standalone server.
       - run:
