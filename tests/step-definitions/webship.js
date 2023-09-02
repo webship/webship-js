@@ -1,6 +1,7 @@
 const { Given } = require('@cucumber/cucumber');
 const { When, Before } = require('@cucumber/cucumber');
 const { Then } = require('@cucumber/cucumber');
+const { endsWith } = require('lodash');
 
 const request = require('request');
 
@@ -200,10 +201,7 @@ When(/^(I|we)* uncheck "([^"]*)?"$/, function (pronoundCase, item) {
  * @Then /^I should be on( the)* homepage$/
  */
 Then(/^(I|we)* should( not)* be on( the)* homepage$/, function (pronoundCase, negativeCase, theCase) {
-  if (negativeCase) {
-    return browser.assert.not.urlEquals(browser.launch_url);
-  }
-  return browser.assert.urlEquals(browser.launch_url);
+  return browser.assert.backToHomepage(negativeCase);
 });
 
 /**

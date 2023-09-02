@@ -7,4 +7,4 @@ Feature: An example to test being on a specific page
     When I go to "/about-us.html"
     Then I should be on "/about-us.html"
     When I move backward one page
-    Then I should be on "/"
+    Then I should be on homepage
