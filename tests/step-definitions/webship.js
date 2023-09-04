@@ -362,16 +362,7 @@ When(/^(I|we)* wait( max of)* (\d*) minute(s)*$/, function (pronoundCase, maxof,
  * @Then /^the response status code should( not)* be (?P<code>\d+)$/
  */
 Then(/^the response status code should( not)* be (\d+)$/, function (negativeCase, expectedStatusCode) {
-
-  browser.url(function (currentURL) {
-    request(currentURL.value, (error, response, body) => {
-      if (negativeCase) {
-        return browser.assert.not.equal(response.statusCode, expectedStatusCode).end();
-      }
-      return browser.assert.equal(response.statusCode, expectedStatusCode).end();
-
-    });
-  });
+  return browser.assert.responseStatus(negativeCase, expectedStatusCode);
 });
 
 /**
