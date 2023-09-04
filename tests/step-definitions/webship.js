@@ -88,9 +88,7 @@ When(/^(I|we)* move backward one page$/, function (pronoundCase) {
  * @When /^I press "([^"]*)?"$/
  */
 When(/^(I|we)* press "([^"]*)?"$/, function (pronoundCase, elementValue) {
-  // return browser.pressButton(elementValue);
-  return browser.click("[value='" + elementValue + "']");
-
+  return browser.press(elementValue);
 });
 
 /**
@@ -224,11 +222,7 @@ Then(/^(I|we)* should be on "([^"]*)?"$/, function (pronoundCase, url) {
  * @Then /^the response should contain "([^"]*)?"$/
  */
 Then(/^the response should( not)* contain "([^"]*)?"$/, function (negativeCase, expectedText) {
-  if (negativeCase) {
-    return browser.assert.not.textContains('html', expectedText);
-  }
-
-  return browser.assert.textContains('html', expectedText);
+  return browser.assert.elementContainsText(negativeCase, expectedText, 'html');
 });
 
 /**
@@ -344,11 +338,7 @@ Then(/^the checkbox "([^"]*)?" is( not)* checked$/, function (checkbox, negative
  * 
  */
 When(/^(I|we)* wait( max of)* (\d*) second(s)*$/, function (pronoundCase, maxof, number, withS) {
-  var waitTime = number * 1000;
-  if (maxof) {
-    return browser.waitForElementPresent('body', waitTime);
-  }
-  return browser.pause(waitTime);
+  return browser.wait(maxof, number, "s");
 });
 
 /**
@@ -361,11 +351,7 @@ When(/^(I|we)* wait( max of)* (\d*) second(s)*$/, function (pronoundCase, maxof,
  * 
  */
 When(/^(I|we)* wait( max of)* (\d*) minute(s)*$/, function (pronoundCase, maxof, number, withS) {
-  var waitTime = number * 60 * 1000;
-  if (maxof) {
-    return browser.waitForElementPresent('body', waitTime);
-  }
-  return browser.pause(waitTime);
+  return browser.wait(maxof, number, "m");
 });
 
 /**
