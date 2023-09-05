@@ -1,52 +1,40 @@
 image: node:16
 
 stages:
-  - check
+  - setup
+  - test
 
 check:
-  stage: check
+  stage: setup
   script:
-    # Dependencies for chromedriver, https://gist.github.com/mikesmullin/2636776#gistcomment-1742414
-    # Otherwise we get this error: "error while loading shared libraries: libnss3.so: cannot open shared object file: No such file or directory"
-    - apt-get update -q -y
-    - apt-get --yes install libnss3
-    - apt-get --yes install libgconf-2-4
+    # Install Node.js and yarn
+    - apt-get update -qy
+    - apt-get install -y nodejs yarn
 
-    # Install chrome
-    # Based off of
-    # - https://gitlab.com/gitlab-org/gitlab-build-images/blob/9dadb28021f15913a49897126a0cd6ab0149e44f/scripts/install-chrome
-    # - https://askubuntu.com/a/510186/196148
-    #
-    # Add key
-    - curl -sS -L https://dl.google.com/linux/linux_signing_key.pub | apt-key add -
-    # Add repo
-    - echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google.list
-    - apt-get update -q -y
-    - apt-get install -y google-chrome-stable
+    # Install Google Chrome and Chromedriver
+    - apt-get install -y wget unzip
+    - wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+    - dpkg -i google-chrome*.deb
+    - apt-get -f install -y
+    - CHROMEDRIVER_VERSION=$(curl -sS https://chromedriver.storage.googleapis.com/LATEST_RELEASE)
+    - wget -q https://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip
+    - unzip chromedriver_linux64.zip
+    - mv chromedriver /usr/local/bin/
+    - chmod +x /usr/local/bin/chromedriver
 
-    - npm install chromedriver -g
-    - npm install nightwatch -g
-    - npm install https://gitlab.com/gitlab-org/gitlab-selenium-server.git -g
-    - which chromedriver
-    # The `&` at the end causes it to run in the background and not block the following commands
-    - nohup chromedriver --port=4444 --url-base=wd/hub &
-    - nohup gitlab-selenium-server &
-    # Install cucumber & pretty formatter .
-    - npm i @cucumber/cucumber
-    - npm i @cucumber/pretty-formatter
-
-    # Run your tests
-    - npm start
-    - npm test
+    # Install dependencies and run Webpack
+    - yarn install
+    - yarn start
+    - yarn test
 
     # Show the logs for the GitLab Selenium Server service
-    - mkdir -p selenium/ && curl -s http://localhost:4545/logs.tar.gz | tar -xvzf - -C selenium/
-    - mkdir -p selenium/ && curl http://localhost:4545/server-log --output selenium/server-log.txt
+    - mkdir -p selenium/ && curl -s http://localhost:8080/logs.tar.gz | tar -xvzf - -C selenium/
+    - mkdir -p selenium/ && curl http://localhost:8080/server-log --output selenium/server-log.txt
   artifacts:
     when: always
     paths:
       - selenium/
   variables:
-    SELENIUM_REMOTE_URL: http://localhost:4545/wd/hub
+    SELENIUM_REMOTE_URL: http://localhost:8080
     GITLAB_TARGET_SELENIUM_REMOTE_URL: http://localhost:4444/wd/hub
 
