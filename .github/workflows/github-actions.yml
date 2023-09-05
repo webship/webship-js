@@ -24,13 +24,13 @@ jobs:
           sudo dpkg -i google-chrome-stable_${CHROME_VERSION}_amd64.deb
       - name: Install/Update Chrome Driver
         run: |
-          sudo rm -rf /usr/local/share/chrome_driver/chromedriver
+          sudo rm -rf /usr/bin/chromedriver
           CHROME_DRIVER_VERSION=114.0.5735.90;
           echo $CHROME_DRIVER_VERSION;
           wget http://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip
           unzip chromedriver_linux64.zip
           sudo chmod +x chromedriver
-          sudo mv -f chromedriver /usr/local/share/chrome_driver/
+          sudo mv -f chromedriver /usr/bin/
           rm chromedriver_linux64.zip
       - name: Install
         run: yarn install
