@@ -12,26 +12,16 @@ jobs:
       SELENIUM_HOST: http://selenium:4444/wd/hub
 
     steps:
+      - name: Install Chrome
+        run: |
+          CHROME_VERSION="116.0.5845.96-1"
+          wget https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb
+          sudo dpkg -i google-chrome-stable_${CHROME_VERSION}_amd64.deb
       - uses: actions/checkout@v3
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18.x'
-      - name: Install Chrome
-        run: |
-          CHROME_VERSION="115.0.5790.110-1"
-          wget https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb
-          sudo dpkg -i google-chrome-stable_${CHROME_VERSION}_amd64.deb
-      - name: Install/Update Chrome Driver
-        run: |
-          sudo rm -rf /usr/local/share/chrome_driver
-          CHROME_DRIVER_VERSION=114.0.5735.90;
-          echo $CHROME_DRIVER_VERSION;
-          wget http://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip
-          unzip chromedriver_linux64.zip
-          sudo chmod +x chromedriver
-          sudo cp -r chromedriver /usr/local/share/chrome_driver
-          rm chromedriver_linux64.zip
       - name: Install
         run: yarn install
       - name: Configure nightwatch.conf.js for Github
