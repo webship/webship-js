@@ -11,12 +11,18 @@ jobs:
       TEST_BASE_URL: http://localhost:8080/
       SELENIUM_HOST: http://selenium:4444/wd/hub
 
+    services:
+      selenium:
+        image: selenium/standalone-${{ github.event.inputs.browser }}
+        options: --shm-size=2gb
+        
     steps:
       - name: Install Chrome
         run: |
           CHROME_VERSION="115.0.5790.110-1"
           wget https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb
           sudo dpkg -i google-chrome-stable_${CHROME_VERSION}_amd64.deb
+
       - name: Install Chrome Driver
         run: |
           CHROME_DRIVER_VERSION=114.0.5735.90;
@@ -26,11 +32,7 @@ jobs:
             sudo chmod +x chromedriver
             sudo mv -f chromedriver /usr/bin/
             rm chromedriver_linux64.zip
-      - name: Run Selenium Standalone server
-        run: |
-          if [[ ! -f /home/circleci/selenium-server-4.1.2.jar ]]; then wget -O /home/circleci/selenium-server-4.1.2.jar https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.1.0/selenium-server-4.1.2.jar; fi
-          cd /home/circleci/
-          java -jar selenium-server-4.1.2.jar standalone
+
       - uses: actions/checkout@v3
       - name: Use Node.js
         uses: actions/setup-node@v3
