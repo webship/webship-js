@@ -246,10 +246,7 @@ Then(/^(I|we)* should( not)* see "([^"]*)?" in the "([^"]*)?" element$/, functio
  * @Then /^I should( not)* see a(n)* "([^"]*)?" element$/
  */
 Then(/^(I|we)* should( not)* see a(n)* "([^"]*)?" element$/, function (pronoundCase, negativeCase, identification, element) {
-  if (negativeCase) {
-    return browser.verify.not.visible(element);
-  }
-  return browser.verify.visible(element);
+  return browser.assert.shouldVisible(negativeCase, element);
 });
 
 /**
