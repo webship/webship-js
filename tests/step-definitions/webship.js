@@ -3,7 +3,6 @@ const { When, Before } = require('@cucumber/cucumber');
 const { Then } = require('@cucumber/cucumber');
 const { endsWith } = require('lodash');
 
-require('events').EventEmitter.defaultMaxListeners = 25;
 const request = require('request');
 
 /**
@@ -361,6 +360,24 @@ When(/^(I|we)* wait( max of)* (\d*) minute(s)*$/, function (pronoundCase, maxof,
  */
 Then(/^the response status code should( not)* be (\d+)$/, function (negativeCase, expectedStatusCode) {
   return browser.assert.responseStatus(negativeCase, expectedStatusCode);
+});
+
+/**
+ * Checks, that page contains text matching specified pattern
+ * Example: Then I should see text matching "^T\w+" //pattern of word start with 'T'
+ *
+ * @Then /^I should see( not)* text matching "([^"]*)?"$/
+ */
+Then(/^(I|we)* should( not)* see text matching "([^"]*)?"$/, function (pronoundCase, negativeCase, textPattern) {
+  // return browser.assert.textMatching(negativeCase, textPattern);
+  browser.elements('css selector', 'body', function (elements) {
+    elements.value.forEach(function (elementsObj) {
+      if (negativeCase) {
+        return browser.assert.not.textMatches(elementsObj, textPattern);
+      }
+      return browser.assert.textMatches(elementsObj, textPattern);
+    });
+  });
 });
 
 /**
