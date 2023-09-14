@@ -8,6 +8,7 @@ Feature: An example to test whether an element contains a certain text or not
     And I fill in "Password" with "1234"
     Then I should see "user1" in the "Username" element
     When I press "Reset"
+    Then I wait max of 3 second
     And I fill in "Username" with "user2"
     Then I should not see "user1" in the "Username" element
 
