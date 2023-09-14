@@ -364,24 +364,6 @@ Then(/^the response status code should( not)* be (\d+)$/, function (negativeCase
 
 /**
  * Checks, that page contains text matching specified pattern
- * Example: Then I should see text matching "^T\w+" //pattern of word start with 'T'
- *
- * @Then /^I should see( not)* text matching "([^"]*)?"$/
- */
-Then(/^(I|we)* should( not)* see text matching "([^"]*)?"$/, function (pronoundCase, negativeCase, textPattern) {
-  // return browser.assert.textMatching(negativeCase, textPattern);
-  browser.elements('css selector', 'body', function (elements) {
-    elements.value.forEach(function (elementsObj) {
-      if (negativeCase) {
-        return browser.assert.not.textMatches(elementsObj, textPattern);
-      }
-      return browser.assert.textMatches(elementsObj, textPattern);
-    });
-  });
-});
-
-/**
- * Checks, that page contains text matching specified pattern
  * Example: Then I should see text matching "(0?[1-9]|[12][0-9]|3[01])[\/\-](0?[1-9]|1[012])[\/\-]\d{4}" in the "#date" element //pattern of DD/MM/YYYY or DD-MM-YYYY
  *
  * @Then /^I should see( not)* text matching "([^"]*)?" in the "([^"]*)?" element$/
