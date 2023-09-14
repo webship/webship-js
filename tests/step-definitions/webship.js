@@ -3,7 +3,7 @@ const { When, Before } = require('@cucumber/cucumber');
 const { Then } = require('@cucumber/cucumber');
 const { endsWith } = require('lodash');
 
-require('events').EventEmitter.prototype._maxListeners = 100;
+require('events').EventEmitter.defaultMaxListeners = 25;
 const request = require('request');
 
 /**
