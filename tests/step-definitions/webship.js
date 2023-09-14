@@ -366,7 +366,7 @@ Then(/^the response status code should( not)* be (\d+)$/, function (negativeCase
  * Checks, that page contains text matching specified pattern
  * Example: Then I should see text matching "^T\w+" //pattern of word start with 'T'
  *
- * @Then /^I should see( not)* text matching "([^"]*)?" in the "([^"]*)?" element$/
+ * @Then /^I should see( not)* text matching "([^"]*)?"$/
  */
 Then(/^(I|we)* should( not)* see text matching "([^"]*)?"$/, function (pronoundCase, negativeCase, textPattern) {
   // return browser.assert.textMatching(negativeCase, textPattern);

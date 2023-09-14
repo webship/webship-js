@@ -6,7 +6,7 @@ var options = {
   output: 'tests/reports/cucumber_report.html',
   reportSuiteAsScenarios: true,
   scenarioTimestamp: true,
-  launchReport: true,
+  launchReport: false,
   brandTitle: "Test Report",
   metadata: {
     "App Version": "7.1.0",
