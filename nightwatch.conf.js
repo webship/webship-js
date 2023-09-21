@@ -17,7 +17,7 @@ module.exports = {
     options: {
       feature_path: 'tests/features/*.feature',
       additional_config: '',
-      parallel: 2,
+      parallel: 1,
     },
   },
 
