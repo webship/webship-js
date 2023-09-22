@@ -10,7 +10,6 @@ const request = require('request');
  * Example: Given I am on homepage
  * Example: Given I am on the homepage
  * 
- * @Given /^I am on( the)* homepage$/
  */
 Given(/^(I am|we are) on( the)* homepage$/, function (pronoundCase, theCase) {
   return browser.url(browser.launch_url);
@@ -20,7 +19,6 @@ Given(/^(I am|we are) on( the)* homepage$/, function (pronoundCase, theCase) {
  * Open specific page
  * Example: Given I am on "about-us.html"
  *
- * @Given /^I am on "([^"]*)?"$/
  */
 Given(/^(I am|we are) on "([^"]*)?"$/, function (pronoundCase, url) {
   return browser.url(browser.launch_url + url);
@@ -31,7 +29,6 @@ Given(/^(I am|we are) on "([^"]*)?"$/, function (pronoundCase, url) {
  * Example: When I go to the homepage
  * Example: And I go to "/"
  *
- * @When /^I go to( the)* homepage$/
  */
 When(/^(I|we)* go to( the)* homepage$/, function (pronoundCase, theCase) {
   return browser.url(browser.launch_url);
@@ -41,7 +38,6 @@ When(/^(I|we)* go to( the)* homepage$/, function (pronoundCase, theCase) {
  * Go to specific page
  * Example: When I go to "contact-us.html"
  *
- * @When /^I go to "([^"]*)?"$/
  */
 When(/^(I|we)* go to "([^"]*)?"$/, function (pronoundCase, url) {
   return browser.url(browser.launch_url + url);
@@ -54,7 +50,6 @@ When(/^(I|we)* go to "([^"]*)?"$/, function (pronoundCase, url) {
  * - Then I should see "Welcome"
  * - Then I should not see "Access denied"
  * 
- * @Then /^I should( not)* see "([^"]*)?"$/
  */
 Then(/^(I|we)* should( not)* see "([^"]*)?"$/, function (pronoundCase, negativeCase, expectedText) {
   return browser.assert.elementContainsText(negativeCase, expectedText, "html");
@@ -64,7 +59,6 @@ Then(/^(I|we)* should( not)* see "([^"]*)?"$/, function (pronoundCase, negativeC
  * Moves forward one page in history
  * Example: When I move forward one page
  *
- * @When /^I move forward one page$/
  */
 When(/^(I|we)* move forward one page$/, function (pronoundCase) {
   return browser.forward();
@@ -74,7 +68,6 @@ When(/^(I|we)* move forward one page$/, function (pronoundCase) {
  * Moves backward one page in history
  * Example: When I move backward one page
  *
- * @When /^I move backward one page$/
  */
 When(/^(I|we)* move backward one page$/, function (pronoundCase) {
   return browser.back();
@@ -85,7 +78,6 @@ When(/^(I|we)* move backward one page$/, function (pronoundCase) {
  * Example: When I press "Log In"
  * Example: And I press "Log In"
  *
- * @When /^I press "([^"]*)?"$/
  */
 When(/^(I|we)* press "([^"]*)?"$/, function (pronoundCase, elementValue) {
   return browser.press(elementValue);
@@ -96,7 +88,6 @@ When(/^(I|we)* press "([^"]*)?"$/, function (pronoundCase, elementValue) {
  * Example: When I click "Contact Us"
  * Example: And I click "aboutUs"
  *
- * @When /^I click "([^"]*)?"$/
  */
 When(/^(I|we)* click "([^"]*)?"$/, function (pronoundCase, item) {
   browser.clickLink(item);
@@ -107,7 +98,6 @@ When(/^(I|we)* click "([^"]*)?"$/, function (pronoundCase, item) {
  * Example: When I reload the page
  * Example: And I reload the page
  *
- * @When /^I reload( the)* page$/
  */
 When(/^(I|we)* reload( the)* page$/, function (pronoundCase, theCase) {
   return browser.refresh(browser.getCurrentUrl());
@@ -117,7 +107,6 @@ When(/^(I|we)* reload( the)* page$/, function (pronoundCase, theCase) {
  * Define the step of filling values in the form field specified by id|class|name|label.
  * Example: When I fill in "Username" with "John Smith"
  *
- * @When /^I fill in "([^"]*)?" with "([^"]*)?"$/
  */
 When(/^(I|we)* fill in "([^"]*)?" with "([^"]*)?"$/, function (pronoundCase, field, value) {
   browser.fillTextInput(field, value);
@@ -127,7 +116,6 @@ When(/^(I|we)* fill in "([^"]*)?" with "([^"]*)?"$/, function (pronoundCase, fie
  * Fills in form field with specified id|class|name|label
  * Example: When I fill in "username" with:
  *
- * @When /^I fill in "([^"]*)?" with:$/
  */
 When(/^(I|we)* fill in "([^"]*)?" with:$/, function (pronoundCase, field) {
   browser.fillTextInput(field, '');
@@ -137,7 +125,6 @@ When(/^(I|we)* fill in "([^"]*)?" with:$/, function (pronoundCase, field) {
  * Fills in form field with specified id|class|name|label
  * Example: And I fill in "webshipco" for "username"
  *
- * @When /^I fill in "([^"]*)?" for "([^"]*)?"$/
  */
 When(/^(I|we)* fill in "([^"]*)?" for "([^"]*)?"$/, function (pronoundCase, value, field) {
   browser.fillTextInput(field, value);
@@ -152,7 +139,6 @@ When(/^(I|we)* fill in "([^"]*)?" for "([^"]*)?"$/, function (pronoundCase, valu
  *              | username | webshipco |
  *              | password | 1234 |
  *
- * @When /^I fill in the following:$/
  */
 When(/^(I|we)* fill in the following:$/, function (pronoundCase, table) {
 
@@ -166,7 +152,6 @@ When(/^(I|we)* fill in the following:$/, function (pronoundCase, table) {
  * Selects option in select field with specified id|class|name|label
  * Example: When I select "mercedes" from "Cars"
  *
- * @When /^I select "([^"]*)?" from "([^"]*)?"$/
  */
 When(/^(I|we)* select "([^"]*)?" from "([^"]*)?"$/, function (pronoundCase, option, dropdownlist) {
   browser.selectOption(option, dropdownlist);
@@ -176,7 +161,6 @@ When(/^(I|we)* select "([^"]*)?" from "([^"]*)?"$/, function (pronoundCase, opti
  * Checks checkbox specified by id|class|name|label
  * Example: When I check "Remember me"
  *
- * @When /^I check "([^"]*)?"$/
  */
 When(/^(I|we)* check "([^"]*)?"$/, function (pronoundCase, item) {
   browser.checkItem(item);
@@ -186,7 +170,6 @@ When(/^(I|we)* check "([^"]*)?"$/, function (pronoundCase, item) {
  * Unchecks checkbox specified by id|class|name|label
  * Example: When I uncheck "Remember me"
  *
- * @When /^I uncheck "([^"]*)?"$/
  */
 When(/^(I|we)* uncheck "([^"]*)?"$/, function (pronoundCase, item) {
   browser.uncheckItem(item);
@@ -196,7 +179,6 @@ When(/^(I|we)* uncheck "([^"]*)?"$/, function (pronoundCase, item) {
  * Verify, that current page is the homepage
  * Example: Then I should be on the homepage
  *
- * @Then /^I should be on( the)* homepage$/
  */
 Then(/^(I|we)* should( not)* be on( the)* homepage$/, function (pronoundCase, negativeCase, theCase) {
   return browser.assert.backToHomepage(negativeCase);
@@ -208,7 +190,6 @@ Then(/^(I|we)* should( not)* be on( the)* homepage$/, function (pronoundCase, ne
  * Example: And I should be on "/user/login"
  * Example: And I should be on "http://google.com"
  *
- * @Then /^I should be on "([^"]*)?"$/
  */
 Then(/^(I|we)* should be on "([^"]*)?"$/, function (pronoundCase, url) {
   return browser.assert.urlContains(url);
@@ -219,7 +200,6 @@ Then(/^(I|we)* should be on "([^"]*)?"$/, function (pronoundCase, url) {
  * Example: Then the response should contain "Welcome visitor, How can I help you?"
  * Example: Then the response should not contain "Error: Ambiguous messages that are unclear"
  *
- * @Then /^the response should contain "([^"]*)?"$/
  */
 Then(/^the response should( not)* contain "([^"]*)?"$/, function (negativeCase, expectedText) {
   return browser.assert.elementContainsText(negativeCase, expectedText, 'html');
@@ -230,7 +210,6 @@ Then(/^the response should( not)* contain "([^"]*)?"$/, function (negativeCase, 
  * Example: Then I should see "John Smith" in the "Username" element
  * Example: Then I should see "Joe Smith" in the "Username" element
  *
- * @Then /^I should( not)* see "([^"]*)?" in the "([^"]*)?" element$/
  */
 Then(/^(I|we)* should( not)* see "([^"]*)?" in the "([^"]*)?" element$/, function (pronoundCase, negativeCase, expectedText, element) {
   return browser.assert.elementContainsText(negativeCase, expectedText, element);
@@ -243,7 +222,6 @@ Then(/^(I|we)* should( not)* see "([^"]*)?" in the "([^"]*)?" element$/, functio
  * Example: Then I should not see a "Username" element
  * Example: Then I should not see an "img" element
  *
- * @Then /^I should( not)* see a(n)* "([^"]*)?" element$/
  */
 Then(/^(I|we)* should( not)* see a(n)* "([^"]*)?" element$/, function (pronoundCase, negativeCase, identification, element) {
   return browser.assert.shouldVisible(negativeCase, element);
@@ -253,7 +231,6 @@ Then(/^(I|we)* should( not)* see a(n)* "([^"]*)?" element$/, function (pronoundC
  * Assert, that element contains a specific CSS style specified by id|class|name|label|tag.
  * Example: Then the "body" element should contain "color:white;"
  *
- * @Then /^the "([^"]*)?" element should( not)* contain "([^"]*)?"$/
  */
 Then(/^the "([^"]*)?" element should( not)* contain "([^"]*)?"$/, function (element, negativeCase, elementCss) {
   return browser.assert.elementContainsCss(element, negativeCase, elementCss);
@@ -263,7 +240,6 @@ Then(/^the "([^"]*)?" element should( not)* contain "([^"]*)?"$/, function (elem
  * Attaches file to field with specified id|class|name|label
  * Example: When I attach the file "profileIcon.jpg" to "profileIconUpload"
  *
- * @When /^I attach the file "([^"]*)?" to "([^"]*)?"$/
  */
 When(/^(I|we)* attach the file "([^"]*)?" to "([^"]*)?"$/, function (pronoundCase, fileUrl, element) {
   browser.fileUpload("../../../tests/assets/" + fileUrl, element);
@@ -273,7 +249,6 @@ When(/^(I|we)* attach the file "([^"]*)?" to "([^"]*)?"$/, function (pronoundCas
  * Assert, that form field with specified id|class|name|label has specified value
  * Example: Then the "username" field should contain "John Smith"
  *
- * @Then /^the "([^"]*)?" field should( not)* contain "([^"]*)?"$/
  */
 Then(/^the "([^"]*)?" field should( not)* contain "([^"]*)?"$/, function (field, negativeCase, expectedText) {
   return browser.assert.elementContainsText(negativeCase, expectedText, field);
@@ -282,8 +257,6 @@ Then(/^the "([^"]*)?" field should( not)* contain "([^"]*)?"$/, function (field,
 /**
  * Assert, that checkbox with specified id|class|name|label is should be checked
  * Example: Then the "PrivacyPolicy" checkbox should be checked
- *
- * @Then /^the "([^"]*)?" checkbox should(not)* be checked$/
  * 
  */
 Then(/^the "([^"]*)?" checkbox should( not)* be checked$/, function (checkbox, negativeCase) {
@@ -294,7 +267,6 @@ Then(/^the "([^"]*)?" checkbox should( not)* be checked$/, function (checkbox, n
  * Check, whether the checkbox specified by id|class|name|label is checked or not.
  * Example: Then the "Remember Me" checkbox is checked
  *
- * @Then /^the "([^"]*)?" checkbox is( not)* checked$/
  * 
  */
 Then(/^the "([^"]*)?" checkbox is( not)* checked$/, function (checkbox, negativeCase) {
@@ -306,8 +278,6 @@ Then(/^the "([^"]*)?" checkbox is( not)* checked$/, function (checkbox, negative
  * Example: Then the checkbox "PrivacyPolicy" should be checked
  * Example: Then the checkbox "PrivacyPolicy" should not be checked
  *
- * @Then /^the checkbox "([^"]*)?" should(not)* be checked$/
- * 
  */
 Then(/^the checkbox "([^"]*)?" should( not)* be checked$/, function (checkbox, negativeCase) {
   return browser.assert.checkboxChecked(checkbox, negativeCase);
@@ -318,8 +288,6 @@ Then(/^the checkbox "([^"]*)?" should( not)* be checked$/, function (checkbox, n
  * Example: Then the checkbox "Remember Me" is checked
  * Example: And the checkbox "Remember Me" is not checked
  *
- * @Then /^the checkbox "([^"]*)?" is( not)* checked$/
- * 
  */
 Then(/^the checkbox "([^"]*)?" is( not)* checked$/, function (checkbox, negativeCase) {
   return browser.assert.checkboxChecked(checkbox, negativeCase);
@@ -331,8 +299,6 @@ Then(/^the checkbox "([^"]*)?" is( not)* checked$/, function (checkbox, negative
  * Example: When I wait 5 seconds
  * Example: When I wait max of 6 seconds
  *
- * @When /^I wait( max of)* "([^"]*)?" second(s)*$/
- * 
  */
 When(/^(I|we)* wait( max of)* (\d*) second(s)*$/, function (pronoundCase, maxof, number, withS) {
   return browser.wait(maxof, number, "s");
@@ -344,8 +310,6 @@ When(/^(I|we)* wait( max of)* (\d*) second(s)*$/, function (pronoundCase, maxof,
  * Example: When I wait 5 minutes
  * Example: When I wait max of 6 minutes
  *
- * @When /^I wait( max of)* "([^"]*)?" minute(s)*$/
- * 
  */
 When(/^(I|we)* wait( max of)* (\d*) minute(s)*$/, function (pronoundCase, maxof, number, withS) {
   return browser.wait(maxof, number, "m");
@@ -356,7 +320,6 @@ When(/^(I|we)* wait( max of)* (\d*) minute(s)*$/, function (pronoundCase, maxof,
  * Example: Then the response status code should be 200
  * Example: And the response status code should not be 404
  *
- * @Then /^the response status code should( not)* be (?P<code>\d+)$/
  */
 Then(/^the response status code should( not)* be (\d+)$/, function (negativeCase, expectedStatusCode) {
   return browser.assert.responseStatus(negativeCase, expectedStatusCode);
@@ -366,7 +329,6 @@ Then(/^the response status code should( not)* be (\d+)$/, function (negativeCase
  * Checks, that page contains text matching specified pattern
  * Example: Then I should see text matching "^T\w+" //pattern of word start with 'T'
  *
- * @Then /^I should see( not)* text matching "([^"]*)?"$/
  */
 Then(/^(I|we)* should( not)* see text matching "([^"]*)?"$/, function (pronoundCase, negativeCase, textPattern) {
   // return browser.assert.textMatching(negativeCase, textPattern);
@@ -384,7 +346,6 @@ Then(/^(I|we)* should( not)* see text matching "([^"]*)?"$/, function (pronoundC
  * Checks, that page contains text matching specified pattern
  * Example: Then I should see text matching "(0?[1-9]|[12][0-9]|3[01])[\/\-](0?[1-9]|1[012])[\/\-]\d{4}" in the "#date" element //pattern of DD/MM/YYYY or DD-MM-YYYY
  *
- * @Then /^I should see( not)* text matching "([^"]*)?" in the "([^"]*)?" element$/
  */
 Then(/^(I|we)* should( not)* see text matching "([^"]*)?" in the "([^"]*)?" element$/, function (pronoundCase, negativeCase, textPattern, element) {
   browser.elements('css selector', element, function (elements) {
@@ -402,7 +363,6 @@ Then(/^(I|we)* should( not)* see text matching "([^"]*)?" in the "([^"]*)?" elem
  * Checks, that current URL Path matches regular expression
  * Example: Then the url should match "/contact-us.html"
  *
- * @Then /^the url should( not)* match "([^"]*)?"$/
  */
 Then(/^the url should( not)* match "([^"]*)?"$/, function (negativeCase, pattern) {
 
