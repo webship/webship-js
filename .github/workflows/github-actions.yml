@@ -27,6 +27,8 @@ jobs:
       - name: Configure nightwatch.conf.js for Github
         run: node webship-init -ci github -os linux -b chrome
       - name: Start
-        run: yarn start &
+        run: |
+          export NODE_OPTIONS=--openssl-legacy-provider
+          yarn start &
       - name: Test
         run: yarn test
