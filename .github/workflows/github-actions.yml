@@ -18,7 +18,7 @@ jobs:
           wget https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb
           sudo dpkg -i google-chrome-stable_${CHROME_VERSION}_amd64.deb
       - uses: actions/checkout@v3
-      - uses: nanasess/setup-chromedriver@v3
+      - uses: nanasess/setup-chromedriver@v2
         with:
           # Optional: do not specify to match Chrome's version
           chromedriver-version: '117.0.5938.88'
