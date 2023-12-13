@@ -1,17 +1,21 @@
-Feature: An example to check the checkbox
+Feature: An example to uncheck the checkbox
 
   As a tester
-  I want to be able to check a checkbox
+  I want to be able to uncheck a checkbox
 
-  Scenario: Check the checkbox
+  Scenario: Uncheck the checkbox
     Given I am on "/test--when--i-check-uncheck-checkbox.html"
-    When I check "vehicle1"
-    And I press "Submit"
-    Then I should see "You have a Bike"
-    When I check "Car"
+    When I check "I have a bike"
+    And I check "vehicle2"
     And I press "Submit"
     Then I should see "You have a Bike Car"
-    When I check "I have a boat"
+    When I check "vanclass"
+    Then I should see "You have a Bike Car Van"
+    When I uncheck "Bike"
     And I press "Submit"
-    Then I should see "You have a Bike Car Boat"
+    Then I should see "You have a Car Van"
+    When I uncheck "Car"
+    When I uncheck "vanclass"
+    And I press "Submit"
+    Then I should see "You have a"
 
