@@ -28,6 +28,7 @@ jobs:
           node-version: '18.x' 
       - name: Install
         run: yarn install
+      - run: yarn jest e2e/runWithSelenium.test.ts
       - name: Configure nightwatch.conf.js for Github
         run: node webship-init -ci github -os linux -b chrome
       - name: Start
