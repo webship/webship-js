@@ -14,7 +14,7 @@ jobs:
     steps:
       - name: Install Chrome
         run: |
-          CHROME_VERSION="117.0.5938.92-1"
+          CHROME_VERSION="115.0.5790.110"
           wget https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb
           sudo dpkg -i google-chrome-stable_${CHROME_VERSION}_amd64.deb
       - uses: actions/checkout@v3
@@ -22,6 +22,13 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18.x'
+          
+      - name: Run Selenium Standalone server
+        run: |
+            if [[ ! -f /home/circleci/selenium-server-4.1.2.jar ]]; then wget -O /home/circleci/selenium-server-4.1.2.jar https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.1.0/selenium-server-4.1.2.jar; fi
+            cd /home/circleci/
+            java -jar selenium-server-4.1.2.jar standalone
+          
       - name: Install
         run: yarn install
       - name: Configure nightwatch.conf.js for Github
