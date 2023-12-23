@@ -31,7 +31,7 @@ jobs:
       - name: install selenium
         run: npm install -g selenium-side-runner
       - name: run selenium
-        run: selenium-side-runner --base-url http://localhost:8080
+        run: java -jar selenium-server-4.1.2.jar standalone
       - name: Configure nightwatch.conf.js for Github
         run: node webship-init -ci github -os linux -b chrome
       - name: Start
