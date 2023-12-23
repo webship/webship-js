@@ -26,12 +26,13 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18.x' 
+      - name: install selenium
+        run: wget https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.1.0/selenium-server-4.1.2.jar
+      - name: install selenium
+        run: java -jar selenium-server-4.1.2.jar standalone
       - name: Install
         run: yarn install
-      - name: install selenium
-        run: npm install -g selenium-side-runner
-      - name: run selenium
-        run: java -jar selenium-server-4.1.2.jar standalone
+     
       - name: Configure nightwatch.conf.js for Github
         run: node webship-init -ci github -os linux -b chrome
       - name: Start
