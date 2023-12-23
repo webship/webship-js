@@ -1,40 +1,40 @@
 name: Github Actions
-
-on: [push]
+on:
+  push:
+    branches:
+      - 'main'
+      - 'next'
+  pull_request:
 
 jobs:
-  build:
-
-    runs-on: ubuntu-latest
-
-    env:
-      TEST_BASE_URL: http://localhost:8080/
-      SELENIUM_HOST: http://selenium:4444/wd/hub
-
+  test:
+    name: 'node ${{ matrix.node }} chrome ${{ matrix.os }} '
+    runs-on: '${{ matrix.os }}'
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        node: [12, 14]
     steps:
-      - name: Install Chrome
-        run: |
-          CHROME_DRIVER_VERSION=114.0.5735.90;
-          echo $CHROME_DRIVER_VERSION;
-          wget http://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip
-          unzip chromedriver_linux64.zip
-          sudo chmod +x chromedriver
-          sudo mv -f chromedriver /usr/bin/
-          rm chromedriver_linux64.zip
-      - uses: actions/checkout@v3
-      - name: Use Node.js
-        uses: actions/setup-node@v3
+      - uses: actions/setup-node@v2
         with:
-          node-version: '18.x' 
-      - name: Start selenoid
-        uses: Xotabu4/selenoid-github-action@v2
-      - name: Install
-        run: yarn install
-      - name: Configure nightwatch.conf.js for Github
-        run: node webship-init -ci github -os linux -b chrome
-      - name: Start
+          node-version: ${{ matrix.node }}
+      - uses: actions/checkout@v2
+      - name: npm install and validate
         run: |
-          export NODE_OPTIONS=--openssl-legacy-provider
-          yarn start &
-      - name: Test
-        run: yarn test
+          export CHROMEDRIVER_VERSION="$(chromedriver --version | awk '{print $2}')"
+          npm install
+          npm run validate
+        env:
+          CI: true
+
+  release:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 18
+      - uses: actions/checkout@v2
+      - run: yarn install
+      - run: yarn test
+      
