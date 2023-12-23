@@ -7,10 +7,6 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    env:
-      TEST_BASE_URL: http://localhost:8080/
-      SELENIUM_HOST: http://selenium:4444/wd/hub
-
     steps:
       - name: Install Chrome
         run: |
@@ -28,7 +24,7 @@ jobs:
           node-version: '18.x' 
       - name: install selenium
         run: wget https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.1.0/selenium-server-4.1.2.jar
-      - name: install selenium
+      - name: run selenium
         run: java -jar selenium-server-4.1.2.jar standalone
       - name: Install
         run: yarn install
