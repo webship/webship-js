@@ -25,14 +25,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18.x'
-
-      - name: Run Selenium Standalone server
-        run: |
-            if [[ ! -f /home/circleci/selenium-server-4.1.2.jar ]]; then wget -O /home/circleci/selenium-server-4.1.2.jar https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.1.0/selenium-server-4.1.2.jar; fi
-            cd /home/circleci/
-            java -jar selenium-server-4.1.2.jar standalone
-          
+          node-version: '18.x' 
       - name: Install
         run: yarn install
       - name: Configure nightwatch.conf.js for Github
