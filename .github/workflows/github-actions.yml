@@ -1,16 +1,6 @@
-name: Test (single)
+name: Github Actions
 
-on:
-  workflow_dispatch:
-    inputs:
-      browser:
-        type: choice
-        description: Which browser to test
-        required: true
-        options:
-          - chrome
-          - firefox
-          - edge
+on: [push]
 
 jobs:
   test:
@@ -18,25 +8,30 @@ jobs:
     runs-on: ubuntu-latest
 
     container:
-      image: node:18
+      image: node:19
+
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: ['chrome', 'firefox', 'edge']
 
     services:
       selenium:
-        image: selenium/standalone-${{ github.event.inputs.browser }}
+        image: selenium/standalone-${{ matrix.browser }}
         options: --shm-size=2gb
 
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '19'
           cache: 'npm'
-      - run: npm ci
-      - run: npm test
+      - run: yarn install
+      - run: yarn test
         env:
-          BROWSER: ${{ github.event.inputs.browser }}
+          BROWSER: ${{ matrix.browser }}
       - uses: actions/upload-artifact@v3
         if: always()
         with:
-          name: screenshots
+          name: ${{ matrix.browser }}
           path: screenshots/
