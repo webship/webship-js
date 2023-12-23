@@ -25,7 +25,9 @@ jobs:
       - name: install selenium
         run: wget https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.1.0/selenium-server-4.1.2.jar
       - name: run selenium
-        run: java -jar selenium-server-4.1.2.jar standalone
+        run: java -jar selenium-server-4.1.2.jar standalone > /dev/null 2>&1 &
+
+           
       - name: Install
         run: yarn install
      
