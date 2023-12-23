@@ -28,7 +28,10 @@ jobs:
           node-version: '18.x' 
       - name: Install
         run: yarn install
-      - run: yarn jest e2e/runWithSelenium.test.ts
+      - name: install selenium
+        run: npm install -g selenium-side-runner
+      - name: run selenium
+        run: selenium-side-runner -w 10 --server http://localhost:4444/wd/hub
       - name: Configure nightwatch.conf.js for Github
         run: node webship-init -ci github -os linux -b chrome
       - name: Start
