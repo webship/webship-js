@@ -3,15 +3,36 @@ name: Github Actions
 on: [push]
 
 jobs:
-  test:
-    name: Test
+  build:
+
     runs-on: ubuntu-latest
 
+    env:
+      TEST_BASE_URL: http://localhost:8080/
+      SELENIUM_HOST: http://selenium:4444/wd/hub
+
     steps:
+      - name: Install Chrome
+        run: |
+          CHROME_DRIVER_VERSION=114.0.5735.90;
+          echo $CHROME_DRIVER_VERSION;
+          wget http://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip
+          unzip chromedriver_linux64.zip
+          sudo chmod +x chromedriver
+          sudo mv -f chromedriver /usr/bin/
+          rm chromedriver_linux64.zip
       - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - name: Use Node.js
+        uses: actions/setup-node@v3
         with:
-          node-version: 19
-          cache: npm
-      - run: yarn install
-      - run: yarn test
+          node-version: '18.x' 
+      - name: Install
+        run: yarn install
+      - name: Configure nightwatch.conf.js for Github
+        run: node webship-init -ci github -os linux -b chrome
+      - name: Start
+        run: |
+          export NODE_OPTIONS=--openssl-legacy-provider
+          yarn start &
+      - name: Test
+        run: yarn test
