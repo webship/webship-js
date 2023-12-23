@@ -1,40 +1,42 @@
-name: Github Actions
+name: Test (single)
+
 on:
-  push:
-    branches:
-      - 'main'
-      - 'next'
-  pull_request:
+  workflow_dispatch:
+    inputs:
+      browser:
+        type: choice
+        description: Which browser to test
+        required: true
+        options:
+          - chrome
+          - firefox
+          - edge
 
 jobs:
   test:
-    name: 'node ${{ matrix.node }} chrome ${{ matrix.os }} '
-    runs-on: '${{ matrix.os }}'
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        node: [12, 14]
-    steps:
-      - uses: actions/setup-node@v2
-        with:
-          node-version: ${{ matrix.node }}
-      - uses: actions/checkout@v2
-      - name: npm install and validate
-        run: |
-          export CHROMEDRIVER_VERSION="$(chromedriver --version | awk '{print $2}')"
-          npm install
-          npm run validate
-        env:
-          CI: true
-
-  release:
+    name: Test
     runs-on: ubuntu-latest
-    needs: test
+
+    container:
+      image: node:18
+
+    services:
+      selenium:
+        image: selenium/standalone-${{ github.event.inputs.browser }}
+        options: --shm-size=2gb
+
     steps:
-      - uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
-          node-version: 18
-      - uses: actions/checkout@v2
-      - run: yarn install
-      - run: yarn test
-      
+          node-version: '18'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm test
+        env:
+          BROWSER: ${{ github.event.inputs.browser }}
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: screenshots
+          path: screenshots/
