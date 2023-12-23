@@ -26,6 +26,8 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18.x' 
+      - name: Start selenoid
+        uses: Xotabu4/selenoid-github-action@v2
       - name: Install
         run: yarn install
       - name: Configure nightwatch.conf.js for Github
