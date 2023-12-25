@@ -10,18 +10,15 @@ jobs:
     steps:
       - name: Install Chrome
         run: |
-          CHROME_DRIVER_VERSION=114.0.5735.90;
-          echo $CHROME_DRIVER_VERSION;
-          wget http://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip
-          unzip chromedriver_linux64.zip
-          sudo chmod +x chromedriver
-          sudo mv -f chromedriver /usr/bin/
-          rm chromedriver_linux64.zip
+          CHROME_VERSION="117.0.5938.88-1"
+          wget https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb
+          sudo dpkg -i google-chrome-stable_${CHROME_VERSION}_amd64.deb
       - uses: actions/checkout@v3
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18.x' 
+          node-version: '18.x'
+          
       - name: install selenium
         run: wget https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.1.0/selenium-server-4.1.2.jar
       - name: run selenium
