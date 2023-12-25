@@ -24,7 +24,7 @@ module.exports = {
   test_settings: {
     default: {
       launch_url: 'http://localhost:8080',
-      selenium_port: 4444,
+      selenium_port: 9222,
       selenium_host: '127.0.0.1',
       silent: true,
       screenshots: {
@@ -69,7 +69,7 @@ module.exports = {
     // Selenium Server is running locally and is managed by Nightwatch
     selenium: {
       start_process: true,
-      port: 4444,
+      port: 9222,
       server_path: (Services.seleniumServer ? Services.seleniumServer.path : ''),
       cli_args: {
         'webdriver.gecko.driver': (Services.geckodriver ? Services.geckodriver.path : ''),
