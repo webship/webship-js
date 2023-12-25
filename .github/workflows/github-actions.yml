@@ -12,16 +12,13 @@ jobs:
       SELENIUM_HOST: http://selenium:4444/wd/hub
 
     steps:
-      - name: Install Chrome
-        run: |
-          CHROME_VERSION="117.0.5938.88"
-          wget https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb
-          sudo dpkg -i google-chrome-stable_${CHROME_VERSION}_amd64.deb
-      - uses: actions/checkout@v3
-      - name: Use Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18.x'
+      - uses: actions/checkout@v2
+      - run: echo "Running the tests"
+      - run: echo "The ${{ github.repository }} repository has been cloned to the runner."
+      - uses: nanasess/setup-chromedriver@v1.0.7
+      - run: |
+          export DISPLAY=:99
+          sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &
 
       - name: install selenium
         run: wget https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.1.0/selenium-server-4.1.2.jar
