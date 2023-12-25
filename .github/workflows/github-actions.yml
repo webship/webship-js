@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      TEST_BASE_URL: http://localhost:8080
+      TEST_BASE_URL: http://localhost:4444
       SELENIUM_HOST: http://selenium:4444/wd/hub
 
     steps:
