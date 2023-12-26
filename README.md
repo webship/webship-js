@@ -1,7 +1,7 @@
 # Webship JS
 
 [![Github Actions](https://github.com/webship/webship-js/actions/workflows/github-actions.yml/badge.svg?branch=1.0.x)](https://github.com/webship/webship-js/actions)
-[![CircleCI](https://circleci.com/gh/webship/webship-js/tree/1.0.x.svg?style=svg)](https://circleci.com/gh/webship/webship-js/tree/1.0.x) CircleCI
+[![CircleCI](https://circleci.com/gh/webship/webship-js/tree/1.0.x.svg?style=svg)](https://circleci.com/gh/webship/webship-js/tree/1.0.x)
 [![Gitlab CI](https://gitlab.com/webship/webship-js/badges/1.0.x/pipeline.svg?job=karma&key_text=Gitlab+CI&key_width=60)](https://gitlab.com/webship/webship-js/-/pipelines)
 
 Webship JS has a ready step definitions for automated functional testing.
