@@ -26,10 +26,10 @@ jobs:
           CHROME_DRIVER_VERSION=120.0.6099.109;
           echo $CHROME_DRIVER_VERSION;
           wget https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/$CHROME_DRIVER_VERSION/linux64/chromedriver-linux64.zip
-          unzip chromedriver_linux64.zip
+          unzip chromedriver-linux64.zip
           sudo chmod +x chromedriver
           sudo mv -f chromedriver /usr/bin/
-          rm chromedriver_linux64.zip
+          rm chromedriver-linux64.zip
 
       - uses: actions/checkout@v3
       - name: Use Node.js
