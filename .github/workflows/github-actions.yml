@@ -16,7 +16,7 @@ jobs:
           sudo apt install libu2f-udev
           sudo apt-get install libappindicator1 fonts-liberation libgbm1 libgtk-3-0 xdg-utils
           export CHROME_BIN=/usr/bin/google-chrome
-          CHROME_VERSION="115.0.5790.110-1"
+          CHROME_VERSION="117.0.5938.88-1"
           wget https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb
           sudo dpkg -i google-chrome-stable_${CHROME_VERSION}_amd64.deb
           rm google-chrome-stable_${CHROME_VERSION}_amd64.deb
