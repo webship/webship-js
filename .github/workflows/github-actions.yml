@@ -18,9 +18,9 @@ jobs:
             sudo apt-get install libappindicator1 fonts-liberation libgbm1 libgtk-3-0 xdg-utils
             export CHROME_BIN=/usr/bin/google-chrome
             CHROME_VERSION="120.0.6099.109-1"
-            wget https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb
-            sudo dpkg -i google-chrome-stable_${CHROME_VERSION}_amd64.deb
-            rm google-chrome-stable_${CHROME_VERSION}_amd64.deb
+            wget https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/120.0.6099.109/linux64/chrome-linux64.zip
+            sudo dpkg -i google-chrome-stable_chrome-linux64.zip
+            rm google-chrome-stable_chrome-linux64.zip
       - name: Install/Update Chrome Driver
         run: |
           CHROME_DRIVER_VERSION=120.0.6099.109;
