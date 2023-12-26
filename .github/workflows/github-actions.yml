@@ -23,7 +23,7 @@ jobs:
             rm google-chrome-stable_${CHROME_VERSION}_amd64.deb
       - name: Install/Update Chrome Driver
         run: |
-          CHROME_DRIVER_VERSION=114.0.5735.90;
+          CHROME_DRIVER_VERSION=99.0.4844.51;
           echo $CHROME_DRIVER_VERSION;
           wget http://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip
           unzip chromedriver_linux64.zip
@@ -38,9 +38,9 @@ jobs:
           node-version: '18'
 
       - name: install selenium
-        run: wget https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.1.0/selenium-server-4.1.2.jar
+        run: wget https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.16.0/selenium-server-4.16.0.jar
       - name: run selenium
-        run: java -jar selenium-server-4.1.2.jar standalone > /dev/null 2>&1 &
+        run: java -jar selenium-server-4.16.0.jar standalone > /dev/null 2>&1 &
 
       - name: Install
         run: yarn install
