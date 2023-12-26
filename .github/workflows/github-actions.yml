@@ -14,7 +14,7 @@ jobs:
     steps:
       - name: Install Chrome
         run: |
-          CHROME_VERSION="114.0.5735.90"
+          CHROME_VERSION="120.0.6099.109"
           wget https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb
           sudo dpkg -i google-chrome-stable_${CHROME_VERSION}_amd64.deb
       - uses: actions/checkout@v3
