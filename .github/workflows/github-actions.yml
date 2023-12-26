@@ -31,7 +31,5 @@ jobs:
            
       - name: Install
         run: yarn install
-      - name: Configure nightwatch.conf.js for Github
-        run: node webship-init -ci github -os linux -b chrome
       - name: Test
         run: yarn test
