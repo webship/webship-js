@@ -18,20 +18,18 @@ jobs:
             sudo apt-get install libappindicator1 fonts-liberation libgbm1 libgtk-3-0 xdg-utils
             export CHROME_BIN=/usr/bin/google-chrome
             CHROME_VERSION="120.0.6099.109-1"
-            wget https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/$CHROME_VERSION/linux64/chrome-linux64.zip
-            unzip chrome-linux64.zip
-            sudo chmod +x chrome
-            sudo mv -f chrome /usr/bin/
-            rm chrome-linux64.zip
+            wget https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb
+            sudo dpkg -i google-chrome-stable_${CHROME_VERSION}_amd64.deb
+            rm google-chrome-stable_${CHROME_VERSION}_amd64.deb
       - name: Install/Update Chrome Driver
         run: |
-          CHROME_DRIVER_VERSION=120.0.6099.109;
+          CHROME_DRIVER_VERSION=114.0.5735.90;
           echo $CHROME_DRIVER_VERSION;
-          wget https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/$CHROME_DRIVER_VERSION/linux64/chromedriver-linux64.zip
-          unzip chromedriver-linux64.zip
+          wget http://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip
+          unzip chromedriver_linux64.zip
           sudo chmod +x chromedriver
           sudo mv -f chromedriver /usr/bin/
-          rm chromedriver-linux64.zip
+          rm chromedriver_linux64.zip
 
       - uses: actions/checkout@v3
       - name: Use Node.js
