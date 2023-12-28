@@ -9,7 +9,6 @@ jobs:
 
     env:
       TEST_BASE_URL: http://localhost:8080
-      SELENIUM_HOST: http://selenium:4444/wd/hub
 
     steps:
       - name: Install Chrome
@@ -36,6 +35,12 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18.x'
+
+      - name: Run Selenium Standalone server
+        run: |
+            wget https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.1.0/selenium-server-4.1.2.jar
+            java -jar selenium-server-4.1.2.jar -role node -hub http://localhost:4444
+  
 
       - name: Install
         run: yarn install
