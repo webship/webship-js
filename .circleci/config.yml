@@ -90,6 +90,6 @@ workflows:
       - webship-js-testing:
           filters:
             tags:
-              only: /^main/
+              only: /^1.0.*/
             branches:
-              only: /^main/
+              only: /^1.0.x/
