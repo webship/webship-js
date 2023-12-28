@@ -76,6 +76,10 @@ module.exports = {
         'webdriver.chrome.driver': (Services.chromedriver ? Services.chromedriver.path : ''),
       },
     },
+
+    webdriver: {
+      start_process: false
+    },
   },
 
   'selenium.chrome': {
@@ -83,7 +87,7 @@ module.exports = {
     desiredCapabilities: {
       browserName: 'chrome',
       chromeOptions: {
-        w3c: true,
+        w3c: false,
       },
     },
   }
