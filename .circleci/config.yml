@@ -80,6 +80,16 @@ jobs:
           command: |
             yarn install
       - run:
+          name: Configure nightwatch.conf.js for Circle CI
+          command: |
+            node webship-init -ci circleci -os linux -b chrome
+      - run:
+          name: Start virtual server
+          command: |
+            export NODE_OPTIONS=--openssl-legacy-provider
+            yarn start
+          background: true
+      - run:
           name: Test
           command: |
             yarn test
