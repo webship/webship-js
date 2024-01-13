@@ -28,7 +28,7 @@
   },
   "homepage": "https://github.com/webship/webship-js",
   "dependencies": {
-    "nightwatch": "~2",
+    "nightwatch": "~3",
     "@cucumber/cucumber": "*",
     "@cucumber/pretty-formatter": "~1",
     "args-parser": "~1",
