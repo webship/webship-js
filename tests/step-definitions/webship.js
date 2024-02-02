@@ -233,7 +233,14 @@ When(/^(I|we)* uncheck "([^"]*)?"$/, function (pronoundCase, item) {
  *
  */
 Then(/^(I|we)* should be on homepage$/, function (pronoundCase) {
-  return browser.assert.urlEquals(browser.launch_url + "/");
+  let str = browser.launch_url;
+  let char = str.charAt(browser.launch_url - 1);
+  if(char == "/"){
+    return browser.assert.urlEquals(browser.launch_url);
+  }
+  else{
+    return browser.assert.urlEquals(browser.launch_url + "/");
+  }
 });
 
 /**
@@ -242,7 +249,14 @@ Then(/^(I|we)* should be on homepage$/, function (pronoundCase) {
  *
  */
 Then(/^(I|we)* should be on the homepage$/, function (pronoundCase) {
-  return browser.assert.urlEquals(browser.launch_url + "/");
+  let str = browser.launch_url;
+  let char = str.charAt(browser.launch_url - 1);
+  if(char == "/"){
+    return browser.assert.urlEquals(browser.launch_url);
+  }
+  else{
+    return browser.assert.urlEquals(browser.launch_url + "/");
+  }
 });
 
 /**
@@ -251,7 +265,14 @@ Then(/^(I|we)* should be on the homepage$/, function (pronoundCase) {
  *
  */
 Then(/^(I|we)* should not be on homepage$/, function (pronoundCase) {
-  return browser.assert.not.urlEquals(browser.launch_url + "/");
+  let str = browser.launch_url;
+  let char = str.charAt(browser.launch_url - 1);
+  if(char == "/"){
+    return browser.assert.not.urlEquals(browser.launch_url);
+  }
+  else{
+    return browser.assert.not.urlEquals(browser.launch_url + "/");
+  }
 });
 
 /**
@@ -260,7 +281,14 @@ Then(/^(I|we)* should not be on homepage$/, function (pronoundCase) {
  *
  */
 Then(/^(I|we)* should not be on the homepage$/, function (pronoundCase) {
-  return browser.assert.not.urlEquals(browser.launch_url + "/");
+  let str = browser.launch_url;
+  let char = str.charAt(browser.launch_url - 1);
+  if(char == "/"){
+    return browser.assert.not.urlEquals(browser.launch_url);
+  }
+  else{
+    return browser.assert.not.urlEquals(browser.launch_url + "/");
+  }
 });
 
 /**
