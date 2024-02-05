@@ -19,16 +19,14 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y wget
-          wget https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb
-          sudo dpkg -i google-chrome-stable_${CHROME_VERSION}_amd64.deb || sudo apt-get -f install -y
-          sudo apt-get install -y google-chrome-stable=${CHROME_VERSION}
-        env:
-          CHROME_VERSION: "115.0.5790.110-1"
+          wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+          sudo dpkg -i google-chrome-stable_current_amd64.deb || sudo apt-get -f install -y
 
       # Install specific version of ChromeDriver
       - name: Install ChromeDriver
         run: |
-          CHROME_DRIVER_VERSION="114.0.5735.90"
+          CHROME_VERSION=$(google-chrome --version | grep -oE "[0-9.]+" | head -1)
+          CHROME_DRIVER_VERSION=$(wget -qO- "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION")
           wget https://chromedriver.storage.googleapis.com/${CHROME_DRIVER_VERSION}/chromedriver_linux64.zip
           unzip chromedriver_linux64.zip
           sudo mv chromedriver /usr/bin/chromedriver
@@ -45,7 +43,6 @@ jobs:
         run: |
             wget https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.1.0/selenium-server-4.1.2.jar
             java -jar selenium-server-4.1.2.jar -role node -hub http://localhost:4444
-
 
       - name: Install
         run: yarn install
