@@ -23,7 +23,7 @@ jobs:
           sudo dpkg -i google-chrome-stable_current_amd64.deb || sudo apt-get -f install -y
           sudo apt-get install -y google-chrome-stable=${CHROME_VERSION}
         env:
-          CHROME_VERSION: "115.0.5790.110-1"
+          CHROME_VERSION: "115.0.5790.110"
 
       # Install specific version of ChromeDriver
       - name: Install ChromeDriver
