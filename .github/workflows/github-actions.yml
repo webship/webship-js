@@ -11,27 +11,32 @@ jobs:
       TEST_BASE_URL: http://localhost:8080
 
     steps:
-      - name: Install Chrome
-        run: |
-         sudo apt install libu2f-udev
-            sudo apt-get install libappindicator1 fonts-liberation libgbm1 libgtk-3-0 xdg-utils
-            export CHROME_BIN=/usr/bin/google-chrome
-            CHROME_VERSION="120.0.6099.109-1"
-            wget https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb
-            sudo dpkg -i google-chrome-stable_${CHROME_VERSION}_amd64.deb
-            rm google-chrome-stable_${CHROME_VERSION}_amd64.deb
-      - name: Install/Update Chrome Driver
-        run: |
-          CHROME_DRIVER_VERSION="114.0.5735.90";
-          echo $CHROME_DRIVER_VERSION;
-          wget http://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip
-          unzip chromedriver_linux64.zip
-          sudo chmod +x chromedriver
-          sudo mv -f chromedriver /usr/bin/
-          rm chromedriver_linux64.zip
-
       - uses: actions/checkout@v3
+
+    # Install specific version of Chrome
+      - name: Install Chrome
+      
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget
+          wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+          sudo dpkg -i google-chrome-stable_current_amd64.deb || sudo apt-get -f install -y
+          sudo apt-get install -y google-chrome-stable=${CHROME_VERSION}
+        env:
+          CHROME_VERSION: "115.0.5790.110-1"
+
+      # Install specific version of ChromeDriver
+      - name: Install ChromeDriver
+        run: |
+          CHROME_DRIVER_VERSION="114.0.5735.90"
+          wget https://chromedriver.storage.googleapis.com/${CHROME_DRIVER_VERSION}/chromedriver_linux64.zip
+          unzip chromedriver_linux64.zip
+          sudo mv chromedriver /usr/bin/chromedriver
+          sudo chown root:root /usr/bin/chromedriver
+          sudo chmod +x /usr/bin/chromedriver
+
       - name: Use Node.js
+
         uses: actions/setup-node@v3
         with:
           node-version: '18.x'
@@ -40,7 +45,7 @@ jobs:
         run: |
             wget https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.1.0/selenium-server-4.1.2.jar
             java -jar selenium-server-4.1.2.jar -role node -hub http://localhost:4444
-  
+
 
       - name: Install
         run: yarn install
