@@ -19,11 +19,11 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y wget
-          wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-          sudo dpkg -i google-chrome-stable_current_amd64.deb || sudo apt-get -f install -y
+          wget https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb
+          sudo dpkg -i google-chrome-stable_${CHROME_VERSION}_amd64.deb || sudo apt-get -f install -y
           sudo apt-get install -y google-chrome-stable=${CHROME_VERSION}
         env:
-          CHROME_VERSION: "115.0.5790.110"
+          CHROME_VERSION: "115.0.5790.110-1"
 
       # Install specific version of ChromeDriver
       - name: Install ChromeDriver
