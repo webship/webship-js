@@ -10,6 +10,12 @@ jobs:
     env:
       TEST_BASE_URL: http://localhost:8080
 
+    services:
+      selenium:
+        image: selenium/standalone-chrome:latest # Or use selenium/standalone-firefox:latest for Firefox
+        ports:
+          - 4444:4444 # Map Selenium server port
+
     steps:
       - uses: actions/checkout@v3
 
