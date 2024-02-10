@@ -22,7 +22,6 @@ jobs:
         run: |
             wget https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.1.0/selenium-server-4.1.2.jar
             java -jar selenium-server-4.1.2.jar -role node -hub http://localhost:4444
-            background: true&
              
       - name: Install
         run: yarn install
@@ -32,6 +31,5 @@ jobs:
         run: |
             export NODE_OPTIONS=--openssl-legacy-provider
             yarn start
-            background: true&
       - name: Test
         run: yarn test
