@@ -9,6 +9,7 @@ jobs:
 
     env:
       TEST_BASE_URL: http://localhost:8080
+      SELENIUM_HOST: http://selenium:4444/wd/hub
 
     services:
       selenium:
