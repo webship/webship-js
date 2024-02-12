@@ -11,13 +11,12 @@ jobs:
       TEST_BASE_URL: http://localhost:8080
       SELENIUM_HOST: http://selenium:4444/wd/hub
 
-    services:
-      selenium:
-        image: selenium/standalone-chrome:latest # Or use selenium/standalone-firefox:latest for Firefox
-        ports:
-          - 4444:4444 # Map Selenium server port
-
     steps:
+      - name: Install Chrome
+        run: |
+          wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+          sudo dpkg -i google-chrome-stable_current_amd64.deb
+
       - uses: actions/checkout@v3
 
       - name: Use Node.js
