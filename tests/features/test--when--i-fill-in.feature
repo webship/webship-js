@@ -7,7 +7,7 @@ I want to be able to fill input text with value
      When I fill in "#uname" with "John Smith"
      When I fill in "#pword" with "1234"
      When I press "Login"
-     Then I should see "You enter #uname: John Smith and Password: 1234"
+     Then I should see "You enter Username: John Smith and Password: 1234"
 
   Scenario: Check fill in input field with empty value
     Given I am on "/test--when--i-fill-in.html"

@@ -68,9 +68,7 @@ When(/^(I|we)* go to "([^"]*)?"$/, function (pronoundCase, url) {
  * 
  */
 Then(/^(I|we)* should see "([^"]*)?"$/, function (pronoundCase, expectedText) {
-  return this.shouldSee = function (browser) {
     browser.assert.textContains("html", expectedText);
-  };
 });
 
 /**
@@ -81,9 +79,7 @@ Then(/^(I|we)* should see "([^"]*)?"$/, function (pronoundCase, expectedText) {
  * 
  */
 Then(/^(I|we)* should not see "([^"]*)?"$/, function (pronoundCase, expectedText) {
-  return this.shouldSee = function (browser) {
     browser.assert.not.textContains("html", expectedText);
-  };
 });
 
 /**
@@ -111,7 +107,7 @@ When(/^(I|we)* move backward one page$/, function (pronoundCase) {
  *
  */
 When(/^(I|we)* press "([^"]*)?"$/, function (pronoundCase, element) {
-  return browser.click('[value="' + element + '"]');
+  browser.click('[value="' + element + '"]');
 });
 
 /**
@@ -121,7 +117,7 @@ When(/^(I|we)* press "([^"]*)?"$/, function (pronoundCase, element) {
  *
  */
 When(/^(I|we)* click "([^"]*)?"$/, function (pronoundCase, item) {
-  return browser.click(item);
+  return browser.click("link text", item);
 });
 
 /**
@@ -207,11 +203,8 @@ When(/^(I|we)* select "([^"]*)?" from "([^"]*)?"$/, function (pronoundCase, opti
  *
  */
 When(/^(I|we)* check "([^"]*)?"$/, function (pronoundCase, item) {
-  browser.isSelected(item, function (result) {
-      if (!result.value) {
-        this.click(item);
-      }
-    });
+
+  browser.click(item);
 });
 
 /**
@@ -220,11 +213,8 @@ When(/^(I|we)* check "([^"]*)?"$/, function (pronoundCase, item) {
  *
  */
 When(/^(I|we)* uncheck "([^"]*)?"$/, function (pronoundCase, item) {
-  browser.isSelected(item, function (result) {
-      if (result.value) {
-        this.click(item); 
-      }
-    });
+  
+  browser.click(item); 
 });
 
 /**

@@ -5,12 +5,6 @@ Feature: An example to click link
 
   Scenario: Check click link by link text
     Given I am on "/test--when--i-click-link.html"
-      When I click "#aboutUsid"
-      And I wait max of 2 seconds
-      Then I should see "About Us"
-
-  Scenario: Check click link by link css class
-    Given I am on "/test--when--i-click-link.html"
-      When I click ".aboutUs"
+      When I click "About us link"
       And I wait max of 2 seconds
       Then I should see "About Us"
