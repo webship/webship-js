@@ -26,7 +26,7 @@ jobs:
       - name: Run Selenium Standalone server
         run: |
           wget https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.4.0/selenium-server-4.4.0.jar
-          java -jar selenium-server-4.4.0.jar -role node -hub http://localhost:4444         
+          java -jar selenium-server-4.4.0.jar standalone --port 4444
       
       - name: Install
         run: yarn install
