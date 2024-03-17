@@ -8,32 +8,14 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      TEST_BASE_URL: http://localhost:8080
+      TEST_BASE_URL: http://localhost:808
+      SELENIUM_HOST: http://selenium:4444/wd/hub
 
     steps:
       - name: Install Chrome
         run: |
-          sudo apt install libu2f-udev
-          sudo apt-get install libappindicator1 fonts-liberation libgbm1 libgtk-3-0 xdg-utils
-          export CHROME_BIN=/usr/bin/google-chrome
           wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-          sudo apt-get clean
-          sudo apt-get update
-          sudo apt-get install dpkg
           sudo dpkg -i google-chrome-stable_current_amd64.deb
-          rm google-chrome-stable_current_amd64.deb
-          google-chrome --version
-
-      - name: Install/Update Chrome Driver
-        run: |
-          CHROME_DRIVER_VERSION=$(wget -qO- chromedriver.storage.googleapis.com/LATEST_RELEASE);
-          echo $CHROME_DRIVER_VERSION;
-          wget http://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip
-          unzip chromedriver_linux64.zip
-          chmod +x chromedriver
-          mkdir -p $HOME/.composer/vendor/bin
-          mv -f chromedriver $HOME/.composer/vendor/bin/
-          rm chromedriver_linux64.zip
 
       - uses: actions/checkout@v3
       - name: Use Node.js
