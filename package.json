@@ -1,6 +1,6 @@
 {
   "name": "webship-js",
-  "version": "1.0.29",
+  "version": "1.0.30",
   "description": "Webship JS automated functional testing.",
   "main": "index.js",
   "directories": {
