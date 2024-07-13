@@ -26,7 +26,7 @@ I want to be able to fill input text with value
   Scenario: Check fill in table of input fields
     Given I am on "/test--when--i-fill-in.html"
      When I fill in the following:
-              | #uname | John Smith |
-              | #pword | 1234 |
+              | Username | John Smith |
+              | Password | 1234 |
      When I press "Login" by attr
      Then I should see "You enter Username: John Smith and Password: 1234"

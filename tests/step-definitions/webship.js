@@ -312,21 +312,25 @@ When(/^(I|we)* fill in "([^"]*)?" for "([^"]*)?" by( its)*( "([^"]*)?")* (attrib
 });
 
 /**
- * Fills in form fields with provided table
+ * Fills in form input fields type text with provided table by there labels 
  * Example: When I fill in the following:
- *              | username | webshipco |
- *              | password | 1234 |
- * Example: And I fill in the following"
- *              | username | webshipco |
- *              | password | 1234 |
- *
+ *              | Username | webshipco |
+ *              | Password | 1234 |
  */
+
 When(/^(I|we)* fill in the following:$/, function (pronoundCase, table) {
 
-  browser.setValue(table.rawTable[0][0], table.rawTable[0][1]);
+  var elementField = browser.element.findByText(table.rawTable[0][0]);
+  browser.getAttribute(elementField, 'for', function (eleAttribute) {
+    browser.setValue('#' + eleAttribute.value, table.rawTable[0][1]);
+  });
+  
   table.rows().forEach(row => {
-    browser.setValue(row[0], row[1]);
-    // browser.fillTextInput(row[0], row[1]);
+
+    elementField = browser.element.findByText(row[0]);
+    browser.getAttribute(elementField, 'for', function (eleAttribute2) {
+        browser.setValue('#' + eleAttribute2.value, row[1]);
+    });
   });
 });
 
