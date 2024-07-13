@@ -335,6 +335,54 @@ When(/^(I|we)* fill in the following:$/, function (pronoundCase, table) {
 });
 
 /**
+ * Fill in value for input type text by its attributeFill form fields of type input Text with the provided table according to their attributes 
+ * Example: When I fill in the following: by attr
+ *            | uname | John Smith |
+ *            | pwordcss | 1234 |
+
+ * Example: When I fill in the following: by its "placeholder" attribute
+ *            | Your full name | John Smith |
+ *            | Your Password | 1234 |
+ */
+
+When(/^(I|we)* fill in the following: by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronoundCase, itsCase, attr, attrCase, table) {
+
+  var hasASpace = table.rawTable[0][0].indexOf(' ');
+  var selector = '';
+  if (!attr && hasASpace == -1){
+    selector = table.rawTable[0][0] + ',#' + table.rawTable[0][0] + ',.' + table.rawTable[0][0] + ',[name=' + table.rawTable[0][0] + "]," + '[value="' + table.rawTable[0][0] + '"],[placeholder="' + table.rawTable[0][0] + '"]';
+  }
+  else if (!attr && hasASpace > -1){
+    selector ='[value="' + table.rawTable[0][0] + '"],[placeholder="' + table.rawTable[0][0] + '"]';
+  }
+  else {
+    selector = '[' + attr + '="' + table.rawTable[0][0] + '"]';
+  }
+
+  browser.setValue(selector, table.rawTable[0][1]);
+
+  
+  table.rows().forEach(row => {
+
+    hasASpace = row[0].indexOf(' ');
+    var selector = '';
+    if (!attr && hasASpace == -1){
+      
+      selector = row[0] + ',#' + row[0] + ',.' + row[0] + ',[name=' + row[0] + "]," + '[value="' + row[0] + '"],[placeholder="' + row[0] + '"]';
+    }
+    else if (!attr && hasASpace > -1){
+      selector ='[value="' + row[0] + '"],[placeholder="' + row[0] + '"]';
+    }
+    else {
+      selector = '[' + attr + '="' + row[0] + '"]';
+    }
+
+    browser.setValue(selector, row[1]);
+
+  });
+});
+
+/**
  * Selects option in select field
  * Example: When I select "Mercedes" from "Cars"
  *
