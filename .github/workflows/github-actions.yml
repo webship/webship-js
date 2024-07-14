@@ -4,38 +4,62 @@ on: [push]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     env:
       TEST_BASE_URL: http://localhost:8080
-      SELENIUM_HOST: http://selenium:4444/wd/hub
+      SELENIUM_HOST: http://localhost:4444/wd/hub
 
     steps:
-      - name: Install Chrome
+      - name: Install/Update Google Chrome browser
         run: |
-          CHROME_VERSION="115.0.5790.110-1"
-          wget https://mirror.cs.uchicago.edu/google-chrome/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb
-          sudo dpkg -i google-chrome-stable_${CHROME_VERSION}_amd64.deb
-            
-      - uses: actions/checkout@v3
-      - name: Use Node.js
+          sudo apt install libu2f-udev
+            sudo apt-get install libappindicator1 fonts-liberation libgbm1 libgtk-3-0 xdg-utils
+            export CHROME_BIN=/usr/bin/google-chrome
+            CHROME_VERSION="115.0.5790.110-1"
+            wget https://mirror.cs.uchicago.edu/google-chrome/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb
+            sudo dpkg -i google-chrome-stable_${CHROME_VERSION}_amd64.deb
+            rm google-chrome-stable_${CHROME_VERSION}_amd64.deb
+
+      - name: Install/Update Chrome Driver
+        run: |
+          CHROME_DRIVER_VERSION=114.0.5735.90;
+            echo $CHROME_DRIVER_VERSION;
+            wget http://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip
+            unzip chromedriver_linux64.zip
+            sudo chmod +x chromedriver
+            sudo mv -f chromedriver /usr/bin/
+            rm chromedriver_linux64.zip
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18.x'
 
+      - name: Install Java
+        run: |
+          sudo apt update
+          sudo apt install -y openjdk-11-jre openjdk-11-jre-headless openjdk-11-jdk openjdk-11-jdk-headless
+
       - name: Run Selenium Standalone server
         run: |
           wget https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.4.0/selenium-server-4.4.0.jar
-          java -jar selenium-server-4.4.0.jar standalone
-      
-      - name: Install
+          nohup java -jar selenium-server-4.4.0.jar standalone > selenium.log 2>&1 & 
+         
+
+      - name: Install dependencies
         run: yarn install
-      - name: Configure nightwatch.conf.js for Github
-        run: node webship-init -ci github -os linux -b chrome
+
+      - name: Configure nightwatch.conf.js for GitHub
+        run: node webship-init -ci circleci -os linux -b chrome
+
       - name: Start virtual server
         run: |
-            export NODE_OPTIONS=--openssl-legacy-provider
-            yarn start &
-      - name: Test
+          export NODE_OPTIONS=--openssl-legacy-provider
+          yarn start &
+
+      - name: Run tests
         run: yarn test
