@@ -483,14 +483,17 @@ Then(/^the response should not contain "([^"]*)?"$/, function (expectedText) {
 
 
 /**
- * Assert, that element contains a specific text value
- * Example: Then I should see "John Smith" in the "#username" element
+ * Assert, that input text contains a specific value by its label
+ * Example: Then I should see "John Smith" in the "Username" element
  * 
  */
 Then(/^(I|we)* should see "([^"]*)?" in the "([^"]*)?" element$/, function (pronoundCase, expectedText, element) {
-  return this.shouldSee = function (browser) {
-    browser.assert.textContains(element, expectedText);
-  };
+  const elementField = browser.element.findByText(element);
+  browser.getAttribute(elementField, 'for', function (eleAttribute) {
+    return this.shouldSee = function (browser) {
+      browser.assert.textContains('#' + eleAttribute.value, expectedText);
+    };
+  });
 });
 
 /**
