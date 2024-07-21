@@ -497,6 +497,32 @@ Then(/^(I|we)* should see "([^"]*)?" in the "([^"]*)?" element$/, function (pron
 });
 
 /**
+ * Assert, that input text contains a specific value by its attributes
+ * Example: Then I should see "John Smith" in the "uname" element by its "id" attr
+ * Example: Then I should see "1234" in the "pwordcss" element by attr
+ * 
+ */
+Then(/^(I|we)* should see "([^"]*)?" in the "([^"]*)?" element by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronoundCase, expectedText, attrValue, itsCase, attr, attrCase) {
+
+  const hasASpace = attrValue.indexOf(' ');
+
+  var selector = '';
+  if (!attr && hasASpace == -1){
+    selector = attrValue + ',#' + attrValue + ',.' + attrValue + ',[name=' + attrValue + "]," + '[value="' + attrValue + '"],[placeholder="' + attrValue + '"]';
+  }
+  else if (!attr && hasASpace > -1){
+    selector ='[value="' + attrValue + '"],[placeholder="' + attrValue + '"]';
+  }
+  else {
+    selector = '[' + attr + '="' + attrValue + '"]';
+  }
+
+  return this.shouldSee = function (browser) {
+    browser.assert.textContains(selector, expectedText);
+  };
+});
+
+/**
  * Assert, that element contains a specific text value
  * Example: Then I should not see "Joe Smith" in the "#username" element
  *
