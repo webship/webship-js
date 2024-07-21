@@ -523,15 +523,18 @@ Then(/^(I|we)* should see "([^"]*)?" in the "([^"]*)?" element by( its)*( "([^"]
 });
 
 /**
- * Assert, that element contains a specific text value
- * Example: Then I should not see "Joe Smith" in the "#username" element
+ * Assert, that input text does not contain a specific value to be by its label
+ * Example: Then I should not see "Joe Smith" in the "Username" element
  *
  */
 Then(/^(I|we)* should not see "([^"]*)?" in the "([^"]*)?" element$/, function (pronoundCase, expectedText, element) {
 
-  return this.shouldSee = function (browser) {
-    browser.assert.not.textContains(element, expectedText);
-  };
+  const elementField = browser.element.findByText(element);
+  browser.getAttribute(elementField, 'for', function (eleAttribute) {
+    return this.shouldSee = function (browser) {
+      browser.assert.not.textContains('#' + eleAttribute.value, expectedText);
+    };
+  });
 });
 
 /**
