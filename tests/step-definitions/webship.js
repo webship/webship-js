@@ -538,6 +538,32 @@ Then(/^(I|we)* should not see "([^"]*)?" in the "([^"]*)?" element$/, function (
 });
 
 /**
+ * Assert, that input text contains a specific value by its attributes
+ * Example: Then I should not see "John Smith" in the "uname" element by its "id" attr
+ * Example: Then I should not see "1234" in the "pwordcss" element by attr
+ * 
+ */
+Then(/^(I|we)* should not see "([^"]*)?" in the "([^"]*)?" element by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronoundCase, expectedText, attrValue, itsCase, attr, attrCase) {
+
+  const hasASpace = attrValue.indexOf(' ');
+
+  var selector = '';
+  if (!attr && hasASpace == -1){
+    selector = attrValue + ',#' + attrValue + ',.' + attrValue + ',[name=' + attrValue + "]," + '[value="' + attrValue + '"],[placeholder="' + attrValue + '"]';
+  }
+  else if (!attr && hasASpace > -1){
+    selector ='[value="' + attrValue + '"],[placeholder="' + attrValue + '"]';
+  }
+  else {
+    selector = '[' + attr + '="' + attrValue + '"]';
+  }
+
+  return this.shouldSee = function (browser) {
+    browser.assert.not.textContains(selector, expectedText);
+  };
+});
+
+/**
  * Assert, that element exists on current page
  * Example: Then I should see a "body" element
  *
