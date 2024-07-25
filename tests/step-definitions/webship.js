@@ -576,6 +576,30 @@ Then(/^(I|we)* should see (a|an) "([^"]*)?" element$/, function (pronoundCase, a
 });
 
 /**
+ * Assert, that element exists on the current page by its attribute
+ * Example: Then I should see a "uname" element by its "id" attr
+ * Example: Then I should see a "pwordcss" element by attr
+ * 
+ */
+Then(/^(I|we)* should see (a|an) "([^"]*)?" element by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronoundCase, aAnCase, attrValue, itsCase, attr, attrCase) {
+
+  const hasASpace = attrValue.indexOf(' ');
+
+  var selector = '';
+  if (!attr && hasASpace == -1){
+    selector = attrValue + ',#' + attrValue + ',.' + attrValue + ',[name=' + attrValue + "]," + '[value="' + attrValue + '"],[placeholder="' + attrValue + '"]';
+  }
+  else if (!attr && hasASpace > -1){
+    selector ='[value="' + attrValue + '"],[placeholder="' + attrValue + '"]';
+  }
+  else {
+    selector = '[' + attr + '="' + attrValue + '"]';
+  }
+
+    return browser.verify.visible(selector);
+});
+
+/**
  * Assert, that element not exists on current page
  * Example: Then I should not see a "#username" element
  *
