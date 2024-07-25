@@ -564,21 +564,15 @@ Then(/^(I|we)* should not see "([^"]*)?" in the "([^"]*)?" element by( its)*( "(
 });
 
 /**
- * Assert, that element exists on current page
- * Example: Then I should see a "body" element
+ * Assert, that element exists on current page by its label
+ * Example: Then I should see a "Username" element
  *
  */
-Then(/^(I|we)* should see a "([^"]*)?" element$/, function (pronoundCase, element) {
-  return browser.verify.visible(element);
-});
-
-/**
- * Assert, that element exists on current page
- * Example: Then I should see an "#email" element
- *
- */
-Then(/^(I|we)* should see an "([^"]*)?" element$/, function (pronoundCase, element) {
-  return browser.verify.visible(element);
+Then(/^(I|we)* should see (a|an) "([^"]*)?" element$/, function (pronoundCase, aAnCase, element) {
+  const elementField = browser.element.findByText(element);
+  browser.getAttribute(elementField, 'for', function (eleAttribute) {
+    return browser.verify.visible('#' + eleAttribute.value);
+  });
 });
 
 /**
