@@ -600,30 +600,13 @@ Then(/^(I|we)* should see (a|an) "([^"]*)?" element by( its)*( "([^"]*)?")* (att
 });
 
 /**
- * Assert, that element not exists on current page
- * Example: Then I should not see a "#username" element
- *
- */
-Then(/^(I|we)* should not see a "([^"]*)?" element$/, function (pronoundCase, element) {
-  return browser.verify.not.visible(element);
-});
-
-/**
- * Assert, that element not exists on current page
+ * Assert, that element exists on current page by its label
  * Example: Then I should not see a "Username" element
  *
  */
-Then(/^(I|we)* should not see a "([^"]*)?" element$/, function (pronoundCase, element) {
-  return browser.verify.not.visible(element);
-});
+Then(/^(I|we)* should not see (a|an) "([^"]*)?" element$/, function (pronoundCase, aAnCase, element) {
 
-/**
- * Assert, that element exists on current page
- * Example: Then I should not see an "#img" element
- *
- */
-Then(/^(I|we)* should not see an "([^"]*)?" element$/, function (pronoundCase, element) {
-  return browser.verify.not.visible(element);
+  browser.assert.not.textContains("html", element);
 });
 
 /**
