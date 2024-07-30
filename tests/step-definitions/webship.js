@@ -569,7 +569,7 @@ Then(/^(I|we)* should not see "([^"]*)?" in the "([^"]*)?" element by( its)*( "(
  *
  */
 Then(/^(I|we)* should see (a|an) "([^"]*)?" element$/, function (pronoundCase, aAnCase, element) {
-  const elementField = browser.element.findByText(element);
+  const elementField = browser.element.findByText(element, { exact: true });
   browser.getAttribute(elementField, 'for', function (eleAttribute) {
     return browser.verify.visible('#' + eleAttribute.value);
   });
