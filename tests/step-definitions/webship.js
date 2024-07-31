@@ -610,6 +610,30 @@ Then(/^(I|we)* should not see (a|an) "([^"]*)?" element$/, function (pronoundCas
 });
 
 /**
+ * Assert, that element exists on current page by its attributes
+ * Example: Then I should not see an "emailId" element by its "id" attr
+ * Example: And I should not see a "countryCss" element by attr
+ *
+ */
+Then(/^(I|we)* should not see (a|an) "([^"]*)?" element by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronoundCase, aAnCase, attrValue, itsCase, attr, attrCase) {
+
+  const hasASpace = attrValue.indexOf(' ');
+
+  var selector = '';
+  if (!attr && hasASpace == -1){
+    selector = attrValue + ',#' + attrValue + ',.' + attrValue + ',[name=' + attrValue + "]," + '[value="' + attrValue + '"],[placeholder="' + attrValue + '"]';
+  }
+  else if (!attr && hasASpace > -1){
+    selector ='[value="' + attrValue + '"],[placeholder="' + attrValue + '"]';
+  }
+  else {
+    selector = '[' + attr + '="' + attrValue + '"]';
+  }
+
+  return browser.expect.element(selector).to.not.be.present;
+});
+
+/**
  * Assert, that element contains a specific CSS style
  * Example: Then the "body" element should contain "color:white;"
  *
