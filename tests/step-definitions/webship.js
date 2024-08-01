@@ -638,7 +638,20 @@ Then(/^(I|we)* should not see (a|an) "([^"]*)?" element by( its)*( "([^"]*)?")* 
  * Example: Then the "body" element should contain "color:white;"
  *
  */
-Then(/^the "([^"]*)?" element should contain "([^"]*)?"$/, function (element, elementCss) {
+Then(/^the "([^"]*)?" element should contain "([^"]*)?" css style$/, function (attrValue, elementCss) {
+
+  const hasASpace = attrValue.indexOf(' ');
+
+  var selector = '';
+  if((attrValue.startsWith('#') || attrValue.startsWith('.')) && hasASpace == -1){
+    selector = attrValue;
+  }
+  else if (hasASpace == -1){
+    selector = attrValue + ',#' + attrValue + ',.' + attrValue + ',[name=' + attrValue + "]," + '[value="' + attrValue + '"],[placeholder="' + attrValue + '"]';
+  }
+  else if (hasASpace > -1){
+    selector ='[value="' + attrValue + '"],[placeholder="' + attrValue + '"]';
+  }
 
   elementCss = elementCss.replace(";", '');
   const cssPropertyArr = elementCss.split(":");
@@ -647,7 +660,7 @@ Then(/^the "([^"]*)?" element should contain "([^"]*)?"$/, function (element, el
   const propertyVal = cssPropertyArr[1].trim();
 
   this.checkCss = function (browser) {
-    browser.assert.cssProperty(element, cssProperty, propertyVal);
+    browser.assert.cssProperty(selector, cssProperty, propertyVal);
   };
 });
 
