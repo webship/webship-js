@@ -149,18 +149,21 @@ When(/^(I|we)* click "([^"]*)?"$/, function (pronoundCase, item) {
 
 /**
  * Click Link with specified element
- * Example: When I click "aboutUs" by attr
- * Example: When I click "aboutUs" by attribute
- * Example: And I click "aboutUs" by "class" attr
+ * Example: When I click "#aboutUsid" by attr
+ * Example: When I click "aboutUsCss" by attribute
+ * Example: And I click "aboutUsCss" by "class" attr
  * Example: And I click "aboutUsid" by its "id" attribute
  *
  */
 When(/^(I|we)* click "([^"]*)?" by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronoundCase, attrValue, itsCase, attr, attrCase) {
 
   const hasASpace = attrValue.indexOf(' ');
-
   var selector = '';
-  if (!attr && hasASpace == -1){
+
+  if((attrValue.startsWith('#') || attrValue.startsWith('.')) && hasASpace == -1){
+    selector = attrValue;
+  }
+  else if (!attr && hasASpace == -1){
     selector = attrValue + ',#' + attrValue + ',.' + attrValue + ',[name=' + attrValue + "]," + '[value="' + attrValue + '"],[placeholder="' + attrValue + '"]';
   }
   else if (!attr && hasASpace > -1){
