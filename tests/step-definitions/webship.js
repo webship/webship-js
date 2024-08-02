@@ -666,10 +666,24 @@ Then(/^the "([^"]*)?" element should contain "([^"]*)?" css style$/, function (a
 
 /**
  * Assert, that element contains a specific CSS style
- * Example: Then the "body" element should not contain "color:white;"
- *
+ * Example: Then the "body" element should not contain "color:white;" css style
+ * Example: Then the "#uname" element should not contain "border:solid 5px red;" css style
+ * Example: Then the "pword" element should not contain "font-size: 26px;" css style
  */
-Then(/^the "([^"]*)?" element should not contain "([^"]*)?"$/, function (element, elementCss) {
+Then(/^the "([^"]*)?" element should not contain "([^"]*)?" css style$/, function (attrValue, elementCss) {
+
+  const hasASpace = attrValue.indexOf(' ');
+
+  var selector = '';
+  if((attrValue.startsWith('#') || attrValue.startsWith('.')) && hasASpace == -1){
+    selector = attrValue;
+  }
+  else if (hasASpace == -1){
+    selector = attrValue + ',#' + attrValue + ',.' + attrValue + ',[name=' + attrValue + "]," + '[value="' + attrValue + '"],[placeholder="' + attrValue + '"]';
+  }
+  else if (hasASpace > -1){
+    selector ='[value="' + attrValue + '"],[placeholder="' + attrValue + '"]';
+  }
 
   elementCss = elementCss.replace(";", '');
   const cssPropertyArr = elementCss.split(":");
@@ -678,7 +692,7 @@ Then(/^the "([^"]*)?" element should not contain "([^"]*)?"$/, function (element
   const propertyVal = cssPropertyArr[1].trim();
 
   this.checkCss = function (browser) {
-    browser.assert.not.cssProperty(element, cssProperty, propertyVal);
+    browser.assert.not.cssProperty(selector, cssProperty, propertyVal);
   };
 });
 
