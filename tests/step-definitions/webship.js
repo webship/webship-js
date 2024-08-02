@@ -213,6 +213,7 @@ When(/^(I|we)* fill in "([^"]*)?" with "([^"]*)?"$/, function (pronoundCase, fie
 
 /**
  * Fill input type text with value by its attribute
+ * Example: When I fill in "#uname" by attr
  * Example: When I fill in "uname" with "John Smith" by attr
  * Example: And I fill in "pwordcss" with "1234" by "class" attr
  * Example: And I fill in "Your full name" with "John Smith" by its "placeholder" attribute
@@ -221,9 +222,12 @@ When(/^(I|we)* fill in "([^"]*)?" with "([^"]*)?"$/, function (pronoundCase, fie
 When(/^(I|we)* fill in "([^"]*)?" with "([^"]*)?" by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronoundCase, attrValue, txtValue, itsCase, attr, attrCase) {
 
   const hasASpace = attrValue.indexOf(' ');
-
   var selector = '';
-  if (!attr && hasASpace == -1){
+
+  if((attrValue.startsWith('#') || attrValue.startsWith('.')) && hasASpace == -1){
+    selector = attrValue;
+  }
+  else if (!attr && hasASpace == -1){
     selector = attrValue + ',#' + attrValue + ',.' + attrValue + ',[name=' + attrValue + "]," + '[value="' + attrValue + '"],[placeholder="' + attrValue + '"]';
   }
   else if (!attr && hasASpace > -1){
