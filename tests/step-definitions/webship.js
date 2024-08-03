@@ -255,6 +255,7 @@ When(/^(I|we)* fill in "([^"]*)?" with:$/, function (pronoundCase, field) {
 
 /**
  * Fill input type text with empty value by its attribute
+ * Example: When I fill in "#uname" with: by attr
  * Example: When I fill in "uname" with: by attr
  * Example: And I fill in "pwordcss" with: by "class" attr
  * Example: And I fill in "Your full name" with: by its "placeholder" attribute
@@ -263,10 +264,12 @@ When(/^(I|we)* fill in "([^"]*)?" with:$/, function (pronoundCase, field) {
 When(/^(I|we)* fill in "([^"]*)?" with: by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronoundCase, attrValue , itsCase, attr, attrCase) {
 
   const hasASpace = attrValue.indexOf(' ');
-  const txtValue = '';
   var selector = '';
 
-  if (!attr && hasASpace == -1){
+  if((attrValue.startsWith('#') || attrValue.startsWith('.')) && hasASpace == -1){
+    selector = attrValue;
+  }
+  else if (!attr && hasASpace == -1){
     selector = attrValue + ',#' + attrValue + ',.' + attrValue + ',[name=' + attrValue + "]," + '[value="' + attrValue + '"],[placeholder="' + attrValue + '"]';
   }
   else if (!attr && hasASpace > -1){
@@ -276,8 +279,7 @@ When(/^(I|we)* fill in "([^"]*)?" with: by( its)*( "([^"]*)?")* (attribute|attr)
     selector = '[' + attr + '="' + attrValue + '"]';
   }
 
-  return browser.setValue(selector, txtValue);
-
+  return browser.setValue(selector, '');
 });
 
 /**

@@ -22,3 +22,10 @@ I want to be able to fill input text with value by its attribute
       And I fill in "Your Password" with "1234" by attr
       When I press "Login"
       Then I should see "You enter Username: John Smith and Password: 1234"
+  
+  Scenario: Check fill in input field with empty value
+    Given I am on "/test--when--i-fill-in.html"
+     When I fill in "#uname" with: by attribute
+     And I fill in "Your Password" with: by attr
+     When I press "Login" by attr
+     Then I should see "You enter Username: and Password:"
