@@ -5,7 +5,7 @@ Feature: An example to click link by its attribute
 
   Scenario: Check click link by class attribute
     Given I am on "/test--when--i-click-link.html"
-     When I click "#aboutUs" by attr
+     When I click "#aboutUsid" by attr
       And I wait max of 2 seconds
      Then I should see "About Us"
 

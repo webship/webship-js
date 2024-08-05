@@ -296,6 +296,7 @@ When(/^(I|we)* fill in "([^"]*)?" for "([^"]*)?"$/, function (pronoundCase, valu
 
 /**
  * Fill in value for input type text by its attribute
+ * Example: When I fill in "John Smith" for "#uname" by attr
  * Example: When I fill in "John Smith" for "uname" by attr
  * Example: And I fill in "1234" for "pwordcss" by "class" attr
  * Example: And I fill in "John Smith" for "Your full name" by its "placeholder" attribute
@@ -304,9 +305,12 @@ When(/^(I|we)* fill in "([^"]*)?" for "([^"]*)?"$/, function (pronoundCase, valu
 When(/^(I|we)* fill in "([^"]*)?" for "([^"]*)?" by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronoundCase, txtValue, attrValue, itsCase, attr, attrCase) {
 
   const hasASpace = attrValue.indexOf(' ');
-
   var selector = '';
-  if (!attr && hasASpace == -1){
+
+  if((attrValue.startsWith('#') || attrValue.startsWith('.')) && hasASpace == -1){
+    selector = attrValue;
+  }
+  else if (!attr && hasASpace == -1){
     selector = attrValue + ',#' + attrValue + ',.' + attrValue + ',[name=' + attrValue + "]," + '[value="' + attrValue + '"],[placeholder="' + attrValue + '"]';
   }
   else if (!attr && hasASpace > -1){
@@ -346,7 +350,7 @@ When(/^(I|we)* fill in the following:$/, function (pronoundCase, table) {
 /**
  * Fill in value for input type text by its attributeFill form fields of type input Text with the provided table according to their attributes 
  * Example: When I fill in the following: by attr
- *            | uname | John Smith |
+ *            | #uname | John Smith |
  *            | pwordcss | 1234 |
 
  * Example: When I fill in the following: by its "placeholder" attribute
@@ -358,7 +362,11 @@ When(/^(I|we)* fill in the following: by( its)*( "([^"]*)?")* (attribute|attr)$/
 
   var hasASpace = table.rawTable[0][0].indexOf(' ');
   var selector = '';
-  if (!attr && hasASpace == -1){
+  
+  if((table.rawTable[0][0].startsWith('#') || table.rawTable[0][0].startsWith('.')) && hasASpace == -1){
+    selector = table.rawTable[0][0];
+  }
+  else if (!attr && hasASpace == -1){
     selector = table.rawTable[0][0] + ',#' + table.rawTable[0][0] + ',.' + table.rawTable[0][0] + ',[name=' + table.rawTable[0][0] + "]," + '[value="' + table.rawTable[0][0] + '"],[placeholder="' + table.rawTable[0][0] + '"]';
   }
   else if (!attr && hasASpace > -1){
@@ -375,7 +383,11 @@ When(/^(I|we)* fill in the following: by( its)*( "([^"]*)?")* (attribute|attr)$/
 
     hasASpace = row[0].indexOf(' ');
     var selector = '';
-    if (!attr && hasASpace == -1){
+
+    if((row[0].startsWith('#') || row[0].startsWith('.')) && hasASpace == -1){
+      selector = row[0];
+    }
+    else if (!attr && hasASpace == -1){
       
       selector = row[0] + ',#' + row[0] + ',.' + row[0] + ',[name=' + row[0] + "]," + '[value="' + row[0] + '"],[placeholder="' + row[0] + '"]';
     }
