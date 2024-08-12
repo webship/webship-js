@@ -404,13 +404,19 @@ When(/^(I|we)* fill in the following: by( its)*( "([^"]*)?")* (attribute|attr)$/
 });
 
 /**
- * Selects option in select field
+ * Selecting the option in the dropdown list field by its text label
  * Example: When I select "Mercedes" from "Cars"
  *
  */
 When(/^(I|we)* select "([^"]*)?" from "([^"]*)?"$/, function (pronoundCase, option, dropdownlist) {
 
-  browser.selectOption(option, dropdownlist);
+  const elementField = browser.element.findByText(dropdownlist);
+  browser.getAttribute(elementField, 'for', function (eleAttribute) {
+    return browser.waitForElementVisible('css selector', '#' + eleAttribute.value)
+    .click('#' + eleAttribute.value)
+    .click(browser.element.findByText(option))
+    .click('#' + eleAttribute.value);
+  });
 });
 
 /**
