@@ -420,6 +420,37 @@ When(/^(I|we)* select "([^"]*)?" from "([^"]*)?"$/, function (pronoundCase, opti
 });
 
 /**
+ * Selects option in select field
+ * Example: When I select "Mercedes" from "cars" its "id" attr
+ * Example: When I select "Saab" from "#cars" by attr
+ *
+ */
+
+When(/^(I|we)* select "([^"]*)?" from "([^"]*)?" by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronoundCase, option, attrValue, itsCase, attr, attrCase) {
+
+  const hasASpace = attrValue.indexOf(' ');
+
+  var selector = '';
+  if((attrValue.startsWith('#') || attrValue.startsWith('.')) && hasASpace == -1){
+    selector = attrValue;
+  }
+  else if (!attr && hasASpace == -1){
+    selector = attrValue + ',#' + attrValue + ',.' + attrValue + ',[name=' + attrValue + "]," + '[value="' + attrValue + '"],[placeholder="' + attrValue + '"]';
+  }
+  else if (!attr && hasASpace > -1){
+    selector ='[value="' + attrValue + '"],[placeholder="' + attrValue + '"]';
+  }
+  else {
+    selector = '[' + attr + '="' + attrValue + '"]';
+  }
+
+  return browser.waitForElementVisible('css selector', selector)
+    .click(selector)
+    .click(browser.element.findByText(option))
+    .click(selector);
+});
+
+/**
  * Checks checkbox specified
  * Example: When I check "Remember me"
  *
