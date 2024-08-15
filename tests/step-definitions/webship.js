@@ -765,14 +765,17 @@ When(/^(I|we)* attach the file "([^"]*)?" to "([^"]*)?"$/, function (pronoundCas
 
 /**
  * Assert, that field contain a specific text
- * Example: Then the "#username" field should contain "John Smith"
+ * Example: Then the "Username" field should contain "John Smith"
  *
  */
 Then(/^the "([^"]*)?" field should contain "([^"]*)?"$/, function (field, expectedText) {
 
-  return this.shouldSee = function (browser) {
-    browser.assert.textContains(field, expectedText);
-  };
+  const elementField = browser.element.findByText(field);
+  browser.getAttribute(elementField, 'for', function (eleAttribute) {
+    return this.shouldSee = function (browser) {
+      browser.assert.textContains('#' + eleAttribute.value, expectedText);
+    };
+  });
 });
 
 /**
