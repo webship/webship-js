@@ -6,4 +6,4 @@ Feature: An example to test if the element contains a certain expected CSS prope
     Given I am on "/test--then--the-element-should_not-contain-cssproperty.html"
     Then I should see a "body" element by attr
     When I press "Submit"
-    Then the "body" element should contain "background-color:white;" css style
+    Then the "body" element should contain "background-color:white;"

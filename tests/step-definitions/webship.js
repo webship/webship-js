@@ -696,7 +696,7 @@ Then(/^(I|we)* should not see (a|an) "([^"]*)?" element by( its)*( "([^"]*)?")* 
  * Example: Then the "body" element should contain "color:white;"
  *
  */
-Then(/^the "([^"]*)?" element should contain "([^"]*)?" css style$/, function (attrValue, elementCss) {
+Then(/^the "([^"]*)?" element should contain "([^"]*)?"$/, function (attrValue, elementCss) {
 
   const hasASpace = attrValue.indexOf(' ');
 
@@ -724,11 +724,11 @@ Then(/^the "([^"]*)?" element should contain "([^"]*)?" css style$/, function (a
 
 /**
  * Assert, that element contains a specific CSS style
- * Example: Then the "body" element should not contain "color:white;" css style
- * Example: Then the "#uname" element should not contain "border:solid 5px red;" css style
- * Example: Then the "pword" element should not contain "font-size: 26px;" css style
+ * Example: Then the "body" element should not contain "color:white;"
+ * Example: Then the "#uname" element should not contain "border:solid 5px red;"
+ * Example: Then the "pword" element should not contain "font-size: 26px;"
  */
-Then(/^the "([^"]*)?" element should not contain "([^"]*)?" css style$/, function (attrValue, elementCss) {
+Then(/^the "([^"]*)?" element should not contain "([^"]*)?"$/, function (attrValue, elementCss) {
 
   const hasASpace = attrValue.indexOf(' ');
 
