@@ -734,7 +734,7 @@ Then(/^the "([^"]*)?" element should not contain "([^"]*)?"$/, function (selecto
  *
  */
 When(/^(I|we)* attach the file "([^"]*)?" to "([^"]*)?"$/, function (pronoundCase, fileUrl, element) {
-  // browser.setValue(element, require('path').resolve(__dirname + fileUrl));
+  
 });
 
 /**
@@ -937,13 +937,9 @@ Then(/^(I|we)* should not see text matching "([^"]*)?"$/, function (pronoundCase
  *
  */
 Then(/^(I|we)* should see text matching "([^"]*)?" in the "([^"]*)?" element$/, function (pronoundCase, textPattern, element) {
-  // return browser.elements('css selector', element, function (elements) {
-  // elements.value.forEach(function (elementsObj) {
   return this.shouldSeePattern = function (browser) {
     browser.assert.textMatches(element, textPattern);
   };
-  //   });
-  // });
 });
 
 /**
@@ -953,15 +949,9 @@ Then(/^(I|we)* should see text matching "([^"]*)?" in the "([^"]*)?" element$/, 
  *
  */
 Then(/^(I|we)* should not see text matching "([^"]*)?" in the "([^"]*)?" element$/, function (pronoundCase, textPattern, element) {
-
-  // return browser.elements('css selector', element, function (elements) {
-  //   elements.value.forEach(function (elementsObj) {
   return this.shouldSeePattern = function (browser) {
     browser.assert.not.textMatches(element, textPattern);
   };
-  // browser.assert.not.textMatches(elementsObj, textPattern);
-  //   });
-  // });
 });
 
 /**
