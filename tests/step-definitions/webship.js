@@ -696,20 +696,7 @@ Then(/^(I|we)* should not see (a|an) "([^"]*)?" element by( its)*( "([^"]*)?")* 
  * Example: Then the "body" element should contain "color:white;"
  *
  */
-Then(/^the "([^"]*)?" element should contain "([^"]*)?"$/, function (attrValue, elementCss) {
-
-  const hasASpace = attrValue.indexOf(' ');
-
-  var selector = '';
-  if((attrValue.startsWith('#') || attrValue.startsWith('.')) && hasASpace == -1){
-    selector = attrValue;
-  }
-  else if (hasASpace == -1){
-    selector = attrValue + ',#' + attrValue + ',.' + attrValue + ',[name=' + attrValue + "]," + '[value="' + attrValue + '"],[placeholder="' + attrValue + '"]';
-  }
-  else if (hasASpace > -1){
-    selector ='[value="' + attrValue + '"],[placeholder="' + attrValue + '"]';
-  }
+Then(/^the "([^"]*)?" element should contain "([^"]*)?"$/, function (selector, elementCss) {
 
   elementCss = elementCss.replace(";", '');
   const cssPropertyArr = elementCss.split(":");
@@ -728,20 +715,7 @@ Then(/^the "([^"]*)?" element should contain "([^"]*)?"$/, function (attrValue, 
  * Example: Then the "#uname" element should not contain "border:solid 5px red;"
  * Example: Then the "pword" element should not contain "font-size: 26px;"
  */
-Then(/^the "([^"]*)?" element should not contain "([^"]*)?"$/, function (attrValue, elementCss) {
-
-  const hasASpace = attrValue.indexOf(' ');
-
-  var selector = '';
-  if((attrValue.startsWith('#') || attrValue.startsWith('.')) && hasASpace == -1){
-    selector = attrValue;
-  }
-  else if (hasASpace == -1){
-    selector = attrValue + ',#' + attrValue + ',.' + attrValue + ',[name=' + attrValue + "]," + '[value="' + attrValue + '"],[placeholder="' + attrValue + '"]';
-  }
-  else if (hasASpace > -1){
-    selector ='[value="' + attrValue + '"],[placeholder="' + attrValue + '"]';
-  }
+Then(/^the "([^"]*)?" element should not contain "([^"]*)?"$/, function (selector, elementCss) {
 
   elementCss = elementCss.replace(";", '');
   const cssPropertyArr = elementCss.split(":");
