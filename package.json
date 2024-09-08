@@ -42,7 +42,7 @@
     "geckodriver": "*",
     "webpack-cli": "~5",
     "webpack-dev-server": "~4",
-    "request": "~2"
+    "axios": "~1"
   },
   "bin": {
     "steplist": "./steplist.js"

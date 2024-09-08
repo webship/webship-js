@@ -2,7 +2,7 @@ const {  Given} = require('@cucumber/cucumber');
 const {  When,  Before} = require('@cucumber/cucumber');
 const {  Then} = require('@cucumber/cucumber');
 
-const request = require('request');
+const axios = require('axios');
 
 /**
  * Opens homepage.
@@ -885,8 +885,15 @@ When(/^(I|we)* wait max of (\d*) minute(s)*$/, function (pronoundCase, number, w
  */
 Then(/^the response status code should be (\d+)$/, function (expectedStatusCode) {
   return browser.url(function (currentURL) {
-    request(currentURL.value, (error, response, body) => {
-      browser.assert.equal(response.statusCode, expectedStatusCode);
+    axios.get(currentURL.value)
+    .then(function (response) {
+      browser.assert.equal(response.status, expectedStatusCode);
+    })
+    .catch(function (error) {
+      browser.assert.equal(error.status, expectedStatusCode);
+    })
+    .finally(function () {
+      // always executed
     });
   });
 });
@@ -898,8 +905,15 @@ Then(/^the response status code should be (\d+)$/, function (expectedStatusCode)
  */
 Then(/^the response status code should not be (\d+)$/, function ( expectedStatusCode) {
   return browser.url(function (currentURL) {
-    request(currentURL.value, (error, response, body) => {
-      browser.assert.not.equal(response.statusCode, expectedStatusCode);
+    axios.get(currentURL.value)
+    .then(function (response) {
+      browser.assert.not.equal(response.status, expectedStatusCode);
+    })
+    .catch(function (error) {
+      browser.assert.not.equal(error.status, expectedStatusCode);
+    })
+    .finally(function () {
+      // always executed
     });
   });
 });
