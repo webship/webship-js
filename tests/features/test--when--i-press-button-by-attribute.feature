@@ -1,9 +1,9 @@
-Feature: An example to press a button
+Feature: An example of pressing a button using its attributes.
 
-  As a tester
-  I want to be able to press a button
+  As a tester,
+  I want to be able to press a button using its attributes.
 
-  Scenario: Verify clicking a button using its ID attribute.
+  Scenario: Verify that you can click a button using its ID attribute.
     Given I am on "/test--when--i-press-button.html"
     When I press "btn-pressid" by "id" attr
     Then I should see "Button Pressed Successfully"

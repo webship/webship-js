@@ -1,7 +1,7 @@
-Feature: An example to navigate forward and backward one page
+Feature: An example of navigating forward and backward by one page.
 
-As a tester
-I want to be able to navigate forward and backward one page
+  As a tester,
+  I want to be able to navigate forward and backward by one page.
 
   Scenario: Check to navigate forward and backward one page
     Given I am on the homepage

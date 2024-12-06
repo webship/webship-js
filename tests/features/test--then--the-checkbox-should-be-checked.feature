@@ -1,16 +1,16 @@
-Feature: An example of test assert for selecting a checkbox
-  As an anonymous user
-  I want to be sure that a specific checkbox should be checked before submitting a specific action.
+Feature: An example to assert the selection of a checkbox
+  As an anonymous user, 
+  I want to ensure that a specific checkbox is checked before submitting a particular action
 
-  Scenario: Check that the checkbox should be checked
+  Scenario: Ensure that the checkbox is checked
     Given I am on "/test--then--the-checkbox-checked.html"
-    When I check "PrivacyPolicy"
-    And I press "Register" by attr
-    Then the checkbox "#PrivacyPolicy" should be checked
-    And I should see "Registration Done Successfully"
+     When I check "PrivacyPolicy"
+      And I press "Register" by attr
+     Then the checkbox "#PrivacyPolicy" should be checked
+      And I should see "Registration Done Successfully"
 
-  Scenario: Check that the checkbox should not be checked
+  Scenario: Ensure that the checkbox is not checked
     Given I am on "/test--then--the-checkbox-checked.html"
-    When I press "Register" by attr
-    Then the "#PrivacyPolicy" checkbox should not be checked
-    And I should see "Please check Agree to Privacy Policy"
+     When I press "Register" by attr
+     Then the "#PrivacyPolicy" checkbox should not be checked
+      And I should see "Please check Agree to Privacy Policy"

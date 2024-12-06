@@ -1,12 +1,11 @@
-Feature: An example to test response page if contain a text 
-As a tester, 
-I want to be able to navigate to a page 
-So that I can check if this page contains a specific text
+Feature: An example to ensure that the response page contains specific text 
+  As a tester, 
+  I want to navigate to a page to verify whether it contains specific text
 
-  Scenario: Check response page if contain a text
+  Scenario: Ensure that the response page contains specific text
     Given I am on the homepage
      Then the response should contain "Welcome to the homepage"
 
-  Scenario: Check response page if not contain a text
+  Scenario: Ensure that the response page does not contain specific text
     Given I am on the homepage
      Then the response should not contain "Access denied"
