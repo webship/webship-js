@@ -5,7 +5,8 @@ services:
     alias: selenium
 
 variables:
-  CHROME_VERSION: CHROME_VERSION=$(google-chrome --product-version);
+  CHROME_VERSION: "115.0.5790.110-1"
+  CHROME_DRIVER_VERSION: "114.0.5735.90"
   NODE_OPTIONS: "--openssl-legacy-provider"
 
 before_script:
@@ -23,6 +24,7 @@ before_script:
   - wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
   - sudo dpkg -i google-chrome-stable_current_amd64.deb
   - rm google-chrome-stable_current_amd64.deb
+  - CHROME_VERSION=$(google-chrome --product-version)
   - wget https://storage.googleapis.com/chrome-for-testing-public/$CHROME_VERSION/linux64/chromedriver-linux64.zip
   - unzip chromedriver-linux64.zip
   - sudo chmod +x chromedriver-linux64/chromedriver
