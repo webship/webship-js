@@ -41,32 +41,37 @@ commands:
           name: Install/Update Google Chrome browser
           command: |
             sudo apt install libu2f-udev
-            sudo apt-get install libappindicator1 fonts-liberation libgbm1 libgtk-3-0 xdg-utils
-            export CHROME_BIN=/usr/bin/google-chrome
-            CHROME_VERSION="115.0.5790.110-1"
-            wget https://mirror.cs.uchicago.edu/google-chrome/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb
-            sudo dpkg -i google-chrome-stable_${CHROME_VERSION}_amd64.deb
-            rm google-chrome-stable_${CHROME_VERSION}_amd64.deb
- 
-      ## Install/Update Chrome Driver.
+            sudo apt-get install libgbm1 libvulkan1 libnss3 libgconf-2-4 libxss1 fonts-liberation libappindicator3-1 libatk-bridge2.0-0 xdg-utils libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 libasound2 libxtst6 xauth
+            wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+            sudo dpkg -i google-chrome-stable_current_amd64.deb
+            sudo apt-get install -f
+            rm google-chrome-stable_current_amd64.deb
+            sudo chmod +x /usr/bin/google-chrome
+            /usr/bin/google-chrome --version
+            google-chrome --version
       - run:
           name: Install/Update Chrome Driver
           command: |
-            CHROME_DRIVER_VERSION=114.0.5735.90;
-            echo $CHROME_DRIVER_VERSION;
-            wget http://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip
-            unzip chromedriver_linux64.zip
-            sudo chmod +x chromedriver
-            sudo mv -f chromedriver /usr/bin/
-            rm chromedriver_linux64.zip
-      
-      ## Run Selenium Standalone server.
+            CHROME_VERSION=$(google-chrome --product-version);
+            echo $CHROME_VERSION;
+            wget https://storage.googleapis.com/chrome-for-testing-public/$CHROME_VERSION/linux64/chromedriver-linux64.zip
+            unzip chromedriver-linux64.zip
+            sudo chmod +x chromedriver-linux64/chromedriver
+            sudo mv -f chromedriver-linux64/chromedriver /usr/bin/
+            rm -rf chromedriver-linux64.zip chromedriver-linux64
+            chromedriver --version
+      - run:
+          name: Install Java
+          command: |
+            sudo apt update
+            sudo apt install -y openjdk-11-jre openjdk-11-jre-headless openjdk-11-jdk openjdk-11-jdk-headless
       - run:
           name: Run Selenium Standalone server
           command: |
+            export DISPLAY=:99
             if [[ ! -f /home/circleci/selenium-server-4.4.0.jar ]]; then wget -O /home/circleci/selenium-server-4.4.0.jar https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.4.0/selenium-server-4.4.0.jar; fi
             cd /home/circleci/
-            java -jar selenium-server-4.4.0.jar standalone
+            java -jar selenium-server-4.4.0.jar standalone --port 4444
           background: true
           
 jobs:
