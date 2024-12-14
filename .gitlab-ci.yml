@@ -5,8 +5,7 @@ services:
     alias: selenium
 
 variables:
-  CHROME_VERSION: "115.0.5790.110-1"
-  CHROME_DRIVER_VERSION: "114.0.5735.90"
+  CHROME_VERSION: CHROME_VERSION=$(google-chrome --product-version);
   NODE_OPTIONS: "--openssl-legacy-provider"
 
 before_script:
@@ -21,14 +20,14 @@ before_script:
   - sudo apt-get install -y openjdk-11-jre openjdk-11-jre-headless openjdk-11-jdk openjdk-11-jdk-headless
   - sudo apt-get install -y libu2f-udev
   - sudo apt-get install -y libappindicator1 fonts-liberation libgbm1 libgtk-3-0 xdg-utils
-  - wget https://mirror.cs.uchicago.edu/google-chrome/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb
-  - sudo dpkg -i google-chrome-stable_${CHROME_VERSION}_amd64.deb
-  - rm google-chrome-stable_${CHROME_VERSION}_amd64.deb
-  - wget http://chromedriver.storage.googleapis.com/${CHROME_DRIVER_VERSION}/chromedriver_linux64.zip
-  - unzip chromedriver_linux64.zip
-  - sudo chmod +x chromedriver
-  - sudo mv chromedriver /usr/bin/
-  - rm chromedriver_linux64.zip
+  - wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+  - sudo dpkg -i google-chrome-stable_current_amd64.deb
+  - rm google-chrome-stable_current_amd64.deb
+  - wget https://storage.googleapis.com/chrome-for-testing-public/$CHROME_VERSION/linux64/chromedriver-linux64.zip
+  - unzip chromedriver-linux64.zip
+  - sudo chmod +x chromedriver-linux64/chromedriver
+  - sudo mv -f chromedriver-linux64/chromedriver /usr/bin/
+  - rm -rf chromedriver-linux64.zip chromedriver-linux64
   
 stages:
   - build
