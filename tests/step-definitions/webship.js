@@ -879,6 +879,14 @@ When(/^(I|we)* wait max of (\d*) minute(s)*$/, function (pronoundCase, number, w
 });
 
 /**
+ * Wait until the page is loaded.
+ * Example: When I wait until the page is loaded
+ *
+ */
+When(/^(I|we)* wait until the page( is)* loaded*$/, function (pronoundCase, withIs) {
+  return browser.waitForElementPresent('body', 10000);
+});
+/**
  * Checks, that the current page response status is equal the specified code
  * Example: Then the response status code should be 200
  *

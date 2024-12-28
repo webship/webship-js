@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset='utf-8'>
+  <title>I wait page until is loaded</title>
+  <style>
+    .container,
+    .container input,
+    .container button {
+      font-size: 26px;
+    }
+
+    .style {
+      font-size: 22px;
+      line-height: 30px;
+    }
+    
+    #complete{
+      font-size: 32px;
+      line-height: 30px;
+    }
+
+  </style>
+
+</head>
+
+<body>
+  <h1>Waiting for the page to load</h1>
+  <div id="complete">
+  
+  </div>
+
+  <div id="container">
+  
+  </div>
+</body>
+
+<script>
+
+  for(var i=0; i<2000; i++){
+    document.getElementById("container").innerHTML += '<p class="style">' + i + '</p>';
+  }
+  document.getElementById("complete").innerHTML += "The waiting process was completed successfully.";
+ 
+</script>
+</html>
