@@ -734,7 +734,10 @@ Then(/^the "([^"]*)?" element should not contain "([^"]*)?"$/, function (selecto
  *
  */
 When(/^(I|we)* attach the file "([^"]*)?" to "([^"]*)?"$/, function (pronoundCase, fileUrl, element) {
-  
+  var dirname = __dirname + '';
+  dirname = dirname.substring(0, dirname.lastIndexOf("/"));
+
+  return browser.setValue(element, dirname + '/assets/' + fileUrl);
 });
 
 /**
