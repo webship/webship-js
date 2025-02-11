@@ -13,6 +13,7 @@ jobs:
     steps:
       - name: Install/Update Google Chrome browser
         run: |
+          
           sudo apt install libu2f-udev
           sudo apt-get install libappindicator1 fonts-liberation libgbm1 libgtk-3-0 xdg-utils
           export CHROME_BIN=/usr/bin/google-chrome
