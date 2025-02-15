@@ -122,9 +122,12 @@ When(/^(I|we)* press "([^"]*)?"$/, function (pronoundCase, element) {
 When(/^(I|we)* press "([^"]*)?" by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronoundCase, attrValue, itsCase, attr, attrCase) {
 
   const hasASpace = attrValue.indexOf(' ');
-
   var selector = '';
-  if (!attr && hasASpace == -1){
+
+  if((attrValue.startsWith('#') || attrValue.startsWith('.')) && hasASpace == -1){
+    selector = attrValue;
+  }
+  else if (!attr && hasASpace == -1){
     selector = attrValue + ',#' + attrValue + ',.' + attrValue + ',[name=' + attrValue + "]," + '[value="' + attrValue + '"],[placeholder="' + attrValue + '"]';
   }
   else if (!attr && hasASpace > -1){
@@ -134,7 +137,7 @@ When(/^(I|we)* press "([^"]*)?" by( its)*( "([^"]*)?")* (attribute|attr)$/, func
     selector = '[' + attr + '="' + attrValue + '"]';
   }
 
-  browser.click(selector);
+  return browser.click(selector);
 });
 
 /**
