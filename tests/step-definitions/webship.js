@@ -730,7 +730,7 @@ Then(/^the "([^"]*)?" element should not contain "([^"]*)?"$/, function (selecto
 
 /**
  * Attaches file to field
- * Example: When I attach the file "profileIcon.jpg" to "profileIconUpload"
+ * Example: When I attach the file "profileIcon.jpg" to "#profileIconUpload"
  *
  */
 When(/^(I|we)* attach the file "([^"]*)?" to "([^"]*)?"$/, function (pronoundCase, fileUrl, element) {
