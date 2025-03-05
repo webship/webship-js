@@ -521,6 +521,16 @@ Then(/^(I|we)* should be on "([^"]*)?"$/, function (pronoundCase, url) {
 });
 
 /**
+ * Verify, that the current link contains the specified path.
+ * Example: Then the "Login" link should contain "/log-in"
+ *
+ */
+Then(/^the "([^"]*)?" link should contain "([^"]*)?"$/, function (element, url) {
+  const elementField = browser.element.findByText(element, { exact: true });
+  return browser.assert.attributeContains(elementField, 'href', url);
+});
+
+/**
  * Checks, that HTML response contains specific text
  * Example: Then the response should contain "Welcome visitor, How can I help you?"
  *
