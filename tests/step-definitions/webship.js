@@ -521,13 +521,41 @@ Then(/^(I|we)* should be on "([^"]*)?"$/, function (pronoundCase, url) {
 });
 
 /**
- * Verify, that the current link contains the specified path.
+ * Verify, that the current link contains the specified URL.
  * Example: Then the "Login" link should contain "/log-in"
  *
  */
 Then(/^the "([^"]*)?" link should contain "([^"]*)?"$/, function (element, url) {
   const elementField = browser.element.findByText(element, { exact: true });
   return browser.assert.attributeContains(elementField, 'href', url);
+});
+
+/**
+ * Verify, that the current link contains the specified URL, found by its attributes.
+ * Example: Then the "#aboutUsid" link should contain "about" by attr
+ * Example: And the "aboutUs" link should contain "about" by its "class" attribute
+ * Example: And the ".contactUs" link should contain "/contact-" by attr
+ *
+ */
+Then(/^the "([^"]*)?" link should contain "([^"]*)?" by( its)*( "([^"]*)?")* (attribute|attr)$/, function (attrValue, url, itsCase, attr, attrCase) {
+
+  const hasASpace = attrValue.indexOf(' ');
+  var selector = '';
+
+  if((attrValue.startsWith('#') || attrValue.startsWith('.')) && hasASpace == -1){
+    selector = attrValue;
+  }
+  else if (!attr && hasASpace == -1){
+    selector = attrValue + ',#' + attrValue + ',.' + attrValue + ',[name=' + attrValue + "]," + '[value="' + attrValue + '"],[placeholder="' + attrValue + '"]';
+  }
+  else if (!attr && hasASpace > -1){
+    selector ='[value="' + attrValue + '"],[placeholder="' + attrValue + '"]';
+  }
+  else {
+    selector = '[' + attr + '="' + attrValue + '"]';
+  }
+
+  return browser.assert.attributeContains(selector, 'href', url);
 });
 
 /**
