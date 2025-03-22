@@ -516,6 +516,7 @@ Then(/^(I|we)* should not be on the homepage$/, function (pronoundCase) {
  * Example: And I should be on "http://google.com"
  *
  */
+
 Then(/^(I|we)* should be on "([^"]*)?"$/, function (pronoundCase, url) {
   return browser.assert.urlContains(url);
 });
@@ -546,7 +547,7 @@ Then(/^the "([^"]*)?" link should contain "([^"]*)?" by( its)*( "([^"]*)?")* (at
     selector = attrValue;
   }
   else if (!attr && hasASpace == -1){
-    selector = attrValue + ',#' + attrValue + ',.' + attrValue + ',[name=' + attrValue + "]," + '[value="' + attrValue + '"],[placeholder="' + attrValue + '"]';
+    selector = attrValue + ',#' + attrValue + ',.' + attrValue + ',[name=' + attrValue + "]," + '[value="' + attrValue + '"],[placeholder="' + attrValue + '"],' + '[title="' + attrValue + '"]';
   }
   else if (!attr && hasASpace > -1){
     selector ='[value="' + attrValue + '"],[placeholder="' + attrValue + '"]';
