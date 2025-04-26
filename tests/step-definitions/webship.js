@@ -81,7 +81,9 @@ Then(/^(I|we)* should see "([^"]*)?"$/, function (pronoundCase, expectedText) {
  * 
  */
 Then(/^(I|we)* should not see "([^"]*)?"$/, function (pronoundCase, expectedText) {
+  return this.shouldSee = function (browser) {
     browser.assert.not.textContains("html", expectedText);
+  };
 });
 
 /**
