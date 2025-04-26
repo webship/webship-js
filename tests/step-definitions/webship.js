@@ -68,7 +68,9 @@ When(/^(I|we)* go to "([^"]*)?"$/, function (pronoundCase, url) {
  * 
  */
 Then(/^(I|we)* should see "([^"]*)?"$/, function (pronoundCase, expectedText) {
+  return this.shouldSee = function (browser) {
     browser.assert.textContains("html", expectedText);
+  };
 });
 
 /**
