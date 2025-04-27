@@ -889,9 +889,10 @@ Then(/^the checkbox "([^"]*)?" is not checked$/, function (checkbox) {
  * Wait a specific number of seconds.
  * Example: When I wait 1 second
  * Example: When I wait 5 seconds
+ * Example: When I wait 3s
  *
  */
-When(/^(I|we)* wait (\d*) second(s)*$/, function (pronoundCase, number, withS) {
+When(/^(I|we)* wait (\d*)( second)*(s)*$/, function (pronoundCase, number, withWord, withS) {
   var waitTime = number * 1000;
   return browser.pause(waitTime);
 });
@@ -901,7 +902,7 @@ When(/^(I|we)* wait (\d*) second(s)*$/, function (pronoundCase, number, withS) {
  * Example: When I wait max of 6 seconds
  *
  */
-When(/^(I|we)* wait max of (\d*) second(s)*$/, function (pronoundCase, number, withS) {
+When(/^(I|we)* wait max of (\d*)( second)*(s)*$/, function (pronoundCase, number, withWord, withS) {
   var waitTime = number * 1000;
   return browser.waitForElementPresent('body', waitTime);
 });
@@ -912,7 +913,7 @@ When(/^(I|we)* wait max of (\d*) second(s)*$/, function (pronoundCase, number, w
  * Example: When I wait 5 minutes
  *
  */
-When(/^(I|we)* wait (\d*) minute(s)*$/, function (pronoundCase, number, withS) {
+When(/^(I|we)* wait (\d*)( minute)*(m)*$/, function (pronoundCase, number, withWord, withM) {
   var waitTime = number * 1000 * 60;
   return browser.pause(waitTime);
 });
@@ -922,7 +923,7 @@ When(/^(I|we)* wait (\d*) minute(s)*$/, function (pronoundCase, number, withS) {
  * Example: When I wait max of 6 minutes
  *
  */
-When(/^(I|we)* wait max of (\d*) minute(s)*$/, function (pronoundCase, number, withS) {
+When(/^(I|we)* wait max of (\d*)( minute)*(m)*$/, function (pronoundCase, number, withWord, withM) {
   var waitTime = number * 1000 * 60;
   return browser.waitForElementPresent('body', waitTime);
 });
