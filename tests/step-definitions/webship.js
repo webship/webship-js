@@ -212,7 +212,7 @@ When(/^(I|we)* reload the page$/, function (pronoundCase) {
  *
  */
 When(/^(I|we)* fill in "([^"]*)?" with "([^"]*)?"$/, function (pronoundCase, field, value) {
-  const elementField = browser.element.findByText(field);
+  const elementField = browser.element.findByText(field, { exact: true });
   browser.getAttribute(elementField, 'for', function (eleAttribute) {
     return browser.setValue('#' + eleAttribute.value, value);
   });
@@ -254,7 +254,7 @@ When(/^(I|we)* fill in "([^"]*)?" with "([^"]*)?" by( its)*( "([^"]*)?")* (attri
  *
  */
 When(/^(I|we)* fill in "([^"]*)?" with:$/, function (pronoundCase, field) {
-  const elementField = browser.element.findByText(field);
+  const elementField = browser.element.findByText(field, { exact: true });
   browser.getAttribute(elementField, 'for', function (eleAttribute) {
     return browser.setValue('#' + eleAttribute.value, '');
   });
@@ -295,7 +295,7 @@ When(/^(I|we)* fill in "([^"]*)?" with: by( its)*( "([^"]*)?")* (attribute|attr)
  *
  */
 When(/^(I|we)* fill in "([^"]*)?" for "([^"]*)?"$/, function (pronoundCase, value, field) {
-  const elementField = browser.element.findByText(field);
+  const elementField = browser.element.findByText(field, { exact: true });
   browser.getAttribute(elementField, 'for', function (eleAttribute) {
     return browser.setValue('#' + eleAttribute.value, value);
   });
@@ -340,14 +340,14 @@ When(/^(I|we)* fill in "([^"]*)?" for "([^"]*)?" by( its)*( "([^"]*)?")* (attrib
 
 When(/^(I|we)* fill in the following:$/, function (pronoundCase, table) {
 
-  var elementField = browser.element.findByText(table.rawTable[0][0]);
+  var elementField = browser.element.findByText(table.rawTable[0][0], { exact: true });
   browser.getAttribute(elementField, 'for', function (eleAttribute) {
     browser.setValue('#' + eleAttribute.value, table.rawTable[0][1]);
   });
   
   table.rows().forEach(row => {
 
-    elementField = browser.element.findByText(row[0]);
+    elementField = browser.element.findByText(row[0], { exact: true });
     browser.getAttribute(elementField, 'for', function (eleAttribute2) {
         browser.setValue('#' + eleAttribute2.value, row[1]);
     });
@@ -417,11 +417,11 @@ When(/^(I|we)* fill in the following: by( its)*( "([^"]*)?")* (attribute|attr)$/
  */
 When(/^(I|we)* select "([^"]*)?" from "([^"]*)?"$/, function (pronoundCase, option, dropdownlist) {
 
-  const elementField = browser.element.findByText(dropdownlist);
+  const elementField = browser.element.findByText(dropdownlist, { exact: true });
   browser.getAttribute(elementField, 'for', function (eleAttribute) {
     return browser.waitForElementVisible('css selector', '#' + eleAttribute.value)
     .click('#' + eleAttribute.value)
-    .click(browser.element.findByText(option))
+    .click(browser.element.findByText(option, { exact: true }))
     .click('#' + eleAttribute.value);
   });
 });
@@ -453,7 +453,7 @@ When(/^(I|we)* select "([^"]*)?" from "([^"]*)?" by( its)*( "([^"]*)?")* (attrib
 
   return browser.waitForElementVisible('css selector', selector)
     .click(selector)
-    .click(browser.element.findByText(option))
+    .click(browser.element.findByText(option, { exact: true }))
     .click(selector);
 });
 
@@ -592,7 +592,7 @@ Then(/^the response should not contain "([^"]*)?"$/, function (expectedText) {
  * 
  */
 Then(/^(I|we)* should see "([^"]*)?" in the "([^"]*)?" element$/, function (pronoundCase, expectedText, element) {
-  const elementField = browser.element.findByText(element);
+  const elementField = browser.element.findByText(element, { exact: true });
   browser.getAttribute(elementField, 'for', function (eleAttribute) {
     return this.shouldSee = function (browser) {
       browser.assert.textContains('#' + eleAttribute.value, expectedText);
@@ -633,7 +633,7 @@ Then(/^(I|we)* should see "([^"]*)?" in the "([^"]*)?" element by( its)*( "([^"]
  */
 Then(/^(I|we)* should not see "([^"]*)?" in the "([^"]*)?" element$/, function (pronoundCase, expectedText, element) {
 
-  const elementField = browser.element.findByText(element);
+  const elementField = browser.element.findByText(element, { exact: true });
   browser.getAttribute(elementField, 'for', function (eleAttribute) {
     return this.shouldSee = function (browser) {
       browser.assert.not.textContains('#' + eleAttribute.value, expectedText);
@@ -793,7 +793,7 @@ When(/^(I|we)* attach the file "([^"]*)?" to "([^"]*)?"$/, function (pronoundCas
  */
 Then(/^the "([^"]*)?" field should contain "([^"]*)?"$/, function (field, expectedText) {
 
-  const elementField = browser.element.findByText(field);
+  const elementField = browser.element.findByText(field, { exact: true });
   browser.getAttribute(elementField, 'for', function (eleAttribute) {
     return this.shouldSee = function (browser) {
       browser.assert.textContains('#' + eleAttribute.value, expectedText);
