@@ -4,21 +4,14 @@ const {  Then} = require('@cucumber/cucumber');
 
 const axios = require('axios');
 
-/**
- * Opens homepage.
- * Example: Given I am on homepage
- * 
- */
-Given(/^(I am|we are) on homepage$/, function (pronoundCase) {
-  return browser.url(browser.launch_url);
-});
 
 /**
  * Opens homepage.
+ * Example: Given I am on homepage
  * Example: Given I am on the homepage
  * 
  */
-Given(/^(I am|we are) on the homepage$/, function (pronoundCase) {
+Given(/^(I am|we are) on( the)* homepage$/, function (pronoundCase, theCase) {
   return browser.url(browser.launch_url);
 });
 
@@ -47,7 +40,7 @@ When(/^(I|we)* go to homepage$/, function (pronoundCase) {
  * Example: And I go to the "/"
  *
  */
-When(/^(I|we)* go to the homepage$/, function (pronoundCase) {
+When(/^(I|we)* go to( the)* homepage$/, function (pronoundCase, theCase) {
   return browser.url(browser.launch_url);
 });
 
@@ -201,7 +194,7 @@ When(/^(I|we)* reload page$/, function (pronoundCase) {
  * Example: And I reload the page
  *
  */
-When(/^(I|we)* reload the page$/, function (pronoundCase) {
+When(/^(I|we)* reload( the)* page$/, function (pronoundCase, theCase) {
   return browser.refresh(browser.getCurrentUrl());
 });
 
@@ -338,7 +331,7 @@ When(/^(I|we)* fill in "([^"]*)?" for "([^"]*)?" by( its)*( "([^"]*)?")* (attrib
  *              | Password | 1234 |
  */
 
-When(/^(I|we)* fill in the following:$/, function (pronoundCase, table) {
+When(/^(I|we)* fill in( the)* following:$/, function (pronoundCase, theCase, table) {
 
   var elementField = browser.element.findByText(table.rawTable[0][0], { exact: true });
   browser.getAttribute(elementField, 'for', function (eleAttribute) {
@@ -365,7 +358,7 @@ When(/^(I|we)* fill in the following:$/, function (pronoundCase, table) {
  *            | Your Password | 1234 |
  */
 
-When(/^(I|we)* fill in the following: by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronoundCase, itsCase, attr, attrCase, table) {
+When(/^(I|we)* fill in( the)* following: by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronoundCase, theCase, itsCase, attr, attrCase, table) {
 
   var hasASpace = table.rawTable[0][0].indexOf(' ');
   var selector = '';
@@ -480,18 +473,10 @@ When(/^(I|we)* uncheck "([^"]*)?"$/, function (pronoundCase, item) {
 /**
  * Verify, that current page is the homepage
  * Example: Then I should be on homepage
- *
- */
-Then(/^(I|we)* should be on homepage$/, function (pronoundCase) {
-  return browser.assert.urlMatches(browser.launch_url);
-});
-
-/**
- * Verify, that current page is the homepage
  * Example: Then I should be on the homepage
  *
  */
-Then(/^(I|we)* should be on the homepage$/, function (pronoundCase) {
+Then(/^(I|we)* should be on( the)* homepage$/, function (pronoundCase, theCase) {
   return browser.assert.urlMatches(browser.launch_url);
 });
 
@@ -509,7 +494,7 @@ Then(/^(I|we)* should not be on homepage$/, function (pronoundCase) {
  * Example: Then I should not be on the homepage
  *
  */
-Then(/^(I|we)* should not be on the homepage$/, function (pronoundCase) {
+Then(/^(I|we)* should not be on( the)* homepage$/, function (pronoundCase, theCase) {
   return browser.assert.not.urlMatches(browser.launch_url);
 });
 
@@ -530,7 +515,7 @@ Then(/^(I|we)* should be on "([^"]*)?"$/, function (pronoundCase, url) {
  * Example: Then the "Login" link should contain "/log-in"
  *
  */
-Then(/^the "([^"]*)?" link should contain "([^"]*)?"$/, function (element, url) {
+Then(/^(the )*"([^"]*)?" link should contain "([^"]*)?"$/, function (theCase, element, url) {
   const elementField = browser.element.findByText(element, { exact: true });
   return browser.assert.attributeContains(elementField, 'href', url);
 });
@@ -542,7 +527,7 @@ Then(/^the "([^"]*)?" link should contain "([^"]*)?"$/, function (element, url) 
  * Example: And the ".contactUs" link should contain "/contact-" by attr
  *
  */
-Then(/^the "([^"]*)?" link should contain "([^"]*)?" by( its)*( "([^"]*)?")* (attribute|attr)$/, function (attrValue, url, itsCase, attr, attrCase) {
+Then(/^(the )*"([^"]*)?" link should contain "([^"]*)?" by( its)*( "([^"]*)?")* (attribute|attr)$/, function (theCase, attrValue, url, itsCase, attr, attrCase) {
 
   const hasASpace = attrValue.indexOf(' ');
   var selector = '';
@@ -568,7 +553,7 @@ Then(/^the "([^"]*)?" link should contain "([^"]*)?" by( its)*( "([^"]*)?")* (at
  * Example: Then the response should contain "Welcome visitor, How can I help you?"
  *
  */
-Then(/^the response should contain "([^"]*)?"$/, function (expectedText) {
+Then(/^(the )*response should contain "([^"]*)?"$/, function (theCase, expectedText) {
   return this.shouldSee = function (browser) {
     browser.assert.textContains("html", expectedText);
   };
@@ -579,7 +564,7 @@ Then(/^the response should contain "([^"]*)?"$/, function (expectedText) {
  * Example: Then the response should not contain "Error: Ambiguous messages that are unclear"
  *
  */
-Then(/^the response should not contain "([^"]*)?"$/, function (expectedText) {
+Then(/^(the )*response should not contain "([^"]*)?"$/, function (theCase, expectedText) {
   return this.shouldSee = function (browser) {
     browser.assert.not.textContains("html", expectedText);
   };
@@ -591,7 +576,7 @@ Then(/^the response should not contain "([^"]*)?"$/, function (expectedText) {
  * Example: Then I should see "John Smith" in the "Username" element
  * 
  */
-Then(/^(I|we)* should see "([^"]*)?" in the "([^"]*)?" element$/, function (pronoundCase, expectedText, element) {
+Then(/^(I|we)* should see "([^"]*)?" in( the)* "([^"]*)?" element$/, function (pronoundCase, expectedText,theCase , element) {
   const elementField = browser.element.findByText(element, { exact: true });
   browser.getAttribute(elementField, 'for', function (eleAttribute) {
     return this.shouldSee = function (browser) {
@@ -606,7 +591,7 @@ Then(/^(I|we)* should see "([^"]*)?" in the "([^"]*)?" element$/, function (pron
  * Example: Then I should see "1234" in the "pwordcss" element by attr
  * 
  */
-Then(/^(I|we)* should see "([^"]*)?" in the "([^"]*)?" element by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronoundCase, expectedText, attrValue, itsCase, attr, attrCase) {
+Then(/^(I|we)* should see "([^"]*)?" in( the)* "([^"]*)?" element by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronoundCase, expectedText, theCase, attrValue, itsCase, attr, attrCase) {
 
   const hasASpace = attrValue.indexOf(' ');
 
@@ -631,7 +616,7 @@ Then(/^(I|we)* should see "([^"]*)?" in the "([^"]*)?" element by( its)*( "([^"]
  * Example: Then I should not see "Joe Smith" in the "Username" element
  *
  */
-Then(/^(I|we)* should not see "([^"]*)?" in the "([^"]*)?" element$/, function (pronoundCase, expectedText, element) {
+Then(/^(I|we)* should not see "([^"]*)?" in( the)* "([^"]*)?" element$/, function (pronoundCase, expectedText, theCase, element) {
 
   const elementField = browser.element.findByText(element, { exact: true });
   browser.getAttribute(elementField, 'for', function (eleAttribute) {
@@ -647,7 +632,7 @@ Then(/^(I|we)* should not see "([^"]*)?" in the "([^"]*)?" element$/, function (
  * Example: Then I should not see "1234" in the "pwordcss" element by attr
  * 
  */
-Then(/^(I|we)* should not see "([^"]*)?" in the "([^"]*)?" element by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronoundCase, expectedText, attrValue, itsCase, attr, attrCase) {
+Then(/^(I|we)* should not see "([^"]*)?" in( the)* "([^"]*)?" element by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronoundCase, expectedText, theCase, attrValue, itsCase, attr, attrCase) {
 
   const hasASpace = attrValue.indexOf(' ');
 
@@ -742,7 +727,7 @@ Then(/^(I|we)* should not see (a|an) "([^"]*)?" element by( its)*( "([^"]*)?")* 
  * Example: Then the "body" element should contain "color:white;"
  *
  */
-Then(/^the "([^"]*)?" element should contain "([^"]*)?"$/, function (selector, elementCss) {
+Then(/^(the )*"([^"]*)?" element should contain "([^"]*)?"$/, function (theCase ,selector, elementCss) {
 
   elementCss = elementCss.replace(";", '');
   const cssPropertyArr = elementCss.split(":");
@@ -761,7 +746,7 @@ Then(/^the "([^"]*)?" element should contain "([^"]*)?"$/, function (selector, e
  * Example: Then the "#uname" element should not contain "border:solid 5px red;"
  * Example: Then the "pword" element should not contain "font-size: 26px;"
  */
-Then(/^the "([^"]*)?" element should not contain "([^"]*)?"$/, function (selector, elementCss) {
+Then(/^(the )*"([^"]*)?" element should not contain "([^"]*)?"$/, function (theCase, selector, elementCss) {
 
   elementCss = elementCss.replace(";", '');
   const cssPropertyArr = elementCss.split(":");
@@ -779,7 +764,7 @@ Then(/^the "([^"]*)?" element should not contain "([^"]*)?"$/, function (selecto
  * Example: When I attach the file "profileIcon.jpg" to "#profileIconUpload"
  *
  */
-When(/^(I|we)* attach the file "([^"]*)?" to "([^"]*)?"$/, function (pronoundCase, fileUrl, element) {
+When(/^(I|we)* attach( the)* file "([^"]*)?" to "([^"]*)?"$/, function (pronoundCase, theCase, fileUrl, element) {
   var dirname = __dirname + '';
   dirname = dirname.substring(0, dirname.lastIndexOf("/"));
 
@@ -791,7 +776,7 @@ When(/^(I|we)* attach the file "([^"]*)?" to "([^"]*)?"$/, function (pronoundCas
  * Example: Then the "Username" field should contain "John Smith"
  *
  */
-Then(/^the "([^"]*)?" field should contain "([^"]*)?"$/, function (field, expectedText) {
+Then(/^(the )*"([^"]*)?" field should contain "([^"]*)?"$/, function (theCase, field, expectedText) {
 
   const elementField = browser.element.findByText(field, { exact: true });
   browser.getAttribute(elementField, 'for', function (eleAttribute) {
@@ -806,7 +791,7 @@ Then(/^the "([^"]*)?" field should contain "([^"]*)?"$/, function (field, expect
  * Example: Then the "#username" field should not contain "John Smith"
  *
  */
-Then(/^the "([^"]*)?" field should not contain "([^"]*)?"$/, function (field, expectedText) {
+Then(/^(the )*"([^"]*)?" field should not contain "([^"]*)?"$/, function (theCase, field, expectedText) {
 
   return this.shouldSee = function (browser) {
     browser.assert.not.textContains(field, expectedText);
@@ -818,7 +803,7 @@ Then(/^the "([^"]*)?" field should not contain "([^"]*)?"$/, function (field, ex
  * Example: Then the "#PrivacyPolicy" checkbox should be checked
  * 
  */
-Then(/^the "([^"]*)?" checkbox should be checked$/, function (checkbox) {
+Then(/^(the )*"([^"]*)?" checkbox should be checked$/, function (theCase, checkbox) {
   return browser.expect.element(checkbox).to.be.selected;
 });
 
@@ -827,7 +812,7 @@ Then(/^the "([^"]*)?" checkbox should be checked$/, function (checkbox) {
  * Example: Then the "#PrivacyPolicy" checkbox should not be checked
  * 
  */
-Then(/^the "([^"]*)?" checkbox should not be checked$/, function (checkbox) {
+Then(/^(the )*"([^"]*)?" checkbox should not be checked$/, function (theCase, checkbox) {
   return browser.expect.element(checkbox).to.not.be.selected;
 });
 
@@ -836,7 +821,7 @@ Then(/^the "([^"]*)?" checkbox should not be checked$/, function (checkbox) {
  * Example: Then the "#rememberMe" checkbox is checked
  *
  */
-Then(/^the "([^"]*)?" checkbox is checked$/, function (checkbox) {
+Then(/^(the )*"([^"]*)?" checkbox is checked$/, function (theCase, checkbox) {
   return browser.expect.element(checkbox).to.be.selected;
 });
 
@@ -845,7 +830,7 @@ Then(/^the "([^"]*)?" checkbox is checked$/, function (checkbox) {
  * Example: Then the "#rememberMe" checkbox is not checked
  *
  */
-Then(/^the "([^"]*)?" checkbox is not checked$/, function (checkbox) {
+Then(/^(the )*"([^"]*)?" checkbox is not checked$/, function (theCase, checkbox) {
   return browser.expect.element(checkbox).to.not.be.selected;
 });
 
@@ -854,7 +839,7 @@ Then(/^the "([^"]*)?" checkbox is not checked$/, function (checkbox) {
  * Example: Then the checkbox "#PrivacyPolicy" should be checked
  *
  */
-Then(/^the checkbox "([^"]*)?" should be checked$/, function (checkbox) {
+Then(/^(the )*checkbox "([^"]*)?" should be checked$/, function (theCase, checkbox) {
   return browser.expect.element(checkbox).to.be.selected;
 });
 
@@ -863,7 +848,7 @@ Then(/^the checkbox "([^"]*)?" should be checked$/, function (checkbox) {
  * Example: Then the checkbox "#PrivacyPolicy" should not be checked
  *
  */
-Then(/^the checkbox "([^"]*)?" should not be checked$/, function (checkbox) {
+Then(/^(the )*checkbox "([^"]*)?" should not be checked$/, function (theCase, checkbox) {
   return browser.expect.element(checkbox).to.not.be.selected;
 });
 
@@ -872,7 +857,7 @@ Then(/^the checkbox "([^"]*)?" should not be checked$/, function (checkbox) {
  * Example: Then the checkbox "#rememberMe" is checked
  *
  */
-Then(/^the checkbox "([^"]*)?" is checked$/, function (checkbox) {
+Then(/^(the )*checkbox "([^"]*)?" is checked$/, function (theCase, checkbox) {
   return browser.expect.element(checkbox).to.be.selected;
 });
 
@@ -881,7 +866,7 @@ Then(/^the checkbox "([^"]*)?" is checked$/, function (checkbox) {
  * Example: Then the checkbox "#rememberMe" is not checked
  *
  */
-Then(/^the checkbox "([^"]*)?" is not checked$/, function (checkbox) {
+Then(/^(the )*checkbox "([^"]*)?" is not checked$/, function (theCase, checkbox) {
   return browser.expect.element(checkbox).to.not.be.selected;
 });
 
@@ -933,7 +918,7 @@ When(/^(I|we)* wait max of (\d*)( minute)*(m)*$/, function (pronoundCase, number
  * Example: When I wait until the page is loaded
  *
  */
-When(/^(I|we)* wait until the page( is)* loaded*$/, function (pronoundCase, withIs) {
+When(/^(I|we)* wait until( the)* page( is)* loaded*$/, function (pronoundCase, theCase, withIs) {
   return browser.waitForElementPresent('body', 10000);
 });
 /**
@@ -941,7 +926,7 @@ When(/^(I|we)* wait until the page( is)* loaded*$/, function (pronoundCase, with
  * Example: Then the response status code should be 200
  *
  */
-Then(/^the response status code should be (\d+)$/, function (expectedStatusCode) {
+Then(/^(the )*response status code should be (\d+)$/, function (theCase, expectedStatusCode) {
   return browser.url(function (currentURL) {
     axios.get(currentURL.value)
     .then(function (response) {
@@ -961,7 +946,7 @@ Then(/^the response status code should be (\d+)$/, function (expectedStatusCode)
  * Example: And the response status code should not be 404
  *
  */
-Then(/^the response status code should not be (\d+)$/, function ( expectedStatusCode) {
+Then(/^(the )*response status code should not be (\d+)$/, function ( theCase, expectedStatusCode) {
   return browser.url(function (currentURL) {
     axios.get(currentURL.value)
     .then(function (response) {
@@ -1008,7 +993,7 @@ Then(/^(I|we)* should not see text matching "([^"]*)?"$/, function (pronoundCase
  * //pattern of DD/MM/YYYY or DD-MM-YYYY
  *
  */
-Then(/^(I|we)* should see text matching "([^"]*)?" in the "([^"]*)?" element$/, function (pronoundCase, textPattern, element) {
+Then(/^(I|we)* should see text matching "([^"]*)?" in( the)* "([^"]*)?" element$/, function (pronoundCase, textPattern, theCase, element) {
   return this.shouldSeePattern = function (browser) {
     browser.assert.textMatches(element, textPattern);
   };
@@ -1020,7 +1005,7 @@ Then(/^(I|we)* should see text matching "([^"]*)?" in the "([^"]*)?" element$/, 
  * //pattern of DD/MM/YYYY or DD-MM-YYYY
  *
  */
-Then(/^(I|we)* should not see text matching "([^"]*)?" in the "([^"]*)?" element$/, function (pronoundCase, textPattern, element) {
+Then(/^(I|we)* should not see text matching "([^"]*)?" in( the)* "([^"]*)?" element$/, function (pronoundCase, textPattern, element) {
   return this.shouldSeePattern = function (browser) {
     browser.assert.not.textMatches(element, textPattern);
   };
@@ -1031,7 +1016,7 @@ Then(/^(I|we)* should not see text matching "([^"]*)?" in the "([^"]*)?" element
  * Example: Then the url should match "/contact-us.html"
  *
  */
-Then(/^the url should match "([^"]*)?"$/, function (pattern) {
+Then(/^(the )*url should match "([^"]*)?"$/, function (theCase, pattern) {
   return browser.assert.urlMatches(pattern);
 });
 
@@ -1040,6 +1025,6 @@ Then(/^the url should match "([^"]*)?"$/, function (pattern) {
  * Example: Then the url should not match "/contact-us.html"
  *
  */
-Then(/^the url should not match "([^"]*)?"$/, function (pattern) {
+Then(/^(the )*url should not match "([^"]*)?"$/, function (theCase, pattern) {
   return browser.assert.not.urlMatches(pattern);
 });
