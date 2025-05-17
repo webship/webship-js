@@ -5,4 +5,4 @@ Feature: An example of checking the href attribute of a link element to see if i
 
   Scenario: Verify that the link contains "about"
     Given I am on "/test--then--the-link-should-contain.html"
-      Then the "About us" link should contain "about"
+     Then the "About us" link should contain "about"

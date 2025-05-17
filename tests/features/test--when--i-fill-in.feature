@@ -19,7 +19,7 @@ Feature: An example of filling an input textbox with a value using its label.
   Scenario: Check filling an input field with an empty value using its label.
     Given I am on "/test--when--i-fill-in.html"
      When I fill in "Username" with:
-     And I fill in "Password" with:
+      And I fill in "Password" with:
      When I press "Login"
      Then I should see "You enter Username: and Password:"
      
