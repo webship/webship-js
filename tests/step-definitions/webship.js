@@ -1018,3 +1018,12 @@ Then(/^(the )*url should match "([^"]*)?"$/, function (theCase, pattern) {
 Then(/^(the )*url should not match "([^"]*)?"$/, function (theCase, pattern) {
   return browser.assert.not.urlMatches(pattern);
 });
+
+/**
+ * Checks, Scrolls to the bottom of the current page
+ * Example: When I scroll to the bottom
+ *
+ */
+When(/^(I|we)* scroll to( the)* bottom$/, async function(pronoundCase, theCase) {
+  return browser.executeScript('window.scrollTo(0,document.body.scrollHeight);');
+});
