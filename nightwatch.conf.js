@@ -36,8 +36,7 @@ module.exports = {
       desiredCapabilities: {
         browserName: 'chrome',
         'goog:chromeOptions': {
-          excludeSwitches: ['enable-logging'],
-          // hides most Chrome logs// More info on Chromedriver: https://sites.google.com/a/chromium.org/chromedriver/
+          // More info on Chromedriver: https://sites.google.com/a/chromium.org/chromedriver/
           //
           // w3c:false tells Chromedriver to run using the legacy JSONWire protocol (not required in Chrome 78)
           w3c: true,
@@ -80,8 +79,7 @@ module.exports = {
     },
 
     webdriver: {
-      start_process: false,
-      cli_args: ['--silent']
+      start_process: false
     },
   },
 
