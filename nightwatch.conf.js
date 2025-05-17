@@ -80,7 +80,8 @@ module.exports = {
     },
 
     webdriver: {
-      start_process: false
+      start_process: false,
+      cli_args: ['--silent']
     },
   },
 
