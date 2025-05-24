@@ -90,10 +90,11 @@ When(/^(I|we)* move backward one page$/, function (pronoundCase) {
 /**
  * Presses button with specified element
  * Example: When I press "Log In"
- * Example: And I press "Log In"
+ * Example: And I press the "Log In" button
+ * Example: And I press the "Save as" button
  *
  */
-When(/^(I|we)* press "([^"]*)?"$/, function (pronoundCase, element) {
+When(/^(I|we)* press( the)* "([^"]*)?"( button)*$/, function (pronoundCase, element) {
   browser.click("[value='" + element +"']");
 });
 
