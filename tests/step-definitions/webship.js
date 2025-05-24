@@ -94,7 +94,7 @@ When(/^(I|we)* move backward one page$/, function (pronoundCase) {
  * Example: And I press the "Save as" button
  *
  */
-When(/^(I|we)* press( the)* "([^"]*)?"( button)*$/, function (pronoundCase, element) {
+When(/^(I|we)* press( the)* "([^"]*)?"( button)*$/, function (pronoundCase, theCase, element, buttonCase) {
   browser.click("[value='" + element +"']");
 });
 
