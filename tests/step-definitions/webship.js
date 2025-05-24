@@ -11,7 +11,7 @@ const axios = require('axios');
  * Example: Given I am on the homepage
  * 
  */
-Given(/^(I am|we are) on( the)* homepage$/, function (pronoundCase, theCase) {
+Given(/^(I am|we are) on( the)* homepage$/, function (pronounCase, theCase) {
   return browser.url(browser.launch_url).waitForElementPresent('body', 1000);
 });
 
@@ -20,17 +20,16 @@ Given(/^(I am|we are) on( the)* homepage$/, function (pronoundCase, theCase) {
  * Example: Given I am on "about-us.html"
  *
  */
-Given(/^(I am|we are) on "([^"]*)?"$/, function (pronoundCase, url) {
+Given(/^(I am|we are) on "([^"]*)?"$/, function (pronounCase, url) {
   return browser.url(browser.launch_url + url).waitForElementPresent('body', 1000);
 });
 
 /**
  * Go to homepage
+ * Example: When I go to homepage
  * Example: When I go to the homepage
- * Example: And I go to the "/"
- *
  */
-When(/^(I|we)* go to( the)* homepage$/, function (pronoundCase, theCase) {
+When(/^(I|we)* go to( the)* homepage$/, function (pronounCase, theCase) {
   return browser.url(browser.launch_url).waitForElementPresent('body', 1000);
 });
 
@@ -39,7 +38,7 @@ When(/^(I|we)* go to( the)* homepage$/, function (pronoundCase, theCase) {
  * Example: When I go to "contact-us.html"
  *
  */
-When(/^(I|we)* go to "([^"]*)?"$/, function (pronoundCase, url) {
+When(/^(I|we)* go to "([^"]*)?"$/, function (pronounCase, url) {
   return browser.url(browser.launch_url + url).waitForElementPresent('body', 1000);
 });
 
@@ -50,7 +49,7 @@ When(/^(I|we)* go to "([^"]*)?"$/, function (pronoundCase, url) {
  * - Then I should see "Welcome"
  * 
  */
-Then(/^(I|we)* should see "([^"]*)?"$/, function (pronoundCase, expectedText) {
+Then(/^(I|we)* should see "([^"]*)?"$/, function (pronounCase, expectedText) {
   return this.shouldSee = function (browser) {
     browser.assert.textContains("html", expectedText);
   };
@@ -63,7 +62,7 @@ Then(/^(I|we)* should see "([^"]*)?"$/, function (pronoundCase, expectedText) {
  * - Then I should not see "Access denied"
  * 
  */
-Then(/^(I|we)* should not see "([^"]*)?"$/, function (pronoundCase, expectedText) {
+Then(/^(I|we)* should not see "([^"]*)?"$/, function (pronounCase, expectedText) {
   return this.shouldSee = function (browser) {
     browser.assert.not.textContains("html", expectedText);
   };
@@ -74,7 +73,7 @@ Then(/^(I|we)* should not see "([^"]*)?"$/, function (pronoundCase, expectedText
  * Example: When I move forward one page
  *
  */
-When(/^(I|we)* move forward one page$/, function (pronoundCase) {
+When(/^(I|we)* move forward one page$/, function (pronounCase) {
   return browser.forward();
 });
 
@@ -83,7 +82,7 @@ When(/^(I|we)* move forward one page$/, function (pronoundCase) {
  * Example: When I move backward one page
  *
  */
-When(/^(I|we)* move backward one page$/, function (pronoundCase) {
+When(/^(I|we)* move backward one page$/, function (pronounCase) {
   return browser.back();
 });
 
@@ -94,7 +93,7 @@ When(/^(I|we)* move backward one page$/, function (pronoundCase) {
  * Example: And I press the "Save as" button
  *
  */
-When(/^(I|we)* press( the)* "([^"]*)?"( button)*$/, function (pronoundCase, theCase, element, buttonCase) {
+When(/^(I|we)* press( the)* "([^"]*)?"( button)*$/, function (pronounCase, theCase, element, buttonCase) {
   browser.click("[value='" + element +"']");
 });
 
@@ -107,7 +106,7 @@ When(/^(I|we)* press( the)* "([^"]*)?"( button)*$/, function (pronoundCase, theC
  * Example: And I press "save-name" by "data-drupal-selector" attr
  *
  */
-When(/^(I|we)* press "([^"]*)?" by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronoundCase, attrValue, itsCase, attr, attrCase) {
+When(/^(I|we)* press "([^"]*)?" by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronounCase, attrValue, itsCase, attr, attrCase) {
 
   const hasASpace = attrValue.indexOf(' ');
   var selector = '';
@@ -134,7 +133,7 @@ When(/^(I|we)* press "([^"]*)?" by( its)*( "([^"]*)?")* (attribute|attr)$/, func
  * Example: And I click "aboutUs"
  *
  */
-When(/^(I|we)* click "([^"]*)?"$/, function (pronoundCase, item) {
+When(/^(I|we)* click "([^"]*)?"$/, function (pronounCase, item) {
   return browser.click("link text", item);
 });
 
@@ -146,7 +145,7 @@ When(/^(I|we)* click "([^"]*)?"$/, function (pronoundCase, item) {
  * Example: And I click "aboutUsid" by its "id" attribute
  *
  */
-When(/^(I|we)* click "([^"]*)?" by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronoundCase, attrValue, itsCase, attr, attrCase) {
+When(/^(I|we)* click "([^"]*)?" by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronounCase, attrValue, itsCase, attr, attrCase) {
 
   const hasASpace = attrValue.indexOf(' ');
   var selector = '';
@@ -175,7 +174,7 @@ When(/^(I|we)* click "([^"]*)?" by( its)*( "([^"]*)?")* (attribute|attr)$/, func
  *
  */
 
-When(/^(I|we)* reload page$/, function (pronoundCase) {
+When(/^(I|we)* reload page$/, function (pronounCase) {
   return browser.refresh(browser.getCurrentUrl());
 });
 
@@ -185,7 +184,7 @@ When(/^(I|we)* reload page$/, function (pronoundCase) {
  * Example: And I reload the page
  *
  */
-When(/^(I|we)* reload( the)* page$/, function (pronoundCase, theCase) {
+When(/^(I|we)* reload( the)* page$/, function (pronounCase, theCase) {
   return browser.refresh(browser.getCurrentUrl());
 });
 
@@ -195,7 +194,7 @@ When(/^(I|we)* reload( the)* page$/, function (pronoundCase, theCase) {
  * Example: When I fill in "Username" with "John Smith"
  *
  */
-When(/^(I|we)* fill in "([^"]*)?" with "([^"]*)?"$/, function (pronoundCase, field, value) {
+When(/^(I|we)* fill in "([^"]*)?" with "([^"]*)?"$/, function (pronounCase, field, value) {
   const elementField = browser.element.findByText(field, { exact: true });
   browser.getAttribute(elementField, 'for', function (eleAttribute) {
     return browser.setValue('#' + eleAttribute.value, value);
@@ -210,7 +209,7 @@ When(/^(I|we)* fill in "([^"]*)?" with "([^"]*)?"$/, function (pronoundCase, fie
  * Example: And I fill in "Your full name" with "John Smith" by its "placeholder" attribute
  *
  */
-When(/^(I|we)* fill in "([^"]*)?" with "([^"]*)?" by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronoundCase, attrValue, txtValue, itsCase, attr, attrCase) {
+When(/^(I|we)* fill in "([^"]*)?" with "([^"]*)?" by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronounCase, attrValue, txtValue, itsCase, attr, attrCase) {
 
   const hasASpace = attrValue.indexOf(' ');
   var selector = '';
@@ -237,7 +236,7 @@ When(/^(I|we)* fill in "([^"]*)?" with "([^"]*)?" by( its)*( "([^"]*)?")* (attri
  * Example: When I fill in "Username" with:
  *
  */
-When(/^(I|we)* fill in "([^"]*)?" with:$/, function (pronoundCase, field) {
+When(/^(I|we)* fill in "([^"]*)?" with:$/, function (pronounCase, field) {
   const elementField = browser.element.findByText(field, { exact: true });
   browser.getAttribute(elementField, 'for', function (eleAttribute) {
     return browser.setValue('#' + eleAttribute.value, '');
@@ -252,7 +251,7 @@ When(/^(I|we)* fill in "([^"]*)?" with:$/, function (pronoundCase, field) {
  * Example: And I fill in "Your full name" with: by its "placeholder" attribute
  *
  */
-When(/^(I|we)* fill in "([^"]*)?" with: by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronoundCase, attrValue , itsCase, attr, attrCase) {
+When(/^(I|we)* fill in "([^"]*)?" with: by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronounCase, attrValue , itsCase, attr, attrCase) {
 
   const hasASpace = attrValue.indexOf(' ');
   var selector = '';
@@ -278,7 +277,7 @@ When(/^(I|we)* fill in "([^"]*)?" with: by( its)*( "([^"]*)?")* (attribute|attr)
  * Example: When I fill in "webshipco" for "Username"
  *
  */
-When(/^(I|we)* fill in "([^"]*)?" for "([^"]*)?"$/, function (pronoundCase, value, field) {
+When(/^(I|we)* fill in "([^"]*)?" for "([^"]*)?"$/, function (pronounCase, value, field) {
   const elementField = browser.element.findByText(field, { exact: true });
   browser.getAttribute(elementField, 'for', function (eleAttribute) {
     return browser.setValue('#' + eleAttribute.value, value);
@@ -293,7 +292,7 @@ When(/^(I|we)* fill in "([^"]*)?" for "([^"]*)?"$/, function (pronoundCase, valu
  * Example: And I fill in "John Smith" for "Your full name" by its "placeholder" attribute
  *
  */
-When(/^(I|we)* fill in "([^"]*)?" for "([^"]*)?" by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronoundCase, txtValue, attrValue, itsCase, attr, attrCase) {
+When(/^(I|we)* fill in "([^"]*)?" for "([^"]*)?" by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronounCase, txtValue, attrValue, itsCase, attr, attrCase) {
 
   const hasASpace = attrValue.indexOf(' ');
   var selector = '';
@@ -322,7 +321,7 @@ When(/^(I|we)* fill in "([^"]*)?" for "([^"]*)?" by( its)*( "([^"]*)?")* (attrib
  *              | Password | 1234 |
  */
 
-When(/^(I|we)* fill in( the)* following:$/, function (pronoundCase, theCase, table) {
+When(/^(I|we)* fill in( the)* following:$/, function (pronounCase, theCase, table) {
 
   var elementField = browser.element.findByText(table.rawTable[0][0], { exact: true });
   browser.getAttribute(elementField, 'for', function (eleAttribute) {
@@ -349,7 +348,7 @@ When(/^(I|we)* fill in( the)* following:$/, function (pronoundCase, theCase, tab
  *            | Your Password | 1234 |
  */
 
-When(/^(I|we)* fill in( the)* following: by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronoundCase, theCase, itsCase, attr, attrCase, table) {
+When(/^(I|we)* fill in( the)* following: by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronounCase, theCase, itsCase, attr, attrCase, table) {
 
   var hasASpace = table.rawTable[0][0].indexOf(' ');
   var selector = '';
@@ -399,7 +398,7 @@ When(/^(I|we)* fill in( the)* following: by( its)*( "([^"]*)?")* (attribute|attr
  * Example: When I select "Mercedes" from "Cars"
  *
  */
-When(/^(I|we)* select "([^"]*)?" from "([^"]*)?"$/, function (pronoundCase, option, dropdownlist) {
+When(/^(I|we)* select "([^"]*)?" from "([^"]*)?"$/, function (pronounCase, option, dropdownlist) {
 
   const elementField = browser.element.findByText(dropdownlist, { exact: true });
   browser.getAttribute(elementField, 'for', function (eleAttribute) {
@@ -417,7 +416,7 @@ When(/^(I|we)* select "([^"]*)?" from "([^"]*)?"$/, function (pronoundCase, opti
  *
  */
 
-When(/^(I|we)* select "([^"]*)?" from "([^"]*)?" by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronoundCase, option, attrValue, itsCase, attr, attrCase) {
+When(/^(I|we)* select "([^"]*)?" from "([^"]*)?" by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronounCase, option, attrValue, itsCase, attr, attrCase) {
 
   const hasASpace = attrValue.indexOf(' ');
 
@@ -446,7 +445,7 @@ When(/^(I|we)* select "([^"]*)?" from "([^"]*)?" by( its)*( "([^"]*)?")* (attrib
  * Example: When I check "Remember me"
  *
  */
-When(/^(I|we)* check "([^"]*)?"$/, function (pronoundCase, item) {
+When(/^(I|we)* check "([^"]*)?"$/, function (pronounCase, item) {
 
   browser.checkItem(item);
 });
@@ -456,7 +455,7 @@ When(/^(I|we)* check "([^"]*)?"$/, function (pronoundCase, item) {
  * Example: When I uncheck "Remember me"
  *
  */
-When(/^(I|we)* uncheck "([^"]*)?"$/, function (pronoundCase, item) {
+When(/^(I|we)* uncheck "([^"]*)?"$/, function (pronounCase, item) {
   
   browser.uncheckItem(item); 
 });
@@ -467,7 +466,7 @@ When(/^(I|we)* uncheck "([^"]*)?"$/, function (pronoundCase, item) {
  * Example: Then I should be on the homepage
  *
  */
-Then(/^(I|we)* should be on( the)* homepage$/, function (pronoundCase, theCase) {
+Then(/^(I|we)* should be on( the)* homepage$/, function (pronounCase, theCase) {
   return browser.assert.urlMatches(browser.launch_url);
 });
 
@@ -476,7 +475,7 @@ Then(/^(I|we)* should be on( the)* homepage$/, function (pronoundCase, theCase) 
  * Example: Then I should not be on homepage
  *
  */
-Then(/^(I|we)* should not be on homepage$/, function (pronoundCase) {
+Then(/^(I|we)* should not be on homepage$/, function (pronounCase) {
   return browser.assert.not.urlMatches(browser.launch_url);
 });
 
@@ -485,7 +484,7 @@ Then(/^(I|we)* should not be on homepage$/, function (pronoundCase) {
  * Example: Then I should not be on the homepage
  *
  */
-Then(/^(I|we)* should not be on( the)* homepage$/, function (pronoundCase, theCase) {
+Then(/^(I|we)* should not be on( the)* homepage$/, function (pronounCase, theCase) {
   return browser.assert.not.urlMatches(browser.launch_url);
 });
 
@@ -497,7 +496,7 @@ Then(/^(I|we)* should not be on( the)* homepage$/, function (pronoundCase, theCa
  *
  */
 
-Then(/^(I|we)* should be on "([^"]*)?"$/, function (pronoundCase, url) {
+Then(/^(I|we)* should be on "([^"]*)?"$/, function (pronounCase, url) {
   return browser.assert.urlContains(url);
 });
 
@@ -567,7 +566,7 @@ Then(/^(the )*response should not contain "([^"]*)?"$/, function (theCase, expec
  * Example: Then I should see "John Smith" in the "Username" element
  * 
  */
-Then(/^(I|we)* should see "([^"]*)?" in( the)* "([^"]*)?" element$/, function (pronoundCase, expectedText,theCase , element) {
+Then(/^(I|we)* should see "([^"]*)?" in( the)* "([^"]*)?" element$/, function (pronounCase, expectedText,theCase , element) {
   const elementField = browser.element.findByText(element, { exact: true });
   browser.getAttribute(elementField, 'for', function (eleAttribute) {
     return this.shouldSee = function (browser) {
@@ -582,7 +581,7 @@ Then(/^(I|we)* should see "([^"]*)?" in( the)* "([^"]*)?" element$/, function (p
  * Example: Then I should see "1234" in the "pwordcss" element by attr
  * 
  */
-Then(/^(I|we)* should see "([^"]*)?" in( the)* "([^"]*)?" element by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronoundCase, expectedText, theCase, attrValue, itsCase, attr, attrCase) {
+Then(/^(I|we)* should see "([^"]*)?" in( the)* "([^"]*)?" element by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronounCase, expectedText, theCase, attrValue, itsCase, attr, attrCase) {
 
   const hasASpace = attrValue.indexOf(' ');
 
@@ -607,7 +606,7 @@ Then(/^(I|we)* should see "([^"]*)?" in( the)* "([^"]*)?" element by( its)*( "([
  * Example: Then I should not see "Joe Smith" in the "Username" element
  *
  */
-Then(/^(I|we)* should not see "([^"]*)?" in( the)* "([^"]*)?" element$/, function (pronoundCase, expectedText, theCase, element) {
+Then(/^(I|we)* should not see "([^"]*)?" in( the)* "([^"]*)?" element$/, function (pronounCase, expectedText, theCase, element) {
 
   const elementField = browser.element.findByText(element, { exact: true });
   browser.getAttribute(elementField, 'for', function (eleAttribute) {
@@ -623,7 +622,7 @@ Then(/^(I|we)* should not see "([^"]*)?" in( the)* "([^"]*)?" element$/, functio
  * Example: Then I should not see "1234" in the "pwordcss" element by attr
  * 
  */
-Then(/^(I|we)* should not see "([^"]*)?" in( the)* "([^"]*)?" element by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronoundCase, expectedText, theCase, attrValue, itsCase, attr, attrCase) {
+Then(/^(I|we)* should not see "([^"]*)?" in( the)* "([^"]*)?" element by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronounCase, expectedText, theCase, attrValue, itsCase, attr, attrCase) {
 
   const hasASpace = attrValue.indexOf(' ');
 
@@ -648,7 +647,7 @@ Then(/^(I|we)* should not see "([^"]*)?" in( the)* "([^"]*)?" element by( its)*(
  * Example: Then I should see a "Username" element
  *
  */
-Then(/^(I|we)* should see (a|an) "([^"]*)?" element$/, function (pronoundCase, aAnCase, element) {
+Then(/^(I|we)* should see (a|an) "([^"]*)?" element$/, function (pronounCase, aAnCase, element) {
   const elementField = browser.element.findByText(element, { exact: true });
   browser.getAttribute(elementField, 'for', function (eleAttribute) {
     return browser.verify.visible('#' + eleAttribute.value);
@@ -661,7 +660,7 @@ Then(/^(I|we)* should see (a|an) "([^"]*)?" element$/, function (pronoundCase, a
  * Example: Then I should see a "pwordcss" element by attr
  * 
  */
-Then(/^(I|we)* should see (a|an) "([^"]*)?" element by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronoundCase, aAnCase, attrValue, itsCase, attr, attrCase) {
+Then(/^(I|we)* should see (a|an) "([^"]*)?" element by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronounCase, aAnCase, attrValue, itsCase, attr, attrCase) {
 
   const hasASpace = attrValue.indexOf(' ');
 
@@ -684,7 +683,7 @@ Then(/^(I|we)* should see (a|an) "([^"]*)?" element by( its)*( "([^"]*)?")* (att
  * Example: Then I should not see a "Username" element
  *
  */
-Then(/^(I|we)* should not see (a|an) "([^"]*)?" element$/, function (pronoundCase, aAnCase, element) {
+Then(/^(I|we)* should not see (a|an) "([^"]*)?" element$/, function (pronounCase, aAnCase, element) {
 
   browser.assert.not.textContains("html", element);
 });
@@ -695,7 +694,7 @@ Then(/^(I|we)* should not see (a|an) "([^"]*)?" element$/, function (pronoundCas
  * Example: And I should not see a "countryCss" element by attr
  *
  */
-Then(/^(I|we)* should not see (a|an) "([^"]*)?" element by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronoundCase, aAnCase, attrValue, itsCase, attr, attrCase) {
+Then(/^(I|we)* should not see (a|an) "([^"]*)?" element by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronounCase, aAnCase, attrValue, itsCase, attr, attrCase) {
 
   const hasASpace = attrValue.indexOf(' ');
 
@@ -755,7 +754,7 @@ Then(/^(the )*"([^"]*)?" element should not contain "([^"]*)?"$/, function (theC
  * Example: When I attach the file "profileIcon.jpg" to "#profileIconUpload"
  *
  */
-When(/^(I|we)* attach( the)* file "([^"]*)?" to "([^"]*)?"$/, function (pronoundCase, theCase, fileUrl, element) {
+When(/^(I|we)* attach( the)* file "([^"]*)?" to "([^"]*)?"$/, function (pronounCase, theCase, fileUrl, element) {
   var dirname = __dirname + '';
   dirname = dirname.substring(0, dirname.lastIndexOf("/"));
 
@@ -868,7 +867,7 @@ Then(/^(the )*checkbox "([^"]*)?" is not checked$/, function (theCase, checkbox)
  * Example: When I wait 3s
  *
  */
-When(/^(I|we)* wait (\d*)( second)*(s)*$/, function (pronoundCase, number, withWord, withS) {
+When(/^(I|we)* wait (\d*)( second)*(s)*$/, function (pronounCase, number, withWord, withS) {
   var waitTime = number * 1000;
   return browser.pause(waitTime);
 });
@@ -878,7 +877,7 @@ When(/^(I|we)* wait (\d*)( second)*(s)*$/, function (pronoundCase, number, withW
  * Example: When I wait max of 6 seconds
  *
  */
-When(/^(I|we)* wait max of (\d*)( second)*(s)*$/, function (pronoundCase, number, withWord, withS) {
+When(/^(I|we)* wait max of (\d*)( second)*(s)*$/, function (pronounCase, number, withWord, withS) {
   var waitTime = number * 1000;
   return browser.waitForElementPresent('body', waitTime);
 });
@@ -889,7 +888,7 @@ When(/^(I|we)* wait max of (\d*)( second)*(s)*$/, function (pronoundCase, number
  * Example: When I wait 5 minutes
  *
  */
-When(/^(I|we)* wait (\d*)( minute)*(m)*$/, function (pronoundCase, number, withWord, withM) {
+When(/^(I|we)* wait (\d*)( minute)*(m)*$/, function (pronounCase, number, withWord, withM) {
   var waitTime = number * 1000 * 60;
   return browser.pause(waitTime);
 });
@@ -899,7 +898,7 @@ When(/^(I|we)* wait (\d*)( minute)*(m)*$/, function (pronoundCase, number, withW
  * Example: When I wait max of 6 minutes
  *
  */
-When(/^(I|we)* wait max of (\d*)( minute)*(m)*$/, function (pronoundCase, number, withWord, withM) {
+When(/^(I|we)* wait max of (\d*)( minute)*(m)*$/, function (pronounCase, number, withWord, withM) {
   var waitTime = number * 1000 * 60;
   return browser.waitForElementPresent('body', waitTime);
 });
@@ -909,7 +908,7 @@ When(/^(I|we)* wait max of (\d*)( minute)*(m)*$/, function (pronoundCase, number
  * Example: When I wait until the page is loaded
  *
  */
-When(/^(I|we)* wait until( the)* page( is)* loaded*$/, function (pronoundCase, theCase, withIs) {
+When(/^(I|we)* wait until( the)* page( is)* loaded*$/, function (pronounCase, theCase, withIs) {
   return browser.waitForElementPresent('body', 10000);
 });
 /**
@@ -957,7 +956,7 @@ Then(/^(the )*response status code should not be (\d+)$/, function ( theCase, ex
  * Example: Then I should see text matching "^T\w+" //pattern of word start with 'T'
  *
  */
-Then(/^(I|we)* should see text matching "([^"]*)?"$/, function (pronoundCase, textPattern) {
+Then(/^(I|we)* should see text matching "([^"]*)?"$/, function (pronounCase, textPattern) {
   browser.elements('css selector', 'body', function (elements) {
     elements.value.forEach(function (elementsObj) {
       return browser.assert.textMatches(elementsObj, textPattern);
@@ -970,7 +969,7 @@ Then(/^(I|we)* should see text matching "([^"]*)?"$/, function (pronoundCase, te
  * Example: Then I should not see text matching "^O\w+" //pattern of word start with 'O'
  *
  */
-Then(/^(I|we)* should not see text matching "([^"]*)?"$/, function (pronoundCase, textPattern) {
+Then(/^(I|we)* should not see text matching "([^"]*)?"$/, function (pronounCase, textPattern) {
   browser.elements('css selector', 'body', function (elements) {
     elements.value.forEach(function (elementsObj) {
       return browser.assert.not.textMatches(elementsObj, textPattern);
@@ -984,7 +983,7 @@ Then(/^(I|we)* should not see text matching "([^"]*)?"$/, function (pronoundCase
  * //pattern of DD/MM/YYYY or DD-MM-YYYY
  *
  */
-Then(/^(I|we)* should see text matching "([^"]*)?" in( the)* "([^"]*)?" element$/, function (pronoundCase, textPattern, theCase, element) {
+Then(/^(I|we)* should see text matching "([^"]*)?" in( the)* "([^"]*)?" element$/, function (pronounCase, textPattern, theCase, element) {
   return this.shouldSeePattern = function (browser) {
     browser.assert.textMatches(element, textPattern);
   };
@@ -996,7 +995,7 @@ Then(/^(I|we)* should see text matching "([^"]*)?" in( the)* "([^"]*)?" element$
  * //pattern of DD/MM/YYYY or DD-MM-YYYY
  *
  */
-Then(/^(I|we)* should not see text matching "([^"]*)?" in( the)* "([^"]*)?" element$/, function (pronoundCase, textPattern, element) {
+Then(/^(I|we)* should not see text matching "([^"]*)?" in( the)* "([^"]*)?" element$/, function (pronounCase, textPattern, element) {
   return this.shouldSeePattern = function (browser) {
     browser.assert.not.textMatches(element, textPattern);
   };
@@ -1025,6 +1024,6 @@ Then(/^(the )*url should not match "([^"]*)?"$/, function (theCase, pattern) {
  * Example: When I scroll to the bottom
  *
  */
-When(/^(I|we)* scroll to( the)* bottom$/, async function(pronoundCase, theCase) {
+When(/^(I|we)* scroll to( the)* bottom$/, async function(pronounCase, theCase) {
   return browser.executeScript('window.scrollTo(0,document.body.scrollHeight);');
 });
