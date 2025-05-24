@@ -7,6 +7,7 @@ const axios = require('axios');
 
 /**
  * Opens homepage.
+ *
  * Example: Given I am on homepage
  * Example: Given I am on the homepage
  * 
@@ -16,7 +17,8 @@ Given(/^(I am|we are) on( the)* homepage$/, function (pronounCase, theCase) {
 });
 
 /**
- * Open specific page
+ * Open specific page.
+ *
  * Example: Given I am on "about-us.html"
  *
  */
@@ -25,16 +27,19 @@ Given(/^(I am|we are) on "([^"]*)?"$/, function (pronounCase, url) {
 });
 
 /**
- * Go to homepage
+ * Go to homepage.
+ *
  * Example: When I go to homepage
  * Example: When I go to the homepage
+ *
  */
 When(/^(I|we)* go to( the)* homepage$/, function (pronounCase, theCase) {
   return browser.url(browser.launch_url).waitForElementPresent('body', 1000);
 });
 
 /**
- * Go to specific page
+ * Go to specific page.
+ *
  * Example: When I go to "contact-us.html"
  *
  */
@@ -44,7 +49,7 @@ When(/^(I|we)* go to "([^"]*)?"$/, function (pronounCase, url) {
 
 /**
  * Asserting a text in the page.
- * 
+ *
  * Example:
  * - Then I should see "Welcome"
  * 
@@ -57,7 +62,7 @@ Then(/^(I|we)* should see "([^"]*)?"$/, function (pronounCase, expectedText) {
 
 /**
  * Asserting a text not in the page.
- * 
+ *
  * Example:
  * - Then I should not see "Access denied"
  * 
@@ -69,7 +74,8 @@ Then(/^(I|we)* should not see "([^"]*)?"$/, function (pronounCase, expectedText)
 });
 
 /**
- * Moves forward one page in browser history
+ * Moves forward one page in browser history.
+ *
  * Example: When I move forward one page
  *
  */
@@ -78,7 +84,8 @@ When(/^(I|we)* move forward one page$/, function (pronounCase) {
 });
 
 /**
- * Moves backward one page in browser history
+ * Moves backward one page in browser history.
+ *
  * Example: When I move backward one page
  *
  */
@@ -87,7 +94,8 @@ When(/^(I|we)* move backward one page$/, function (pronounCase) {
 });
 
 /**
- * Presses button with specified element
+ * Presses button with specified element.
+ *
  * Example: When I press "Log In"
  * Example: And I press the "Log In" button
  * Example: And I press the "Save as" button
@@ -98,7 +106,8 @@ When(/^(I|we)* press( the)* "([^"]*)?"( button)*$/, function (pronounCase, theCa
 });
 
 /**
- * Presses button with specified element
+ * Presses button with specified element.
+ *
  * Example: When I press "btn-pressid" by attr
  * Example: When I press "btn-pressid" by attribute
  * Example: And I press "Your full name" by "placeholder" attribute
@@ -128,7 +137,8 @@ When(/^(I|we)* press "([^"]*)?" by( its)*( "([^"]*)?")* (attribute|attr)$/, func
 });
 
 /**
- * Clicks link with specified element
+ * Clicks link with specified element.
+ *
  * Example: When I click "Contact Us"
  * Example: And I click "aboutUs"
  *
@@ -138,7 +148,8 @@ When(/^(I|we)* click "([^"]*)?"$/, function (pronounCase, item) {
 });
 
 /**
- * Click Link with specified element
+ * Click Link with specified element.
+ *
  * Example: When I click "#aboutUsid" by attr
  * Example: When I click "aboutUsCss" by attribute
  * Example: And I click "aboutUsCss" by "class" attr
@@ -168,7 +179,8 @@ When(/^(I|we)* click "([^"]*)?" by( its)*( "([^"]*)?")* (attribute|attr)$/, func
 });
 
 /**
- * Reloads current page
+ * Reloads current page.
+ *
  * Example: When I reload page
  * Example: And I reload page
  *
@@ -179,7 +191,8 @@ When(/^(I|we)* reload page$/, function (pronounCase) {
 });
 
 /**
- * Reloads current page
+ * Reloads current page.
+ *
  * Example: When I reload the page
  * Example: And I reload the page
  *
@@ -188,9 +201,9 @@ When(/^(I|we)* reload( the)* page$/, function (pronounCase, theCase) {
   return browser.refresh(browser.getCurrentUrl());
 });
 
-
 /**
  * Define the step of filling values in the form field specified element.
+ *
  * Example: When I fill in "Username" with "John Smith"
  *
  */
@@ -202,7 +215,8 @@ When(/^(I|we)* fill in "([^"]*)?" with "([^"]*)?"$/, function (pronounCase, fiel
 });
 
 /**
- * Fill input type text with value by its attribute
+ * Fill input type text with value by its attribute.
+ *
  * Example: When I fill in "#uname" by attr
  * Example: When I fill in "uname" with "John Smith" by attr
  * Example: And I fill in "pwordcss" with "1234" by "class" attr
@@ -232,7 +246,8 @@ When(/^(I|we)* fill in "([^"]*)?" with "([^"]*)?" by( its)*( "([^"]*)?")* (attri
 });
 
 /**
- * Fill input type text with empty value by its Label
+ * Fill input type text with empty value by its Label.
+ *
  * Example: When I fill in "Username" with:
  *
  */
@@ -244,7 +259,8 @@ When(/^(I|we)* fill in "([^"]*)?" with:$/, function (pronounCase, field) {
 });
 
 /**
- * Fill input type text with empty value by its attribute
+ * Fill input type text with empty value by its attribute.
+ *
  * Example: When I fill in "#uname" with: by attr
  * Example: When I fill in "uname" with: by attr
  * Example: And I fill in "pwordcss" with: by "class" attr
@@ -273,8 +289,9 @@ When(/^(I|we)* fill in "([^"]*)?" with: by( its)*( "([^"]*)?")* (attribute|attr)
 });
 
 /**
- * Fill in value for input type text by its Label
- * Example: When I fill in "webshipco" for "Username"
+ * Fill in value for input type text by its Label.
+ *
+ * Example: When I fill in "jon-smith" for "Username"
  *
  */
 When(/^(I|we)* fill in "([^"]*)?" for "([^"]*)?"$/, function (pronounCase, value, field) {
@@ -285,7 +302,8 @@ When(/^(I|we)* fill in "([^"]*)?" for "([^"]*)?"$/, function (pronounCase, value
 });
 
 /**
- * Fill in value for input type text by its attribute
+ * Fill in value for input type text by its attribute.
+ *
  * Example: When I fill in "John Smith" for "#uname" by attr
  * Example: When I fill in "John Smith" for "uname" by attr
  * Example: And I fill in "1234" for "pwordcss" by "class" attr
@@ -315,7 +333,8 @@ When(/^(I|we)* fill in "([^"]*)?" for "([^"]*)?" by( its)*( "([^"]*)?")* (attrib
 });
 
 /**
- * Fills in form input fields type text with provided table by there labels 
+ * Fills in form input fields type text with provided table by there labels.
+ *
  * Example: When I fill in the following:
  *              | Username | webshipco |
  *              | Password | 1234 |
@@ -338,16 +357,17 @@ When(/^(I|we)* fill in( the)* following:$/, function (pronounCase, theCase, tabl
 });
 
 /**
- * Fill in value for input type text by its attributeFill form fields of type input Text with the provided table according to their attributes 
+ * Fill in value for input type text by its attributeFill form fields of type
+ * input Text with the provided table according to their attributes.
+ *
  * Example: When I fill in the following: by attr
  *            | #uname | John Smith |
  *            | pwordcss | 1234 |
-
+ *
  * Example: When I fill in the following: by its "placeholder" attribute
  *            | Your full name | John Smith |
  *            | Your Password | 1234 |
  */
-
 When(/^(I|we)* fill in( the)* following: by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronounCase, theCase, itsCase, attr, attrCase, table) {
 
   var hasASpace = table.rawTable[0][0].indexOf(' ');
@@ -394,7 +414,8 @@ When(/^(I|we)* fill in( the)* following: by( its)*( "([^"]*)?")* (attribute|attr
 });
 
 /**
- * Selecting the option in the dropdown list field by its text label
+ * Selecting the option in the dropdown list field by its text label.
+ *
  * Example: When I select "Mercedes" from "Cars"
  *
  */
@@ -410,7 +431,8 @@ When(/^(I|we)* select "([^"]*)?" from "([^"]*)?"$/, function (pronounCase, optio
 });
 
 /**
- * Selects option in select field
+ * Selects option in select field.
+ *
  * Example: When I select "Mercedes" from "cars" its "id" attr
  * Example: When I select "Saab" from "#cars" by attr
  *
@@ -441,27 +463,28 @@ When(/^(I|we)* select "([^"]*)?" from "([^"]*)?" by( its)*( "([^"]*)?")* (attrib
 });
 
 /**
- * Checks checkbox specified
+ * Checks checkbox specified.
+ *
  * Example: When I check "Remember me"
  *
  */
 When(/^(I|we)* check "([^"]*)?"$/, function (pronounCase, item) {
-
   browser.checkItem(item);
 });
 
 /**
- * Unchecks checkbox specified
+ * Unchecks checkbox specified.
+ *
  * Example: When I uncheck "Remember me"
  *
  */
 When(/^(I|we)* uncheck "([^"]*)?"$/, function (pronounCase, item) {
-  
   browser.uncheckItem(item); 
 });
 
 /**
- * Verify, that current page is the homepage
+ * Verify, that current page is the homepage.
+ *
  * Example: Then I should be on homepage
  * Example: Then I should be on the homepage
  *
@@ -471,7 +494,8 @@ Then(/^(I|we)* should be on( the)* homepage$/, function (pronounCase, theCase) {
 });
 
 /**
- * Verify, that current page is the homepage
+ * Verify, that current page is the homepage.
+ *
  * Example: Then I should not be on homepage
  *
  */
@@ -480,7 +504,8 @@ Then(/^(I|we)* should not be on homepage$/, function (pronounCase) {
 });
 
 /**
- * Verify, that current page is the homepage
+ * Verify, that current page is the homepage.
+ *
  * Example: Then I should not be on the homepage
  *
  */
@@ -489,19 +514,20 @@ Then(/^(I|we)* should not be on( the)* homepage$/, function (pronounCase, theCas
 });
 
 /**
- * Verify, that current page path is equal to specified path
+ * Verify, that current page path is equal to specified path.
+ *
  * Example: Then I should be on "/"
  * Example: And I should be on "/user/login"
  * Example: And I should be on "http://google.com"
  *
  */
-
 Then(/^(I|we)* should be on "([^"]*)?"$/, function (pronounCase, url) {
   return browser.assert.urlContains(url);
 });
 
 /**
  * Verify, that the current link contains the specified URL.
+ *
  * Example: Then the "Login" link should contain "/log-in"
  *
  */
@@ -512,6 +538,7 @@ Then(/^(the )*"([^"]*)?" link should contain "([^"]*)?"$/, function (theCase, el
 
 /**
  * Verify, that the current link contains the specified URL, found by its attributes.
+ *
  * Example: Then the "#aboutUsid" link should contain "about" by attr
  * Example: And the "aboutUs" link should contain "about" by its "class" attribute
  * Example: And the ".contactUs" link should contain "/contact-" by attr
@@ -539,7 +566,8 @@ Then(/^(the )*"([^"]*)?" link should contain "([^"]*)?" by( its)*( "([^"]*)?")* 
 });
 
 /**
- * Checks, that HTML response contains specific text
+ * Checks, that HTML response contains specific text.
+ *
  * Example: Then the response should contain "Welcome visitor, How can I help you?"
  *
  */
@@ -550,7 +578,8 @@ Then(/^(the )*response should contain "([^"]*)?"$/, function (theCase, expectedT
 });
 
 /**
- * Checks, that HTML response contains specific text
+ * Checks, that HTML response contains specific text.
+ *
  * Example: Then the response should not contain "Error: Ambiguous messages that are unclear"
  *
  */
@@ -562,7 +591,8 @@ Then(/^(the )*response should not contain "([^"]*)?"$/, function (theCase, expec
 
 
 /**
- * Assert, that input text contains a specific value by its label
+ * Assert, that input text contains a specific value by its label.
+ *
  * Example: Then I should see "John Smith" in the "Username" element
  * 
  */
@@ -576,7 +606,8 @@ Then(/^(I|we)* should see "([^"]*)?" in( the)* "([^"]*)?" element$/, function (p
 });
 
 /**
- * Assert, that input text contains a specific value by its attributes
+ * Assert, that input text contains a specific value by its attributes.
+ *
  * Example: Then I should see "John Smith" in the "uname" element by its "id" attr
  * Example: Then I should see "1234" in the "pwordcss" element by attr
  * 
@@ -602,7 +633,8 @@ Then(/^(I|we)* should see "([^"]*)?" in( the)* "([^"]*)?" element by( its)*( "([
 });
 
 /**
- * Assert, that input text does not contain a specific value to be by its label
+ * Assert, that input text does not contain a specific value to be by its label.
+ *
  * Example: Then I should not see "Joe Smith" in the "Username" element
  *
  */
@@ -617,7 +649,8 @@ Then(/^(I|we)* should not see "([^"]*)?" in( the)* "([^"]*)?" element$/, functio
 });
 
 /**
- * Assert, that input text contains a specific value by its attributes
+ * Assert, that input text contains a specific value by its attributes.
+ *
  * Example: Then I should not see "John Smith" in the "uname" element by its "id" attr
  * Example: Then I should not see "1234" in the "pwordcss" element by attr
  * 
@@ -643,7 +676,8 @@ Then(/^(I|we)* should not see "([^"]*)?" in( the)* "([^"]*)?" element by( its)*(
 });
 
 /**
- * Assert, that element exists on current page by its label
+ * Assert, that element exists on current page by its label.
+ *
  * Example: Then I should see a "Username" element
  *
  */
@@ -655,7 +689,8 @@ Then(/^(I|we)* should see (a|an) "([^"]*)?" element$/, function (pronounCase, aA
 });
 
 /**
- * Assert, that element exists on the current page by its attribute
+ * Assert, that element exists on the current page by its attribute.
+ *
  * Example: Then I should see a "uname" element by its "id" attr
  * Example: Then I should see a "pwordcss" element by attr
  * 
@@ -679,17 +714,18 @@ Then(/^(I|we)* should see (a|an) "([^"]*)?" element by( its)*( "([^"]*)?")* (att
 });
 
 /**
- * Assert, that element exists on current page by its label
+ * Assert, that element exists on current page by its label.
+ *
  * Example: Then I should not see a "Username" element
  *
  */
 Then(/^(I|we)* should not see (a|an) "([^"]*)?" element$/, function (pronounCase, aAnCase, element) {
-
   browser.assert.not.textContains("html", element);
 });
 
 /**
- * Assert, that element exists on current page by its attributes
+ * Assert, that element exists on current page by its attributes.
+ *
  * Example: Then I should not see an "emailId" element by its "id" attr
  * Example: And I should not see a "countryCss" element by attr
  *
@@ -713,7 +749,8 @@ Then(/^(I|we)* should not see (a|an) "([^"]*)?" element by( its)*( "([^"]*)?")* 
 });
 
 /**
- * Assert, that element contains a specific CSS style
+ * Assert, that element contains a specific CSS style.
+ *
  * Example: Then the "body" element should contain "color:white;"
  *
  */
@@ -731,7 +768,8 @@ Then(/^(the )*"([^"]*)?" element should contain "([^"]*)?"$/, function (theCase 
 });
 
 /**
- * Assert, that element contains a specific CSS style
+ * Assert, that element contains a specific CSS style.
+ *
  * Example: Then the "body" element should not contain "color:white;"
  * Example: Then the "#uname" element should not contain "border:solid 5px red;"
  * Example: Then the "pword" element should not contain "font-size: 26px;"
@@ -750,7 +788,8 @@ Then(/^(the )*"([^"]*)?" element should not contain "([^"]*)?"$/, function (theC
 });
 
 /**
- * Attaches file to field
+ * Attaches file to field.
+ *
  * Example: When I attach the file "profileIcon.jpg" to "#profileIconUpload"
  *
  */
@@ -762,7 +801,8 @@ When(/^(I|we)* attach( the)* file "([^"]*)?" to "([^"]*)?"$/, function (pronounC
 });
 
 /**
- * Assert, that field contain a specific text
+ * Assert, that field contain a specific text.
+ *
  * Example: Then the "Username" field should contain "John Smith"
  *
  */
@@ -777,7 +817,8 @@ Then(/^(the )*"([^"]*)?" field should contain "([^"]*)?"$/, function (theCase, f
 });
 
 /**
- * Assert, that field does not contain a specific text
+ * Assert, that field does not contain a specific text.
+ *
  * Example: Then the "#username" field should not contain "John Smith"
  *
  */
@@ -789,7 +830,8 @@ Then(/^(the )*"([^"]*)?" field should not contain "([^"]*)?"$/, function (theCas
 });
 
 /**
- * Assert, that checkbox with specified element is should be checked
+ * Assert, that checkbox with specified element is should be checked.
+ *
  * Example: Then the "#PrivacyPolicy" checkbox should be checked
  * 
  */
@@ -798,7 +840,8 @@ Then(/^(the )*"([^"]*)?" checkbox should be checked$/, function (theCase, checkb
 });
 
 /**
- * Assert, that checkbox with specified element is should not be checked
+ * Assert, that checkbox with specified element is should not be checked.
+ *
  * Example: Then the "#PrivacyPolicy" checkbox should not be checked
  * 
  */
@@ -808,6 +851,7 @@ Then(/^(the )*"([^"]*)?" checkbox should not be checked$/, function (theCase, ch
 
 /**
  * Check, whether the checkbox specified is checked.
+ *
  * Example: Then the "#rememberMe" checkbox is checked
  *
  */
@@ -817,6 +861,7 @@ Then(/^(the )*"([^"]*)?" checkbox is checked$/, function (theCase, checkbox) {
 
 /**
  * Check, whether the checkbox specified is not checked.
+ *
  * Example: Then the "#rememberMe" checkbox is not checked
  *
  */
@@ -825,7 +870,8 @@ Then(/^(the )*"([^"]*)?" checkbox is not checked$/, function (theCase, checkbox)
 });
 
 /**
- * Assert, that checkbox with specified element should be checked
+ * Assert, that checkbox with specified element should be checked.
+ *
  * Example: Then the checkbox "#PrivacyPolicy" should be checked
  *
  */
@@ -834,7 +880,8 @@ Then(/^(the )*checkbox "([^"]*)?" should be checked$/, function (theCase, checkb
 });
 
 /**
- * Assert, that checkbox with specified element should not be checked
+ * Assert, that checkbox with specified element should not be checked.
+ *
  * Example: Then the checkbox "#PrivacyPolicy" should not be checked
  *
  */
@@ -843,7 +890,8 @@ Then(/^(the )*checkbox "([^"]*)?" should not be checked$/, function (theCase, ch
 });
 
 /**
- * Assert, that checkbox with specified element is checked
+ * Assert, that checkbox with specified element is checked.
+ *
  * Example: Then the checkbox "#rememberMe" is checked
  *
  */
@@ -852,7 +900,8 @@ Then(/^(the )*checkbox "([^"]*)?" is checked$/, function (theCase, checkbox) {
 });
 
 /**
- * Assert, that checkbox with specified element is not checked
+ * Assert, that checkbox with specified element is not checked.
+ *
  * Example: Then the checkbox "#rememberMe" is not checked
  *
  */
@@ -862,6 +911,7 @@ Then(/^(the )*checkbox "([^"]*)?" is not checked$/, function (theCase, checkbox)
 
 /**
  * Wait a specific number of seconds.
+ *
  * Example: When I wait 1 second
  * Example: When I wait 5 seconds
  * Example: When I wait 3s
@@ -874,6 +924,7 @@ When(/^(I|we)* wait (\d*)( second)*(s)*$/, function (pronounCase, number, withWo
 
 /**
  * Wait a max number of seconds until the element present.
+ *
  * Example: When I wait max of 6 seconds
  *
  */
@@ -884,6 +935,7 @@ When(/^(I|we)* wait max of (\d*)( second)*(s)*$/, function (pronounCase, number,
 
 /**
  * Wait a specific number of minutes.
+ *
  * Example: When I wait 1 minute
  * Example: When I wait 5 minutes
  *
@@ -895,6 +947,7 @@ When(/^(I|we)* wait (\d*)( minute)*(m)*$/, function (pronounCase, number, withWo
 
 /**
  * Wait a max number of minutes until the element present.
+ *
  * Example: When I wait max of 6 minutes
  *
  */
@@ -905,6 +958,7 @@ When(/^(I|we)* wait max of (\d*)( minute)*(m)*$/, function (pronounCase, number,
 
 /**
  * Wait until the page is loaded.
+ *
  * Example: When I wait until the page is loaded
  *
  */
@@ -912,7 +966,8 @@ When(/^(I|we)* wait until( the)* page( is)* loaded*$/, function (pronounCase, th
   return browser.waitForElementPresent('body', 10000);
 });
 /**
- * Checks, that the current page response status is equal the specified code
+ * Checks, that the current page response status is equal the specified code.
+ *
  * Example: Then the response status code should be 200
  *
  */
@@ -932,7 +987,8 @@ Then(/^(the )*response status code should be (\d+)$/, function (theCase, expecte
 });
 
 /**
- * Checks, that the current page response status is not equal the specified code
+ * Checks, that the current page response status is not equal the specified code.
+ *
  * Example: And the response status code should not be 404
  *
  */
@@ -952,7 +1008,8 @@ Then(/^(the )*response status code should not be (\d+)$/, function ( theCase, ex
 });
 
 /**
- * Checks, that page contains text matching specified pattern
+ * Checks, that page contains text matching specified pattern.
+ *
  * Example: Then I should see text matching "^T\w+" //pattern of word start with 'T'
  *
  */
@@ -965,7 +1022,8 @@ Then(/^(I|we)* should see text matching "([^"]*)?"$/, function (pronounCase, tex
 });
 
 /**
- * Checks, that page not contains text matching specified pattern
+ * Checks, that page not contains text matching specified pattern.
+ *
  * Example: Then I should not see text matching "^O\w+" //pattern of word start with 'O'
  *
  */
@@ -978,7 +1036,8 @@ Then(/^(I|we)* should not see text matching "([^"]*)?"$/, function (pronounCase,
 });
 
 /**
- * Checks, that page contains text matching specified pattern
+ * Checks, that page contains text matching specified pattern.
+ *
  * Example: Then I should see text matching "(0?[1-9]|[12][0-9]|3[01])[\/\-](0?[1-9]|1[012])[\/\-]\d{4}" in the "#date" element 
  * //pattern of DD/MM/YYYY or DD-MM-YYYY
  *
@@ -990,7 +1049,8 @@ Then(/^(I|we)* should see text matching "([^"]*)?" in( the)* "([^"]*)?" element$
 });
 
 /**
- * Checks, that page contains text matching specified pattern
+ * Checks, that page contains text matching specified pattern.
+ *
  * Example: Then I should not see text matching "(0?[1-9]|[12][0-9]|3[01])[\/\-](0?[1-9]|1[012])[\/\-]\d{4}" in the "#date" element 
  * //pattern of DD/MM/YYYY or DD-MM-YYYY
  *
@@ -1002,7 +1062,8 @@ Then(/^(I|we)* should not see text matching "([^"]*)?" in( the)* "([^"]*)?" elem
 });
 
 /**
- * Checks, that current URL Path matches regular expression
+ * Checks, that current URL Path matches regular expression.
+ *
  * Example: Then the url should match "/contact-us.html"
  *
  */
@@ -1011,7 +1072,8 @@ Then(/^(the )*url should match "([^"]*)?"$/, function (theCase, pattern) {
 });
 
 /**
- * Checks, that current URL Path matches regular expression
+ * Checks, that current URL Path matches regular expression.
+ *
  * Example: Then the url should not match "/contact-us.html"
  *
  */
@@ -1020,7 +1082,8 @@ Then(/^(the )*url should not match "([^"]*)?"$/, function (theCase, pattern) {
 });
 
 /**
- * Checks, Scrolls to the bottom of the current page
+ * Checks, Scrolls to the bottom of the current page.
+ *
  * Example: When I scroll to the bottom
  *
  */
