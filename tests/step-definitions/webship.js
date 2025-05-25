@@ -414,52 +414,38 @@ When(/^(I|we)* fill in( the)* following: by( its)*( "([^"]*)?")* (attribute|attr
 });
 
 /**
- * Selecting the option in the dropdown list field by its text label.
- *
+ * Selecting the option in the dropdown list field by its text label
  * Example: When I select "Mercedes" from "Cars"
+ * Example: When I select "saab" from "#cars"
+ * Example: When I select "Mercedes" from "cars"
  *
  */
-When(/^(I|we)* select "([^"]*)?" from "([^"]*)?"$/, function (pronounCase, option, dropdownlist) {
+When(/^(I|we)* select "([^"]*)?" from "([^"]*)?"$/, function (pronounCase, option, selectList) {
 
-  const elementField = browser.element.findByText(dropdownlist, { exact: true });
-  browser.getAttribute(elementField, 'for', function (eleAttribute) {
-    return browser.waitForElementVisible('css selector', '#' + eleAttribute.value)
-    .click('#' + eleAttribute.value)
-    .click(browser.element.findByText(option, { exact: true }))
-    .click('#' + eleAttribute.value);
-  });
-});
+  const hasASpace = selectList.indexOf(' ');
 
-/**
- * Selects option in select field.
- *
- * Example: When I select "Mercedes" from "cars" its "id" attr
- * Example: When I select "Saab" from "#cars" by attr
- *
- */
-
-When(/^(I|we)* select "([^"]*)?" from "([^"]*)?" by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronounCase, option, attrValue, itsCase, attr, attrCase) {
-
-  const hasASpace = attrValue.indexOf(' ');
-
-  var selector = '';
-  if((attrValue.startsWith('#') || attrValue.startsWith('.')) && hasASpace == -1){
-    selector = attrValue;
+  let selector = '';
+  if((selectList.startsWith('#') || selectList.startsWith('.'))){
+    selector = selectList;
   }
-  else if (!attr && hasASpace == -1){
-    selector = attrValue + ',#' + attrValue + ',.' + attrValue + ',[name=' + attrValue + "]," + '[value="' + attrValue + '"],[placeholder="' + attrValue + '"]';
-  }
-  else if (!attr && hasASpace > -1){
-    selector ='[value="' + attrValue + '"],[placeholder="' + attrValue + '"]';
+  else if (hasASpace == -1){
+    selector = '[name="' + selectList + '"],[id="' + selectList + '"],[class="' + selectList + '"]';
   }
   else {
-    selector = '[' + attr + '="' + attrValue + '"]';
+    selector = browser.element.findByText(selectList, { exact: true });
   }
 
-  return browser.waitForElementVisible('css selector', selector)
-    .click(selector)
-    .click(browser.element.findByText(option, { exact: true }))
-    .click(selector);
+  let optionValue = '';
+  const result = option.toLowerCase();
+
+  if(result == option){
+    optionValue = '[value="' + option + '"]';
+  }
+  else{
+    optionValue = browser.element.findByText(option, { exact: true });
+  }
+  
+  return browser.click(selector).click(optionValue).click(selector);
 });
 
 /**
