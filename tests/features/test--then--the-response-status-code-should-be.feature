@@ -1,6 +1,6 @@
 Feature: An example to check the status code of a page response
-  As a tester, 
-  I want to be able to check the status code of a page response
+      As a tester,
+      I want to be able to check the status code of a page response
 
   Scenario: Check the response status code for a non-existing page
     Given I am on the homepage

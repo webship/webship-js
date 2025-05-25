@@ -1,6 +1,6 @@
 Feature: An example of filling an input textbox with a value using its attributes.
-  As a tester, 
-  I want to fill an input field with a value using its attributes.
+      As a tester,
+      I want to fill an input field with a value using its attributes.
 
   Scenario: Fill in the input field using its ID and class attributes.
     Given I am on "/test--when--i-fill-in.html"

@@ -1,7 +1,6 @@
 Feature: An example of selecting an option from a dropdown list using its attributes.
-
-  As a tester,
-  I want to be able to test selecting an option from a dropdown list using its attributes.
+      As a tester,
+      I want to be able to test selecting an option from a dropdown list using its attributes.
 
   Scenario: Check selecting an option from a dropdown list using its attributes.
     Given I am on "/test--when--i-select-option-from-dropdownlist.html"

@@ -1,6 +1,6 @@
 Feature: An example of filling an input textbox with a value using its label.
-  As a tester, 
-  I want to be able to fill input text fields with values using their labels.
+      As a tester,
+      I want to be able to fill input text fields with values using their labels.
 
   Scenario: Check filling an input field with a value using its label.
     Given I am on "/test--when--i-fill-in.html"
@@ -26,7 +26,7 @@ Feature: An example of filling an input textbox with a value using its label.
   Scenario: Check filling a table of input fields using their labels.
     Given I am on "/test--when--i-fill-in.html"
      When I fill in the following:
-              | Username | John Smith |
-              | Password | 1234 |
+    | Username | John Smith |
+    | Password | 1234       |
      When I press "Login"
      Then I should see "You enter Username: John Smith and Password: 1234"

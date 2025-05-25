@@ -1,6 +1,6 @@
 Feature: An example of a test case for selecting a checkbox
-  As a tester,
-  I want to be able to check that the checkbox is checked or not
+      As a tester,
+      I want to be able to check that the checkbox is checked or not
 
   Scenario: Verify that the checkbox is checked
     Given I am on "/test--then--the-checkbox-checked.html"

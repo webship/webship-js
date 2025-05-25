@@ -1,7 +1,6 @@
 Feature: An example of reloading the page.
-
-  As a tester,
-  I want to be able to reload the page.
+      As a tester,
+      I want to be able to reload the page.
 
   Scenario: Check reloading the page.
     Given I am on "/test--when--i-reload-page.html"

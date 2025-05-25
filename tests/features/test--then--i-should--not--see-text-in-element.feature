@@ -1,6 +1,6 @@
 Feature: An example to ensure that the input text does not contain a specific value based on its attribute
-  As a tester, 
-  I want to ensure that the textbox does not contain a specific value based on its attributes.
+      As a tester,
+      I want to ensure that the textbox does not contain a specific value based on its attributes.
   
   Scenario: Ensuring that a textbox does not contain a specific value based on its attributes.
     Given I am on "/test--then--i-should--not--see-text-in-element.html"

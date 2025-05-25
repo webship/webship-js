@@ -1,7 +1,6 @@
 Feature: An example of clicking a link by its attribute
-
-  As a tester, 
-  I want to be able to click a link by its attribute
+      As a tester,
+      I want to be able to click a link by its attribute
 
   Scenario: Verify the action of clicking a link by targeting its ID attribute
     Given I am on "/test--when--i-click-link.html"

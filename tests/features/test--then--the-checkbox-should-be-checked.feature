@@ -1,6 +1,6 @@
 Feature: An example to assert the selection of a checkbox
-  As an anonymous user, 
-  I want to ensure that a specific checkbox is checked before submitting a particular action
+      As an anonymous user,
+      I want to ensure that a specific checkbox is checked before submitting a particular action
 
   Scenario: Ensure that the checkbox is checked
     Given I am on "/test--then--the-checkbox-checked.html"

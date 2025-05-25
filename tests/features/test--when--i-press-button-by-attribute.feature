@@ -1,7 +1,6 @@
 Feature: An example of pressing a button using its attributes.
-
-  As a tester,
-  I want to be able to press a button using its attributes.
+      As a tester,
+      I want to be able to press a button using its attributes.
 
   Scenario: Verify that you can click a button by specifying its ID with the '#' sign.
     Given I am on "/test--when--i-press-button.html"

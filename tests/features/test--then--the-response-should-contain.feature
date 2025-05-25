@@ -1,6 +1,6 @@
-Feature: An example to ensure that the response page contains specific text 
-  As a tester, 
-  I want to navigate to a page to verify whether it contains specific text
+Feature: An example to ensure that the response page contains specific text
+      As a tester,
+      I want to navigate to a page to verify whether it contains specific text
 
   Scenario: Ensure that the response page contains specific text
     Given I am on the homepage

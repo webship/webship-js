@@ -1,7 +1,6 @@
 Feature: An example of checking and unchecking a checkbox
-
-  As a tester, 
-  I want to be able to check and uncheck a checkbox
+      As a tester,
+      I want to be able to check and uncheck a checkbox
 
   Scenario: Implementing the ability to check and uncheck a checkbox
     Given I am on "/test--when--i-check-uncheck-checkbox.html"
