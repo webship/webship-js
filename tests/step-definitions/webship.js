@@ -112,7 +112,7 @@ When(/^(I|we)* press( the)* "([^"]*)?"( button)*$/, function (pronounCase, theCa
  * Example: When I press "btn-pressid" by attribute
  * Example: And I press "Your full name" by "placeholder" attribute
  * Example: And I press "Your full name" by its "placeholder" attribute
- * Example: And I press "save-name" by "data-drupal-selector" attr
+ * Example: And I press "save-name" by "data-selector" attr
  *
  */
 When(/^(I|we)* press "([^"]*)?" by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronounCase, attrValue, itsCase, attr, attrCase) {
@@ -1082,11 +1082,171 @@ Then(/^(the )*url should not match "([^"]*)?"$/, function (theCase, pattern) {
 });
 
 /**
- * Checks, Scrolls to the bottom of the current page.
+ * Scrolls down the page by a custom number of pixels specified by the user.
  *
- * Example: When I scroll to the bottom
- *
+ * Example #1: And I scroll down
+ * Example #2: When I scroll down 800
+ * Example #3: And we scroll down 500
+ * Example #4: When scrolling down 1200
  */
-When(/^(I|we)* scroll to( the)* bottom$/, async function(pronounCase, theCase) {
-  return browser.executeScript('window.scrollTo(0,document.body.scrollHeight);');
+When(/^(I|we)? (scroll|scrolling) down( ([^"]*)?)*$/, function(pronounCase, scrollAction, value) {
+  // Default scroll value
+  let scrollValue = 350;
+
+  if (value !== null) {
+    scrollValue = parseInt(String(value).trim(), 10);
+
+    // Validate the parsed value
+    if (isNaN(scrollValue)) {
+      throw new Error(`Invalid scroll value: "${value}". Expected a number.`);
+    }
+
+    if (scrollValue < 0) {
+      throw new Error(`Scroll down value must be positive. Received: ${scrollValue}`);
+    }
+
+    if (scrollValue > 10000) {
+      console.warn(`Large scroll value detected: ${scrollValue}px. Consider if this is intentional.`);
+    }
+  }
+
+  return browser.executeScript(`window.scrollBy(0, ${scrollValue});`);
+});
+
+/**
+* Scrolls up the page by a custom number of pixels specified by the user.
+*
+* Example #1: And I scroll up
+* Example #2: When I scroll up 1000
+* Example #3: And we scrolling up 300
+* Example #4: When scrolling up 750
+*
+*/
+When(/^(I|we)? (scroll|scrolling) up( ([^"]*)?)*$/, function(pronounCase, scrollAction, value) {
+  // Parse and validate the scroll value
+  let scrollValue = 350; // default value
+
+  if (value !== null) {
+    scrollValue = parseInt(String(value).trim(), 10);
+
+    // Validate the parsed value
+    if (isNaN(scrollValue)) {
+      throw new Error(`Invalid scroll value: "${value}". Expected a number.`);
+    }
+
+    if (scrollValue < 0) {
+      throw new Error(`Scroll up value must be positive. Received: ${scrollValue}`);
+    }
+
+    if (scrollValue > 10000) {
+      console.warn(`Large scroll value detected: ${scrollValue}px. Consider if this is intentional.`);
+    }
+  }
+  
+  // Make the value negative for scrolling up
+  return browser.executeScript(`window.scrollBy(0, -${scrollValue});`);
+});
+
+/**
+* Scrolls to the very top of the current page, resetting the scroll position to zero.
+*
+* Example #1: When I scroll to top
+* Example #2: And we scrolling to the top
+* Example #3: When scrolling to the top of the page
+*/
+When(/^(I|we)* (scroll|scrolling) to( the)* top( of the page)*$/, function(pronounCase, scrollAction, theCase, pageCase) {
+  return browser.executeScript('document.documentElement.scrollTop = 0;');
+});
+
+/**
+* Scrolls to the bottom of the current page using the full document height.
+*
+* Example #1: When I scroll to the bottom
+* Example #2: And we scroll to bottom
+* Example #3: When scrolling to the bottom of the page
+*/
+When(/^(I|we)* (scroll|scrolling) to( the)* bottom( of the page)*$/, function(pronounCase, scrollAction, theCase, pageCase) {
+  return browser.executeScript('window.scrollTo(0, document.body.scrollHeight);');
+});
+
+/**
+* Scrolls to the top of a specific element identified by a CSS selector, resetting its scroll position to zero.
+*
+* Example #1: When I scroll to top of "#off-canvas"
+* Example #2: And we scroll to top of "#sidebar"
+* Example #3: When scrolling to top of "#main-container"
+*/
+When(/^(I|we)* (scroll|scrolling) to top of "([^"]*)"$/, function(pronounCase, scrollAction, selector) {
+  // Validate selector
+  if (!selector || selector.trim() === '') {
+      throw new Error('Selector cannot be empty. Please provide a valid CSS selector.');
+  }
+  
+  // Validate selector format (basic check)
+  if (selector.includes('"') || selector.includes("'")) {
+      throw new Error(`Invalid selector format: "${selector}". Selector should not contain quotes.`);
+  }
+  
+  try {
+      // Check if element exists before scrolling
+      const elementExists = browser.executeScript(`
+          return document.querySelector("${selector}") !== null;
+      `);
+      
+      if (!elementExists) {
+          throw new Error(`Element with selector "${selector}" not found.`);
+      }
+      
+      browser.executeScript(`
+          const element = document.querySelector("${selector}");
+          if (element) {
+              element.scrollTop = 0;
+          }
+      `);
+      
+      return browser.pause(2000);
+  } catch (error) {
+      throw new Error(`Failed to scroll to top of element "${selector}": ${error.message}`);
+  }
+});
+
+/**
+* Scrolls to the bottom of a specific element identified by a CSS selector, moving to its maximum scroll height.
+*
+* Example #1: When I scroll to bottom of "#off-canvas"
+* Example #2: And we scrolling to bottom of "#sidebar"
+* Example #3: When scrolling to bottom of "#main-container"
+*/
+When(/^(I|we)* (scroll|scrolling) to bottom of "([^"]*)"$/, function(pronounCase, scrollAction, selector) {
+  // Validate selector
+  if (!selector || selector.trim() === '') {
+      throw new Error('Selector cannot be empty. Please provide a valid CSS selector.');
+  }
+  
+  // Validate selector format (basic check)
+  if (selector.includes('"') || selector.includes("'")) {
+      throw new Error(`Invalid selector format: "${selector}". Selector should not contain quotes.`);
+  }
+  
+  try {
+      // Check if element exists before scrolling
+      const elementExists = browser.executeScript(`
+          return document.querySelector("${selector}") !== null;
+      `);
+      
+      if (!elementExists) {
+          throw new Error(`Element with selector "${selector}" not found.`);
+      }
+      
+      browser.executeScript(`
+          const element = document.querySelector("${selector}");
+          if (element) {
+              element.scrollTop = element.scrollHeight;
+          }
+      `);
+      
+      return browser.pause(2000);
+  } catch (error) {
+      throw new Error(`Failed to scroll to bottom of element "${selector}": ${error.message}`);
+  }
 });

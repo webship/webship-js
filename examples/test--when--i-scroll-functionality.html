@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset='utf-8'>
+  <title>Complete Scroll Functionality Test</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+    }
+
+    .container,
+    .container input,
+    .container button {
+      font-size: 26px;
+    }
+
+    .style {
+      font-size: 22px;
+      line-height: 30px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin: 5px 0;
+      background-color: #f9f9f9;
+    }
+    
+    .indicator {
+      font-size: 28px;
+      font-weight: bold;
+      color: #007bff;
+      padding: 15px;
+      margin: 10px 0;
+      border: 2px solid #007bff;
+      background-color: #e7f3ff;
+      display: none;
+    }
+
+    #scrollable-container {
+      height: 300px;
+      overflow-y: auto;
+      border: 2px solid #333;
+      margin: 20px 0;
+      padding: 10px;
+      background-color: #f0f0f0;
+    }
+
+    .scrollable-content {
+      height: 800px;
+      background: linear-gradient(to bottom, #ff9999, #99ff99, #9999ff);
+      padding: 20px;
+      position: relative;
+    }
+
+    .scroll-marker {
+      position: absolute;
+      font-size: 18px;
+      font-weight: bold;
+      background-color: rgba(255, 255, 255, 0.8);
+      padding: 5px 10px;
+      border-radius: 5px;
+    }
+
+    .scroll-marker.top {
+      top: 10px;
+      left: 10px;
+    }
+
+    .scroll-marker.bottom {
+      bottom: 10px;
+      right: 10px;
+    }
+
+    #complete {
+      font-size: 32px;
+      line-height: 40px;
+      color: #28a745;
+      font-weight: bold;
+      text-align: center;
+      padding: 20px;
+      border: 3px solid #28a745;
+      background-color: #d4edda;
+      margin: 20px 0;
+    }
+
+  </style>
+</head>
+
+<body>
+  <h1>Complete Scrolling Functionality Test Page</h1>
+
+  <!-- Indicators for different scroll actions -->
+  <div id="basic-scroll-down" class="indicator">Basic scroll down works</div>
+  <div id="basic-scroll-up" class="indicator">Basic scroll up works</div>
+  <div id="custom-scroll-down" class="indicator">Custom scroll down works</div>
+  <div id="custom-scroll-up" class="indicator">Custom scroll up works</div>
+  <div id="scroll-to-top" class="indicator">Scroll to top works</div>
+
+  <!-- Main content container -->
+  <div id="container">
+    <p class="style">This is the starting content of the page</p>
+  </div>
+
+  <!-- Scrollable element container -->
+  <h2>Scrollable Container Test</h2>
+  <div id="scrollable-container">
+    <div class="scrollable-content">
+      <div class="scroll-marker top">Element scroll to top works</div>
+      <p>This is a scrollable container with a lot of content inside.</p>
+      <p>You can scroll within this container independently of the main page.</p>
+      <p>This content demonstrates element-specific scrolling functionality.</p>
+      <div class="scroll-marker bottom">Element scroll to bottom works</div>
+    </div>
+  </div>
+
+  <!-- Bottom completion message -->
+  <div id="complete">Scroll to bottom works</div>
+
+</body>
+
+<script>
+  // Generate content to make the page long enough for scrolling
+  const container = document.getElementById("container");
+  
+  for(var i = 1; i <= 30; i++){
+    container.innerHTML += '<p class="style">Container content section #' + i + ' - This adds height to test scrolling</p>';
+  }
+
+  // Add scroll event listeners to show appropriate indicators
+  let scrollTimeout;
+  
+  window.addEventListener('scroll', function() {
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(function() {
+      const scrollY = window.scrollY;
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+      
+      // Hide all indicators first
+      document.querySelectorAll('.indicator').forEach(el => el.style.display = 'none');
+      
+      // Show appropriate indicator based on scroll position
+      if (scrollY === 0) {
+        document.getElementById('scroll-to-top').style.display = 'block';
+      } else if (scrollY >= 300 && scrollY <= 400) {
+        document.getElementById('basic-scroll-down').style.display = 'block';
+      } else if (scrollY >= 450 && scrollY <= 550) {
+        document.getElementById('custom-scroll-down').style.display = 'block';
+      } else if (scrollY + windowHeight >= documentHeight - 50) {
+        // Near bottom of page
+        if (window.lastScrollDirection === 'up') {
+          document.getElementById('custom-scroll-up').style.display = 'block';
+        }
+      }
+      
+      // Track scroll direction
+      if (scrollY > (window.lastScrollY || 0)) {
+        window.lastScrollDirection = 'down';
+      } else {
+        window.lastScrollDirection = 'up';
+      }
+      window.lastScrollY = scrollY;
+      
+    }, 100);
+  });
+
+  // Add scroll event listener for the scrollable container
+  const scrollableContainer = document.getElementById('scrollable-container');
+  scrollableContainer.addEventListener('scroll', function() {
+    // This helps test element-specific scrolling
+    console.log('Scrollable container scrolled to:', this.scrollTop);
+  });
+
+</script>
+</html>
