@@ -24,8 +24,8 @@ const path = require('path');
 Given(/^(I am |we are )?on( the)* (homepage|frontpage)$/, function (pronounCase, theCase, pageCase) {
   browser.url(browser.launch_url);
   let defaultTime = 3000;
-  if (browser.globals.min_wait_time.page){
-    defaultTime = browser.globals.min_wait_time.page;
+  if (browser.globals && browser.globals.minimum_wait_time && browser.globals.minimum_wait_time.page) {
+    defaultTime = browser.globals.minimum_wait_time.page;
   }
   return browser.waitForElementPresent('body', defaultTime);
 });
@@ -44,8 +44,8 @@ Given(/^(I am |we are )?on( the)* (homepage|frontpage)$/, function (pronounCase,
 Given(/^(I am |we are )*on( the)* "([^"]*)?"( page)*$/, function (pronounCase, theCase, url, pageCase) {
   browser.url(browser.launch_url + url);
   let defaultTime = 3000;
-  if (browser.globals.min_wait_time.page){
-    defaultTime = browser.globals.min_wait_time.page;
+  if (browser.globals && browser.globals.minimum_wait_time && browser.globals.minimum_wait_time.page) {
+    defaultTime = browser.globals.minimum_wait_time.page;
   }
   return browser.waitForElementPresent('body', defaultTime);
 });
@@ -66,8 +66,8 @@ Given(/^(I am |we are )*on( the)* "([^"]*)?"( page)*$/, function (pronounCase, t
 When(/^(I go |I navigate |we go |we navigate |navigating )?to( the)* (homepage|frontpage)$/, function (pronounCase, theCase, pageCase) {
   browser.url(browser.launch_url);
   let defaultTime = 3000;
-  if (browser.globals.min_wait_time.page){
-    defaultTime = browser.globals.min_wait_time.page;
+  if (browser.globals && browser.globals.minimum_wait_time && browser.globals.minimum_wait_time.page) {
+    defaultTime = browser.globals.minimum_wait_time.page;
   }
   return browser.waitForElementPresent('body', defaultTime);
 });
@@ -86,8 +86,8 @@ When(/^(I go |I navigate |we go |we navigate |navigating )?to( the)* (homepage|f
 When(/^(I go |I navigate |we go |we navigate |navigating )?to "([^"]*)?"$/, function (pronounCase, url) {
   browser.url(browser.launch_url + url);
   let defaultTime = 3000;
-  if(browser.globals.min_wait_time.page){
-    defaultTime = browser.globals.min_wait_time.page;
+  if (browser.globals && browser.globals.minimum_wait_time && browser.globals.minimum_wait_time.page) {
+    defaultTime = browser.globals.minimum_wait_time.page;
   }
   return browser.waitForElementPresent('body', defaultTime);
 });
@@ -845,7 +845,7 @@ Then(/^(the )*"([^"]*)?" element should not contain "([^"]*)?"$/, function (theC
 When(/^(I |we )*attach( the)* file "([^"]*)?" to "([^"]*)?"$/, function (pronounCase, theCase, fileName, element) {
   // Construct local file path.
   let assetsFolder;
-  if (browser.globals.assets_folder) {
+  if (browser.globals && browser.globals.assets_folder) {
     assetsFolder = browser.globals.assets_folder;
   } else {
     assetsFolder = path.join(__dirname, '/tests/assets/');
