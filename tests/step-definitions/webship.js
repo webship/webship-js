@@ -100,7 +100,9 @@ When(/^(I go |I navigate |we go |we navigate |navigating )?to "([^"]*)?"$/, func
  * 
  */
 Then(/^(I |we )*should see "([^"]*)?"$/, function (pronounCase, expectedText) {
-  return browser.assert.textContains("html", expectedText);
+  return this.shouldSee = function (browser) {
+    browser.assert.textContains("html", expectedText);
+  };
 });
 
 /**
@@ -111,7 +113,9 @@ Then(/^(I |we )*should see "([^"]*)?"$/, function (pronounCase, expectedText) {
  * 
  */
 Then(/^(I |we )*should not see "([^"]*)?"$/, function (pronounCase, expectedText) {
-  return browser.assert.not.textContains("html", expectedText);
+  return this.shouldSee = function (browser) {
+    browser.assert.not.textContains("html", expectedText);
+  };
 });
 
 /**
