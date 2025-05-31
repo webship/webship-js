@@ -13,7 +13,7 @@ const path = require('path');
  * Example: Given I am on the homepage
  * 
  */
-Given(/^(I am |we are )*on( the)* homepage$/, function (pronounCase, theCase) {
+Given(/^(I am |we are )?on( the)* homepage$/, function (pronounCase, theCase) {
   browser.url(browser.launch_url);
   let defaultTime = 3000;
   if(browser.globals.min_wait_time.page){
@@ -29,7 +29,7 @@ Given(/^(I am |we are )*on( the)* homepage$/, function (pronounCase, theCase) {
  * Example #2: Given we are on "/about-us.html"
  *
  */
-Given(/^(I am |we are )on "([^"]*)?"$/, function (pronounCase, url) {
+Given(/^(I am |we are )?on "([^"]*)?"$/, function (pronounCase, url) {
   browser.url(browser.launch_url + url);
   let defaultTime = 3000;
   if(browser.globals.min_wait_time.page){
@@ -51,7 +51,7 @@ Given(/^(I am |we are )on "([^"]*)?"$/, function (pronounCase, url) {
  * Example #8: When we navigate to the homepage
  *
  */
-When(/^(I go|I navigate|we go|we navigate|navigating)*to( the)* (homepage|frontpage)$/, function (pronounCase, theCase) {
+When(/^(I go |I navigate |we go |we navigate |navigating )?to( the)* (homepage|frontpage)$/, function (pronounCase, theCase) {
   browser.url(browser.launch_url);
   let defaultTime = 3000;
   if(browser.globals.min_wait_time.page){
@@ -71,7 +71,7 @@ When(/^(I go|I navigate|we go|we navigate|navigating)*to( the)* (homepage|frontp
  * Example #8: When we navigate to "/terms"
  *
  */
-When(/^(I go|I navigate|we go|we navigate|navigating)*to "([^"]*)?"$/, function (pronounCase, url) {
+When(/^(I go |I navigate |we go |we navigate |navigating )?to "([^"]*)?"$/, function (pronounCase, url) {
   browser.url(browser.launch_url + url);
   let defaultTime = 3000;
   if(browser.globals.min_wait_time.page){
@@ -85,20 +85,21 @@ When(/^(I go|I navigate|we go|we navigate|navigating)*to "([^"]*)?"$/, function 
  *
  * Example #1: Then I should see "Welcome"
  * Example #2: Then we should see "Your accounts for the group is public"
- * Example #3: Then I should not see "Access denied"
- * Example #4: Then we should not see "Edit layout"
  * 
  */
-Then(/^(I |we )*should(not )*see "([^"]*)?"$/, function (pronounCase,notContext, expectedText ) {
-  if (notContext) {
-    return this.shouldSee = function (browser) {
-      browser.assert.not.textContains("html", expectedText);
-    };
-  }
+Then(/^(I |we )*should see "([^"]*)?"$/, function (pronounCase, expectedText) {
+  return browser.assert.textContains("html", expectedText);
+});
 
-  return this.shouldSee = function (browser) {
-    browser.assert.textContains("html", expectedText);
-  };
+/**
+ * Asserting a text in the page.
+ *
+ * Example #1: Then I should not see "Access denied"
+ * Example #2: Then we should not see "Edit layout"
+ * 
+ */
+Then(/^(I |we )*should not see "([^"]*)?"$/, function (pronounCase, expectedText) {
+  return browser.assert.not.textContains("html", expectedText);
 });
 
 /**
@@ -285,7 +286,7 @@ When(/^(I |we )*fill in "([^"]*)?" with:$/, function (pronounCase, field) {
  * Example: And I fill in "Your full name" with: by its "placeholder" attribute
  *
  */
-When(/^(I |we )* fill in "([^"]*)?" with: by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronounCase, attrValue , itsCase, attr, attrCase) {
+When(/^(I |we )*fill in "([^"]*)?" with: by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronounCase, attrValue , itsCase, attr, attrCase) {
 
   const hasASpace = attrValue.indexOf(' ');
   var selector = '';
@@ -313,7 +314,7 @@ When(/^(I |we )* fill in "([^"]*)?" with: by( its)*( "([^"]*)?")* (attribute|att
  * Example #2: When we fill in "Testing" for "Organization options"
  *
  */
-When(/^(I |we )* fill in "([^"]*)?" for "([^"]*)?"$/, function (pronounCase, value, field) {
+When(/^(I |we )*fill in "([^"]*)?" for "([^"]*)?"$/, function (pronounCase, value, field) {
   const elementField = browser.element.findByText(field, { exact: true });
   browser.getAttribute(elementField, 'for', function (eleAttribute) {
     return browser.setValue('#' + eleAttribute.value, value);
@@ -494,41 +495,67 @@ When(/^(I |we )*uncheck "([^"]*)?"$/, function (pronounCase, item) {
  * Verify, that current page is the homepage.
  *
  * Example #1: Then I should be on homepage
- * Example #2: Then I should be on the homepage
- * Example #3: Then I should not be on frontpage
- * Example #4: Then I should not be on the homepage
- * Example #5: Then we should be on homepage
- * Example #6: Then we should be on the homepage
- * Example #7: Then we should not be on frontpage
- * Example #8: Then we should not be on the homepage
+ * Example #2:  And I should be on the homepage
+ * Example #3: Then I should be on frontpage
+ * Example #4:  And should be on the homepage
+ * Example #5: Then should be on homepage
+ * Example #6:  And we should be on homepage
+ * Example #7: Then should be on frontpage
+ * Example #8:  And we should be on the homepage
  *
  */
-Then(/^(I |we )*should( not)* be on( the)* (homepage|frontpage)$/, function (pronounCase, notContext, theCase) {
-  if (notContext) {
-    return browser.assert.not.urlMatches(browser.launch_url);
-  }
+Then(/^(I |we )*should be on( the)* (homepage|frontpage)$/, function (pronounCase, theCase, pageCase) {
   return browser.assert.urlMatches(browser.launch_url);
+});
+
+/**
+ * Verify, that current page is the homepage.
+ *
+ * Example #1: Then I should not be on homepage
+ * Example #2:  And I should not be on the homepage
+ * Example #3: Then I should not be on frontpage
+ * Example #4: Then we should not be on homepage
+ * Example #5: Then should not be on the homepage
+ * Example #6:  And we should not be on frontpage
+ * Example #7:  And we should not be on the homepage
+ *
+ */
+Then(/^(I |we )*should not be on( the)* (homepage|frontpage)$/, function (pronounCase, theCase, pageCase) {
+  return browser.assert.not.urlMatches(browser.launch_url);
 });
 
 /**
  * Verify, that current page path is equal to specified path.
  *
  * Example #1: Then I should be on "/"
- * Example #2: And I should be on "/user/login"
- * Example #3: And I should be on "https://un.org"
+ * Example #2:  And I should be on "/user/login"
+ * Example #3:  And I should be on "https://un.org"
  * Example #4: Then we should be on "/"
- * Example #5: And we should be on "/user/login"
- * Example #6: And we should be on "https://google.com"
- * Example #7: Then I should not be on "/"
- * Example #8: And I should not be on "/user/reset"
- * Example #9: And we should not be on "https://x.com"
+ * Example #5:  And we should be on "/user/login"
+ * Example #6:  And we should be on "https://google.com"
+ * Example #7: Then should be on "/user/reset"
+ * Example #8:  And we should be on "https://x.com"
  *
  */
-Then(/^(I |we )*should( not)* be on "([^"]*)?"$/, function (pronounCase, notContext, url) {
-  if (notContext) {
-    return browser.assert.not.urlContains(url);
-  }
+Then(/^(I |we )*should be on "([^"]*)?"$/, function (pronounCase, notContext, url) {
   return browser.assert.urlContains(url);
+});
+
+/**
+ * Verify, that current page path dose not equal to specified path.
+ *
+ * Example #1: Then I should not be on "/"
+ * Example #2:  And I should not be on "/user/login"
+ * Example #3:  And I should not be on "https://un.org"
+ * Example #4: Then we should not be on "/"
+ * Example #5:  And we should not be on "/user/login"
+ * Example #6: Then we should not be on "https://google.com"
+ * Example #7:  And should not be on "/user/reset"
+ * Example #8:  And we should not be on "https://x.com"
+ *
+ */
+Then(/^(I |we )*should not be on "([^"]*)?"$/, function (pronounCase, url) {
+  return browser.assert.not.urlContains(url);
 });
 
 /**
@@ -577,24 +604,19 @@ Then(/^(the )*"([^"]*)?" link should contain "([^"]*)?" by( its)*( "([^"]*)?")* 
  * Example #1: Then the response should contain "Welcome visitor, How can I help you?"
  *
  */
-Then(/^(the )*response should contain "([^"]*)?"$/, function (theCase, expectedText) {
-  return this.shouldSee = function (browser) {
-    browser.assert.textContains("html", expectedText);
-  };
+Then(/^(the )*response should contain "([^"]*)?"$/, function (theCase, notContext, expectedText) {
+  return browser.assert.not.textContains("html", expectedText);
 });
 
 /**
- * Checks, that HTML response contains specific text.
+ * Checks, that HTML response dose not  contains specific text.
  *
- * Example #1: Then the response should not contain "Error: Ambiguous messages that are unclear"
+ * Example #1: Then the response should not contain "Welcome visitor, How can I help you?"
  *
  */
 Then(/^(the )*response should not contain "([^"]*)?"$/, function (theCase, expectedText) {
-  return this.shouldSee = function (browser) {
-    browser.assert.not.textContains("html", expectedText);
-  };
+  return browser.assert.textContains("html", expectedText);
 });
-
 
 /**
  * Assert, that input text contains a specific value by its label.
@@ -959,7 +981,7 @@ When(/^(I |we )*wait (\d*)( second| seconds |s)$/, function (pronounCase, number
  * Example #8: When we wait max of 4s
  *
  */
-When(/^(I |we )*wait max of (\d*)( second| seconds |s)$/, function (pronounCase, number, withSecondWord) {
+When(/^(I |we )*wait max of (\d*)( second| seconds|s)?$/, function (pronounCase, number, withSecondWord) {
   var waitTime = number * 1000;
   return browser.waitForElementPresent('body', waitTime);
 });
@@ -977,7 +999,7 @@ When(/^(I |we )*wait max of (\d*)( second| seconds |s)$/, function (pronounCase,
  * Example #8: When we wait 2m
  *
  */
-When(/^(I |we )*wait (\d*)( minute| minutes|m)*$/, function (pronounCase, number, withMinuteWord) {
+When(/^(I |we )*wait (\d*)( minute| minutes|m)?$/, function (pronounCase, number, withMinuteWord) {
   var waitTime = number * 1000 * 60;
   return browser.pause(waitTime);
 });
@@ -995,7 +1017,7 @@ When(/^(I |we )*wait (\d*)( minute| minutes|m)*$/, function (pronounCase, number
  * Example #8: When we wait 2m
  *
  */
-When(/^(I |we )* wait max of (\d*)( minute| minutes |m)*$/, function (pronounCase, number, withMinuteWord) {
+When(/^(I |we )*wait max of (\d*)( minute| minutes|m)?$/, function (pronounCase, number, withMinuteWord) {
   var waitTime = number * 1000 * 60;
   return browser.waitForElementPresent('body', waitTime);
 });
@@ -1008,7 +1030,7 @@ When(/^(I |we )* wait max of (\d*)( minute| minutes |m)*$/, function (pronounCas
  * Example #2: When wait until page loaded
  *
  */
-When(/^(I |we )* wait until( the)* page( is)* loaded*$/, function (pronounCase, theCase, withIs) {
+When(/^(I |we )*wait until( the)* page( is)* loaded*$/, function (pronounCase, theCase, withIs) {
   return browser.waitForElementPresent('body', 10000);
 });
 
@@ -1074,7 +1096,7 @@ Then(/^(I |we )*should see text matching "([^"]*)?"$/, function (pronounCase, te
  * Example #1: Then I should not see text matching "^O\w+" //pattern of word start with 'O'
  *
  */
-Then(/^(I |we )* should not see text matching "([^"]*)?"$/, function (pronounCase, textPattern) {
+Then(/^(I |we )*should not see text matching "([^"]*)?"$/, function (pronounCase, textPattern) {
   browser.elements('css selector', 'body', function (elements) {
     elements.value.forEach(function (elementsObj) {
       return browser.assert.not.textMatches(elementsObj, textPattern);
@@ -1087,11 +1109,9 @@ Then(/^(I |we )* should not see text matching "([^"]*)?"$/, function (pronounCas
  *
  * Example #1: Then I should see text matching "(0?[1-9]|[12][0-9]|3[01])[\/\-](0?[1-9]|1[012])[\/\-]\d{4}" in the "#date" element 
  *            // pattern of DD/MM/YYYY or DD-MM-YYYY
- * Example #2: Then I should not see text matching "(0?[1-9]|[12][0-9]|3[01])[\/\-](0?[1-9]|1[012])[\/\-]\d{4}" in the "#date" element 
- *            // pattern of DD/MM/YYYY or DD-MM-YYYY
  *
  */
-Then(/^(I |we )* should see text matching "([^"]*)?" in( the)* "([^"]*)?" element$/, function (pronounCase, notContext, textPattern, theCase, element) {
+Then(/^(I |we )*should see text matching "([^"]*)?" in( the)* "([^"]*)?" element$/, function (pronounCase, textPattern, theCase, element) {
   if (notContext) {
     return this.shouldSeePattern = function (browser) {
       browser.assert.not.textMatches(element, textPattern);
@@ -1100,6 +1120,17 @@ Then(/^(I |we )* should see text matching "([^"]*)?" in( the)* "([^"]*)?" elemen
   return this.shouldSeePattern = function (browser) {
     browser.assert.textMatches(element, textPattern);
   };
+});
+
+/**
+ * Checks, that page dose not contain text matching specified pattern.
+ *
+ * Example #1: Then I should not see text matching "(0?[1-9]|[12][0-9]|3[01])[\/\-](0?[1-9]|1[012])[\/\-]\d{4}" in the "#date" element 
+ *            // pattern of DD/MM/YYYY or DD-MM-YYYY
+ *
+ */
+Then(/^(I |we )*should not see text matching "([^"]*)?" in( the)* "([^"]*)?" element$/, function (pronounCase, textPattern, theCase, element) {
+  return browser.assert.not.textMatches(element, textPattern);
 });
 
 /**
@@ -1130,7 +1161,7 @@ Then(/^(the )*url should not match "([^"]*)?"$/, function (theCase, pattern) {
  * Example #3: And we scroll down 500
  * Example #4: When scrolling down 1200
  */
-When(/^(I scroll|we scroll|scrolling)? down( ([^"]*)?)*$/, function(pronounCase, scrollAction, value) {
+When(/^(I scroll|we scroll|scrolling)? down( ([^"]*)?)*$/, function(pronounCase, value) {
   // Default scroll value
   let scrollValue = 350;
 
@@ -1163,7 +1194,7 @@ When(/^(I scroll|we scroll|scrolling)? down( ([^"]*)?)*$/, function(pronounCase,
 * Example #4: When scrolling up 750
 *
 */
-When(/^(I scroll|we scroll|scrolling)? up( ([^"]*)?)*$/, function(pronounCase, scrollAction, value) {
+When(/^(I scroll|we scroll|scrolling)? up( ([^"]*)?)*$/, function(pronounCase, value) {
   // Parse and validate the scroll value
   let scrollValue = 350; // default value
 
@@ -1195,7 +1226,7 @@ When(/^(I scroll|we scroll|scrolling)? up( ([^"]*)?)*$/, function(pronounCase, s
 * Example #2: And we scrolling to the top
 * Example #3: When scrolling to the top of the page
 */
-When(/^(I scroll|we scroll|scrolling)? to( the)* top( of the page)*$/, function(pronounCase, scrollAction, theCase, pageCase) {
+When(/^(I scroll|we scroll|scrolling)? to( the)* top( of the page)*$/, function(pronounCase, theCase, pageCase) {
   return browser.executeScript('document.documentElement.scrollTop = 0;');
 });
 
@@ -1206,7 +1237,7 @@ When(/^(I scroll|we scroll|scrolling)? to( the)* top( of the page)*$/, function(
 * Example #2: And we scroll to bottom
 * Example #3: When scrolling to the bottom of the page
 */
-When(/^(I scroll|we scroll|scrolling)? to( the)* bottom( of the page)*$/, function(pronounCase, scrollAction, theCase, pageCase) {
+When(/^(I scroll|we scroll|scrolling)? to( the)* bottom( of the page)*$/, function(pronounCase, theCase, pageCase) {
   return browser.executeScript('window.scrollTo(0, document.body.scrollHeight);');
 });
 
@@ -1217,7 +1248,7 @@ When(/^(I scroll|we scroll|scrolling)? to( the)* bottom( of the page)*$/, functi
 * Example #2: And we scroll to top of "#sidebar"
 * Example #3: When scrolling to top of "#main-container"
 */
-When(/^(I scroll|we scroll|scrolling)? to top of "([^"]*)"$/, function(pronounCase, scrollAction, selector) {
+When(/^(I scroll|we scroll|scrolling)? to top of "([^"]*)"$/, function(pronounCase, selector) {
   // Validate selector
   if (!selector || selector.trim() === '') {
       throw new Error('Selector cannot be empty. Please provide a valid CSS selector.');
@@ -1258,7 +1289,7 @@ When(/^(I scroll|we scroll|scrolling)? to top of "([^"]*)"$/, function(pronounCa
 * Example #2: And we scrolling to bottom of "#sidebar"
 * Example #3: When scrolling to bottom of "#main-container"
 */
-When(/^(I scroll|we scroll|scrolling)? to bottom of "([^"]*)"$/, function(pronounCase, scrollAction, selector) {
+When(/^(I scroll|we scroll|scrolling)? to bottom of "([^"]*)"$/, function(pronounCase, selector) {
   // Validate selector
   if (!selector || selector.trim() === '') {
       throw new Error('Selector cannot be empty. Please provide a valid CSS selector.');
