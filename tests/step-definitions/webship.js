@@ -9,14 +9,22 @@ const path = require('path');
 /**
  * Opens homepage.
  *
- * Example: Given I am on homepage
- * Example: Given I am on the homepage
+ * Example #1: Given I am on homepage
+ * Example #2: Given I am on the homepage
+ * Example #2: Given I am on frontpage
+ * Example #3: Given I am on the frontpage
+ * Example #4: Given we are on homepage
+ * Example #5: Given on the homepage
+ * Example #6: Given on homepage
+ * Example #7: Given we are on the frontpage
+ * Example #8: Given on frontpage
+ * 
  * 
  */
-Given(/^(I am |we are )?on( the)* homepage$/, function (pronounCase, theCase) {
+Given(/^(I am |we are )?on( the)* (homepage|frontpage)$/, function (pronounCase, theCase, pageCase) {
   browser.url(browser.launch_url);
   let defaultTime = 3000;
-  if(browser.globals.min_wait_time.page){
+  if (browser.globals.min_wait_time.page){
     defaultTime = browser.globals.min_wait_time.page;
   }
   return browser.waitForElementPresent('body', defaultTime);
@@ -27,12 +35,16 @@ Given(/^(I am |we are )?on( the)* homepage$/, function (pronounCase, theCase) {
  *
  * Example #1: Given I am on "/about-us.html"
  * Example #2: Given we are on "/about-us.html"
+ * Example #3: Given I am on the "/about-us.html" page
+ * Example #4: Given we are on the "/about-us.html" page
+ * Example #5: Given on "/about-us.html"
+ * Example #6: Given on the "/about-us.html" page
  *
  */
-Given(/^(I am |we are )?on "([^"]*)?"$/, function (pronounCase, url) {
+Given(/^(I am |we are )*on( the)* "([^"]*)?"( page)*$/, function (pronounCase, theCase, url, pageCase) {
   browser.url(browser.launch_url + url);
   let defaultTime = 3000;
-  if(browser.globals.min_wait_time.page){
+  if (browser.globals.min_wait_time.page){
     defaultTime = browser.globals.min_wait_time.page;
   }
   return browser.waitForElementPresent('body', defaultTime);
@@ -51,10 +63,10 @@ Given(/^(I am |we are )?on "([^"]*)?"$/, function (pronounCase, url) {
  * Example #8: When we navigate to the homepage
  *
  */
-When(/^(I go |I navigate |we go |we navigate |navigating )?to( the)* (homepage|frontpage)$/, function (pronounCase, theCase) {
+When(/^(I go |I navigate |we go |we navigate |navigating )?to( the)* (homepage|frontpage)$/, function (pronounCase, theCase, pageCase) {
   browser.url(browser.launch_url);
   let defaultTime = 3000;
-  if(browser.globals.min_wait_time.page){
+  if (browser.globals.min_wait_time.page){
     defaultTime = browser.globals.min_wait_time.page;
   }
   return browser.waitForElementPresent('body', defaultTime);
@@ -530,14 +542,14 @@ Then(/^(I |we )*should not be on( the)* (homepage|frontpage)$/, function (pronou
  * Example #1: Then I should be on "/"
  * Example #2:  And I should be on "/user/login"
  * Example #3:  And I should be on "https://un.org"
- * Example #4: Then we should be on "/"
+ * Example #4: Then we should be on the "/" page
  * Example #5:  And we should be on "/user/login"
  * Example #6:  And we should be on "https://google.com"
- * Example #7: Then should be on "/user/reset"
+ * Example #7: Then should be on the "/user/reset" page
  * Example #8:  And we should be on "https://x.com"
  *
  */
-Then(/^(I |we )*should be on "([^"]*)?"$/, function (pronounCase, notContext, url) {
+Then(/^(I |we )*should be on( the)* "([^"]*)?"( page)*$/, function (pronounCase, theCase, url, pageCase) {
   return browser.assert.urlContains(url);
 });
 
@@ -547,14 +559,14 @@ Then(/^(I |we )*should be on "([^"]*)?"$/, function (pronounCase, notContext, ur
  * Example #1: Then I should not be on "/"
  * Example #2:  And I should not be on "/user/login"
  * Example #3:  And I should not be on "https://un.org"
- * Example #4: Then we should not be on "/"
+ * Example #4: Then we should not be on the "/" page
  * Example #5:  And we should not be on "/user/login"
  * Example #6: Then we should not be on "https://google.com"
  * Example #7:  And should not be on "/user/reset"
- * Example #8:  And we should not be on "https://x.com"
+ * Example #8:  And we should not be on the "https://x.com" page
  *
  */
-Then(/^(I |we )*should not be on "([^"]*)?"$/, function (pronounCase, url) {
+Then(/^(I |we )*should not be on( the)* "([^"]*)?"( page)*$/, function (pronounCase, theCase, url, pageCase) {
   return browser.assert.not.urlContains(url);
 });
 
@@ -604,7 +616,7 @@ Then(/^(the )*"([^"]*)?" link should contain "([^"]*)?" by( its)*( "([^"]*)?")* 
  * Example #1: Then the response should contain "Welcome visitor, How can I help you?"
  *
  */
-Then(/^(the )*response should contain "([^"]*)?"$/, function (theCase, notContext, expectedText) {
+Then(/^(the )*response should contain "([^"]*)?"$/, function (theCase, expectedText) {
   return browser.assert.not.textContains("html", expectedText);
 });
 
@@ -1112,11 +1124,6 @@ Then(/^(I |we )*should not see text matching "([^"]*)?"$/, function (pronounCase
  *
  */
 Then(/^(I |we )*should see text matching "([^"]*)?" in( the)* "([^"]*)?" element$/, function (pronounCase, textPattern, theCase, element) {
-  if (notContext) {
-    return this.shouldSeePattern = function (browser) {
-      browser.assert.not.textMatches(element, textPattern);
-    };
-  }
   return this.shouldSeePattern = function (browser) {
     browser.assert.textMatches(element, textPattern);
   };
