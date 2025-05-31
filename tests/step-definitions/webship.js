@@ -621,7 +621,9 @@ Then(/^(the )*"([^"]*)?" link should contain "([^"]*)?" by( its)*( "([^"]*)?")* 
  *
  */
 Then(/^(the )*response should contain "([^"]*)?"$/, function (theCase, expectedText) {
-  return browser.assert.not.textContains("html", expectedText);
+  return this.shouldSee = function (browser) {
+    browser.assert.textContains("html", expectedText);
+  };
 });
 
 /**
@@ -631,7 +633,9 @@ Then(/^(the )*response should contain "([^"]*)?"$/, function (theCase, expectedT
  *
  */
 Then(/^(the )*response should not contain "([^"]*)?"$/, function (theCase, expectedText) {
-  return browser.assert.textContains("html", expectedText);
+  return this.shouldSee = function (browser) {
+    browser.assert.not.textContains("html", expectedText);
+  };
 });
 
 /**
