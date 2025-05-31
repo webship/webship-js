@@ -975,7 +975,7 @@ Then(/^(the )*checkbox "([^"]*)?" is not checked$/, function (theCase, checkbox)
  * Example #8: When we wait 4s
  *
  */
-When(/^(I |we )*wait (\d*)( second| seconds |s)$/, function (pronounCase, number, withSecondWord) {
+When(/^(I |we )*wait (\d*)( second| seconds|s)?$/, function (pronounCase, number, withSecondWord) {
   var waitTime = number * 1000;
   return browser.pause(waitTime);
 });

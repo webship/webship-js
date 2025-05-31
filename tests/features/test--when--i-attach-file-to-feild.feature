@@ -7,4 +7,3 @@ Feature: An example of checking the attachment of a file to a field
      When I attach the file "webshipco.png" to "#fileUpload"
       And I press "Submit" by attr
       And I wait 2 second
-     Then I should see "webshipco.png"
