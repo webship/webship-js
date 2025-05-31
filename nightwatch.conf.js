@@ -21,7 +21,14 @@ module.exports = {
     },
   },
   globals: {
-    "assets_folder" : "./test/assets/"
+    assets_folder : "/test/assets/",
+    min_wait_time: {
+      page : 3000,
+      before_scenario : 0,
+      after_scenario : 0,
+      before_step : 0,
+      after_step : 1000
+    }
   },
   test_settings: {
     default: {

@@ -1,10 +1,10 @@
 const {  Given } = require('@cucumber/cucumber');
 const {  When } = require('@cucumber/cucumber');
 const {  Then } = require('@cucumber/cucumber');
+require('../../lib/custom-hooks/before-after');
 
 const axios = require('axios');
 const path = require('path');
-
 
 /**
  * Opens homepage.
@@ -14,7 +14,12 @@ const path = require('path');
  * 
  */
 Given(/^(I am|we are) on( the)* homepage$/, function (pronounCase, theCase) {
-  return browser.url(browser.launch_url).waitForElementPresent('body', 1000);
+  browser.url(browser.launch_url);
+  let defaultTime = 3000;
+  if(browser.globals.min_wait_time.page){
+    defaultTime = browser.globals.min_wait_time.page;
+  }
+  return browser.waitForElementPresent('body', defaultTime);
 });
 
 /**
@@ -24,7 +29,12 @@ Given(/^(I am|we are) on( the)* homepage$/, function (pronounCase, theCase) {
  *
  */
 Given(/^(I am|we are) on "([^"]*)?"$/, function (pronounCase, url) {
-  return browser.url(browser.launch_url + url).waitForElementPresent('body', 1000);
+  browser.url(browser.launch_url + url);
+  let defaultTime = 3000;
+  if(browser.globals.min_wait_time.page){
+    defaultTime = browser.globals.min_wait_time.page;
+  }
+  return browser.waitForElementPresent('body', defaultTime);
 });
 
 /**
@@ -35,7 +45,12 @@ Given(/^(I am|we are) on "([^"]*)?"$/, function (pronounCase, url) {
  *
  */
 When(/^(I|we)* go to( the)* homepage$/, function (pronounCase, theCase) {
-  return browser.url(browser.launch_url).waitForElementPresent('body', 1000);
+  browser.url(browser.launch_url);
+  let defaultTime = 3000;
+  if(browser.globals.min_wait_time.page){
+    defaultTime = browser.globals.min_wait_time.page;
+  }
+  return browser.waitForElementPresent('body', defaultTime);
 });
 
 /**
@@ -45,7 +60,12 @@ When(/^(I|we)* go to( the)* homepage$/, function (pronounCase, theCase) {
  *
  */
 When(/^(I|we)* go to "([^"]*)?"$/, function (pronounCase, url) {
-  return browser.url(browser.launch_url + url).waitForElementPresent('body', 1000);
+  browser.url(browser.launch_url + url);
+  let defaultTime = 3000;
+  if(browser.globals.min_wait_time.page){
+    defaultTime = browser.globals.min_wait_time.page;
+  }
+  return browser.waitForElementPresent('body', defaultTime);
 });
 
 /**
