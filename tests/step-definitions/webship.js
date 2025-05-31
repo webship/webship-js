@@ -1,9 +1,9 @@
 const {  Given} = require('@cucumber/cucumber');
-const {  When,  Before} = require('@cucumber/cucumber');
+const {  When } = require('@cucumber/cucumber');
 const {  Then} = require('@cucumber/cucumber');
+require('../../lib/custom-hooks/before-after');
 
 const axios = require('axios');
-
 
 /**
  * Opens homepage.
@@ -13,7 +13,7 @@ const axios = require('axios');
  * 
  */
 Given(/^(I am|we are) on( the)* homepage$/, function (pronounCase, theCase) {
-  return browser.url(browser.launch_url).waitForElementPresent('body', 1000);
+  return browser.url(browser.launch_url).waitForElementPresent('body', browser.globals.PAGE_WAIT_MIN_TIME);
 });
 
 /**
@@ -23,7 +23,7 @@ Given(/^(I am|we are) on( the)* homepage$/, function (pronounCase, theCase) {
  *
  */
 Given(/^(I am|we are) on "([^"]*)?"$/, function (pronounCase, url) {
-  return browser.url(browser.launch_url + url).waitForElementPresent('body', 1000);
+  return browser.url(browser.launch_url + url).waitForElementPresent('body', browser.globals.PAGE_WAIT_MIN_TIME);
 });
 
 /**
@@ -34,7 +34,7 @@ Given(/^(I am|we are) on "([^"]*)?"$/, function (pronounCase, url) {
  *
  */
 When(/^(I|we)* go to( the)* homepage$/, function (pronounCase, theCase) {
-  return browser.url(browser.launch_url).waitForElementPresent('body', 1000);
+  return browser.url(browser.launch_url).waitForElementPresent('body', browser.globals.PAGE_WAIT_MIN_TIME);
 });
 
 /**
@@ -44,7 +44,7 @@ When(/^(I|we)* go to( the)* homepage$/, function (pronounCase, theCase) {
  *
  */
 When(/^(I|we)* go to "([^"]*)?"$/, function (pronounCase, url) {
-  return browser.url(browser.launch_url + url).waitForElementPresent('body', 1000);
+  return browser.url(browser.launch_url + url).waitForElementPresent('body', browser.globals.PAGE_WAIT_MIN_TIME);
 });
 
 /**
