@@ -24,6 +24,8 @@ module.exports = {
     assets_folder : "/assets/",
     min_wait_time: {
       page : 3000,
+      before_scenario : 0,
+      after_scenario : 0,
       before_step : 0,
       after_step : 1000
     }
