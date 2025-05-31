@@ -13,7 +13,7 @@ const axios = require('axios');
  * 
  */
 Given(/^(I am|we are) on( the)* homepage$/, function (pronounCase, theCase) {
-  return browser.url(browser.launch_url).waitForElementPresent('body', browser.globals.PAGE_WAIT_MIN_TIME);
+  return browser.url(browser.launch_url).waitForElementPresent('body', browser.globals.min_wait_time.page);
 });
 
 /**
@@ -23,7 +23,7 @@ Given(/^(I am|we are) on( the)* homepage$/, function (pronounCase, theCase) {
  *
  */
 Given(/^(I am|we are) on "([^"]*)?"$/, function (pronounCase, url) {
-  return browser.url(browser.launch_url + url).waitForElementPresent('body', browser.globals.PAGE_WAIT_MIN_TIME);
+  return browser.url(browser.launch_url + url).waitForElementPresent('body', browser.globals.min_wait_time.page);
 });
 
 /**
@@ -34,7 +34,7 @@ Given(/^(I am|we are) on "([^"]*)?"$/, function (pronounCase, url) {
  *
  */
 When(/^(I|we)* go to( the)* homepage$/, function (pronounCase, theCase) {
-  return browser.url(browser.launch_url).waitForElementPresent('body', browser.globals.PAGE_WAIT_MIN_TIME);
+  return browser.url(browser.launch_url).waitForElementPresent('body', browser.globals.min_wait_time.page);
 });
 
 /**
@@ -44,7 +44,7 @@ When(/^(I|we)* go to( the)* homepage$/, function (pronounCase, theCase) {
  *
  */
 When(/^(I|we)* go to "([^"]*)?"$/, function (pronounCase, url) {
-  return browser.url(browser.launch_url + url).waitForElementPresent('body', browser.globals.PAGE_WAIT_MIN_TIME);
+  return browser.url(browser.launch_url + url).waitForElementPresent('body', browser.globals.min_wait_time.page);
 });
 
 /**
