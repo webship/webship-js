@@ -1,8 +1,9 @@
-const {  Given} = require('@cucumber/cucumber');
-const {  When,  Before} = require('@cucumber/cucumber');
-const {  Then} = require('@cucumber/cucumber');
+const {  Given } = require('@cucumber/cucumber');
+const {  When } = require('@cucumber/cucumber');
+const {  Then } = require('@cucumber/cucumber');
 
 const axios = require('axios');
+const path = require('path');
 
 
 /**
@@ -776,14 +777,25 @@ Then(/^(the )*"([^"]*)?" element should not contain "([^"]*)?"$/, function (theC
 /**
  * Attaches file to field.
  *
- * Example: When I attach the file "profileIcon.jpg" to "#profileIconUpload"
+ * Example: When I attach the file "profileIcon.jpg" to "#profile-icon-upload"
  *
  */
-When(/^(I|we)* attach( the)* file "([^"]*)?" to "([^"]*)?"$/, function (pronounCase, theCase, fileUrl, element) {
-  var dirname = __dirname + '';
-  dirname = dirname.substring(0, dirname.lastIndexOf("/"));
+When(/^(I |we )*attach( the)* file "([^"]*)?" to "([^"]*)?"$/, function (pronounCase, theCase, fileName, element) {
+  // Construct local file path.
+  let assetsFolder;
+  if (browser.globals.assets_folder) {
+    assetsFolder = browser.globals.assets_folder;
+  } else {
+    assetsFolder = path.join(__dirname, '/tests/assets/');
+  }
 
-  return browser.setValue(element, dirname + '/assets/' + fileUrl);
+  const localFilePath = path.resolve(assetsFolder, fileName);
+
+  browser.pause(5000);
+  browser.uploadFile(element, localFilePath);
+  browser.pause(10000);
+  return browser.setValue(element, fileName);
+  
 });
 
 /**
