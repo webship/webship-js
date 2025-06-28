@@ -29,7 +29,8 @@ commands:
           command: |
             curl -sL https://deb.nodesource.com/setup_20.x | sudo bash -
             sudo apt install -y nodejs 
-            sudo npm install -g yarn@4
+            corepack enable
+            corepack prepare yarn@4.9.2 --activate
       ## Install Java.
       - run:
           name: Install Java

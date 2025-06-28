@@ -49,7 +49,9 @@ jobs:
           nohup java -jar selenium-server-4.4.0.jar standalone > selenium.log 2>&1 & 
          
       - name: Install Yarn
-        run: corepack prepare yarn@4 --activate
+        run: |
+          corepack enable
+          corepack prepare yarn@4 --activate
 
       - name: Install dependencies
         run: yarn install
