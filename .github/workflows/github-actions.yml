@@ -55,9 +55,6 @@ jobs:
       - name: Install dependencies
         run: yarn install --mode=update-lockfile
 
-      - name: Ensure argparse is installed
-        run: yarn add argparse
-
       - name: Configure nightwatch.conf.js for GitHub
         run: node webship-init -ci circleci -os linux -b chrome
 
