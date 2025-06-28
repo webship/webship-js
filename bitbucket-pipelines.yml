@@ -20,6 +20,7 @@ pipelines:
 
           # Run your tests here, assuming you have a test script defined in your package.json:
           - yarn install --mode=update-lockfile
+          - yarn add argparse
           - yarn test
 
 

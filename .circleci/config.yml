@@ -86,6 +86,10 @@ jobs:
           command: |
             yarn install --mode=update-lockfile
       - run:
+          name: Install argparse
+          command: |
+            yarn add argparse
+      - run:
           name: Configure nightwatch.conf.js for Circle CI
           command: |
             node webship-init -ci circleci -os linux -b chrome
