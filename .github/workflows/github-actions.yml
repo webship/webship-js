@@ -54,7 +54,7 @@ jobs:
           corepack prepare yarn@4.1.1 --activate
 
       - name: Install dependencies
-        run: yarn install
+        run: yarn install --mode=update-lockfile
 
       - name: Configure nightwatch.conf.js for GitHub
         run: node webship-init -ci circleci -os linux -b chrome

@@ -84,7 +84,7 @@ jobs:
       - run:
           name: Install yarn
           command: |
-            yarn install
+            yarn install --mode=update-lockfile
       - run:
           name: Configure nightwatch.conf.js for Circle CI
           command: |
