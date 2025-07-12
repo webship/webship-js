@@ -1,4 +1,4 @@
-image: node:20 # Choose an appropriate Node.js version
+image: node:18 # Choose an appropriate Node.js version
 
 pipelines:
   default:
@@ -12,17 +12,13 @@ pipelines:
           - npm install chromedriver --save # Install ChromeDriver (for running tests in Chrome)
           # Add other dependencies as needed
 
-          - corepack enable
-          - corepack prepare yarn@4.1.1 --activate
           # Set up your test environment here (e.g., starting a server, configuring the application)
           # For example, if you have a start script defined in your package.json:
           # - npm run start & # Start your server in the background
 
           # Run your tests here, assuming you have a test script defined in your package.json:
-          - yarn install --mode=update-lockfile
-          - yarn add argparse
+          - yarn install
           - yarn test
-
 
 
 
