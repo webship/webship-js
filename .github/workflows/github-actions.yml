@@ -50,13 +50,13 @@ jobs:
       - name: Enable Corepack and set up Yarn
         run: |
           corepack enable
-          corepack prepare yarn@4.1.1 --activate
+          corepack prepare yarn@4.9.2 --activate
 
       - name: Install dependencies
         run: yarn install --mode=update-lockfile
 
       - name: Configure nightwatch.conf.js for GitHub
-        run: node webship-init -ci circleci -os linux -b chrome
+        run: node webship-init -ci github -os linux -b chrome
 
       - name: Start virtual server
         run: |

@@ -30,7 +30,7 @@ commands:
             curl -sL https://deb.nodesource.com/setup_20.x | sudo bash -
             sudo apt install -y nodejs 
             corepack enable
-            corepack prepare yarn@4.1.1 --activate
+            corepack prepare yarn@4.9.2 --activate
       ## Install Java.
       - run:
           name: Install Java
@@ -85,10 +85,6 @@ jobs:
           name: Install yarn
           command: |
             yarn install --mode=update-lockfile
-      - run:
-          name: Install argparse
-          command: |
-            yarn add argparse
       - run:
           name: Configure nightwatch.conf.js for Circle CI
           command: |

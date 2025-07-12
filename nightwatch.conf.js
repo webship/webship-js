@@ -27,7 +27,7 @@ module.exports = {
       before_scenario: 0,
       after_scenario: 0,
       before_step: 0,
-      after_step: 0
+      after_step: 1000
     }
   },
   test_settings: {
