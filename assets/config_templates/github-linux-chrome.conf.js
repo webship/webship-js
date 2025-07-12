@@ -1,10 +1,9 @@
 const Services = {}; loadServices();
-require('events').EventEmitter.defaultMaxListeners = 1000;
 
 module.exports = {
   // An array of folders (excluding subfolders) where your tests are located;
   // if this is not specified, the test source must be passed as the second argument to the test runner.
-  src_folders: ['./tests/step-definitions'],
+  src_folders: ['tests/step-definitions'],
 
   // See https://nightwatchjs.org/guide/extending-nightwatch/adding-custom-commands.html
   custom_commands_path: './lib/custom-commands',
@@ -25,14 +24,14 @@ module.exports = {
   test_runner: {
     type: 'cucumber',
     options: {
-      feature_path: './tests/features/*.feature',
+      feature_path: 'tests/features/*.feature',
       additional_config: '',
       parallel: 2,
     },
 
   },
   globals: {
-    assets_folder : "test/assets/",
+    assets_folder : "/test/assets/",
     minimum_wait_time: {
       page: 3000,
       before_scenario: 0,

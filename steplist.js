@@ -44,9 +44,9 @@ parser.add_argument('-i', '--info',
     action: 'store_true',
   });
 
-parser.add_argument('-ci', '--config',
+parser.add_argument('-c', '--config',
   {
-    help: 'Add your nightwatch config file, Example: -ci="nightwatch.conf.js" OR -ci=nightwatch.conf.js OR -ci nightwatch.conf.js',
+    help: 'Add your nightwatch config file, Example: -c="nightwatch.conf.js" OR -c=nightwatch.conf.js OR -c nightwatch.conf.js',
     default: 'nightwatch.conf.js',
   });
 
