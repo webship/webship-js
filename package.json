@@ -30,7 +30,7 @@
   "dependencies": {
     "@cucumber/cucumber": "*",
     "@cucumber/pretty-formatter": "~1",
-    "argparse": "^2.0.1",
+    "argparse": "~2",
     "axios": "~1",
     "chromedriver": "*",
     "cucumber-html-reporter": "~7",
