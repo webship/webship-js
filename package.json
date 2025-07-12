@@ -1,14 +1,14 @@
 {
   "name": "webship-js",
-  "version": "1.0.41.1",
+  "version": "1.0.41",
   "description": "Webship JS automated functional testing.",
   "main": "index.js",
   "directories": {
     "test": "test"
   },
   "engines": {
-    "yarn": ">= 4",
-    "node": ">= 20.0"
+    "yarn": ">= 1.6",
+    "node": ">= 18.0"
   },
   "scripts": {
     "test": "nightwatch --format @cucumber/pretty-formatter --format-options '{\"colorsEnabled\": true}' --format-options '{\"theme\": {\"feature keyword\":[\"bold\",\"blue\"],\"feature name\":[\"blue\",\"underline\"],\"feature description\":[\"blueBright\"],\"scenario keyword\":[\"bold\",\"magenta\"],\"scenario name\":[\"magenta\",\"underline\"],\"step keyword\":[\"bold\",\"green\"],\"step text\":[\"greenBright\",\"italic\"]}}' --format json:./tests/reports/cucumber_report.json; node generate-reports.js;",
@@ -28,24 +28,23 @@
   },
   "homepage": "https://github.com/webship/webship-js",
   "dependencies": {
+    "nightwatch": "~3",
     "@cucumber/cucumber": "*",
     "@cucumber/pretty-formatter": "~1",
-    "argparse": "~2",
-    "axios": "~1",
-    "chromedriver": "*",
+    "args-parser": "~1",
     "cucumber-html-reporter": "~7",
     "eslint": "~8",
     "eslint-config-airbnb-base": "~15",
     "eslint-plugin-import": "~2",
-    "geckodriver": "*",
     "lodash": "~4",
-    "nightwatch": "~3",
     "webpack": "~5",
+    "chromedriver": "*",
+    "geckodriver": "*",
     "webpack-cli": "~5",
-    "webpack-dev-server": "~4"
+    "webpack-dev-server": "~4",
+    "axios": "~1"
   },
   "bin": {
     "steplist": "./steplist.js"
-  },
-  "packageManager": "yarn@4.9.2"
+  }
 }

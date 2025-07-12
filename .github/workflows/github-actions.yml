@@ -11,31 +11,32 @@ jobs:
       SELENIUM_HOST: http://localhost:4444/wd/hub
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
       - name: Install/Update Google Chrome browser
         run: |
-          sudo apt update
-          sudo apt install -y libu2f-udev libappindicator3-1 fonts-liberation libgbm1 libgtk-3-0 xdg-utils
+          sudo apt install libu2f-udev
+          sudo apt-get install libappindicator3-1 fonts-liberation libgbm1 libgtk-3-0 xdg-utils
+          export CHROME_BIN=/usr/bin/google-chrome
           wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-          sudo dpkg -i google-chrome-stable_current_amd64.deb || sudo apt-get -f install -y
+          sudo dpkg -i google-chrome-stable_current_amd64.deb
           rm google-chrome-stable_current_amd64.deb
 
       - name: Install/Update Chrome Driver
         run: |
-          CHROME_VERSION=$(google-chrome --product-version)
-          echo "Using Chrome version: $CHROME_VERSION"
+          CHROME_VERSION=$(google-chrome --product-version);
+          echo $CHROME_VERSION;
           wget https://storage.googleapis.com/chrome-for-testing-public/$CHROME_VERSION/linux64/chromedriver-linux64.zip
           unzip chromedriver-linux64.zip
           sudo chmod +x chromedriver-linux64/chromedriver
           sudo mv -f chromedriver-linux64/chromedriver /usr/bin/
           rm -rf chromedriver-linux64.zip chromedriver-linux64
 
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20.x'
+          node-version: '18.x'
 
       - name: Install Java
         run: |
@@ -45,24 +46,19 @@ jobs:
       - name: Run Selenium Standalone server
         run: |
           wget https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.4.0/selenium-server-4.4.0.jar
-          nohup java -jar selenium-server-4.4.0.jar standalone > selenium.log 2>&1 &
-
-      - name: Enable Corepack and set up Yarn
-        run: |
-          corepack enable
-          corepack prepare yarn@4.9.2 --activate
+          nohup java -jar selenium-server-4.4.0.jar standalone > selenium.log 2>&1 & 
+         
 
       - name: Install dependencies
-        run: yarn install --mode=update-lockfile
+        run: yarn install
 
       - name: Configure nightwatch.conf.js for GitHub
-        run: node webship-init -ci github -os linux -b chrome
+        run: node webship-init -ci circleci -os linux -b chrome
 
       - name: Start virtual server
         run: |
           export NODE_OPTIONS=--openssl-legacy-provider
           yarn start &
-          sleep 10  # Wait for server to be up
 
       - name: Run tests
         run: yarn test
