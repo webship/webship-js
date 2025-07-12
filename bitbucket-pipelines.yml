@@ -1,4 +1,4 @@
-image: node:18 # Choose an appropriate Node.js version
+image: node:20 # Choose an appropriate Node.js version
 
 pipelines:
   default:
