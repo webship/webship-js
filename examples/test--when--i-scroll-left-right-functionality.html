@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset='utf-8'>
+  <title>Complete Horizontal Scroll Functionality Test</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      overflow-x: auto;
+      overflow-y: hidden;
+      white-space: nowrap;
+    }
+
+    .container,
+    .container input,
+    .container button {
+      font-size: 26px;
+    }
+
+    .style {
+      font-size: 22px;
+      line-height: 30px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin: 10px;
+      background-color: #f9f9f9;
+      display: inline-block;
+      width: 300px;
+      vertical-align: top;
+    }
+
+    .indicator {
+      font-size: 28px;
+      font-weight: bold;
+      color: #007bff;
+      padding: 15px;
+      margin: 10px;
+      border: 2px solid #007bff;
+      background-color: #e7f3ff;
+      display: none;
+      display: inline-block;
+      width: 400px;
+      vertical-align: top;
+    }
+
+    #scrollable-container {
+      width: 1000px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      border: 2px solid #333;
+      margin: 20px;
+      padding: 10px;
+      background-color: #f0f0f0;
+      display: inline-block;
+      vertical-align: top;
+      white-space: nowrap;
+    }
+
+    .scrollable-content {
+      width: 1600px;
+      height: 200px;
+      background: linear-gradient(to right, #ff9999, #99ff99, #9999ff);
+      padding: 20px;
+      position: relative;
+      display: inline-block;
+    }
+
+    .scroll-marker {
+      position: absolute;
+      font-size: 18px;
+      font-weight: bold;
+      background-color: rgba(255, 255, 255, 0.8);
+      padding: 5px 10px;
+      border-radius: 5px;
+    }
+
+    .scroll-marker.left {
+      left: 10px;
+      top: 10px;
+    }
+
+    .scroll-marker.right {
+      right: 10px;
+      bottom: 10px;
+    }
+
+    #complete {
+      display: none;
+      font-size: 32px;
+      line-height: 40px;
+      color: #28a745;
+      font-weight: bold;
+      text-align: center;
+      padding: 20px;
+      border: 3px solid #28a745;
+      background-color: #d4edda;
+      margin: 20px;
+      width: 300px;
+      display: inline-block;
+      vertical-align: top;
+      position: absolute;
+    }
+
+    #page-wrapper {
+      min-width: 4000px;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="page-wrapper">
+    <h1 style="display:inline-block; vertical-align:top; margin-right: 20px;">Horizontal Scrolling Functionality Test Page</h1>
+
+    <!-- Indicators -->
+    <div id="basic-scroll-down" class="indicator">Basic scroll right works</div>
+    <div id="basic-scroll-up" class="indicator">Basic scroll left works</div>
+    <div id="custom-scroll-down" class="indicator">Custom scroll right works</div>
+    <div id="custom-scroll-up" class="indicator">Custom scroll left works</div>
+    <div id="scroll-to-top" class="indicator">Scroll to left works</div>
+
+    <!-- Main content -->
+    <div id="container" style="display:inline-block; vertical-align:top;">
+      <p class="style">This is the starting content of the page</p>
+      <!-- سيتم توليد Content section 1-30 تلقائيًا عبر JavaScript -->
+
+      <!-- Scroll to right end element (في آخر اليمين فعليًا) -->
+      <div id="complete">Scroll to right end works</div>
+    </div>
+
+    <!-- Scrollable element container -->
+    <div>
+      <h2 style="display:inline-block; vertical-align:top;">Scrollable Horizontal Container Test</h2>
+      <div id="scrollable-container">
+        <div class="scrollable-content">
+          <div class="scroll-marker left">Element scroll to left works</div>
+          <p style="display:inline-block;">This is a scrollable container with a lot of content inside.</p>
+          <p style="display:inline-block;">You can scroll horizontally.</p>
+          <div class="scroll-marker right">Element scroll to right works</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+<script>
+  const container = document.getElementById("container");
+
+  // توليد 30 قسم لزيادة العرض الأفقي
+  for (var i = 1; i <= 30; i++) {
+    const section = document.createElement("p");
+    section.className = "style";
+    section.innerText = "Content section #" + i;
+    container.insertBefore(section, document.getElementById("complete"));
+  }
+
+  let scrollTimeout;
+
+  window.addEventListener('scroll', function () {
+    clearTimeout(scrollTimeout);
+    scrollTimeout = setTimeout(function () {
+      const scrollX = window.scrollX;
+      const windowWidth = window.innerWidth;
+      const documentWidth = document.documentElement.scrollWidth;
+
+      // إخفاء جميع المؤشرات
+      document.querySelectorAll('.indicator').forEach(el => el.style.display = 'none');
+
+      if (scrollX === 0) {
+        document.getElementById('scroll-to-top').style.display = 'inline-block';
+      }
+
+      if (scrollX + windowWidth >= documentWidth - 10) {
+        document.getElementById('basic-scroll-down').style.display = 'inline-block';
+        document.getElementById('complete').style.display = 'inline-block';
+      } else {
+        document.getElementById('complete').style.display = 'none';
+      }
+
+      if (scrollX >= 450 && scrollX <= 550) {
+        document.getElementById('custom-scroll-down').style.display = 'inline-block';
+      } else if (scrollX + windowWidth >= documentWidth - 50) {
+        if (window.lastScrollDirection === 'left') {
+          document.getElementById('custom-scroll-up').style.display = 'inline-block';
+        }
+      }
+
+      // تتبع الاتجاه
+      if (scrollX > (window.lastScrollX || 0)) {
+        window.lastScrollDirection = 'right';
+      } else {
+        window.lastScrollDirection = 'left';
+      }
+      window.lastScrollX = scrollX;
+    }, 100);
+  });
+
+  const scrollableContainer = document.getElementById('scrollable-container');
+  scrollableContainer.addEventListener('scroll', function () {
+    console.log('Scrollable container scrolled to (horizontal):', this.scrollLeft);
+  });
+</script>
+
+</html>

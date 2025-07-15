@@ -1367,3 +1367,173 @@ When(/^(I scroll|we scroll|scrolling)? to bottom of "([^"]*)"$/, function(pronou
       throw new Error(`Failed to scroll to bottom of element "${selector}": ${error.message}`);
   }
 });
+
+/**
+* Scrolls right the page by a custom number of pixels specified by the user.
+*
+* Example #1: And I scroll right
+* Example #2: When I scroll right 1000
+* Example #3: And we scrolling right 300
+* Example #4: When scrolling right 750
+*
+*/
+When(/^(I scroll|we scroll|scrolling)? right( ([^"]*)?)*$/, function(pronounCase, value) {
+  // Parse and validate the scroll value
+  let scrollValue = 350; // default value
+
+  if (value !== null) {
+    scrollValue = parseInt(String(value).trim(), 10);
+
+    // Validate the parsed value
+    if (isNaN(scrollValue)) {
+      throw new Error(`Invalid scroll value: "${value}". Expected a number.`);
+    }
+
+    if (scrollValue < 0) {
+      throw new Error(`Scroll right value must be positive. Received: ${scrollValue}`);
+    }
+
+    if (scrollValue > 10000) {
+      console.warn(`Large scroll value detected: ${scrollValue}px. Consider if this is intentional.`);
+    }
+  }
+  
+  // Make the value negative for scrolling right
+  return browser.executeScript(`window.scrollBy( ${scrollValue}, 0);`);
+});
+
+/**
+ * Scrolls left the page by a custom number of pixels specified by the user.
+ *
+ * Example #1: And I scroll left
+ * Example #2: When I scroll left 800
+ * Example #3: And we scroll left 500
+ * Example #4: When scrolling left 1200
+ */
+When(/^(I scroll|we scroll|scrolling)? left( ([^"]*)?)*$/, function(pronounCase, value) {
+  // Default scroll value
+  let scrollValue = 350;
+
+  if (value !== null) {
+    scrollValue = parseInt(String(value).trim(), 10);
+
+    // Validate the parsed value
+    if (isNaN(scrollValue)) {
+      throw new Error(`Invalid scroll value: "${value}". Expected a number.`);
+    }
+
+    if (scrollValue < 0) {
+      throw new Error(`Scroll left value must be positive. Received: ${scrollValue}`);
+    }
+
+    if (scrollValue > 10000) {
+      console.warn(`Large scroll value detected: ${scrollValue}px. Consider if this is intentional.`);
+    }
+  }
+
+  return browser.executeScript(`window.scrollBy( -${scrollValue},0 );`);
+});
+
+/**
+* Scrolls to the very start of the current page, resetting the scroll position to zero.
+*
+* Example #1: When I scroll to start
+* Example #2: And we scrolling to the start
+* Example #3: When scrolling to the start of the page
+*/
+When(/^(I scroll|we scroll|scrolling)? to( the)* start( of the page)*$/, function(pronounCase, theCase, pageCase) {
+  return browser.executeScript('window.scrollTo(0, window.scrollY);');
+});
+
+/**
+* Scrolls to the end of the current page using the full document height.
+*
+* Example #1: When I scroll to the end
+* Example #2: And we scroll to end
+* Example #3: When scrolling to the end of the page
+*/
+When(/^(I scroll|we scroll|scrolling)? to( the)* end( of the page)*$/, function(pronounCase, theCase, pageCase) {
+  return browser.executeScript('window.scrollTo(document.body.scrollWidth, window.scrollY);');
+});
+
+/**
+* Scrolls to the start of a specific element identified by a CSS selector, resetting its scroll position to zero.
+*
+* Example #1: When I scroll to start of "#off-canvas"
+* Example #2: And we scroll to start of "#sidebar"
+* Example #3: When scrolling to start of "#main-container"
+*/
+When(/^(I scroll|we scroll|scrolling)? to start of "([^"]*)"$/, function(pronounCase, selector) {
+  // Validate selector
+  if (!selector || selector.trim() === '') {
+      throw new Error('Selector cannot be empty. Please provide a valid CSS selector.');
+  }
+  
+  // Validate selector format (basic check)
+  if (selector.includes('"') || selector.includes("'")) {
+      throw new Error(`Invalid selector format: "${selector}". Selector should not contain quotes.`);
+  }
+  
+  try {
+      // Check if element exists before scrolling
+      const elementExists = browser.executeScript(`
+          return document.querySelector("${selector}") !== null;
+      `);
+      
+      if (!elementExists) {
+          throw new Error(`Element with selector "${selector}" not found.`);
+      }
+      
+      browser.executeScript(`
+          const element = document.querySelector("${selector}");
+          if (element) {
+              element.scrollTop = 0;
+          }
+      `);
+      
+      return browser.pause(2000);
+  } catch (error) {
+      throw new Error(`Failed to scroll to top of element "${selector}": ${error.message}`);
+  }
+});
+
+/**
+* Scrolls to the end of a specific element identified by a CSS selector, moving to its maximum scroll height.
+*
+* Example #1: When I scroll to end of "#off-canvas"
+* Example #2: And we scrolling to end of "#sidebar"
+* Example #3: When scrolling to end of "#main-container"
+*/
+When(/^(I scroll|we scroll|scrolling)? to end of "([^"]*)"$/, function(pronounCase, selector) {
+  // Validate selector
+  if (!selector || selector.trim() === '') {
+      throw new Error('Selector cannot be empty. Please provide a valid CSS selector.');
+  }
+  
+  // Validate selector format (basic check)
+  if (selector.includes('"') || selector.includes("'")) {
+      throw new Error(`Invalid selector format: "${selector}". Selector should not contain quotes.`);
+  }
+  
+  try {
+      // Check if element exists before scrolling
+      const elementExists = browser.executeScript(`
+          return document.querySelector("${selector}") !== null;
+      `);
+      
+      if (!elementExists) {
+          throw new Error(`Element with selector "${selector}" not found.`);
+      }
+      
+      browser.executeScript(`
+          const element = document.querySelector("${selector}");
+          if (element) {
+              element.scrollTop = element.scrollWidth;
+          }
+      `);
+      
+      return browser.pause(2000);
+  } catch (error) {
+      throw new Error(`Failed to scroll to bottom of element "${selector}": ${error.message}`);
+  }
+});
