@@ -1,25 +1,21 @@
-image: node:20 # Choose an appropriate Node.js version
+image: node:20
 
 pipelines:
   default:
     - step:
         name: Install and Test
+        services:
+          - selenium
         caches:
           - node
         script:
-          - npm install # Install your Node.js dependencies
-          - npm install selenium-webdriver --save # Install the Selenium WebDriver
-          - npm install chromedriver --save # Install ChromeDriver (for running tests in Chrome)
-          # Add other dependencies as needed
-
-          # Set up your test environment here (e.g., starting a server, configuring the application)
-          # For example, if you have a start script defined in your package.json:
-          # - npm run start & # Start your server in the background
-
-          # Run your tests here, assuming you have a test script defined in your package.json:
+          - npm install 
           - yarn install
           - yarn test
 
-
-
-
+definitions:
+  services:
+    selenium:
+      image: selenium/standalone-chrome:latest
+      ports:
+        - 4444:4444
