@@ -11,7 +11,7 @@
     "node": ">= 20.0"
   },
   "scripts": {
-    "test": "node run-tests.js",
+    "test": "nightwatch",
     "lint:js": "node ./node_modules/eslint/bin/eslint.js --config=.eslintrc.json .",
     "build": "webpack",
     "start": "npm run devServer",
