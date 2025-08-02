@@ -4,4 +4,5 @@ node_modules
 .vscode
 tests_output
 tests/reports/cucumber_report*
+package-lock.json
 yarn.lock
