@@ -16,23 +16,7 @@ module.exports = {
     type: 'cucumber',
     options: {
       feature_path: './tests/features/*.feature',
-      require: ['./tests/step-definitions'],
-      format: [
-        '@cucumber/pretty-formatter',
-        'json:./tests/reports/cucumber_report.json'
-      ],
-      formatOptions: {
-        colorsEnabled: true,
-        theme: {
-          'feature keyword': ['bold', 'blue'],
-          'feature name': ['blue', 'underline'],
-          'feature description': ['blueBright'],
-          'scenario keyword': ['bold', 'magenta'],
-          'scenario name': ['magenta', 'underline'],
-          'step keyword': ['bold', 'green'],
-          'step text': ['greenBright', 'italic']
-        }
-      },
+      additional_config: '',
       parallel: 1,
     },
   },
