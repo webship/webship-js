@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Table Row Click Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .action-btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 3px;
+            margin: 2px;
+        }
+        .action-btn:hover {
+            background-color: #0056b3;
+        }
+        .edit-btn { background-color: #28a745; }
+        .delete-btn { background-color: #dc3545; }
+        .view-btn { background-color: #17a2b8; }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Table Row Click Test Page</h1>
+    <p>This page demonstrates clicking specific text within table rows for automated testing.</p>
+
+    <h2>Users Table</h2>
+    <table id="users-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>John Smith</td>
+                <td>john.smith@example.com</td>
+                <td>Admin</td>
+                <td>
+                    <button class="action-btn edit-btn" onclick="performAction('edit', 'John Smith')">Edit</button>
+                    <button class="action-btn view-btn" onclick="performAction('view', 'John Smith')">View Details</button>
+                    <button class="action-btn delete-btn" onclick="performAction('delete', 'John Smith')">Delete</button>
+                </td>
+            </tr>
+            <tr>
+                <td>Jane Doe</td>
+                <td>jane.doe@example.com</td>
+                <td>User</td>
+                <td>
+                    <button class="action-btn edit-btn" onclick="performAction('edit', 'Jane Doe')">Edit</button>
+                    <button class="action-btn view-btn" onclick="performAction('view', 'Jane Doe')">View Details</button>
+                    <button class="action-btn delete-btn" onclick="performAction('delete', 'Jane Doe')">Delete</button>
+                </td>
+            </tr>
+            <tr>
+                <td>Bob Johnson</td>
+                <td>bob.johnson@example.com</td>
+                <td>Manager</td>
+                <td>
+                    <button class="action-btn edit-btn" onclick="performAction('edit', 'Bob Johnson')">Edit</button>
+                    <button class="action-btn view-btn" onclick="performAction('view', 'Bob Johnson')">View Details</button>
+                    <button class="action-btn delete-btn" onclick="performAction('delete', 'Bob Johnson')">Delete</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>Products Table</h2>
+    <table id="products-table">
+        <thead>
+            <tr>
+                <th>Product Name</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Product A</td>
+                <td>$29.99</td>
+                <td>150</td>
+                <td>
+                    <a href="#" class="action-btn" onclick="performAction('edit', 'Product A')">Edit</a>
+                    <a href="#" class="action-btn" onclick="performAction('download', 'Product A')">Download</a>
+                </td>
+            </tr>
+            <tr>
+                <td>Product B</td>
+                <td>$49.99</td>
+                <td>75</td>
+                <td>
+                    <a href="#" class="action-btn" onclick="performAction('edit', 'Product B')">Edit</a>
+                    <a href="#" class="action-btn" onclick="performAction('download', 'Product B')">Download</a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>Orders Table</h2>
+    <table id="orders-table">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Order #12345</td>
+                <td>Alice Cooper</td>
+                <td>Processing</td>
+                <td>
+                    <span class="action-btn" onclick="performAction('view', 'Order #12345')">View Details</span>
+                    <span class="action-btn" onclick="performAction('cancel', 'Order #12345')">Cancel</span>
+                </td>
+            </tr>
+            <tr>
+                <td>Order #67890</td>
+                <td>David Wilson</td>
+                <td>Shipped</td>
+                <td>
+                    <span class="action-btn" onclick="performAction('view', 'Order #67890')">View Details</span>
+                    <span class="action-btn" onclick="performAction('track', 'Order #67890')">Track</span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div id="result">
+        <h3>Action Result:</h3>
+        <p id="action-message">No action performed yet.</p>
+    </div>
+
+    <script>
+        function performAction(action, identifier) {
+            const resultElement = document.getElementById('action-message');
+            const timestamp = new Date().toLocaleTimeString();
+            resultElement.innerHTML = "Performed (${action}) action on (${identifier})";
+            
+            // Prevent default link behavior
+            event.preventDefault();
+            return false;
+        }
+    </script>
+</body>
+</html>

@@ -254,6 +254,165 @@ When(/^(I |we )*click "([^"]*)?" by( its)*( "([^"]*)?")* (attribute|attr)$/, fun
 });
 
 /**
+ * Clicks on specific text within a table row that contains a specified identifier text.
+ * This step finds a table, locates a row containing the identifier text, then clicks on the target text within that row.
+ *
+ * Example #1: When I click "Edit" in the "John Smith" row
+ * Example #2: When I click "Delete" in the "Product A" row  
+ * Example #3: When we click "View Details" in the "Order #12345" row
+ * Example #4: And I click "Download" in the "Report 2024" row
+ *
+ */
+When(/^(I |we )*click "([^"]*)?" in( the)* "([^"]*)?" row$/, function (pronounCase, clickText, theCase, rowIdentifier) {
+  
+  // First, find all table elements on the page
+  return browser.elements('css selector', 'table', function (tableResult) {
+    if (tableResult.value.length === 0) {
+      throw new Error('No tables found on the page');
+    }
+
+    // Search through each table for the row containing the identifier
+    let foundElement = false;
+    
+    tableResult.value.forEach(function (table, tableIndex) {
+      if (foundElement) return; // Skip if already found
+      
+      // Get all rows in this table
+      browser.elements('css selector', 'tr', table, function (rowResult) {
+        if (rowResult.value.length === 0) return;
+        
+        rowResult.value.forEach(function (row, rowIndex) {
+          if (foundElement) return; // Skip if already found
+          
+          // Check if this row contains the identifier text
+          browser.getText(row, function (rowText) {
+            if (rowText.value && rowText.value.includes(rowIdentifier)) {
+              
+              // Found the correct row, now look for the clickable text within this row
+              browser.elements('css selector', '*', row, function (cellElements) {
+                cellElements.value.forEach(function (element) {
+                  if (foundElement) return; // Skip if already found
+                  
+                  browser.getText(element, function (elementText) {
+                    if (elementText.value && elementText.value.trim() === clickText) {
+                      // Found the target text, click it
+                      browser.click(element);
+                      foundElement = true;
+                      return;
+                    }
+                  });
+                  
+                  // Also check if element is a link or button with the text
+                  browser.getAttribute(element, 'tagName', function (tagName) {
+                    if (foundElement) return;
+                    
+                    if (tagName.value && (tagName.value.toLowerCase() === 'a' || tagName.value.toLowerCase() === 'button')) {
+                      browser.getText(element, function (linkText) {
+                        if (linkText.value && linkText.value.trim() === clickText) {
+                          browser.click(element);
+                          foundElement = true;
+                          return;
+                        }
+                      });
+                    }
+                  });
+                });
+              });
+            }
+          });
+        });
+      });
+    });
+    
+    // Add a small pause to ensure the operation completes
+    browser.pause(1000);
+    
+    // If we didn't find the element, throw an error
+    if (!foundElement) {
+      throw new Error(`Could not find "${clickText}" in the "${rowIdentifier}" row. Please verify the table structure and text content.`);
+    }
+  });
+});
+
+/**
+ * Asserts that specific text is visible within a table row that contains a specified identifier text.
+ * This step finds a table, locates a row containing the identifier text, then verifies the target text is visible within that row.
+ *
+ * Example #1: Then I should see "Active" in the "John Smith" row
+ * Example #2: Then I should see "In Stock" in the "Product A" row  
+ * Example #3: Then we should see "Processing" in the "Order #12345" row
+ * Example #4: And I should see "Admin" in the "john.smith@example.com" row
+ *
+ */
+Then(/^(I |we )*should see "([^"]*)?" in( the)* "([^"]*)?" row$/, function (pronounCase, expectedText, theCase, rowIdentifier) {
+  
+  return browser.execute(function(rowId, expectedTxt) {
+    // Find all tables
+    const tables = document.querySelectorAll('table');
+    if (tables.length === 0) {
+      throw new Error('No tables found on the page');
+    }
+    
+    // Search through each table for the row containing the identifier
+    for (let table of tables) {
+      const rows = table.querySelectorAll('tr');
+      for (let row of rows) {
+        const rowText = row.textContent || row.innerText;
+        if (rowText.includes(rowId)) {
+          // Found the correct row, now check if it contains the expected text
+          if (rowText.includes(expectedTxt)) {
+            return true; // Found the text
+          }
+        }
+      }
+    }
+    return false; // Text not found
+  }, [rowIdentifier, expectedText], function(result) {
+    if (!result.value) {
+      throw new Error(`Could not find "${expectedText}" in the "${rowIdentifier}" row. Please verify the table structure and text content.`);
+    }
+  });
+});
+
+/**
+ * Asserts that specific text is NOT visible within a table row that contains a specified identifier text.
+ *
+ * Example #1: Then I should not see "Admin" in the "Jane Doe" row
+ * Example #2: Then I should not see "Out of Stock" in the "Product A" row  
+ * Example #3: And I should not see "Inactive" in the "john.smith@example.com" row
+ *
+ */
+Then(/^(I |we )*should not see "([^"]*)?" in( the)* "([^"]*)?" row$/, function (pronounCase, expectedText, theCase, rowIdentifier) {
+  
+  return browser.execute(function(rowId, expectedTxt) {
+    // Find all tables
+    const tables = document.querySelectorAll('table');
+    if (tables.length === 0) {
+      throw new Error('No tables found on the page');
+    }
+    
+    // Search through each table for the row containing the identifier
+    for (let table of tables) {
+      const rows = table.querySelectorAll('tr');
+      for (let row of rows) {
+        const rowText = row.textContent || row.innerText;
+        if (rowText.includes(rowId)) {
+          // Found the correct row, now check if it contains the expected text
+          if (rowText.includes(expectedTxt)) {
+            return true; // Found the text (this is bad for "should not see")
+          }
+        }
+      }
+    }
+    return false; // Text not found (this is good for "should not see")
+  }, [rowIdentifier, expectedText], function(result) {
+    if (result.value) {
+      throw new Error(`Found "${expectedText}" in the "${rowIdentifier}" row, but it should not be there.`);
+    }
+  });
+});
+
+/**
  * Reloads current page.
  *
  * Example #1: When I reload

@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Table Row Text Assertion Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .status-active { color: #28a745; font-weight: bold; }
+        .status-inactive { color: #dc3545; font-weight: bold; }
+        .status-pending { color: #ffc107; font-weight: bold; }
+        .price { color: #007bff; font-weight: bold; }
+        .stock-high { color: #28a745; }
+        .stock-low { color: #dc3545; }
+        .badge {
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .badge-admin { background-color: #dc3545; color: white; }
+        .badge-user { background-color: #17a2b8; color: white; }
+        .badge-manager { background-color: #28a745; color: white; }
+        .badge-guest { background-color: #6c757d; color: white; }
+    </style>
+</head>
+<body>
+    <h1>Table Row Text Assertion Test Page</h1>
+    <p>This page demonstrates text visibility assertions within table rows for automated testing.</p>
+
+    <h2>Employee Directory</h2>
+    <table id="employees-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Department</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Salary</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>John Smith</td>
+                <td>john.smith@company.com</td>
+                <td>Engineering</td>
+                <td><span class="badge badge-admin">Admin</span></td>
+                <td><span class="status-active">Active</span></td>
+                <td class="price">$85,000</td>
+            </tr>
+            <tr>
+                <td>Jane Doe</td>
+                <td>jane.doe@company.com</td>
+                <td>Marketing</td>
+                <td><span class="badge badge-user">User</span></td>
+                <td><span class="status-active">Active</span></td>
+                <td class="price">$65,000</td>
+            </tr>
+            <tr>
+                <td>Bob Johnson</td>
+                <td>bob.johnson@company.com</td>
+                <td>Sales</td>
+                <td><span class="badge badge-manager">Manager</span></td>
+                <td><span class="status-pending">On Leave</span></td>
+                <td class="price">$75,000</td>
+            </tr>
+            <tr>
+                <td>Alice Cooper</td>
+                <td>alice.cooper@company.com</td>
+                <td>HR</td>
+                <td><span class="badge badge-user">User</span></td>
+                <td><span class="status-inactive">Inactive</span></td>
+                <td class="price">$60,000</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>Product Inventory</h2>
+    <table id="inventory-table">
+        <thead>
+            <tr>
+                <th>Product Name</th>
+                <th>SKU</th>
+                <th>Category</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th>Availability</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Wireless Headphones</td>
+                <td>WH-2024-001</td>
+                <td>Electronics</td>
+                <td class="price">$199.99</td>
+                <td class="stock-high">150</td>
+                <td>In Stock</td>
+            </tr>
+            <tr>
+                <td>Gaming Mouse</td>
+                <td>GM-2024-002</td>
+                <td>Electronics</td>
+                <td class="price">$79.99</td>
+                <td class="stock-low">5</td>
+                <td>Low Stock</td>
+            </tr>
+            <tr>
+                <td>Office Chair</td>
+                <td>OC-2024-003</td>
+                <td>Furniture</td>
+                <td class="price">$299.99</td>
+                <td class="stock-low">0</td>
+                <td>Out of Stock</td>
+            </tr>
+            <tr>
+                <td>Laptop Stand</td>
+                <td>LS-2024-004</td>
+                <td>Accessories</td>
+                <td class="price">$49.99</td>
+                <td class="stock-high">87</td>
+                <td>In Stock</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>Order History</h2>
+    <table id="orders-table">
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Product</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>ORD-2024-001</td>
+                <td>Michael Chen</td>
+                <td>Wireless Headphones</td>
+                <td class="price">$199.99</td>
+                <td><span class="status-active">Completed</span></td>
+                <td>2024-08-15</td>
+            </tr>
+            <tr>
+                <td>ORD-2024-002</td>
+                <td>Sarah Wilson</td>
+                <td>Gaming Mouse</td>
+                <td class="price">$79.99</td>
+                <td><span class="status-pending">Processing</span></td>
+                <td>2024-08-16</td>
+            </tr>
+            <tr>
+                <td>ORD-2024-003</td>
+                <td>David Miller</td>
+                <td>Office Chair</td>
+                <td class="price">$299.99</td>
+                <td><span class="status-inactive">Cancelled</span></td>
+                <td>2024-08-14</td>
+            </tr>
+            <tr>
+                <td>ORD-2024-004</td>
+                <td>Emma Davis</td>
+                <td>Laptop Stand</td>
+                <td class="price">$49.99</td>
+                <td><span class="status-active">Shipped</span></td>
+                <td>2024-08-13</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>Project Status</h2>
+    <table id="projects-table">
+        <thead>
+            <tr>
+                <th>Project Name</th>
+                <th>Manager</th>
+                <th>Team Size</th>
+                <th>Progress</th>
+                <th>Priority</th>
+                <th>Due Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Website Redesign</td>
+                <td>John Smith</td>
+                <td>5 members</td>
+                <td>75%</td>
+                <td>High</td>
+                <td>2024-09-15</td>
+            </tr>
+            <tr>
+                <td>Mobile App</td>
+                <td>Jane Doe</td>
+                <td>8 members</td>
+                <td>45%</td>
+                <td>Medium</td>
+                <td>2024-10-30</td>
+            </tr>
+            <tr>
+                <td>API Integration</td>
+                <td>Bob Johnson</td>
+                <td>3 members</td>
+                <td>90%</td>
+                <td>High</td>
+                <td>2024-08-30</td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>
