@@ -10,7 +10,6 @@ pipelines:
           - node
         script:
           - npm install 
-          - npm start
           - npm test
 
 definitions:
