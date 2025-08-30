@@ -78,6 +78,11 @@ jobs:
     <<: *defaults
     steps:
       - webship-js-build
+      ## Install npm dependencies
+      - run:
+          name: Install npm dependencies
+          command: |
+            npm install
       ## Automated Functional Acceptance Testing
       - run:
           name: Configure nightwatch.conf.js for Circle CI
