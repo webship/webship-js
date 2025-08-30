@@ -50,7 +50,7 @@ jobs:
          
 
       - name: Install dependencies
-        run: yarn install
+        run: npm install
 
       - name: Configure nightwatch.conf.js for GitHub
         run: node webship-init -ci circleci -os linux -b chrome
@@ -58,7 +58,7 @@ jobs:
       - name: Start virtual server
         run: |
           export NODE_OPTIONS=--openssl-legacy-provider
-          yarn start &
+          npm start &
 
       - name: Run tests
-        run: yarn test
+        run: npm test

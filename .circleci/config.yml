@@ -23,13 +23,12 @@ commands:
           command: Xvfb -ac :99 -screen 0 1600x1200x24 > /dev/null 2>&1
           background: true
 
-      ## Install node js, npm, yarn, and gulp
+      ## Install node js, npm, and gulp
       - run:
           name: Install node js
           command: |
             curl -sL https://deb.nodesource.com/setup_20.x | sudo bash -
             sudo apt install -y nodejs 
-            sudo npm install -g yarn
       ## Install Java.
       - run:
           name: Install Java
@@ -81,10 +80,6 @@ jobs:
       - webship-js-build
       ## Automated Functional Acceptance Testing
       - run:
-          name: Install yarn
-          command: |
-            yarn install
-      - run:
           name: Configure nightwatch.conf.js for Circle CI
           command: |
             node webship-init -ci circleci -os linux -b chrome
@@ -92,12 +87,12 @@ jobs:
           name: Start virtual server
           command: |
             export NODE_OPTIONS=--openssl-legacy-provider
-            yarn start
+            npm start
           background: true
       - run:
           name: Test
           command: |
-            yarn test
+            npm test
 workflows:
   version: 2
   webship-js-workflow:

@@ -10,8 +10,8 @@ pipelines:
           - node
         script:
           - npm install 
-          - yarn install
-          - yarn test
+          - npm start
+          - npm test
 
 definitions:
   services:
