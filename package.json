@@ -27,21 +27,22 @@
   },
   "homepage": "https://github.com/webship/webship-js",
   "dependencies": {
-    "nightwatch": "~3",
     "@cucumber/cucumber": "*",
     "@cucumber/pretty-formatter": "~1",
+    "argparse": "~2",
     "args-parser": "~1",
-    "cucumber-html-reporter": "~7",
+    "axios": "~1",
+    "chromedriver": "*",
+    "cucumber-html-reporter": "^6.0.0",
     "eslint": "~8",
     "eslint-config-airbnb-base": "~15",
     "eslint-plugin-import": "~2",
-    "lodash": "~4",
-    "webpack": "~5",
-    "chromedriver": "*",
     "geckodriver": "*",
+    "lodash": "~4",
+    "nightwatch": "^3.12.2",
+    "webpack": "~5",
     "webpack-cli": "~5",
-    "webpack-dev-server": "~4",
-    "axios": "~1"
+    "webpack-dev-server": "^5.2.2"
   },
   "bin": {
     "steplist": "./steplist.js"

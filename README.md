@@ -12,10 +12,10 @@ Webship-js is an Automated Functional Acceptance Testing tool. Helps to ease and
 All you need to know is at [webship-js Docs](https://webship.co/docs/webship-js/1.0.x).
 
 
-## Install webship-js using Yarn
+## Install webship-js using npm
 
 ```
-yarn add webship-js
+npm install webship-js
 ```
 
 ## Install files required by the webship-js tool
@@ -27,5 +27,5 @@ bash <(wget -O - https://raw.githubusercontent.com/webship/wbash/v1/webship-js/v
  ## Automated Functional Acceptance Testing
 
 ```
-yarn test
+npm test
 ```
