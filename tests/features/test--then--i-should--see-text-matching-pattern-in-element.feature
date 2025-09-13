@@ -1,6 +1,6 @@
 Feature: An example of ensuring that a pattern matches the text in a specific element
-      As a developer,
-      I want to ensure that a pattern matches the text in a specific element.
+  As a developer,
+  I want to ensure that a pattern matches the text in a specific element.
 
   Scenario: Ensuring that the text in an element matches the 12-hour time format pattern
     Given I am on "/test--then--i-should--see-text-matching-pattern.html"

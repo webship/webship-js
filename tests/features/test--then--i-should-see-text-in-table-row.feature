@@ -1,6 +1,6 @@
 Feature: Assert text visibility in table rows
-              As a test automation engineer
-              I want to verify text content within specific table rows
+  As a test automation engineer
+  I want to verify text content within specific table rows
   So that I can validate data accuracy and proper display in tables
 
         Background:

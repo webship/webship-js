@@ -1,6 +1,6 @@
 Feature: Complete scrolling functionality test
-      As a tester,
-      I want to test all scrolling step definitions to ensure they work correctly.
+  As a tester,
+  I want to test all scrolling step definitions to ensure they work correctly.
 
   Scenario: Test basic scroll down functionality
     Given I am on "/test--when--i-scroll-functionality.html"

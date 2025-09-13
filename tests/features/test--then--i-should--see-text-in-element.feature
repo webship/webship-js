@@ -1,6 +1,6 @@
 Feature: An example to ensure that the input text contain a specific value based on its label
-      As a tester,
-      I want to ensure thlabelat the textbox does not contain a specific value based on its label
+  As a tester,
+  I want to ensure thlabelat the textbox does not contain a specific value based on its label
 
   Scenario: Ensuring that a textbox does not contain a specific value based on its label.
     Given I am on "/test--then--i-should--not--see-text-in-element.html"

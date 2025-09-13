@@ -1,6 +1,6 @@
 Feature: An example of ensuring that a pattern matches the text on a specific page.
-      As a developer,
-      I want to ensure that a pattern matches the text in a specific page.
+  As a developer,
+  I want to ensure that a pattern matches the text in a specific page.
 
   Scenario: Ensure that there is a text matching the pattern of text starting with 'T' on a specific page
     Given I am on "/test--then--i-should--see-text-matching-pattern.html"

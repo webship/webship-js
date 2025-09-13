@@ -1,6 +1,6 @@
 Feature: An example test to wait for a specific maximum number of seconds/minutes for the page to load.
-      As a tester,
-      I want to make sure that I can wait for a page to load and for an element to become visible.
+  As a tester,
+  I want to make sure that I can wait for a page to load and for an element to become visible.
 
   Scenario: Check waiting 6 seconds for the page content to load.
     Given I am on the homepage
