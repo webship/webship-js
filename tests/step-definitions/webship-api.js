@@ -74,9 +74,9 @@ function getNestedProperty(obj, path) {
  * Adds Basic Authentication header to next request.
  *
  * Example #1: Given I am authenticating as "admin" with "password123" password
- * Example #2: Given I am authenticating as "user@example.com" with "secret" password
+ * Example #2: Given We are authenticating as "user@example.com" with "secret" password
  */
-Given(/^I am authenticating as "([^"]*)" with "([^"]*)" password$/, function (username, password) {
+Given(/^(?:I am|we are) authenticating as "([^"]*)" with "([^"]*)" password$/, function (username, password) {
   delete apiHeaders['Authorization'];
   authorization = Buffer.from(username + ':' + password).toString('base64');
   apiHeaders['Authorization'] = 'Basic ' + authorization;
