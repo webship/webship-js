@@ -89,7 +89,7 @@ Given(/^I am authenticating as "([^"]*)" with "([^"]*)" password$/, function (us
  * Example #2: Given I set header "Authorization" with value "Bearer token123"
  * Example #3: Given I set header "Accept" with value "application/xml"
  */
-Given(/^I set header "([^"]*)" with value "([^"]*)"$/, function (name, value) {
+Given(/^(?:I |we )?set header "([^"]*)" with value "([^"]*)"$/, function (name, value) {
   apiHeaders[name] = replacePlaceHolder(value);
 });
 
@@ -111,7 +111,7 @@ Given(/^(?:the API base URL is|I set the API base URL to|the base URL is) "([^"]
  * Example #2: Given I set the header "Authorization" to "Bearer token123"
  * Example #3: Given the header "Accept" is "application/json"
  */
-Given(/^(?:I set the header|the header) "([^"]*)" (?:to|is) "([^"]*)"$/, function (headerName, headerValue) {
+Given(/^(?:I set the header|we set the header|the header) "([^"]*)" (?:to|is) "([^"]*)"$/, function (headerName, headerValue) {
   apiHeaders[headerName] = replacePlaceHolder(headerValue);
 });
 
@@ -123,7 +123,7 @@ Given(/^(?:I set the header|the header) "([^"]*)" (?:to|is) "([^"]*)"$/, functio
  *            | Authorization | Bearer token123     |
  *            | Accept        | application/json    |
  */
-Given(/^I set the following headers:$/, function (table) {
+Given(/^(?:I|we) set the following headers:$/, function (table) {
   table.rows().forEach(row => {
     apiHeaders[row[0]] = replacePlaceHolder(row[1]);
   });
@@ -135,7 +135,7 @@ Given(/^I set the following headers:$/, function (table) {
  * Example #1: Given I set the request body to '{"name": "John", "email": "john@example.com"}'
  * Example #2: Given the request body is '{"title": "Test Post", "body": "This is a test"}'
  */
-Given(/^(?:I set the request body to|the request body is) '([^']*)'$/, function (jsonData) {
+Given(/^(?:I set the request body to|we set the request body to|the request body is) '([^']*)'$/, function (jsonData) {
   try {
     const processedData = replacePlaceHolder(jsonData);
     apiRequestData = JSON.parse(processedData);
@@ -152,7 +152,7 @@ Given(/^(?:I set the request body to|the request body is) '([^']*)'$/, function 
  *            | email | john@example.com   |
  *            | age   | 30                 |
  */
-Given(/^I set the request body with:$/, function (table) {
+Given(/^(?:I|we) set the request body with:$/, function (table) {
   apiRequestData = {};
   table.rows().forEach(row => {
     let value = replacePlaceHolder(row[1]);
@@ -170,11 +170,11 @@ Given(/^I set the request body with:$/, function (table) {
  * Sends HTTP request to specific relative URL.
  *
  * Example #1: When I send a GET request to "/users"
- * Example #2: When I send a POST request to "/posts"
+ * Example #2: When we send a POST request to "/posts"
  * Example #3: When I send a PUT request to "/users/1"
- * Example #4: When I send a DELETE request to "/posts/1"
+ * Example #4: When we send a DELETE request to "/posts/1"
  */
-When(/^(?:I )?send a ([A-Z]+) request to "([^"]+)"$/, async function (method, endpoint) {
+When(/^(?:I |we )?send a ([A-Z]+) request to "([^"]+)"$/, async function (method, endpoint) {
   const url = baseURL + '/' + prepareUrl(endpoint);
   
   try {
@@ -196,11 +196,12 @@ When(/^(?:I )?send a ([A-Z]+) request to "([^"]+)"$/, async function (method, en
  * Sends HTTP request to specific URL with field values from Table.
  *
  * Example: When I send a POST request to "/users" with values:
+ *          When we send a POST request to "/users" with values:
  *            | name  | John Doe         |
  *            | email | john@example.com |
  *            | age   | 30               |
  */
-When(/^(?:I )?send a ([A-Z]+) request to "([^"]+)" with values:$/, async function (method, endpoint, table) {
+When(/^(?:I |we )?send a ([A-Z]+) request to "([^"]+)" with values:$/, async function (method, endpoint, table) {
   const url = baseURL + '/' + prepareUrl(endpoint);
   const fields = {};
   
@@ -228,6 +229,7 @@ When(/^(?:I )?send a ([A-Z]+) request to "([^"]+)" with values:$/, async functio
  * Sends HTTP request to specific URL with raw body from PyString.
  *
  * Example: When I send a POST request to "/users" with body:
+ *          When we send a POST request to "/users" with body:
  *            """
  *            {
  *              "name": "John Doe",
@@ -235,7 +237,7 @@ When(/^(?:I )?send a ([A-Z]+) request to "([^"]+)" with values:$/, async functio
  *            }
  *            """
  */
-When(/^(?:I )?send a ([A-Z]+) request to "([^"]+)" with body:$/, async function (method, endpoint, docString) {
+When(/^(?:I |we )?send a ([A-Z]+) request to "([^"]+)" with body:$/, async function (method, endpoint, docString) {
   const url = baseURL + '/' + prepareUrl(endpoint);
   const body = replacePlaceHolder(docString.trim());
 
@@ -276,13 +278,14 @@ When(/^(?:I )?send a ([A-Z]+) request to "([^"]+)" with body:$/, async function 
  * Sends HTTP request to specific URL with form data.
  *
  * Example: When I send a POST request to "/login" with form data:
+ *          When we send a POST request to "/login" with form data:
  *            """
  *            username=admin
  *            password=secret
  *            remember=true
  *            """
  */
-When(/^(?:I )?send a ([A-Z]+) request to "([^"]+)" with form data:$/, async function (method, endpoint, docString) {
+When(/^(?:I |we )?send a ([A-Z]+) request to "([^"]+)" with form data:$/, async function (method, endpoint, docString) {
   const url = baseURL + '/' + prepareUrl(endpoint);
   const body = replacePlaceHolder(docString.trim());
   
@@ -530,6 +533,6 @@ Then(/^print API response$/, function () {
  *
  * Example: Given I set placeholder "{{userId}}" to "123"
  */
-Given(/^I set placeholder "([^"]*)" to "([^"]*)"$/, function (placeholder, value) {
+Given(/^(?:I|we) set placeholder "([^"]*)" to "([^"]*)"$/, function (placeholder, value) {
   placeHolders[placeholder] = value;
 });
