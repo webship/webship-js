@@ -5,3 +5,4 @@ node_modules
 tests_output
 tests/reports/cucumber_report*
 package-lock.json
+docs

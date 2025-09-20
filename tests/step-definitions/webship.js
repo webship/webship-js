@@ -14,8 +14,8 @@ const path = require('path');
  * @param {string} key
  */
 function safePause(key) {
-  const time = (global.browser?.globals?.minimum_wait_time?.[key]) || 0;
-  if (time > 0 && global.browser?.pause) {
+  const time = (global.browser && global.browser.globals && global.browser.globals.minimum_wait_time && global.browser.globals.minimum_wait_time[key]) || 0;
+  if (time > 0 && global.browser && global.browser.pause) {
     global.browser.pause(time);
   }
 }
@@ -265,71 +265,80 @@ When(/^(I |we )*click "([^"]*)?" by( its)*( "([^"]*)?")* (attribute|attr)$/, fun
  */
 When(/^(I |we )*click "([^"]*)?" in( the)* "([^"]*)?" row$/, function (pronounCase, clickText, theCase, rowIdentifier) {
   
-  // First, find all table elements on the page
-  return browser.elements('css selector', 'table', function (tableResult) {
-    if (tableResult.value.length === 0) {
+  return browser.execute(function(rowId, targetText) {
+    // Find all tables on the page
+    const tables = document.querySelectorAll('table');
+    if (tables.length === 0) {
       throw new Error('No tables found on the page');
     }
 
     // Search through each table for the row containing the identifier
-    let foundElement = false;
-    
-    tableResult.value.forEach(function (table, tableIndex) {
-      if (foundElement) return; // Skip if already found
-      
-      // Get all rows in this table
-      browser.elements('css selector', 'tr', table, function (rowResult) {
-        if (rowResult.value.length === 0) return;
-        
-        rowResult.value.forEach(function (row, rowIndex) {
-          if (foundElement) return; // Skip if already found
-          
-          // Check if this row contains the identifier text
-          browser.getText(row, function (rowText) {
-            if (rowText.value && rowText.value.includes(rowIdentifier)) {
-              
-              // Found the correct row, now look for the clickable text within this row
-              browser.elements('css selector', '*', row, function (cellElements) {
-                cellElements.value.forEach(function (element) {
-                  if (foundElement) return; // Skip if already found
-                  
-                  browser.getText(element, function (elementText) {
-                    if (elementText.value && elementText.value.trim() === clickText) {
-                      // Found the target text, click it
-                      browser.click(element);
-                      foundElement = true;
-                      return;
-                    }
-                  });
-                  
-                  // Also check if element is a link or button with the text
-                  browser.getAttribute(element, 'tagName', function (tagName) {
-                    if (foundElement) return;
-                    
-                    if (tagName.value && (tagName.value.toLowerCase() === 'a' || tagName.value.toLowerCase() === 'button')) {
-                      browser.getText(element, function (linkText) {
-                        if (linkText.value && linkText.value.trim() === clickText) {
-                          browser.click(element);
-                          foundElement = true;
-                          return;
-                        }
-                      });
-                    }
-                  });
-                });
-              });
+    for (let table of tables) {
+      const rows = table.querySelectorAll('tr');
+      for (let row of rows) {
+        const rowText = row.textContent || row.innerText;
+        if (rowText.includes(rowId)) {
+          // Found the correct row, now look for clickable elements with the target text
+
+          // First, try to find exact text matches in clickable elements
+          const clickableElements = row.querySelectorAll('a, button, [onclick], [role="button"], .btn, input[type="submit"], input[type="button"]');
+          for (let element of clickableElements) {
+            const elementText = (element.textContent || element.innerText || element.value || '').trim();
+            if (elementText === targetText) {
+              element.click();
+              return { success: true, element: element.tagName };
             }
-          });
-        });
-      });
-    });
-    
-    // Add a small pause to ensure the operation completes
-    browser.pause(1000);
-    
-    // If we didn't find the element, throw an error
-    if (!foundElement) {
-      throw new Error(`Could not find "${clickText}" in the "${rowIdentifier}" row. Please verify the table structure and text content.`);
+          }
+
+          // If not found in obvious clickable elements, search all elements
+          const allElements = row.querySelectorAll('*');
+          for (let element of allElements) {
+            const elementText = (element.textContent || element.innerText || '').trim();
+            if (elementText === targetText) {
+              // Check if element or parent is clickable
+              let clickableParent = element;
+              while (clickableParent && clickableParent !== row) {
+                if (clickableParent.tagName === 'A' ||
+                    clickableParent.tagName === 'BUTTON' ||
+                    clickableParent.onclick ||
+                    clickableParent.getAttribute('role') === 'button' ||
+                    clickableParent.classList.contains('btn') ||
+                    clickableParent.style.cursor === 'pointer') {
+                  clickableParent.click();
+                  return { success: true, element: clickableParent.tagName };
+                }
+                clickableParent = clickableParent.parentElement;
+              }
+
+              // If no clickable parent found, try clicking the element itself
+              try {
+                element.click();
+                return { success: true, element: element.tagName };
+              } catch (e) {
+                // Continue searching if click failed
+                continue;
+              }
+            }
+          }
+
+          // Row found but target text not clickable
+          return {
+            success: false,
+            error: `Found row containing "${rowId}" but could not find clickable "${targetText}" within it. Row contains: ${rowText.substring(0, 200)}...`
+          };
+        }
+      }
+    }
+
+    // Row not found
+    return {
+      success: false,
+      error: `Could not find row containing "${rowId}". Available rows: ${Array.from(document.querySelectorAll('table tr')).map(r => (r.textContent || '').substring(0, 50)).join(', ')}`
+    };
+
+  }, [rowIdentifier, clickText], function(result) {
+    if (!result.value.success) {
+      throw new Error(result.value.error || `Could not find "${clickText}" in the "${rowIdentifier}" row. Please verify the table structure and text content.`);
     }
   });
 });
