@@ -101,7 +101,16 @@ Given(/^(?:I |we )?set header "([^"]*)" with value "([^"]*)"$/, function (name, 
  * Example #3: Given the base URL is "http://localhost:3000/api"
  */
 Given(/^(?:the API base URL is|I set the API base URL to|the base URL is) "([^"]*)"$/, function (url) {
-  baseURL = url.replace(/\/$/, ''); // Remove trailing slash
+  // Check if the input is a full URL (contains protocol)
+  if (url.match(/^https?:\/\//)) {
+    baseURL = url.replace(/\/$/, ''); // Remove trailing slash
+  } else {
+    // If not a full URL, combine with launch_url from nightwatch.conf.js
+    const nightwatchConfig = require('../../nightwatch.conf.js');
+    const launchUrl = nightwatchConfig.test_settings.default.launch_url;
+    baseURL = (launchUrl + '/' + url).replace(/\/+/g, '/').replace(/\/$/, ''); // Normalize slashes and remove trailing slash
+    baseURL = baseURL.replace(':/', '://'); // Fix protocol separator
+  }
 });
 
 /**
