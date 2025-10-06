@@ -127,24 +127,17 @@ When(/^(I go |I navigate |we go |we navigate |navigating )?to "([^"]*)?"$/, func
  *
  * Example #1: Then I should see "Welcome"
  * Example #2: Then we should see "Your accounts for the group is public"
- * 
- */
-Then(/^(I |we )*should see "([^"]*)?"$/, function (pronounCase, expectedText) {
-  return this.shouldSee = function (browser) {
-    browser.assert.textContains("html", expectedText);
-  };
-});
-
-/**
- * Asserting a text in the page.
+ * Example #3: Then I should not see "Access denied"
+ * Example #4: Then we should not see "Edit layout"
  *
- * Example #1: Then I should not see "Access denied"
- * Example #2: Then we should not see "Edit layout"
- * 
  */
-Then(/^(I |we )*should not see "([^"]*)?"$/, function (pronounCase, expectedText) {
+Then(/^(I |we )*should( not)* see "([^"]*)?"$/, function (pronounCase, notCase, expectedText) {
   return this.shouldSee = function (browser) {
-    browser.assert.not.textContains("html", expectedText);
+    if (notCase) {
+      browser.assert.not.textContains("html", expectedText);
+    } else {
+      browser.assert.textContains("html", expectedText);
+    }
   };
 });
 
@@ -344,24 +337,27 @@ When(/^(I |we )*click "([^"]*)?" in( the)* "([^"]*)?" row$/, function (pronounCa
 });
 
 /**
- * Asserts that specific text is visible within a table row that contains a specified identifier text.
+ * Asserts that specific text is visible or not visible within a table row that contains a specified identifier text.
  * This step finds a table, locates a row containing the identifier text, then verifies the target text is visible within that row.
  *
  * Example #1: Then I should see "Active" in the "John Smith" row
- * Example #2: Then I should see "In Stock" in the "Product A" row  
+ * Example #2: Then I should see "In Stock" in the "Product A" row
  * Example #3: Then we should see "Processing" in the "Order #12345" row
  * Example #4: And I should see "Admin" in the "john.smith@example.com" row
+ * Example #5: Then I should not see "Admin" in the "Jane Doe" row
+ * Example #6: Then I should not see "Out of Stock" in the "Product A" row
+ * Example #7: And I should not see "Inactive" in the "john.smith@example.com" row
  *
  */
-Then(/^(I |we )*should see "([^"]*)?" in( the)* "([^"]*)?" row$/, function (pronounCase, expectedText, theCase, rowIdentifier) {
-  
+Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* "([^"]*)?" row$/, function (pronounCase, notCase, expectedText, theCase, rowIdentifier) {
+
   return browser.execute(function(rowId, expectedTxt) {
     // Find all tables
     const tables = document.querySelectorAll('table');
     if (tables.length === 0) {
       throw new Error('No tables found on the page');
     }
-    
+
     // Search through each table for the row containing the identifier
     for (let table of tables) {
       const rows = table.querySelectorAll('tr');
@@ -377,46 +373,14 @@ Then(/^(I |we )*should see "([^"]*)?" in( the)* "([^"]*)?" row$/, function (pron
     }
     return false; // Text not found
   }, [rowIdentifier, expectedText], function(result) {
-    if (!result.value) {
-      throw new Error(`Could not find "${expectedText}" in the "${rowIdentifier}" row. Please verify the table structure and text content.`);
-    }
-  });
-});
-
-/**
- * Asserts that specific text is NOT visible within a table row that contains a specified identifier text.
- *
- * Example #1: Then I should not see "Admin" in the "Jane Doe" row
- * Example #2: Then I should not see "Out of Stock" in the "Product A" row  
- * Example #3: And I should not see "Inactive" in the "john.smith@example.com" row
- *
- */
-Then(/^(I |we )*should not see "([^"]*)?" in( the)* "([^"]*)?" row$/, function (pronounCase, expectedText, theCase, rowIdentifier) {
-  
-  return browser.execute(function(rowId, expectedTxt) {
-    // Find all tables
-    const tables = document.querySelectorAll('table');
-    if (tables.length === 0) {
-      throw new Error('No tables found on the page');
-    }
-    
-    // Search through each table for the row containing the identifier
-    for (let table of tables) {
-      const rows = table.querySelectorAll('tr');
-      for (let row of rows) {
-        const rowText = row.textContent || row.innerText;
-        if (rowText.includes(rowId)) {
-          // Found the correct row, now check if it contains the expected text
-          if (rowText.includes(expectedTxt)) {
-            return true; // Found the text (this is bad for "should not see")
-          }
-        }
+    if (notCase) {
+      if (result.value) {
+        throw new Error(`Found "${expectedText}" in the "${rowIdentifier}" row, but it should not be there.`);
       }
-    }
-    return false; // Text not found (this is good for "should not see")
-  }, [rowIdentifier, expectedText], function(result) {
-    if (result.value) {
-      throw new Error(`Found "${expectedText}" in the "${rowIdentifier}" row, but it should not be there.`);
+    } else {
+      if (!result.value) {
+        throw new Error(`Could not find "${expectedText}" in the "${rowIdentifier}" row. Please verify the table structure and text content.`);
+      }
     }
   });
 });
@@ -706,7 +670,7 @@ When(/^(I |we )*uncheck "([^"]*)?"$/, function (pronounCase, item) {
 });
 
 /**
- * Verify, that current page is the homepage.
+ * Verify, that current page is or is not the homepage.
  *
  * Example #1: Then I should be on homepage
  * Example #2:  And I should be on the homepage
@@ -716,30 +680,25 @@ When(/^(I |we )*uncheck "([^"]*)?"$/, function (pronounCase, item) {
  * Example #6:  And we should be on homepage
  * Example #7: Then should be on frontpage
  * Example #8:  And we should be on the homepage
+ * Example #9: Then I should not be on homepage
+ * Example #10: And I should not be on the homepage
+ * Example #11: Then I should not be on frontpage
+ * Example #12: Then we should not be on homepage
+ * Example #13: Then should not be on the homepage
+ * Example #14: And we should not be on frontpage
+ * Example #15: And we should not be on the homepage
  *
  */
-Then(/^(I |we )*should be on( the)* (homepage|frontpage)$/, function (pronounCase, theCase, pageCase) {
-  return browser.assert.urlMatches(browser.launch_url);
+Then(/^(I |we )*should( not)* be on( the)* (homepage|frontpage)$/, function (pronounCase, notCase, theCase, pageCase) {
+  if (notCase) {
+    return browser.assert.not.urlMatches(browser.launch_url);
+  } else {
+    return browser.assert.urlMatches(browser.launch_url);
+  }
 });
 
 /**
- * Verify, that current page is the homepage.
- *
- * Example #1: Then I should not be on homepage
- * Example #2:  And I should not be on the homepage
- * Example #3: Then I should not be on frontpage
- * Example #4: Then we should not be on homepage
- * Example #5: Then should not be on the homepage
- * Example #6:  And we should not be on frontpage
- * Example #7:  And we should not be on the homepage
- *
- */
-Then(/^(I |we )*should not be on( the)* (homepage|frontpage)$/, function (pronounCase, theCase, pageCase) {
-  return browser.assert.not.urlMatches(browser.launch_url);
-});
-
-/**
- * Verify, that current page path is equal to specified path.
+ * Verify, that current page path is equal or not equal to specified path.
  *
  * Example #1: Then I should be on "/"
  * Example #2:  And I should be on "/user/login"
@@ -749,27 +708,22 @@ Then(/^(I |we )*should not be on( the)* (homepage|frontpage)$/, function (pronou
  * Example #6:  And we should be on "https://google.com"
  * Example #7: Then should be on the "/user/reset" page
  * Example #8:  And we should be on "https://x.com"
+ * Example #9: Then I should not be on "/"
+ * Example #10: And I should not be on "/user/login"
+ * Example #11: And I should not be on "https://un.org"
+ * Example #12: Then we should not be on the "/" page
+ * Example #13: And we should not be on "/user/login"
+ * Example #14: Then we should not be on "https://google.com"
+ * Example #15: And should not be on "/user/reset"
+ * Example #16: And we should not be on the "https://x.com" page
  *
  */
-Then(/^(I |we )*should be on( the)* "([^"]*)?"( page)*$/, function (pronounCase, theCase, url, pageCase) {
-  return browser.assert.urlContains(url);
-});
-
-/**
- * Verify, that current page path dose not equal to specified path.
- *
- * Example #1: Then I should not be on "/"
- * Example #2:  And I should not be on "/user/login"
- * Example #3:  And I should not be on "https://un.org"
- * Example #4: Then we should not be on the "/" page
- * Example #5:  And we should not be on "/user/login"
- * Example #6: Then we should not be on "https://google.com"
- * Example #7:  And should not be on "/user/reset"
- * Example #8:  And we should not be on the "https://x.com" page
- *
- */
-Then(/^(I |we )*should not be on( the)* "([^"]*)?"( page)*$/, function (pronounCase, theCase, url, pageCase) {
-  return browser.assert.not.urlContains(url);
+Then(/^(I |we )*should( not)* be on( the)* "([^"]*)?"( page)*$/, function (pronounCase, notCase, theCase, url, pageCase) {
+  if (notCase) {
+    return browser.assert.not.urlContains(url);
+  } else {
+    return browser.assert.urlContains(url);
+  }
 });
 
 /**
@@ -813,53 +767,52 @@ Then(/^(the )*"([^"]*)?" link should contain "([^"]*)?" by( its)*( "([^"]*)?")* 
 });
 
 /**
- * Checks, that HTML response contains specific text.
+ * Checks, that HTML response contains or does not contain specific text.
  *
  * Example #1: Then the response should contain "Welcome visitor, How can I help you?"
+ * Example #2: Then the response should not contain "Welcome visitor, How can I help you?"
  *
  */
-Then(/^(the )*response should contain "([^"]*)?"$/, function (theCase, expectedText) {
+Then(/^(the )*response should( not)* contain "([^"]*)?"$/, function (theCase, notCase, expectedText) {
   return this.shouldSee = function (browser) {
-    browser.assert.textContains("html", expectedText);
+    if (notCase) {
+      browser.assert.not.textContains("html", expectedText);
+    } else {
+      browser.assert.textContains("html", expectedText);
+    }
   };
 });
 
 /**
- * Checks, that HTML response dose not  contains specific text.
- *
- * Example #1: Then the response should not contain "Welcome visitor, How can I help you?"
- *
- */
-Then(/^(the )*response should not contain "([^"]*)?"$/, function (theCase, expectedText) {
-  return this.shouldSee = function (browser) {
-    browser.assert.not.textContains("html", expectedText);
-  };
-});
-
-/**
- * Assert, that input text contains a specific value by its label.
+ * Assert, that input text contains or does not contain a specific value by its label.
  *
  * Example #1: Then I should see "John Smith" in the "Username" element
  * Example #2: Then I should not see "Joe Smith" in the "Username" element
- * 
+ *
  */
-Then(/^(I |we )*should see "([^"]*)?" in( the)* "([^"]*)?" element$/, function (pronounCase, expectedText, theCase , element) {
+Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* "([^"]*)?" element$/, function (pronounCase, notCase, expectedText, theCase, element) {
   const elementField = browser.element.findByText(element, { exact: true });
   browser.getAttribute(elementField, 'for', function (eleAttribute) {
     return this.shouldSee = function (browser) {
-      browser.assert.textContains('#' + eleAttribute.value, expectedText);
+      if (notCase) {
+        browser.assert.not.textContains('#' + eleAttribute.value, expectedText);
+      } else {
+        browser.assert.textContains('#' + eleAttribute.value, expectedText);
+      }
     };
   });
 });
 
 /**
- * Assert, that input text contains a specific value by its attributes.
+ * Assert, that input text contains or does not contain a specific value by its attributes.
  *
- * Example: Then I should see "John Smith" in the "uname" element by its "id" attr
- * Example: Then I should see "1234" in the "pwordcss" element by attr
- * 
+ * Example #1: Then I should see "John Smith" in the "uname" element by its "id" attr
+ * Example #2: Then I should see "1234" in the "pwordcss" element by attr
+ * Example #3: Then I should not see "John Smith" in the "uname" element by its "id" attr
+ * Example #4: Then I should not see "1234" in the "pwordcss" element by attr
+ *
  */
-Then(/^(I |we )*should see "([^"]*)?" in( the)* "([^"]*)?" element by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronounCase, expectedText, theCase, attrValue, itsCase, attr, attrCase) {
+Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* "([^"]*)?" element by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronounCase, notCase, expectedText, theCase, attrValue, itsCase, attr, attrCase) {
 
   const hasASpace = attrValue.indexOf(' ');
 
@@ -875,34 +828,42 @@ Then(/^(I |we )*should see "([^"]*)?" in( the)* "([^"]*)?" element by( its)*( "(
   }
 
   return this.shouldSee = function (browser) {
-    browser.assert.textContains(selector, expectedText);
+    if (notCase) {
+      browser.assert.not.textContains(selector, expectedText);
+    } else {
+      browser.assert.textContains(selector, expectedText);
+    }
   };
 });
 
 /**
- * Assert, that input text does not contain a specific value to be by its label.
+ * Assert, that element exists or does not exist on current page by its label.
  *
- * Example: Then I should not see "Joe Smith" in the "Username" element
+ * Example #1: Then I should see a "Username" element
+ * Example #2: Then I should not see a "Username" element
  *
  */
-Then(/^(I |we )*should not see "([^"]*)?" in( the)* "([^"]*)?" element$/, function (pronounCase, expectedText, theCase, element) {
-
-  const elementField = browser.element.findByText(element, { exact: true });
-  browser.getAttribute(elementField, 'for', function (eleAttribute) {
-    return this.shouldSee = function (browser) {
-      browser.assert.not.textContains('#' + eleAttribute.value, expectedText);
-    };
-  });
+Then(/^(I |we )*should( not)* see (a|an) "([^"]*)?" element$/, function (pronounCase, notCase, aAnCase, element) {
+  if (notCase) {
+    browser.assert.not.textContains("html", element);
+  } else {
+    const elementField = browser.element.findByText(element, { exact: true });
+    browser.getAttribute(elementField, 'for', function (eleAttribute) {
+      return browser.verify.visible('#' + eleAttribute.value);
+    });
+  }
 });
 
 /**
- * Assert, that input text contains a specific value by its attributes.
+ * Assert, that element exists or does not exist on the current page by its attribute.
  *
- * Example: Then I should not see "John Smith" in the "uname" element by its "id" attr
- * Example: Then I should not see "1234" in the "pwordcss" element by attr
- * 
+ * Example #1: Then I should see a "uname" element by its "id" attr
+ * Example #2: Then I should see a "pwordcss" element by attr
+ * Example #3: Then I should not see an "emailId" element by its "id" attr
+ * Example #4: And I should not see a "countryCss" element by attr
+ *
  */
-Then(/^(I |we )*should not see "([^"]*)?" in( the)* "([^"]*)?" element by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronounCase, expectedText, theCase, attrValue, itsCase, attr, attrCase) {
+Then(/^(I |we )*should( not)* see (a|an) "([^"]*)?" element by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronounCase, notCase, aAnCase, attrValue, itsCase, attr, attrCase) {
 
   const hasASpace = attrValue.indexOf(' ');
 
@@ -917,91 +878,24 @@ Then(/^(I |we )*should not see "([^"]*)?" in( the)* "([^"]*)?" element by( its)*
     selector = '[' + attr + '="' + attrValue + '"]';
   }
 
-  return this.shouldSee = function (browser) {
-    browser.assert.not.textContains(selector, expectedText);
-  };
-});
-
-/**
- * Assert, that element exists on current page by its label.
- *
- * Example: Then I should see a "Username" element
- *
- */
-Then(/^(I |we )*should see (a|an) "([^"]*)?" element$/, function (pronounCase, aAnCase, element) {
-  const elementField = browser.element.findByText(element, { exact: true });
-  browser.getAttribute(elementField, 'for', function (eleAttribute) {
-    return browser.verify.visible('#' + eleAttribute.value);
-  });
-});
-
-/**
- * Assert, that element exists on the current page by its attribute.
- *
- * Example: Then I should see a "uname" element by its "id" attr
- * Example: Then I should see a "pwordcss" element by attr
- * 
- */
-Then(/^(I |we )*should see (a|an) "([^"]*)?" element by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronounCase, aAnCase, attrValue, itsCase, attr, attrCase) {
-
-  const hasASpace = attrValue.indexOf(' ');
-
-  var selector = '';
-  if (!attr && hasASpace == -1){
-    selector = attrValue + ',#' + attrValue + ',.' + attrValue + ',[name=' + attrValue + "]," + '[value="' + attrValue + '"],[placeholder="' + attrValue + '"]';
-  }
-  else if (!attr && hasASpace > -1){
-    selector ='[value="' + attrValue + '"],[placeholder="' + attrValue + '"]';
-  }
-  else {
-    selector = '[' + attr + '="' + attrValue + '"]';
-  }
-
+  if (notCase) {
+    return browser.expect.element(selector).to.not.be.present;
+  } else {
     return browser.verify.visible(selector);
+  }
 });
 
-/**
- * Assert, that element exists on current page by its label.
- *
- * Example: Then I should not see a "Username" element
- *
- */
-Then(/^(I |we )*should not see (a|an) "([^"]*)?" element$/, function (pronounCase, aAnCase, element) {
-  browser.assert.not.textContains("html", element);
-});
 
 /**
- * Assert, that element exists on current page by its attributes.
+ * Assert, that element contains or does not contain a specific CSS style.
  *
- * Example: Then I should not see an "emailId" element by its "id" attr
- * Example: And I should not see a "countryCss" element by attr
- *
- */
-Then(/^(I |we )*should not see (a|an) "([^"]*)?" element by( its)*( "([^"]*)?")* (attribute|attr)$/, function (pronounCase, aAnCase, attrValue, itsCase, attr, attrCase) {
-
-  const hasASpace = attrValue.indexOf(' ');
-
-  var selector = '';
-  if (!attr && hasASpace == -1){
-    selector = attrValue + ',#' + attrValue + ',.' + attrValue + ',[name=' + attrValue + "]," + '[value="' + attrValue + '"],[placeholder="' + attrValue + '"]';
-  }
-  else if (!attr && hasASpace > -1){
-    selector ='[value="' + attrValue + '"],[placeholder="' + attrValue + '"]';
-  }
-  else {
-    selector = '[' + attr + '="' + attrValue + '"]';
-  }
-
-  return browser.expect.element(selector).to.not.be.present;
-});
-
-/**
- * Assert, that element contains a specific CSS style.
- *
- * Example: Then the "body" element should contain "color:white;"
+ * Example #1: Then the "body" element should contain "color:white;"
+ * Example #2: Then the "body" element should not contain "color:white;"
+ * Example #3: Then the "#uname" element should not contain "border:solid 5px red;"
+ * Example #4: Then the "pword" element should not contain "font-size: 26px;"
  *
  */
-Then(/^(the )*"([^"]*)?" element should contain "([^"]*)?"$/, function (theCase ,selector, elementCss) {
+Then(/^(the )*"([^"]*)?" element should( not)* contain "([^"]*)?"$/, function (theCase, selector, notCase, elementCss) {
 
   elementCss = elementCss.replace(";", '');
   const cssPropertyArr = elementCss.split(":");
@@ -1010,29 +904,179 @@ Then(/^(the )*"([^"]*)?" element should contain "([^"]*)?"$/, function (theCase 
   const propertyVal = cssPropertyArr[1].trim();
 
   this.checkCss = function (browser) {
-    browser.assert.cssProperty(selector, cssProperty, propertyVal);
+    if (notCase) {
+      browser.assert.not.cssProperty(selector, cssProperty, propertyVal);
+    } else {
+      browser.assert.cssProperty(selector, cssProperty, propertyVal);
+    }
   };
 });
 
 /**
- * Assert, that element contains a specific CSS style.
+ * Assert, that field contains or does not contain a specific text.
  *
- * Example #1: Then the "body" element should not contain "color:white;"
- * Example #2: Then the "#uname" element should not contain "border:solid 5px red;"
- * Example #3: Then the "pword" element should not contain "font-size: 26px;"
+ * Example #1: Then the "Username" field should contain "John Smith"
+ * Example #2: Then the "#username" field should not contain "John Smith"
+ *
  */
-Then(/^(the )*"([^"]*)?" element should not contain "([^"]*)?"$/, function (theCase, selector, elementCss) {
-
-  elementCss = elementCss.replace(";", '');
-  const cssPropertyArr = elementCss.split(":");
-
-  const cssProperty = cssPropertyArr[0].trim();
-  const propertyVal = cssPropertyArr[1].trim();
-
-  this.checkCss = function (browser) {
-    browser.assert.not.cssProperty(selector, cssProperty, propertyVal);
-  };
+Then(/^(the )*"([^"]*)?" field should( not)* contain "([^"]*)?"$/, function (theCase, field, notCase, expectedText) {
+  if (notCase) {
+    return this.shouldSee = function (browser) {
+      browser.assert.not.textContains(field, expectedText);
+    };
+  } else {
+    const elementField = browser.element.findByText(field, { exact: true });
+    browser.getAttribute(elementField, 'for', function (eleAttribute) {
+      return this.shouldSee = function (browser) {
+        browser.assert.textContains('#' + eleAttribute.value, expectedText);
+      };
+    });
+  }
 });
+
+/**
+ * Assert, that checkbox with specified element is or is not checked.
+ *
+ * Example #1: Then the "#PrivacyPolicy" checkbox should be checked
+ * Example #2: Then the "#PrivacyPolicy" checkbox should not be checked
+ *
+ */
+Then(/^(the )*"([^"]*)?" checkbox should( not)* be checked$/, function (theCase, checkbox, notCase) {
+  if (notCase) {
+    return browser.expect.element(checkbox).to.not.be.selected;
+  } else {
+    return browser.expect.element(checkbox).to.be.selected;
+  }
+});
+
+/**
+ * Check, whether the checkbox specified is or is not checked.
+ *
+ * Example #1: Then the "#rememberMe" checkbox is checked
+ * Example #2: Then the "#rememberMe" checkbox is not checked
+ *
+ */
+Then(/^(the )*"([^"]*)?" checkbox is( not)* checked$/, function (theCase, checkbox, notCase) {
+  if (notCase) {
+    return browser.expect.element(checkbox).to.not.be.selected;
+  } else {
+    return browser.expect.element(checkbox).to.be.selected;
+  }
+});
+
+/**
+ * Assert, that checkbox with specified element should or should not be checked.
+ *
+ * Example #1: Then the checkbox "#PrivacyPolicy" should be checked
+ * Example #2: Then the checkbox "#PrivacyPolicy" should not be checked
+ *
+ */
+Then(/^(the )*checkbox "([^"]*)?" should( not)* be checked$/, function (theCase, checkbox, notCase) {
+  if (notCase) {
+    return browser.expect.element(checkbox).to.not.be.selected;
+  } else {
+    return browser.expect.element(checkbox).to.be.selected;
+  }
+});
+
+/**
+ * Assert, that checkbox with specified element is or is not checked.
+ *
+ * Example #1: Then the checkbox "#rememberMe" is checked
+ * Example #2: Then the checkbox "#rememberMe" is not checked
+ *
+ */
+Then(/^(the )*checkbox "([^"]*)?" is( not)* checked$/, function (theCase, checkbox, notCase) {
+  if (notCase) {
+    return browser.expect.element(checkbox).to.not.be.selected;
+  } else {
+    return browser.expect.element(checkbox).to.be.selected;
+  }
+});
+
+/**
+ * Checks, that the current page response status is or is not equal the specified code.
+ *
+ * Example #1: Then the response status code should be 200
+ * Example #2: And the response status code should not be 404
+ *
+ */
+Then(/^(the )*response status code should( not)* be (\d+)$/, function (theCase, notCase, expectedStatusCode) {
+  return browser.url(function (currentURL) {
+    axios.get(currentURL.value)
+    .then(function (response) {
+      if (notCase) {
+        browser.assert.not.equal(response.status, expectedStatusCode);
+      } else {
+        browser.assert.equal(response.status, expectedStatusCode);
+      }
+    })
+    .catch(function (error) {
+      if (notCase) {
+        browser.assert.not.equal(error.status, expectedStatusCode);
+      } else {
+        browser.assert.equal(error.status, expectedStatusCode);
+      }
+    })
+    .finally(function () {
+      // always executed
+    });
+  });
+});
+
+/**
+ * Checks, that page contains or does not contain text matching specified pattern.
+ *
+ * Example #1: Then I should see text matching "^T\w+" //pattern of word start with 'T'
+ * Example #2: Then I should not see text matching "^O\w+" //pattern of word start with 'O'
+ *
+ */
+Then(/^(I |we )*should( not)* see text matching "([^"]*)?"$/, function (pronounCase, notCase, textPattern) {
+  browser.elements('css selector', 'body', function (elements) {
+    elements.value.forEach(function (elementsObj) {
+      if (notCase) {
+        return browser.assert.not.textMatches(elementsObj, textPattern);
+      } else {
+        return browser.assert.textMatches(elementsObj, textPattern);
+      }
+    });
+  });
+});
+
+/**
+ * Checks, that page contains or does not contain text matching specified pattern.
+ *
+ * Example #1: Then I should see text matching "(0?[1-9]|[12][0-9]|3[01])[\/\-](0?[1-9]|1[012])[\/\-]\d{4}" in the "#date" element
+ *            // pattern of DD/MM/YYYY or DD-MM-YYYY
+ * Example #2: Then I should not see text matching "(0?[1-9]|[12][0-9]|3[01])[\/\-](0?[1-9]|1[012])[\/\-]\d{4}" in the "#date" element
+ *            // pattern of DD/MM/YYYY or DD-MM-YYYY
+ *
+ */
+Then(/^(I |we )*should( not)* see text matching "([^"]*)?" in( the)* "([^"]*)?" element$/, function (pronounCase, notCase, textPattern, theCase, element) {
+  if (notCase) {
+    return browser.assert.not.textMatches(element, textPattern);
+  } else {
+    return this.shouldSeePattern = function (browser) {
+      browser.assert.textMatches(element, textPattern);
+    };
+  }
+});
+
+/**
+ * Checks, that current URL Path matches or does not match regular expression.
+ *
+ * Example #1: Then the url should match "/contact-us.html"
+ * Example #2: Then the url should not match "/contact-us.html"
+ *
+ */
+Then(/^(the )*url should( not)* match "([^"]*)?"$/, function (theCase, notCase, pattern) {
+  if (notCase) {
+    return browser.assert.not.urlMatches(pattern);
+  } else {
+    return browser.assert.urlMatches(pattern);
+  }
+});
+
 
 /**
  * Attaches file to field.
@@ -1058,114 +1102,7 @@ When(/^(I |we )*attach( the)* file "([^"]*)?" to "([^"]*)?"$/, function (pronoun
   
 });
 
-/**
- * Assert, that field contain a specific text.
- *
- * Example: Then the "Username" field should contain "John Smith"
- *
- */
-Then(/^(the )*"([^"]*)?" field should contain "([^"]*)?"$/, function (theCase, field, expectedText) {
 
-  const elementField = browser.element.findByText(field, { exact: true });
-  browser.getAttribute(elementField, 'for', function (eleAttribute) {
-    return this.shouldSee = function (browser) {
-      browser.assert.textContains('#' + eleAttribute.value, expectedText);
-    };
-  });
-});
-
-/**
- * Assert, that field does not contain a specific text.
- *
- * Example: Then the "#username" field should not contain "John Smith"
- *
- */
-Then(/^(the )*"([^"]*)?" field should not contain "([^"]*)?"$/, function (theCase, field, expectedText) {
-
-  return this.shouldSee = function (browser) {
-    browser.assert.not.textContains(field, expectedText);
-  };
-});
-
-/**
- * Assert, that checkbox with specified element is should be checked.
- *
- * Example: Then the "#PrivacyPolicy" checkbox should be checked
- * 
- */
-Then(/^(the )*"([^"]*)?" checkbox should be checked$/, function (theCase, checkbox) {
-  return browser.expect.element(checkbox).to.be.selected;
-});
-
-/**
- * Assert, that checkbox with specified element is should not be checked.
- *
- * Example: Then the "#PrivacyPolicy" checkbox should not be checked
- * 
- */
-Then(/^(the )*"([^"]*)?" checkbox should not be checked$/, function (theCase, checkbox) {
-  return browser.expect.element(checkbox).to.not.be.selected;
-});
-
-/**
- * Check, whether the checkbox specified is checked.
- *
- * Example: Then the "#rememberMe" checkbox is checked
- *
- */
-Then(/^(the )*"([^"]*)?" checkbox is checked$/, function (theCase, checkbox) {
-  return browser.expect.element(checkbox).to.be.selected;
-});
-
-/**
- * Check, whether the checkbox specified is not checked.
- *
- * Example: Then the "#rememberMe" checkbox is not checked
- *
- */
-Then(/^(the )*"([^"]*)?" checkbox is not checked$/, function (theCase, checkbox) {
-  return browser.expect.element(checkbox).to.not.be.selected;
-});
-
-/**
- * Assert, that checkbox with specified element should be checked.
- *
- * Example: Then the checkbox "#PrivacyPolicy" should be checked
- *
- */
-Then(/^(the )*checkbox "([^"]*)?" should be checked$/, function (theCase, checkbox) {
-  return browser.expect.element(checkbox).to.be.selected;
-});
-
-/**
- * Assert, that checkbox with specified element should not be checked.
- *
- * Example: Then the checkbox "#PrivacyPolicy" should not be checked
- *
- */
-Then(/^(the )*checkbox "([^"]*)?" should not be checked$/, function (theCase, checkbox) {
-  return browser.expect.element(checkbox).to.not.be.selected;
-});
-
-/**
- * Assert, that checkbox with specified element is checked.
- *
- * Example: Then the checkbox "#rememberMe" is checked
- *
- */
-Then(/^(the )*checkbox "([^"]*)?" is checked$/, function (theCase, checkbox) {
-  return browser.expect.element(checkbox).to.be.selected;
-});
-
-/**
- * Assert, that checkbox with specified element is not checked.
- *
- * Example: Then the checkbox "#rememberMe" is not checked
- *
- */
-Then(/^(the )*checkbox "([^"]*)?" is not checked$/, function (theCase, checkbox) {
-  return browser.expect.element(checkbox).to.not.be.selected;
-});
 
 /**
  * Wait a specific number of seconds.
@@ -1252,119 +1189,7 @@ When(/^(I |we )*wait until( the)* page( is)* loaded*$/, function (pronounCase, t
   return browser.waitForElementPresent('body', 10000);
 });
 
-/**
- * Checks, that the current page response status is equal the specified code.
- *
- * Example #1: Then the response status code should be 200
- *
- */
-Then(/^(the )*response status code should be (\d+)$/, function (theCase, expectedStatusCode) {
-  return browser.url(function (currentURL) {
-    axios.get(currentURL.value)
-    .then(function (response) {
-      browser.assert.equal(response.status, expectedStatusCode);
-    })
-    .catch(function (error) {
-      browser.assert.equal(error.status, expectedStatusCode);
-    })
-    .finally(function () {
-      // always executed
-    });
-  });
-});
 
-/**
- * Checks, that the current page response status is not equal the specified code.
- *
- * Example #1: And the response status code should not be 404
- *
- */
-Then(/^(the )*response status code should not be (\d+)$/, function ( theCase, expectedStatusCode) {
-  return browser.url(function (currentURL) {
-    axios.get(currentURL.value)
-    .then(function (response) {
-      browser.assert.not.equal(response.status, expectedStatusCode);
-    })
-    .catch(function (error) {
-      browser.assert.not.equal(error.status, expectedStatusCode);
-    })
-    .finally(function () {
-      // always executed
-    });
-  });
-});
-
-/**
- * Checks, that page contains text matching specified pattern.
- *
- * Example: Then I should see text matching "^T\w+" //pattern of word start with 'T'
- *
- */
-Then(/^(I |we )*should see text matching "([^"]*)?"$/, function (pronounCase, textPattern) {
-  browser.elements('css selector', 'body', function (elements) {
-    elements.value.forEach(function (elementsObj) {
-      return browser.assert.textMatches(elementsObj, textPattern);
-    });
-  });
-});
-
-/**
- * Checks, that page not contains text matching specified pattern.
- *
- * Example #1: Then I should not see text matching "^O\w+" //pattern of word start with 'O'
- *
- */
-Then(/^(I |we )*should not see text matching "([^"]*)?"$/, function (pronounCase, textPattern) {
-  browser.elements('css selector', 'body', function (elements) {
-    elements.value.forEach(function (elementsObj) {
-      return browser.assert.not.textMatches(elementsObj, textPattern);
-    });
-  });
-});
-
-/**
- * Checks, that page contains text matching specified pattern.
- *
- * Example #1: Then I should see text matching "(0?[1-9]|[12][0-9]|3[01])[\/\-](0?[1-9]|1[012])[\/\-]\d{4}" in the "#date" element 
- *            // pattern of DD/MM/YYYY or DD-MM-YYYY
- *
- */
-Then(/^(I |we )*should see text matching "([^"]*)?" in( the)* "([^"]*)?" element$/, function (pronounCase, textPattern, theCase, element) {
-  return this.shouldSeePattern = function (browser) {
-    browser.assert.textMatches(element, textPattern);
-  };
-});
-
-/**
- * Checks, that page dose not contain text matching specified pattern.
- *
- * Example #1: Then I should not see text matching "(0?[1-9]|[12][0-9]|3[01])[\/\-](0?[1-9]|1[012])[\/\-]\d{4}" in the "#date" element 
- *            // pattern of DD/MM/YYYY or DD-MM-YYYY
- *
- */
-Then(/^(I |we )*should not see text matching "([^"]*)?" in( the)* "([^"]*)?" element$/, function (pronounCase, textPattern, theCase, element) {
-  return browser.assert.not.textMatches(element, textPattern);
-});
-
-/**
- * Checks, that current URL Path matches regular expression.
- *
- * Example: Then the url should match "/contact-us.html"
- *
- */
-Then(/^(the )*url should match "([^"]*)?"$/, function (theCase, pattern) {
-  return browser.assert.urlMatches(pattern);
-});
-
-/**
- * Checks, that current URL Path matches regular expression.
- *
- * Example: Then the url should not match "/contact-us.html"
- *
- */
-Then(/^(the )*url should not match "([^"]*)?"$/, function (theCase, pattern) {
-  return browser.assert.not.urlMatches(pattern);
-});
 
 /**
  * Scrolls down the page by a custom number of pixels specified by the user.
