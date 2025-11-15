@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dynamic Content Examples - Webship Testing</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .example-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        input, select {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background: #f8f9fa;
+        }
+        .hidden {
+            display: none;
+        }
+        .modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            z-index: 1000;
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+        .success-message {
+            color: green;
+            padding: 10px;
+            margin: 10px 0;
+            background: #d4edda;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Dynamic Content Testing Examples</h1>
+    <p>This page demonstrates various dynamic content scenarios for automated testing.</p>
+
+    <!-- Example 1: Dynamically loaded button -->
+    <div class="example-section">
+        <h2>Example 1: Dynamically Loaded Button</h2>
+        <div id="dynamic-button-container"></div>
+    </div>
+
+    <!-- Example 2: Dynamic form fields -->
+    <div class="example-section">
+        <h2>Example 2: Dynamic Registration Form</h2>
+        <button onclick="showRegistrationForm()">Show Registration Form</button>
+        <div id="registration-form-container"></div>
+    </div>
+
+    <!-- Example 3: Dynamic dropdown options -->
+    <div class="example-section">
+        <h2>Example 3: Dynamic Dropdown</h2>
+        <button onclick="loadCountries()">Load Countries</button>
+        <div id="country-dropdown-container"></div>
+        <div id="country-selection"></div>
+    </div>
+
+    <!-- Example 4: Dynamic table rows -->
+    <div class="example-section">
+        <h2>Example 4: Dynamic Table</h2>
+        <button onclick="loadUsersTable()">Load Users Table</button>
+        <div id="users-table-container"></div>
+        <div id="edit-message"></div>
+    </div>
+
+    <!-- Example 5: Dynamic checkboxes -->
+    <div class="example-section">
+        <h2>Example 5: Dynamic Checkboxes</h2>
+        <button onclick="showPreferences()">Show Preferences</button>
+        <div id="preferences-container"></div>
+    </div>
+
+    <!-- Example 6: Dynamic file upload -->
+    <div class="example-section">
+        <h2>Example 6: Dynamic File Upload</h2>
+        <button onclick="enableFileUpload()">Enable File Upload</button>
+        <div id="file-upload-container"></div>
+        <div id="file-message"></div>
+    </div>
+
+    <!-- Example 7: Dynamic scrollable content -->
+    <div class="example-section">
+        <h2>Example 7: Dynamic Scrollable Content</h2>
+        <button onclick="loadMoreContent()">Load More Content</button>
+        <div id="content-container" style="height: 300px; overflow-y: scroll; border: 1px solid #ddd; padding: 10px;"></div>
+    </div>
+
+    <!-- Example 8: Temporary elements -->
+    <div class="example-section">
+        <h2>Example 8: Temporary Element</h2>
+        <button onclick="showTemporaryButton()">Show Temporary Button</button>
+        <button onclick="removeButton()">Remove Button</button>
+        <div id="temp-button-container"></div>
+    </div>
+
+    <!-- Example 9: SPA Navigation -->
+    <div class="example-section">
+        <h2>Example 9: SPA Navigation</h2>
+        <button data-page="products" onclick="navigateTo('products')">Products</button>
+        <button data-page="cart" onclick="navigateTo('cart')">Cart</button>
+        <div id="spa-content"></div>
+    </div>
+
+    <!-- Example 10: Batch form filling -->
+    <div class="example-section">
+        <h2>Example 10: Dynamic Contact Form</h2>
+        <button onclick="showContactForm()">Show Contact Form</button>
+        <div id="contact-form-container"></div>
+    </div>
+
+    <!-- Example 11: AJAX Search -->
+    <div class="example-section">
+        <h2>Example 11: AJAX Search</h2>
+        <input type="text" id="search-input" placeholder="Enter search term">
+        <button onclick="performSearch()">Search</button>
+        <div id="search-results-container"></div>
+    </div>
+
+    <!-- Example 12: Modal Dialog -->
+    <div class="example-section">
+        <h2>Example 12: Dynamic Modal</h2>
+        <button onclick="openSettings()">Open Settings</button>
+    </div>
+
+    <!-- Example 13: Infinite Scroll -->
+    <div class="example-section">
+        <h2>Example 13: Infinite Scroll</h2>
+        <div id="infinite-scroll-container" style="height: 400px; overflow-y: scroll; border: 1px solid #ddd; padding: 10px;">
+            <div id="items-list"></div>
+        </div>
+    </div>
+
+    <!-- Example 14: React-like component -->
+    <div class="example-section">
+        <h2>Example 14: Component Rendering</h2>
+        <button onclick="initializeApp()">Initialize App</button>
+        <div id="react-app-container"></div>
+    </div>
+
+    <!-- Example 15: Conditional rendering -->
+    <div class="example-section">
+        <h2>Example 15: Conditional Form Fields</h2>
+        <label>Account Type:</label>
+        <select id="account-type" onchange="handleAccountTypeChange(this.value)">
+            <option value="">Select...</option>
+            <option value="personal">Personal</option>
+            <option value="Business">Business</option>
+        </select>
+        <div id="conditional-fields-container"></div>
+    </div>
+
+    <script>
+        // Example 1: Load button after 1 second
+        setTimeout(() => {
+            document.getElementById('dynamic-button-container').innerHTML = `
+                <p>Dynamic Content Loaded</p>
+                <button value="Submit Form" onclick="submitForm()">Submit Form</button>
+            `;
+        }, 1000);
+
+        function submitForm() {
+            alert('Form submitted successfully');
+            document.getElementById('dynamic-button-container').innerHTML += '<div class="success-message">Form submitted successfully</div>';
+        }
+
+        // Example 2: Show registration form
+        function showRegistrationForm() {
+            setTimeout(() => {
+                document.getElementById('registration-form-container').innerHTML = `
+                    <form id="registration-form">
+                        <input type="email" id="email" placeholder="Email" required><br>
+                        <input type="text" id="fullname" placeholder="Full Name" required><br>
+                        <input type="password" id="password" placeholder="Password" required><br>
+                        <button type="button" value="Register" onclick="register()">Register</button>
+                    </form>
+                `;
+            }, 500);
+        }
+
+        function register() {
+            document.getElementById('registration-form-container').innerHTML += '<div class="success-message">Registration successful</div>';
+        }
+
+        // Example 3: Load countries dropdown
+        function loadCountries() {
+            setTimeout(() => {
+                document.getElementById('country-dropdown-container').innerHTML = `
+                    <select name="country" id="country" onchange="selectCountry(this.value)">
+                        <option value="">Select Country</option>
+                        <option value="United States">United States</option>
+                        <option value="Canada">Canada</option>
+                        <option value="United Kingdom">United Kingdom</option>
+                    </select>
+                `;
+            }, 1000);
+        }
+
+        function selectCountry(country) {
+            document.getElementById('country-selection').innerHTML = `<p>You selected: ${country}</p>`;
+        }
+
+        // Example 4: Load users table
+        function loadUsersTable() {
+            setTimeout(() => {
+                document.getElementById('users-table-container').innerHTML = `
+                    <table>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Actions</th>
+                        </tr>
+                        <tr>
+                            <td>John Smith</td>
+                            <td>john@example.com</td>
+                            <td><button onclick="editUser('john@example.com')">Edit</button></td>
+                        </tr>
+                        <tr>
+                            <td>Jane Doe</td>
+                            <td>jane@example.com</td>
+                            <td><button onclick="editUser('jane@example.com')">Edit</button></td>
+                        </tr>
+                    </table>
+                `;
+            }, 1000);
+        }
+
+        function editUser(email) {
+            document.getElementById('edit-message').innerHTML = `<p>Editing user: ${email}</p>`;
+        }
+
+        // Example 5: Show preferences
+        function showPreferences() {
+            setTimeout(() => {
+                document.getElementById('preferences-container').innerHTML = `
+                    <label><input type="checkbox" id="newsletter"> Newsletter</label><br>
+                    <label><input type="checkbox" id="notifications"> Notifications</label>
+                `;
+            }, 500);
+        }
+
+        // Example 6: Enable file upload
+        function enableFileUpload() {
+            setTimeout(() => {
+                document.getElementById('file-upload-container').innerHTML = `
+                    <input type="file" id="file-upload" onchange="handleFileSelect(this)">
+                `;
+            }, 500);
+        }
+
+        function handleFileSelect(input) {
+            if (input.files.length > 0) {
+                document.getElementById('file-message').innerHTML = `<p>File selected: ${input.files[0].name}</p>`;
+            }
+        }
+
+        // Example 7: Load more content
+        function loadMoreContent() {
+            setTimeout(() => {
+                let content = '<div style="padding: 20px;">';
+                for (let i = 1; i <= 20; i++) {
+                    content += `<p>Dynamic content item ${i}</p>`;
+                }
+                content += '<p><strong>End of dynamic content</strong></p></div>';
+                document.getElementById('content-container').innerHTML = content;
+            }, 1000);
+        }
+
+        // Example 8: Temporary button
+        function showTemporaryButton() {
+            setTimeout(() => {
+                document.getElementById('temp-button-container').innerHTML = `
+                    <button id="temp-action">Temporary Action</button>
+                `;
+            }, 500);
+        }
+
+        function removeButton() {
+            setTimeout(() => {
+                document.getElementById('temp-button-container').innerHTML = '';
+            }, 500);
+        }
+
+        // Example 9: SPA Navigation
+        function navigateTo(page) {
+            setTimeout(() => {
+                if (page === 'products') {
+                    document.getElementById('spa-content').innerHTML = `
+                        <h3>Product Catalog</h3>
+                        <table>
+                            <tr>
+                                <th>Product</th>
+                                <th>Price</th>
+                                <th>Actions</th>
+                            </tr>
+                            <tr>
+                                <td>Laptop Pro 15</td>
+                                <td>$1,299</td>
+                                <td><button onclick="addToCart('Laptop Pro 15')">Add to Cart</button></td>
+                            </tr>
+                        </table>
+                    `;
+                }
+            }, 500);
+        }
+
+        function addToCart(product) {
+            alert('Item added to cart');
+            document.getElementById('spa-content').innerHTML += '<div class="success-message">Item added to cart</div>';
+        }
+
+        // Example 10: Contact form
+        function showContactForm() {
+            setTimeout(() => {
+                document.getElementById('contact-form-container').innerHTML = `
+                    <form>
+                        <input type="text" id="contact-name" placeholder="Name"><br>
+                        <input type="email" id="contact-email" placeholder="Email"><br>
+                        <input type="tel" id="contact-phone" placeholder="Phone"><br>
+                        <textarea id="contact-message" placeholder="Message"></textarea><br>
+                        <button type="button" value="Send Message" onclick="sendMessage()">Send Message</button>
+                    </form>
+                `;
+            }, 1000);
+        }
+
+        function sendMessage() {
+            document.getElementById('contact-form-container').innerHTML += '<div class="success-message">Message sent successfully</div>';
+        }
+
+        // Example 11: AJAX Search
+        function performSearch() {
+            const query = document.getElementById('search-input').value;
+            document.getElementById('search-results-container').innerHTML = '<p>Loading...</p>';
+
+            setTimeout(() => {
+                document.getElementById('search-results-container').innerHTML = `
+                    <h3>Search Results</h3>
+                    <table>
+                        <tr>
+                            <th>Product</th>
+                            <th>Actions</th>
+                        </tr>
+                        <tr>
+                            <td>Laptop Pro 15</td>
+                            <td><button onclick="viewDetails('Laptop Pro 15')">View Details</button></td>
+                        </tr>
+                    </table>
+                `;
+            }, 1000);
+        }
+
+        function viewDetails(product) {
+            document.getElementById('search-results-container').innerHTML = `
+                <h3>Product Details</h3>
+                <p>Showing details for ${product}</p>
+            `;
+        }
+
+        // Example 12: Modal
+        function openSettings() {
+            setTimeout(() => {
+                const modalHTML = `
+                    <div class="overlay" onclick="closeModal()"></div>
+                    <div class="modal" id="settings-modal">
+                        <h3>Settings Modal</h3>
+                        <label>Theme:</label>
+                        <select id="theme-select">
+                            <option value="Light">Light</option>
+                            <option value="Dark">Dark</option>
+                        </select><br><br>
+                        <button value="Save Settings" onclick="saveSettings()">Save Settings</button>
+                        <button onclick="closeModal()">Cancel</button>
+                    </div>
+                `;
+                document.body.insertAdjacentHTML('beforeend', modalHTML);
+            }, 500);
+        }
+
+        function saveSettings() {
+            alert('Settings saved');
+            closeModal();
+            document.querySelector('.example-section:nth-child(12)').innerHTML += '<div class="success-message">Settings saved</div>';
+        }
+
+        function closeModal() {
+            document.querySelector('.overlay')?.remove();
+            document.querySelector('.modal')?.remove();
+        }
+
+        // Example 13: Infinite scroll
+        let itemCount = 0;
+        function loadInitialItems() {
+            for (let i = 1; i <= 20; i++) {
+                itemCount++;
+                document.getElementById('items-list').innerHTML += `<p>Item ${itemCount}</p>`;
+            }
+        }
+        loadInitialItems();
+
+        document.getElementById('infinite-scroll-container').addEventListener('scroll', function() {
+            if (this.scrollTop + this.clientHeight >= this.scrollHeight - 10) {
+                document.getElementById('items-list').innerHTML += '<p><em>Loading more items...</em></p>';
+                setTimeout(() => {
+                    document.querySelectorAll('#items-list em').forEach(el => el.remove());
+                    for (let i = 1; i <= 20; i++) {
+                        itemCount++;
+                        document.getElementById('items-list').innerHTML += `<p>Item ${itemCount}</p>`;
+                    }
+                }, 1000);
+            }
+        });
+
+        // Example 14: React-like component
+        let count = 0;
+        function initializeApp() {
+            setTimeout(() => {
+                document.getElementById('react-app-container').innerHTML = `
+                    <p>React App Loaded</p>
+                    <p>Count: <span id="counter">0</span></p>
+                    <button id="increment-btn" onclick="incrementCounter()">Increment</button>
+                `;
+            }, 1000);
+        }
+
+        function incrementCounter() {
+            count++;
+            setTimeout(() => {
+                document.getElementById('counter').textContent = count;
+                document.getElementById('react-app-container').querySelector('p:nth-child(2)').textContent = `Count: ${count}`;
+            }, 100);
+        }
+
+        // Example 15: Conditional rendering
+        function handleAccountTypeChange(type) {
+            setTimeout(() => {
+                if (type === 'Business') {
+                    document.getElementById('conditional-fields-container').innerHTML = `
+                        <input type="text" name="company-name" class="company-name" placeholder="Company Name"><br>
+                        <input type="text" name="tax-id" class="tax-id" placeholder="Tax ID"><br>
+                        <button value="Continue" onclick="createBusinessAccount()">Continue</button>
+                    `;
+                } else {
+                    document.getElementById('conditional-fields-container').innerHTML = '';
+                }
+            }, 500);
+        }
+
+        function createBusinessAccount() {
+            document.getElementById('conditional-fields-container').innerHTML += '<div class="success-message">Business account created</div>';
+        }
+    </script>
+</body>
+</html>

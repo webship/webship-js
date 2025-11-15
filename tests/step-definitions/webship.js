@@ -48,8 +48,8 @@ AfterStep(function () {
  * Example #6: Given on homepage
  * Example #7: Given we are on the frontpage
  * Example #8: Given on frontpage
- * 
- * 
+ *
+ *
  */
 Given(/^(I am |we are )?on( the)* (homepage|frontpage)$/, function (pronounCase, theCase, pageCase) {
   browser.url(browser.launch_url);
@@ -57,7 +57,13 @@ Given(/^(I am |we are )?on( the)* (homepage|frontpage)$/, function (pronounCase,
   if (browser.globals && browser.globals.minimum_wait_time && browser.globals.minimum_wait_time.page) {
     defaultTime = browser.globals.minimum_wait_time.page;
   }
-  return browser.waitForElementPresent('body', defaultTime);
+  browser.waitForElementPresent('body', defaultTime);
+  // Wait for any dynamic content to be loaded
+  return browser.executeScript('return document.readyState').then(function(result) {
+    if (result !== 'complete') {
+      return browser.pause(500);
+    }
+  });
 });
 
 /**
@@ -73,11 +79,30 @@ Given(/^(I am |we are )?on( the)* (homepage|frontpage)$/, function (pronounCase,
  */
 Given(/^(I am |we are )*on( the)* "([^"]*)?"( page)*$/, function (pronounCase, theCase, url, pageCase) {
   browser.url(browser.launch_url + url);
-  let defaultTime = 3000;
-  if (browser.globals && browser.globals.minimum_wait_time && browser.globals.minimum_wait_time.page) {
-    defaultTime = browser.globals.minimum_wait_time.page;
-  }
-  return browser.waitForElementPresent('body', defaultTime);
+
+  // Wait for body element to be present using active DOM polling
+  return browser.executeAsync(function(done) {
+    var maxAttempts = 20;
+    var attempts = 0;
+
+    var checkBody = setInterval(function() {
+      var body = document.querySelector('body');
+      var readyState = document.readyState;
+      attempts++;
+
+      if (body && (readyState === 'interactive' || readyState === 'complete')) {
+        clearInterval(checkBody);
+        done({ found: true });
+      } else if (attempts >= maxAttempts) {
+        clearInterval(checkBody);
+        done({ found: false });
+      }
+    }, 500);
+  }, [], function(result) {
+    if (!result || !result.value || !result.value.found) {
+      browser.assert.fail('Page body element was not found after navigation to "' + url + '"');
+    }
+  });
 });
 
 /**
@@ -99,7 +124,13 @@ When(/^(I go |I navigate |we go |we navigate |navigating )?to( the)* (homepage|f
   if (browser.globals && browser.globals.minimum_wait_time && browser.globals.minimum_wait_time.page) {
     defaultTime = browser.globals.minimum_wait_time.page;
   }
-  return browser.waitForElementPresent('body', defaultTime);
+  browser.waitForElementPresent('body', defaultTime);
+  // Wait for any dynamic content to be loaded
+  return browser.executeScript('return document.readyState').then(function(result) {
+    if (result !== 'complete') {
+      return browser.pause(500);
+    }
+  });
 });
 
 /**
@@ -119,7 +150,13 @@ When(/^(I go |I navigate |we go |we navigate |navigating )?to "([^"]*)?"$/, func
   if (browser.globals && browser.globals.minimum_wait_time && browser.globals.minimum_wait_time.page) {
     defaultTime = browser.globals.minimum_wait_time.page;
   }
-  return browser.waitForElementPresent('body', defaultTime);
+  browser.waitForElementPresent('body', defaultTime);
+  // Wait for any dynamic content to be loaded
+  return browser.executeScript('return document.readyState').then(function(result) {
+    if (result !== 'complete') {
+      return browser.pause(500);
+    }
+  });
 });
 
 /**
@@ -170,7 +207,40 @@ When(/^(I |we )*move backward one page$/, function (pronounCase) {
  *
  */
 When(/^(I |we )*press( the)* "([^"]*)?"( button)*$/, function (pronounCase, theCase, element, buttonCase) {
-  browser.click("[value='" + element +"']");
+  // Actively wait for dynamically generated button by polling the DOM
+  return browser.executeAsync(function(buttonText, done) {
+    var maxAttempts = 20; // 20 attempts * 500ms = 10 seconds
+    var attempts = 0;
+
+    var checkButton = setInterval(function() {
+      const buttons = document.querySelectorAll('button, input[type="button"], input[type="submit"], [role="button"], .btn, a');
+      var foundButton = null;
+
+      for (let btn of buttons) {
+        const text = (btn.textContent || btn.innerText || btn.value || '').trim();
+        if (text === buttonText) {
+          foundButton = btn;
+          break;
+        }
+      }
+
+      attempts++;
+
+      if (foundButton) {
+        clearInterval(checkButton);
+        // Click the button directly
+        foundButton.click();
+        done({ found: true });
+      } else if (attempts >= maxAttempts) {
+        clearInterval(checkButton);
+        done({ found: false });
+      }
+    }, 500);
+  }, [element], function(result) {
+    if (!result || !result.value || !result.value.found) {
+      browser.assert.fail('Button "' + element + '" was not found in dynamically generated content');
+    }
+  });
 });
 
 /**
@@ -201,7 +271,29 @@ When(/^(I |we )*press "([^"]*)?" by( its)*( "([^"]*)?")* (attribute|attr)$/, fun
     selector = '[' + attr + '="' + attrValue + '"]';
   }
 
-  return browser.click(selector);
+  // Actively wait for dynamically generated element by polling the DOM
+  return browser.executeAsync(function(sel, done) {
+    var maxAttempts = 20; // 20 attempts * 500ms = 10 seconds
+    var attempts = 0;
+
+    var checkElement = setInterval(function() {
+      var element = document.querySelector(sel);
+      attempts++;
+
+      if (element) {
+        clearInterval(checkElement);
+        element.click();
+        done({ found: true });
+      } else if (attempts >= maxAttempts) {
+        clearInterval(checkElement);
+        done({ found: false });
+      }
+    }, 500);
+  }, [selector], function(result) {
+    if (!result || !result.value || !result.value.found) {
+      browser.assert.fail('Element "' + selector + '" was not found in dynamically generated content');
+    }
+  });
 });
 
 /**
@@ -212,7 +304,39 @@ When(/^(I |we )*press "([^"]*)?" by( its)*( "([^"]*)?")* (attribute|attr)$/, fun
  *
  */
 When(/^(I |we )*click "([^"]*)?"$/, function (pronounCase, item) {
-  return browser.click("link text", item);
+  // Actively wait for dynamically generated link/button by polling the DOM
+  return browser.executeAsync(function(linkText, done) {
+    var maxAttempts = 20; // 20 attempts * 500ms = 10 seconds
+    var attempts = 0;
+
+    var checkLink = setInterval(function() {
+      var clickableElements = document.querySelectorAll('a, button, [role="button"], .btn, input[type="button"], input[type="submit"]');
+      var foundElement = null;
+
+      for (var i = 0; i < clickableElements.length; i++) {
+        var text = (clickableElements[i].textContent || clickableElements[i].innerText || clickableElements[i].value || '').trim();
+        if (text === linkText) {
+          foundElement = clickableElements[i];
+          break;
+        }
+      }
+
+      attempts++;
+
+      if (foundElement) {
+        clearInterval(checkLink);
+        foundElement.click();
+        done({ found: true });
+      } else if (attempts >= maxAttempts) {
+        clearInterval(checkLink);
+        done({ found: false });
+      }
+    }, 500);
+  }, [item], function(result) {
+    if (!result || !result.value || !result.value.found) {
+      browser.assert.fail('Link/Button "' + item + '" was not found in dynamically generated content');
+    }
+  });
 });
 
 /**
@@ -242,7 +366,28 @@ When(/^(I |we )*click "([^"]*)?" by( its)*( "([^"]*)?")* (attribute|attr)$/, fun
     selector = '[' + attr + '="' + attrValue + '"]';
   }
 
-  return browser.click(selector);
+  return browser.executeAsync(function(sel, done) {
+    var maxAttempts = 20;
+    var attempts = 0;
+
+    var checkElement = setInterval(function() {
+      var element = document.querySelector(sel);
+      attempts++;
+
+      if (element) {
+        clearInterval(checkElement);
+        element.click();
+        done({ found: true });
+      } else if (attempts >= maxAttempts) {
+        clearInterval(checkElement);
+        done({ found: false });
+      }
+    }, 500);
+  }, [selector], function(result) {
+    if (!result || !result.value || !result.value.found) {
+      browser.assert.fail('Element with selector "' + selector + '" was not found in dynamically generated content');
+    }
+  });
 
 });
 
@@ -251,87 +396,105 @@ When(/^(I |we )*click "([^"]*)?" by( its)*( "([^"]*)?")* (attribute|attr)$/, fun
  * This step finds a table, locates a row containing the identifier text, then clicks on the target text within that row.
  *
  * Example #1: When I click "Edit" in the "John Smith" row
- * Example #2: When I click "Delete" in the "Product A" row  
+ * Example #2: When I click "Delete" in the "Product A" row
  * Example #3: When we click "View Details" in the "Order #12345" row
  * Example #4: And I click "Download" in the "Report 2024" row
  *
  */
 When(/^(I |we )*click "([^"]*)?" in( the)* "([^"]*)?" row$/, function (pronounCase, clickText, theCase, rowIdentifier) {
-  
-  return browser.execute(function(rowId, targetText) {
-    // Find all tables on the page
-    const tables = document.querySelectorAll('table');
-    if (tables.length === 0) {
-      throw new Error('No tables found on the page');
-    }
 
-    // Search through each table for the row containing the identifier
-    for (let table of tables) {
-      const rows = table.querySelectorAll('tr');
-      for (let row of rows) {
-        const rowText = row.textContent || row.innerText;
-        if (rowText.includes(rowId)) {
-          // Found the correct row, now look for clickable elements with the target text
+  return browser.executeAsync(function(rowId, targetText, done) {
+    var maxAttempts = 20;
+    var attempts = 0;
 
-          // First, try to find exact text matches in clickable elements
-          const clickableElements = row.querySelectorAll('a, button, [onclick], [role="button"], .btn, input[type="submit"], input[type="button"]');
-          for (let element of clickableElements) {
-            const elementText = (element.textContent || element.innerText || element.value || '').trim();
-            if (elementText === targetText) {
-              element.click();
-              return { success: true, element: element.tagName };
-            }
-          }
+    var checkTable = setInterval(function() {
+      // Find all tables on the page
+      const tables = document.querySelectorAll('table');
+      attempts++;
 
-          // If not found in obvious clickable elements, search all elements
-          const allElements = row.querySelectorAll('*');
-          for (let element of allElements) {
-            const elementText = (element.textContent || element.innerText || '').trim();
-            if (elementText === targetText) {
-              // Check if element or parent is clickable
-              let clickableParent = element;
-              while (clickableParent && clickableParent !== row) {
-                if (clickableParent.tagName === 'A' ||
-                    clickableParent.tagName === 'BUTTON' ||
-                    clickableParent.onclick ||
-                    clickableParent.getAttribute('role') === 'button' ||
-                    clickableParent.classList.contains('btn') ||
-                    clickableParent.style.cursor === 'pointer') {
-                  clickableParent.click();
-                  return { success: true, element: clickableParent.tagName };
+      if (tables.length > 0) {
+        clearInterval(checkTable);
+
+        // Search through each table for the row containing the identifier
+        for (let table of tables) {
+          const rows = table.querySelectorAll('tr');
+          for (let row of rows) {
+            const rowText = row.textContent || row.innerText;
+            if (rowText.includes(rowId)) {
+              // Found the correct row, now look for clickable elements with the target text
+
+              // First, try to find exact text matches in clickable elements
+              const clickableElements = row.querySelectorAll('a, button, [onclick], [role="button"], .btn, input[type="submit"], input[type="button"]');
+              for (let element of clickableElements) {
+                const elementText = (element.textContent || element.innerText || element.value || '').trim();
+                if (elementText === targetText) {
+                  element.click();
+                  done({ success: true, element: element.tagName });
+                  return;
                 }
-                clickableParent = clickableParent.parentElement;
               }
 
-              // If no clickable parent found, try clicking the element itself
-              try {
-                element.click();
-                return { success: true, element: element.tagName };
-              } catch (e) {
-                // Continue searching if click failed
-                continue;
+              // If not found in obvious clickable elements, search all elements
+              const allElements = row.querySelectorAll('*');
+              for (let element of allElements) {
+                const elementText = (element.textContent || element.innerText || '').trim();
+                if (elementText === targetText) {
+                  // Check if element or parent is clickable
+                  let clickableParent = element;
+                  while (clickableParent && clickableParent !== row) {
+                    if (clickableParent.tagName === 'A' ||
+                        clickableParent.tagName === 'BUTTON' ||
+                        clickableParent.onclick ||
+                        clickableParent.getAttribute('role') === 'button' ||
+                        clickableParent.classList.contains('btn') ||
+                        clickableParent.style.cursor === 'pointer') {
+                      clickableParent.click();
+                      done({ success: true, element: clickableParent.tagName });
+                      return;
+                    }
+                    clickableParent = clickableParent.parentElement;
+                  }
+
+                  // If no clickable parent found, try clicking the element itself
+                  try {
+                    element.click();
+                    done({ success: true, element: element.tagName });
+                    return;
+                  } catch (e) {
+                    // Continue searching if click failed
+                    continue;
+                  }
+                }
               }
+
+              // Row found but target text not clickable
+              done({
+                success: false,
+                error: 'Found row containing "' + rowId + '" but could not find clickable "' + targetText + '" within it. Row contains: ' + rowText.substring(0, 200) + '...'
+              });
+              return;
             }
           }
-
-          // Row found but target text not clickable
-          return {
-            success: false,
-            error: `Found row containing "${rowId}" but could not find clickable "${targetText}" within it. Row contains: ${rowText.substring(0, 200)}...`
-          };
         }
+
+        // Row not found
+        done({
+          success: false,
+          error: 'Could not find row containing "' + rowId + '". Available rows: ' + Array.from(document.querySelectorAll('table tr')).map(function(r) { return (r.textContent || '').substring(0, 50); }).join(', ')
+        });
+
+      } else if (attempts >= maxAttempts) {
+        clearInterval(checkTable);
+        done({
+          success: false,
+          error: 'No tables found on the page after waiting'
+        });
       }
-    }
-
-    // Row not found
-    return {
-      success: false,
-      error: `Could not find row containing "${rowId}". Available rows: ${Array.from(document.querySelectorAll('table tr')).map(r => (r.textContent || '').substring(0, 50)).join(', ')}`
-    };
-
+    }, 500);
   }, [rowIdentifier, clickText], function(result) {
-    if (!result.value.success) {
-      throw new Error(result.value.error || `Could not find "${clickText}" in the "${rowIdentifier}" row. Please verify the table structure and text content.`);
+    if (!result || !result.value || !result.value.success) {
+      var errorMsg = (result && result.value && result.value.error) || 'Could not find "' + clickText + '" in the "' + rowIdentifier + '" row. Please verify the table structure and text content.';
+      browser.assert.fail(errorMsg);
     }
   });
 });
@@ -405,8 +568,12 @@ When(/^(I |we )*reload( the)*( page)*$/, function (pronounCase, theCase, pageCas
  *
  */
 When(/^(I |we )*fill in "([^"]*)?" with "([^"]*)?"$/, function (pronounCase, field, value) {
+  // Wait for dynamic content to render (AJAX/JS)
+  browser.pause(500);
   const elementField = browser.element.findByText(field, { exact: true });
   browser.getAttribute(elementField, 'for', function (eleAttribute) {
+    // Wait for the input element to be present (handles dynamically generated form fields)
+    browser.waitForElementPresent('#' + eleAttribute.value, 5000);
     return browser.setValue('#' + eleAttribute.value, value);
   });
 });
@@ -438,6 +605,7 @@ When(/^(I |we )*fill in "([^"]*)?" with "([^"]*)?" by( its)*( "([^"]*)?")* (attr
     selector = '[' + attr + '="' + attrValue + '"]';
   }
 
+  browser.waitForElementPresent(selector, 5000);
   return browser.setValue(selector, txtValue);
 
 });
@@ -449,8 +617,12 @@ When(/^(I |we )*fill in "([^"]*)?" with "([^"]*)?" by( its)*( "([^"]*)?")* (attr
  *
  */
 When(/^(I |we )*fill in "([^"]*)?" with:$/, function (pronounCase, field) {
+  // Wait for dynamic content to render (AJAX/JS)
+  browser.pause(500);
   const elementField = browser.element.findByText(field, { exact: true });
   browser.getAttribute(elementField, 'for', function (eleAttribute) {
+    // Wait for the input element to be present (handles dynamically generated form fields)
+    browser.waitForElementPresent('#' + eleAttribute.value, 5000);
     return browser.setValue('#' + eleAttribute.value, '');
   });
 });
@@ -482,6 +654,7 @@ When(/^(I |we )*fill in "([^"]*)?" with: by( its)*( "([^"]*)?")* (attribute|attr
     selector = '[' + attr + '="' + attrValue + '"]';
   }
 
+  browser.waitForElementPresent(selector, 5000);
   return browser.setValue(selector, '');
 });
 
@@ -493,8 +666,12 @@ When(/^(I |we )*fill in "([^"]*)?" with: by( its)*( "([^"]*)?")* (attribute|attr
  *
  */
 When(/^(I |we )*fill in "([^"]*)?" for "([^"]*)?"$/, function (pronounCase, value, field) {
+  // Wait for dynamic content to render (AJAX/JS)
+  browser.pause(500);
   const elementField = browser.element.findByText(field, { exact: true });
   browser.getAttribute(elementField, 'for', function (eleAttribute) {
+    // Wait for the input element to be present (handles dynamically generated form fields)
+    browser.waitForElementPresent('#' + eleAttribute.value, 5000);
     return browser.setValue('#' + eleAttribute.value, value);
   });
 });
@@ -526,7 +703,29 @@ When(/^(I |we )*fill in "([^"]*)?" for "([^"]*)?" by( its)*( "([^"]*)?")* (attri
     selector = '[' + attr + '="' + attrValue + '"]';
   }
 
-  return browser.setValue(selector, txtValue);
+  // Actively wait for dynamically generated element by polling the DOM
+  return browser.executeAsync(function(sel, value, done) {
+    var maxAttempts = 20; // 20 attempts * 500ms = 10 seconds
+    var attempts = 0;
+
+    var checkElement = setInterval(function() {
+      var element = document.querySelector(sel);
+      attempts++;
+
+      if (element) {
+        clearInterval(checkElement);
+        element.value = value;
+        done({ found: true });
+      } else if (attempts >= maxAttempts) {
+        clearInterval(checkElement);
+        done({ found: false });
+      }
+    }, 500);
+  }, [selector, txtValue], function(result) {
+    if (!result || !result.value || !result.value.found) {
+      browser.assert.fail('Element "' + selector + '" was not found in dynamically generated content');
+    }
+  });
 
 });
 
@@ -540,15 +739,22 @@ When(/^(I |we )*fill in "([^"]*)?" for "([^"]*)?" by( its)*( "([^"]*)?")* (attri
 
 When(/^(I |we )*fill in( the)* following:$/, function (pronounCase, theCase, table) {
 
+  // Wait for dynamic content to render (AJAX/JS)
+  browser.pause(500);
+
   var elementField = browser.element.findByText(table.rawTable[0][0], { exact: true });
   browser.getAttribute(elementField, 'for', function (eleAttribute) {
+    // Wait for the input element to be present (handles dynamically generated form fields)
+    browser.waitForElementPresent('#' + eleAttribute.value, 5000);
     browser.setValue('#' + eleAttribute.value, table.rawTable[0][1]);
   });
-  
+
   table.rows().forEach(row => {
 
     elementField = browser.element.findByText(row[0], { exact: true });
     browser.getAttribute(elementField, 'for', function (eleAttribute2) {
+        // Wait for the input element to be present (handles dynamically generated form fields)
+        browser.waitForElementPresent('#' + eleAttribute2.value, 5000);
         browser.setValue('#' + eleAttribute2.value, row[1]);
     });
   });
@@ -570,7 +776,7 @@ When(/^(I |we )*fill in( the)* following: by( its)*( "([^"]*)?")* (attribute|att
 
   var hasASpace = table.rawTable[0][0].indexOf(' ');
   var selector = '';
-  
+
   if((table.rawTable[0][0].startsWith('#') || table.rawTable[0][0].startsWith('.')) && hasASpace == -1){
     selector = table.rawTable[0][0];
   }
@@ -584,9 +790,10 @@ When(/^(I |we )*fill in( the)* following: by( its)*( "([^"]*)?")* (attribute|att
     selector = '[' + attr + '="' + table.rawTable[0][0] + '"]';
   }
 
+  browser.waitForElementPresent(selector, 5000);
   browser.setValue(selector, table.rawTable[0][1]);
 
-  
+
   table.rows().forEach(row => {
 
     hasASpace = row[0].indexOf(' ');
@@ -596,7 +803,7 @@ When(/^(I |we )*fill in( the)* following: by( its)*( "([^"]*)?")* (attribute|att
       selector = row[0];
     }
     else if (!attr && hasASpace == -1){
-      
+
       selector = row[0] + ',#' + row[0] + ',.' + row[0] + ',[name=' + row[0] + "]," + '[value="' + row[0] + '"],[placeholder="' + row[0] + '"]';
     }
     else if (!attr && hasASpace > -1){
@@ -606,6 +813,7 @@ When(/^(I |we )*fill in( the)* following: by( its)*( "([^"]*)?")* (attribute|att
       selector = '[' + attr + '="' + row[0] + '"]';
     }
 
+    browser.waitForElementPresent(selector, 5000);
     browser.setValue(selector, row[1]);
 
   });
@@ -634,6 +842,12 @@ When(/^(I |we )*select "([^"]*)?" from "([^"]*)?"$/, function (pronounCase, opti
     selector = browser.element.findByText(selectList, { exact: true });
   }
 
+  // Wait for select element to be present
+  if (typeof selector === 'string') {
+    browser.waitForElementPresent(selector, 5000);
+  }
+  browser.pause(300); // Allow dynamic options to render
+
   let optionValue = '';
   const result = option.toLowerCase();
 
@@ -643,7 +857,7 @@ When(/^(I |we )*select "([^"]*)?" from "([^"]*)?"$/, function (pronounCase, opti
   else{
     optionValue = browser.element.findByText(option, { exact: true });
   }
-  
+
   return browser.click(selector).click(optionValue).click(selector);
 });
 
@@ -655,7 +869,51 @@ When(/^(I |we )*select "([^"]*)?" from "([^"]*)?"$/, function (pronounCase, opti
  *
  */
 When(/^(I |we )*check "([^"]*)?"$/, function (pronounCase, item) {
-  browser.checkItem(item);
+  // Actively wait for dynamically generated checkbox by polling the DOM
+  return browser.executeAsync(function(checkboxItem, done) {
+    var maxAttempts = 20; // 20 attempts * 500ms = 10 seconds
+    var attempts = 0;
+
+    var checkCheckbox = setInterval(function() {
+      var element = null;
+
+      // Try to find checkbox by selector (e.g., #newsletter, .checkbox)
+      if (checkboxItem.startsWith('#') || checkboxItem.startsWith('.')) {
+        element = document.querySelector(checkboxItem);
+      } else {
+        // Try to find by label text
+        var labels = document.querySelectorAll('label');
+        for (var i = 0; i < labels.length; i++) {
+          var labelText = (labels[i].textContent || labels[i].innerText || '').trim();
+          if (labelText === checkboxItem) {
+            var forAttr = labels[i].getAttribute('for');
+            if (forAttr) {
+              element = document.getElementById(forAttr);
+              break;
+            }
+          }
+        }
+      }
+
+      attempts++;
+
+      if (element) {
+        clearInterval(checkCheckbox);
+        element.checked = true;
+        // Trigger change event
+        var event = new Event('change', { bubbles: true });
+        element.dispatchEvent(event);
+        done({ found: true });
+      } else if (attempts >= maxAttempts) {
+        clearInterval(checkCheckbox);
+        done({ found: false });
+      }
+    }, 500);
+  }, [item], function(result) {
+    if (!result || !result.value || !result.value.found) {
+      browser.assert.fail('Checkbox "' + item + '" was not found in dynamically generated content');
+    }
+  });
 });
 
 /**
@@ -666,7 +924,51 @@ When(/^(I |we )*check "([^"]*)?"$/, function (pronounCase, item) {
  *
  */
 When(/^(I |we )*uncheck "([^"]*)?"$/, function (pronounCase, item) {
-  browser.uncheckItem(item); 
+  // Actively wait for dynamically generated checkbox by polling the DOM
+  return browser.executeAsync(function(checkboxItem, done) {
+    var maxAttempts = 20; // 20 attempts * 500ms = 10 seconds
+    var attempts = 0;
+
+    var checkCheckbox = setInterval(function() {
+      var element = null;
+
+      // Try to find checkbox by selector (e.g., #newsletter, .checkbox)
+      if (checkboxItem.startsWith('#') || checkboxItem.startsWith('.')) {
+        element = document.querySelector(checkboxItem);
+      } else {
+        // Try to find by label text
+        var labels = document.querySelectorAll('label');
+        for (var i = 0; i < labels.length; i++) {
+          var labelText = (labels[i].textContent || labels[i].innerText || '').trim();
+          if (labelText === checkboxItem) {
+            var forAttr = labels[i].getAttribute('for');
+            if (forAttr) {
+              element = document.getElementById(forAttr);
+              break;
+            }
+          }
+        }
+      }
+
+      attempts++;
+
+      if (element) {
+        clearInterval(checkCheckbox);
+        element.checked = false;
+        // Trigger change event
+        var event = new Event('change', { bubbles: true });
+        element.dispatchEvent(event);
+        done({ found: true });
+      } else if (attempts >= maxAttempts) {
+        clearInterval(checkCheckbox);
+        done({ found: false });
+      }
+    }, 500);
+  }, [item], function(result) {
+    if (!result || !result.value || !result.value.found) {
+      browser.assert.fail('Checkbox "' + item + '" was not found in dynamically generated content');
+    }
+  });
 });
 
 /**
@@ -733,7 +1035,11 @@ Then(/^(I |we )*should( not)* be on( the)* "([^"]*)?"( page)*$/, function (prono
  *
  */
 Then(/^(the )*"([^"]*)?" link should contain "([^"]*)?"$/, function (theCase, element, url) {
+  // Wait for dynamic content to render (AJAX/JS)
+  browser.pause(500);
   const elementField = browser.element.findByText(element, { exact: true });
+  // Wait for link to be present (handles dynamically generated links)
+  browser.waitForElementPresent(elementField, 5000);
   return browser.assert.attributeContains(elementField, 'href', url);
 });
 
@@ -746,6 +1052,9 @@ Then(/^(the )*"([^"]*)?" link should contain "([^"]*)?"$/, function (theCase, el
  *
  */
 Then(/^(the )*"([^"]*)?" link should contain "([^"]*)?" by( its)*( "([^"]*)?")* (attribute|attr)$/, function (theCase, attrValue, url, itsCase, attr, attrCase) {
+
+  // Wait for dynamic content to render (AJAX/JS)
+  browser.pause(500);
 
   const hasASpace = attrValue.indexOf(' ');
   var selector = '';
@@ -763,6 +1072,8 @@ Then(/^(the )*"([^"]*)?" link should contain "([^"]*)?" by( its)*( "([^"]*)?")* 
     selector = '[' + attr + '="' + attrValue + '"]';
   }
 
+  // Wait for link to be present (handles dynamically generated links)
+  browser.waitForElementPresent(selector, 5000);
   return browser.assert.attributeContains(selector, 'href', url);
 });
 
@@ -791,9 +1102,35 @@ Then(/^(the )*response should( not)* contain "([^"]*)?"$/, function (theCase, no
  *
  */
 Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* "([^"]*)?" element$/, function (pronounCase, notCase, expectedText, theCase, element) {
+  // Wait for dynamic content to load
+  browser.pause(500);
+
   const elementField = browser.element.findByText(element, { exact: true });
   browser.getAttribute(elementField, 'for', function (eleAttribute) {
+    // Wait for the element to be present (handles dynamically generated elements)
+    browser.waitForElementPresent('#' + eleAttribute.value, 5000);
+
     return this.shouldSee = function (browser) {
+      // Check dynamically rendered content in the element
+      browser.execute(function(selector, text) {
+        const elem = document.querySelector(selector);
+        if (!elem) return null;
+        const content = elem.textContent || elem.innerText || elem.value || '';
+        return content.includes(text);
+      }, ['#' + eleAttribute.value, expectedText], function(result) {
+        if (result.value === null) {
+          browser.assert.fail(`Element with ID "${eleAttribute.value}" not found`);
+        } else if (notCase) {
+          if (result.value) {
+            browser.assert.fail(`Text "${expectedText}" should not be in element`);
+          }
+        } else {
+          if (!result.value) {
+            browser.assert.fail(`Text "${expectedText}" should be in element`);
+          }
+        }
+      });
+
       if (notCase) {
         browser.assert.not.textContains('#' + eleAttribute.value, expectedText);
       } else {
@@ -817,7 +1154,10 @@ Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* "([^"]*)?" element by( it
   const hasASpace = attrValue.indexOf(' ');
 
   var selector = '';
-  if (!attr && hasASpace == -1){
+  if((attrValue.startsWith('#') || attrValue.startsWith('.')) && hasASpace == -1){
+    selector = attrValue;
+  }
+  else if (!attr && hasASpace == -1){
     selector = attrValue + ',#' + attrValue + ',.' + attrValue + ',[name=' + attrValue + "]," + '[value="' + attrValue + '"],[placeholder="' + attrValue + '"]';
   }
   else if (!attr && hasASpace > -1){
@@ -827,13 +1167,39 @@ Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* "([^"]*)?" element by( it
     selector = '[' + attr + '="' + attrValue + '"]';
   }
 
-  return this.shouldSee = function (browser) {
-    if (notCase) {
-      browser.assert.not.textContains(selector, expectedText);
+  return browser.executeAsync(function(sel, text, shouldContain, done) {
+    var maxAttempts = 20;
+    var attempts = 0;
+
+    var checkElement = setInterval(function() {
+      var elem = document.querySelector(sel);
+      attempts++;
+
+      if (elem) {
+        clearInterval(checkElement);
+        var content = elem.textContent || elem.innerText || elem.value || '';
+        var containsText = content.includes(text);
+        done({ found: true, containsText: containsText, actualContent: content });
+      } else if (attempts >= maxAttempts) {
+        clearInterval(checkElement);
+        done({ found: false, containsText: false, actualContent: null });
+      }
+    }, 500);
+  }, [selector, expectedText, !notCase], function(result) {
+    if (!result || !result.value || !result.value.found) {
+      browser.assert.fail('Element matching selector "' + selector + '" was not found');
     } else {
-      browser.assert.textContains(selector, expectedText);
+      if (notCase) {
+        if (result.value.containsText) {
+          browser.assert.fail('Text "' + expectedText + '" should not be in element "' + selector + '" but it is. Content: ' + result.value.actualContent);
+        }
+      } else {
+        if (!result.value.containsText) {
+          browser.assert.fail('Text "' + expectedText + '" should be in element "' + selector + '" but it is not. Content: ' + result.value.actualContent);
+        }
+      }
     }
-  };
+  });
 });
 
 /**
@@ -844,11 +1210,19 @@ Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* "([^"]*)?" element by( it
  *
  */
 Then(/^(I |we )*should( not)* see (a|an) "([^"]*)?" element$/, function (pronounCase, notCase, aAnCase, element) {
+  // Wait for elements that might be dynamically rendered
+  browser.pause(500);
+
   if (notCase) {
     browser.assert.not.textContains("html", element);
   } else {
+    // Wait for element to be rendered by JavaScript
+    browser.waitForElementPresent('body', 2000);
+
     const elementField = browser.element.findByText(element, { exact: true });
     browser.getAttribute(elementField, 'for', function (eleAttribute) {
+      // Wait for the specific element to be visible (in case it's AJAX-loaded)
+      browser.waitForElementVisible('#' + eleAttribute.value, 3000);
       return browser.verify.visible('#' + eleAttribute.value);
     });
   }
@@ -878,9 +1252,14 @@ Then(/^(I |we )*should( not)* see (a|an) "([^"]*)?" element by( its)*( "([^"]*)?
     selector = '[' + attr + '="' + attrValue + '"]';
   }
 
+  // Wait for dynamic content
+  browser.pause(500);
+
   if (notCase) {
     return browser.expect.element(selector).to.not.be.present;
   } else {
+    // Wait for element to be rendered and visible (for AJAX/JS content)
+    browser.waitForElementVisible(selector, 3000);
     return browser.verify.visible(selector);
   }
 });
@@ -903,13 +1282,42 @@ Then(/^(the )*"([^"]*)?" element should( not)* contain "([^"]*)?"$/, function (t
   const cssProperty = cssPropertyArr[0].trim();
   const propertyVal = cssPropertyArr[1].trim();
 
-  this.checkCss = function (browser) {
-    if (notCase) {
-      browser.assert.not.cssProperty(selector, cssProperty, propertyVal);
+  return browser.executeAsync(function(sel, cssProp, done) {
+    var maxAttempts = 20;
+    var attempts = 0;
+
+    var checkElement = setInterval(function() {
+      var element = document.querySelector(sel);
+      attempts++;
+
+      if (element) {
+        clearInterval(checkElement);
+        var computedStyle = window.getComputedStyle(element);
+        var actualValue = computedStyle.getPropertyValue(cssProp);
+        done({ found: true, value: actualValue });
+      } else if (attempts >= maxAttempts) {
+        clearInterval(checkElement);
+        done({ found: false, value: null });
+      }
+    }, 500);
+  }, [selector, cssProperty], function(result) {
+    if (!result || !result.value || !result.value.found) {
+      browser.assert.fail('Element "' + selector + '" was not found');
     } else {
-      browser.assert.cssProperty(selector, cssProperty, propertyVal);
+      var actualValue = (result.value.value || '').trim();
+      var expectedValue = propertyVal.trim();
+
+      if (notCase) {
+        if (actualValue === expectedValue) {
+          browser.assert.fail('Element "' + selector + '" should not contain CSS "' + cssProperty + ': ' + expectedValue + '" but it does');
+        }
+      } else {
+        if (actualValue !== expectedValue) {
+          browser.assert.fail('Element "' + selector + '" should contain CSS "' + cssProperty + ': ' + expectedValue + '" but has "' + actualValue + '"');
+        }
+      }
     }
-  };
+  });
 });
 
 /**
@@ -920,13 +1328,20 @@ Then(/^(the )*"([^"]*)?" element should( not)* contain "([^"]*)?"$/, function (t
  *
  */
 Then(/^(the )*"([^"]*)?" field should( not)* contain "([^"]*)?"$/, function (theCase, field, notCase, expectedText) {
+  // Wait for dynamic content to render (AJAX/JS)
+  browser.pause(500);
+
   if (notCase) {
+    // Wait for field to be present (handles dynamically generated fields)
+    browser.waitForElementPresent(field, 5000);
     return this.shouldSee = function (browser) {
       browser.assert.not.textContains(field, expectedText);
     };
   } else {
     const elementField = browser.element.findByText(field, { exact: true });
     browser.getAttribute(elementField, 'for', function (eleAttribute) {
+      // Wait for the input field to be present (handles dynamically generated form fields)
+      browser.waitForElementPresent('#' + eleAttribute.value, 5000);
       return this.shouldSee = function (browser) {
         browser.assert.textContains('#' + eleAttribute.value, expectedText);
       };
@@ -942,11 +1357,39 @@ Then(/^(the )*"([^"]*)?" field should( not)* contain "([^"]*)?"$/, function (the
  *
  */
 Then(/^(the )*"([^"]*)?" checkbox should( not)* be checked$/, function (theCase, checkbox, notCase) {
-  if (notCase) {
-    return browser.expect.element(checkbox).to.not.be.selected;
-  } else {
-    return browser.expect.element(checkbox).to.be.selected;
-  }
+  // Actively wait for dynamically generated checkbox by polling the DOM
+  return browser.executeAsync(function(checkboxSelector, shouldBeChecked, done) {
+    var maxAttempts = 20; // 20 attempts * 500ms = 10 seconds
+    var attempts = 0;
+
+    var checkCheckbox = setInterval(function() {
+      var element = document.querySelector(checkboxSelector);
+      attempts++;
+
+      if (element) {
+        clearInterval(checkCheckbox);
+        var isChecked = element.checked;
+        done({ found: true, checked: isChecked });
+      } else if (attempts >= maxAttempts) {
+        clearInterval(checkCheckbox);
+        done({ found: false, checked: false });
+      }
+    }, 500);
+  }, [checkbox, !notCase], function(result) {
+    if (!result || !result.value || !result.value.found) {
+      browser.assert.fail('Checkbox "' + checkbox + '" was not found in dynamically generated content');
+    } else {
+      if (notCase) {
+        if (result.value.checked) {
+          browser.assert.fail('Checkbox "' + checkbox + '" should not be checked but it is');
+        }
+      } else {
+        if (!result.value.checked) {
+          browser.assert.fail('Checkbox "' + checkbox + '" should be checked but it is not');
+        }
+      }
+    }
+  });
 });
 
 /**
@@ -957,6 +1400,11 @@ Then(/^(the )*"([^"]*)?" checkbox should( not)* be checked$/, function (theCase,
  *
  */
 Then(/^(the )*"([^"]*)?" checkbox is( not)* checked$/, function (theCase, checkbox, notCase) {
+  // Wait for dynamic content to render (AJAX/JS)
+  browser.pause(500);
+  // Wait for checkbox to be present (handles dynamically generated checkboxes)
+  browser.waitForElementPresent(checkbox, 5000);
+
   if (notCase) {
     return browser.expect.element(checkbox).to.not.be.selected;
   } else {
@@ -972,11 +1420,38 @@ Then(/^(the )*"([^"]*)?" checkbox is( not)* checked$/, function (theCase, checkb
  *
  */
 Then(/^(the )*checkbox "([^"]*)?" should( not)* be checked$/, function (theCase, checkbox, notCase) {
-  if (notCase) {
-    return browser.expect.element(checkbox).to.not.be.selected;
-  } else {
-    return browser.expect.element(checkbox).to.be.selected;
-  }
+  return browser.executeAsync(function(checkboxSelector, shouldBeChecked, done) {
+    var maxAttempts = 20;
+    var attempts = 0;
+
+    var checkCheckbox = setInterval(function() {
+      var element = document.querySelector(checkboxSelector);
+      attempts++;
+
+      if (element) {
+        clearInterval(checkCheckbox);
+        var isChecked = element.checked;
+        done({ found: true, checked: isChecked });
+      } else if (attempts >= maxAttempts) {
+        clearInterval(checkCheckbox);
+        done({ found: false, checked: false });
+      }
+    }, 500);
+  }, [checkbox, !notCase], function(result) {
+    if (!result || !result.value || !result.value.found) {
+      browser.assert.fail('Checkbox "' + checkbox + '" was not found');
+    } else {
+      if (notCase) {
+        if (result.value.checked) {
+          browser.assert.fail('Checkbox "' + checkbox + '" should not be checked but it is');
+        }
+      } else {
+        if (!result.value.checked) {
+          browser.assert.fail('Checkbox "' + checkbox + '" should be checked but it is not');
+        }
+      }
+    }
+  });
 });
 
 /**
@@ -987,11 +1462,38 @@ Then(/^(the )*checkbox "([^"]*)?" should( not)* be checked$/, function (theCase,
  *
  */
 Then(/^(the )*checkbox "([^"]*)?" is( not)* checked$/, function (theCase, checkbox, notCase) {
-  if (notCase) {
-    return browser.expect.element(checkbox).to.not.be.selected;
-  } else {
-    return browser.expect.element(checkbox).to.be.selected;
-  }
+  return browser.executeAsync(function(checkboxSelector, shouldBeChecked, done) {
+    var maxAttempts = 20;
+    var attempts = 0;
+
+    var checkCheckbox = setInterval(function() {
+      var element = document.querySelector(checkboxSelector);
+      attempts++;
+
+      if (element) {
+        clearInterval(checkCheckbox);
+        var isChecked = element.checked;
+        done({ found: true, checked: isChecked });
+      } else if (attempts >= maxAttempts) {
+        clearInterval(checkCheckbox);
+        done({ found: false, checked: false });
+      }
+    }, 500);
+  }, [checkbox, !notCase], function(result) {
+    if (!result || !result.value || !result.value.found) {
+      browser.assert.fail('Checkbox "' + checkbox + '" was not found');
+    } else {
+      if (notCase) {
+        if (result.value.checked) {
+          browser.assert.fail('Checkbox "' + checkbox + '" should not be checked but it is');
+        }
+      } else {
+        if (!result.value.checked) {
+          browser.assert.fail('Checkbox "' + checkbox + '" should be checked but it is not');
+        }
+      }
+    }
+  });
 });
 
 /**
@@ -1032,6 +1534,11 @@ Then(/^(the )*response status code should( not)* be (\d+)$/, function (theCase, 
  *
  */
 Then(/^(I |we )*should( not)* see text matching "([^"]*)?"$/, function (pronounCase, notCase, textPattern) {
+  // Wait for dynamically rendered content
+  browser.pause(500);
+  // Wait for body element to be present (handles dynamically generated content)
+  browser.waitForElementPresent('body', 5000);
+
   browser.elements('css selector', 'body', function (elements) {
     elements.value.forEach(function (elementsObj) {
       if (notCase) {
@@ -1053,6 +1560,11 @@ Then(/^(I |we )*should( not)* see text matching "([^"]*)?"$/, function (pronounC
  *
  */
 Then(/^(I |we )*should( not)* see text matching "([^"]*)?" in( the)* "([^"]*)?" element$/, function (pronounCase, notCase, textPattern, theCase, element) {
+  // Wait for dynamic content to render (AJAX/JS)
+  browser.pause(500);
+  // Wait for element to be present (handles dynamically generated elements)
+  browser.waitForElementPresent(element, 5000);
+
   if (notCase) {
     return browser.assert.not.textMatches(element, textPattern);
   } else {
@@ -1070,6 +1582,11 @@ Then(/^(I |we )*should( not)* see text matching "([^"]*)?" in( the)* "([^"]*)?" 
  *
  */
 Then(/^(the )*url should( not)* match "([^"]*)?"$/, function (theCase, notCase, pattern) {
+  // Wait for page to load and URL changes from AJAX/JS navigation
+  browser.pause(500);
+  // Wait for page to be present (handles dynamic navigation)
+  browser.waitForElementPresent('body', 5000);
+
   if (notCase) {
     return browser.assert.not.urlMatches(pattern);
   } else {
@@ -1095,11 +1612,13 @@ When(/^(I |we )*attach( the)* file "([^"]*)?" to "([^"]*)?"$/, function (pronoun
 
   const localFilePath = path.resolve(assetsFolder, fileName);
 
+  // Wait for file input element to be present
+  browser.waitForElementPresent(element, 5000);
   browser.pause(5000);
   browser.uploadFile(element, localFilePath);
   browser.pause(10000);
   return browser.setValue(element, fileName);
-  
+
 });
 
 
@@ -1291,29 +1810,32 @@ When(/^(I scroll|we scroll|scrolling)? to top of "([^"]*)"$/, function(pronounCa
   if (!selector || selector.trim() === '') {
       throw new Error('Selector cannot be empty. Please provide a valid CSS selector.');
   }
-  
+
   // Validate selector format (basic check)
   if (selector.includes('"') || selector.includes("'")) {
       throw new Error(`Invalid selector format: "${selector}". Selector should not contain quotes.`);
   }
-  
+
   try {
+      // Wait for element to be present (allows dynamic elements to load)
+      browser.waitForElementPresent(selector, 5000);
+
       // Check if element exists before scrolling
       const elementExists = browser.executeScript(`
           return document.querySelector("${selector}") !== null;
       `);
-      
+
       if (!elementExists) {
           throw new Error(`Element with selector "${selector}" not found.`);
       }
-      
+
       browser.executeScript(`
           const element = document.querySelector("${selector}");
           if (element) {
               element.scrollTop = 0;
           }
       `);
-      
+
       return browser.pause(2000);
   } catch (error) {
       throw new Error(`Failed to scroll to top of element "${selector}": ${error.message}`);
@@ -1332,29 +1854,32 @@ When(/^(I scroll|we scroll|scrolling)? to bottom of "([^"]*)"$/, function(pronou
   if (!selector || selector.trim() === '') {
       throw new Error('Selector cannot be empty. Please provide a valid CSS selector.');
   }
-  
+
   // Validate selector format (basic check)
   if (selector.includes('"') || selector.includes("'")) {
       throw new Error(`Invalid selector format: "${selector}". Selector should not contain quotes.`);
   }
-  
+
   try {
+      // Wait for element to be present (allows dynamic elements to load)
+      browser.waitForElementPresent(selector, 5000);
+
       // Check if element exists before scrolling
       const elementExists = browser.executeScript(`
           return document.querySelector("${selector}") !== null;
       `);
-      
+
       if (!elementExists) {
           throw new Error(`Element with selector "${selector}" not found.`);
       }
-      
+
       browser.executeScript(`
           const element = document.querySelector("${selector}");
           if (element) {
               element.scrollTop = element.scrollHeight;
           }
       `);
-      
+
       return browser.pause(2000);
   } catch (error) {
       throw new Error(`Failed to scroll to bottom of element "${selector}": ${error.message}`);
@@ -1461,29 +1986,32 @@ When(/^(I scroll|we scroll|scrolling)? to start of "([^"]*)"$/, function(pronoun
   if (!selector || selector.trim() === '') {
       throw new Error('Selector cannot be empty. Please provide a valid CSS selector.');
   }
-  
+
   // Validate selector format (basic check)
   if (selector.includes('"') || selector.includes("'")) {
       throw new Error(`Invalid selector format: "${selector}". Selector should not contain quotes.`);
   }
-  
+
   try {
+      // Wait for element to be present (allows dynamic elements to load)
+      browser.waitForElementPresent(selector, 5000);
+
       // Check if element exists before scrolling
       const elementExists = browser.executeScript(`
           return document.querySelector("${selector}") !== null;
       `);
-      
+
       if (!elementExists) {
           throw new Error(`Element with selector "${selector}" not found.`);
       }
-      
+
       browser.executeScript(`
           const element = document.querySelector("${selector}");
           if (element) {
               element.scrollTop = 0;
           }
       `);
-      
+
       return browser.pause(2000);
   } catch (error) {
       throw new Error(`Failed to scroll to top of element "${selector}": ${error.message}`);
@@ -1509,6 +2037,9 @@ When(/^(I scroll|we scroll|scrolling)? to end of "([^"]*)"$/, function(pronounCa
   }
 
   try {
+      // Wait for element to be present (allows dynamic elements to load)
+      browser.waitForElementPresent(selector, 5000);
+
       // Check if element exists before scrolling
       const elementExists = browser.executeScript(`
           return document.querySelector("${selector}") !== null;
