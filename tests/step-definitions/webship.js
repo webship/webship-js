@@ -2310,3 +2310,364 @@ When(/^(I scroll|we scroll|scrolling)? to end of "([^"]*)"$/, function(pronounCa
       throw new Error(`Failed to scroll to bottom of element "${selector}": ${error.message}`);
   }
 });
+
+/**
+ * Assert that a modal dialog is visible or not visible on the page.
+ *
+ * Example #1: Then I should see a modal
+ * Example #2: Then I should see the modal
+ * Example #3: Then we should see a modal dialog
+ * Example #4: Then I should not see a modal
+ * Example #5: Then I should not see the modal dialog
+ *
+ */
+Then(/^(I |we )*should( not)* see (a |the )*modal( dialog)*$/, function (pronounCase, notCase, aTheCase, dialogCase) {
+  // Common selectors for modals
+  const modalSelectors = [
+    '.modal:not([style*="display: none"])',
+    '.modal.show',
+    '.modal.in',
+    '[role="dialog"]',
+    '.dialog:not([style*="display: none"])',
+    '.popup:not([style*="display: none"])',
+    '.overlay:not([style*="display: none"])'
+  ];
+
+  return browser.execute(function(selectors) {
+    for (let selector of selectors) {
+      const elements = document.querySelectorAll(selector);
+      for (let element of elements) {
+        const style = window.getComputedStyle(element);
+        if (style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0') {
+          return true;
+        }
+      }
+    }
+    return false;
+  }, [modalSelectors], function(result) {
+    if (notCase) {
+      if (result.value) {
+        throw new Error('Modal dialog is visible, but it should not be.');
+      }
+    } else {
+      if (!result.value) {
+        throw new Error('Modal dialog is not visible, but it should be.');
+      }
+    }
+  });
+});
+
+/**
+ * Assert that a modal dialog with specific title is visible or not visible.
+ *
+ * Example #1: Then I should see a modal with title "Confirm Action"
+ * Example #2: Then I should see the modal with title "Welcome"
+ * Example #3: Then we should see a modal with title "Welcome Message"
+ * Example #4: Then I should not see a modal with title "Error"
+ * Example #5: Then I should not see the modal with title "Validation Error"
+ *
+ */
+Then(/^(I |we )*should( not)* see (a |the )*modal with title "([^"]*)?"$/, function (pronounCase, notCase, aTheCase, title) {
+  return browser.execute(function(searchTitle) {
+    const modals = document.querySelectorAll('[role="dialog"], .modal, .dialog, .popup');
+
+    for (let modal of modals) {
+      const style = window.getComputedStyle(modal);
+
+      // Only check visible modals
+      if (style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0') {
+        const titleAttr = modal.getAttribute('title') || modal.getAttribute('aria-label') || '';
+        const titleElement = modal.querySelector('.modal-title, .dialog-title, h1, h2, h3');
+        const titleText = titleElement ? (titleElement.textContent || titleElement.innerText || '').trim() : '';
+
+        if (titleAttr.includes(searchTitle) || titleText.includes(searchTitle) || titleText === searchTitle) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }, [title], function(result) {
+    if (notCase) {
+      if (result.value) {
+        throw new Error(`Modal with title "${title}" is visible, but it should not be.`);
+      }
+    } else {
+      if (!result.value) {
+        throw new Error(`Modal with title "${title}" is not visible or not found.`);
+      }
+    }
+  });
+});
+
+/**
+ * Assert that a specific modal dialog by ID/class is visible or not visible.
+ *
+ * Example #1: Then I should see a "confirmation-modal" modal
+ * Example #2: Then I should see the "#delete-modal" modal
+ * Example #3: Then we should see a "settings-modal" modal
+ * Example #4: Then I should not see a "error-modal" modal
+ * Example #5: Then I should not see the "#success-modal" modal
+ *
+ */
+Then(/^(I |we )*should( not)* see (a |the )*"([^"]*)?" modal$/, function (pronounCase, notCase, aTheCase, identifier) {
+  return browser.execute(function(searchId) {
+    // Find modal by ID/class selector
+    let modal = null;
+    if (searchId.startsWith('#') || searchId.startsWith('.')) {
+      modal = document.querySelector(searchId);
+    } else {
+      // Search by various attributes
+      modal = document.querySelector(`#${searchId}`) ||
+              document.querySelector(`.${searchId}`) ||
+              document.querySelector(`[data-modal="${searchId}"]`);
+    }
+
+    if (!modal) {
+      return false;
+    }
+
+    // Check if modal is visible
+    const style = window.getComputedStyle(modal);
+    return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
+  }, [identifier], function(result) {
+    if (notCase) {
+      if (result.value) {
+        throw new Error(`Modal "${identifier}" is visible, but it should not be.`);
+      }
+    } else {
+      if (!result.value) {
+        throw new Error(`Modal "${identifier}" is not visible or not found.`);
+      }
+    }
+  });
+});
+
+/**
+ * Assert that modal contains specific text.
+ *
+ * Example #1: Then the modal should contain "Are you sure?"
+ * Example #2: Then I should see "Delete this item" in the modal
+ * Example #3: Then we should see "Confirmation required" in the modal dialog
+ * Example #4: Then the modal should not contain "Error occurred"
+ *
+ */
+Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* modal( dialog)*$/, function (pronounCase, notCase, expectedText, theCase, dialogCase) {
+  return browser.execute(function(text) {
+    const modalSelectors = [
+      '.modal:not([style*="display: none"])',
+      '.modal.show',
+      '.modal.in',
+      '[role="dialog"]',
+      '.dialog:not([style*="display: none"])',
+      '.popup:not([style*="display: none"])'
+    ];
+
+    for (let selector of modalSelectors) {
+      const elements = document.querySelectorAll(selector);
+      for (let element of elements) {
+        const style = window.getComputedStyle(element);
+        if (style.display !== 'none' && style.visibility !== 'hidden') {
+          const modalText = element.textContent || element.innerText || '';
+          if (modalText.includes(text)) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }, [expectedText], function(result) {
+    if (notCase) {
+      if (result.value) {
+        throw new Error(`Found "${expectedText}" in modal, but it should not be there.`);
+      }
+    } else {
+      if (!result.value) {
+        throw new Error(`Could not find "${expectedText}" in modal.`);
+      }
+    }
+  });
+});
+
+/**
+ * Click a button or link within a modal dialog.
+ *
+ * Example #1: When I click "Confirm" in the modal
+ * Example #2: When I click "Cancel" in the modal dialog
+ * Example #3: When we click "OK" button in the modal
+ * Example #4: And I click "Close" in the modal
+ *
+ */
+When(/^(I |we )*click "([^"]*)?"( button)* in( the)* modal( dialog)*$/, function (pronounCase, buttonText, buttonCase, theCase, dialogCase) {
+  return browser.execute(function(btnText) {
+    const modalSelectors = [
+      '.modal:not([style*="display: none"])',
+      '.modal.show',
+      '.modal.in',
+      '[role="dialog"]',
+      '.dialog:not([style*="display: none"])',
+      '.popup:not([style*="display: none"])'
+    ];
+
+    for (let selector of modalSelectors) {
+      const modals = document.querySelectorAll(selector);
+      for (let modal of modals) {
+        const style = window.getComputedStyle(modal);
+        if (style.display !== 'none' && style.visibility !== 'hidden') {
+          // Find clickable elements within modal
+          const clickables = modal.querySelectorAll('button, a, [role="button"], input[type="button"], input[type="submit"], .btn');
+
+          for (let element of clickables) {
+            const text = (element.textContent || element.innerText || element.value || '').trim();
+            if (text === btnText || text.includes(btnText)) {
+              element.click();
+              return { success: true };
+            }
+          }
+
+          // If not found in obvious clickables, search by text
+          const allElements = modal.querySelectorAll('*');
+          for (let element of allElements) {
+            const text = (element.textContent || element.innerText || '').trim();
+            if (text === btnText && element.offsetParent !== null) {
+              element.click();
+              return { success: true };
+            }
+          }
+        }
+      }
+    }
+    return { success: false, error: `Could not find "${btnText}" button in modal` };
+  }, [buttonText], function(result) {
+    if (!result.value.success) {
+      throw new Error(result.value.error || `Could not click "${buttonText}" in modal`);
+    }
+  });
+});
+
+/**
+ * Close a modal dialog by clicking the close button or overlay.
+ *
+ * Example #1: When I close the modal
+ * Example #2: When I dismiss the modal dialog
+ * Example #3: When we close the modal
+ * Example #4: And I dismiss the modal
+ *
+ */
+When(/^(I |we )*(close|dismiss)( the)* modal( dialog)*$/, function (pronounCase, closeOrDismiss, theCase, dialogCase) {
+  return browser.execute(function() {
+    const modalSelectors = [
+      '.modal:not([style*="display: none"])',
+      '.modal.show',
+      '.modal.in',
+      '[role="dialog"]',
+      '.dialog:not([style*="display: none"])',
+      '.popup:not([style*="display: none"])'
+    ];
+
+    for (let selector of modalSelectors) {
+      const modals = document.querySelectorAll(selector);
+      for (let modal of modals) {
+        const style = window.getComputedStyle(modal);
+        if (style.display !== 'none' && style.visibility !== 'hidden') {
+          // Try to find close button
+          const closeButtons = modal.querySelectorAll(
+            '.close, .modal-close, [data-dismiss="modal"], [aria-label="Close"], .btn-close, button[class*="close"]'
+          );
+
+          for (let btn of closeButtons) {
+            if (window.getComputedStyle(btn).display !== 'none') {
+              btn.click();
+              return { success: true, method: 'close button' };
+            }
+          }
+
+          // Try ESC key
+          const escEvent = new KeyboardEvent('keydown', {
+            key: 'Escape',
+            code: 'Escape',
+            keyCode: 27,
+            which: 27,
+            bubbles: true
+          });
+          modal.dispatchEvent(escEvent);
+
+          // Check if modal has data-dismiss or onclick handler
+          if (modal.hasAttribute('data-dismiss')) {
+            modal.click();
+            return { success: true, method: 'modal click' };
+          }
+
+          return { success: true, method: 'escape key' };
+        }
+      }
+    }
+    return { success: false, error: 'No visible modal found to close' };
+  }, [], function(result) {
+    if (!result.value.success) {
+      throw new Error(result.value.error || 'Could not close modal');
+    }
+  });
+});
+
+/**
+ * Wait for modal to appear or disappear.
+ *
+ * Example #1: When I wait for the modal to appear
+ * Example #2: When I wait for the modal to disappear
+ * Example #3: When we wait for modal to appear
+ * Example #4: And I wait for the modal dialog to disappear
+ *
+ */
+When(/^(I |we )*wait for( the)* modal( dialog)* to (appear|disappear)$/, function (pronounCase, theCase, dialogCase, appearOrDisappear) {
+  const shouldAppear = appearOrDisappear === 'appear';
+  const maxWaitTime = 10000; // 10 seconds
+  const pollInterval = 500; // 500ms
+
+  return browser.executeAsync(function(shouldAppear, maxWaitTime, pollInterval, done) {
+    const modalSelectors = [
+      '.modal:not([style*="display: none"])',
+      '.modal.show',
+      '.modal.in',
+      '[role="dialog"]',
+      '.dialog:not([style*="display: none"])',
+      '.popup:not([style*="display: none"])'
+    ];
+
+    function checkModal() {
+      for (let selector of modalSelectors) {
+        const elements = document.querySelectorAll(selector);
+        for (let element of elements) {
+          const style = window.getComputedStyle(element);
+          if (style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0') {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    let elapsed = 0;
+    const interval = setInterval(function() {
+      const modalVisible = checkModal();
+
+      if ((shouldAppear && modalVisible) || (!shouldAppear && !modalVisible)) {
+        clearInterval(interval);
+        done({ success: true });
+        return;
+      }
+
+      elapsed += pollInterval;
+      if (elapsed >= maxWaitTime) {
+        clearInterval(interval);
+        done({
+          success: false,
+          error: `Timeout: Modal did not ${shouldAppear ? 'appear' : 'disappear'} within ${maxWaitTime}ms`
+        });
+      }
+    }, pollInterval);
+  }, [shouldAppear, maxWaitTime, pollInterval], function(result) {
+    if (!result.value.success) {
+      throw new Error(result.value.error || `Modal did not ${appearOrDisappear}`);
+    }
+  });
+});
