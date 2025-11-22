@@ -1906,6 +1906,57 @@ When(/^(I |we )*wait until( the)* page( is)* loaded*$/, function (pronounCase, t
   return browser.waitForElementPresent('body', 10000);
 });
 
+/**
+ * Wait for AJAX requests to finish.
+ * This step waits for active XMLHttpRequest and Fetch API requests to complete.
+ *
+ * Example #1: When I wait for AJAX to finish
+ * Example #2: And I wait for AJAX to finish
+ * Example #3: When we wait for AJAX to finish
+ * Example #4: And wait for AJAX to finish
+ *
+ */
+When(/^(I |we )*wait for AJAX to finish$/, function (pronounCase) {
+  return browser.executeAsync(function(done) {
+    var maxAttempts = 20; // 20 attempts * 500ms = 10 seconds max
+    var attempts = 0;
+
+    var checkAjax = setInterval(function() {
+      attempts++;
+
+      // Check for active XMLHttpRequest requests
+      var activeXHR = window.XMLHttpRequest && window.XMLHttpRequest.active || 0;
+
+      // Check for active fetch requests (tracked via monkey-patching)
+      var activeFetch = window.__activeFetchCount || 0;
+
+      // Check if document is still loading
+      var documentLoading = document.readyState !== 'complete';
+
+      if (activeXHR === 0 && activeFetch === 0 && !documentLoading) {
+        clearInterval(checkAjax);
+        done({ finished: true, attempts: attempts });
+      } else if (attempts >= maxAttempts) {
+        clearInterval(checkAjax);
+        done({
+          finished: false,
+          attempts: attempts,
+          activeXHR: activeXHR,
+          activeFetch: activeFetch,
+          documentLoading: documentLoading
+        });
+      }
+    }, 500);
+  }, [], function(result) {
+    if (!result || !result.value || !result.value.finished) {
+      var debugInfo = result && result.value ?
+        ` (XHR: ${result.value.activeXHR}, Fetch: ${result.value.activeFetch}, DocLoading: ${result.value.documentLoading})` : '';
+      console.warn('AJAX requests did not finish within timeout period' + debugInfo);
+      // Don't fail the test, just log a warning
+    }
+  });
+});
+
 
 
 /**

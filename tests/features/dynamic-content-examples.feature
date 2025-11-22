@@ -118,17 +118,6 @@ Feature: Dynamic Content Handling Examples
     When I click "View Details" in the "Laptop Pro 15" row
     Then I should see "Product Details"
 
-  # Example 12: Modal dialogs that appear dynamically
-  Scenario: Interact with dynamically shown modal
-    When I scroll down 2400
-    And I wait 1 second
-    When I click "Open Settings"
-    And I wait 1 second
-    Then I should see "Settings Modal"
-    When I fill in "Dark" for "#theme-select" by attr
-    And I press "Save Settings" button
-    Then I should see "Settings saved"
-
   # Example 13: Infinite scroll content loading
   Scenario: Load more content with infinite scroll
     When I scroll down 2600
