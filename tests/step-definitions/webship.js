@@ -972,6 +972,88 @@ When(/^(I |we )*uncheck "([^"]*)?"$/, function (pronounCase, item) {
 });
 
 /**
+ * Selects radio button specified by label text, value, or selector.
+ *
+ * Example #1: When I select radio button "Male"
+ * Example #2: When I select radio button "female"
+ * Example #3: When I select radio button "#gender-male"
+ * Example #4: When we select radio button "option1"
+ *
+ */
+When(/^(I |we )*select radio button "([^"]*)?"$/, function (pronounCase, item) {
+  // Actively wait for dynamically generated radio button by polling the DOM
+  return browser.executeAsync(function(radioItem, done) {
+    var maxAttempts = 20; // 20 attempts * 500ms = 10 seconds
+    var attempts = 0;
+
+    var selectRadio = setInterval(function() {
+      var element = null;
+
+      // Try to find radio button by selector (e.g., #gender-male, .radio-option)
+      if (radioItem.startsWith('#') || radioItem.startsWith('.')) {
+        var foundElement = document.querySelector(radioItem);
+        if (foundElement && foundElement.type === 'radio') {
+          element = foundElement;
+        }
+      } else {
+        // Try to find by value attribute first
+        var radioButtons = document.querySelectorAll('input[type="radio"]');
+        for (var i = 0; i < radioButtons.length; i++) {
+          if (radioButtons[i].value === radioItem) {
+            element = radioButtons[i];
+            break;
+          }
+        }
+
+        // If not found by value, try to find by label text
+        if (!element) {
+          var labels = document.querySelectorAll('label');
+          for (var j = 0; j < labels.length; j++) {
+            var labelText = (labels[j].textContent || labels[j].innerText || '').trim();
+            if (labelText === radioItem) {
+              var forAttr = labels[j].getAttribute('for');
+              if (forAttr) {
+                var radioElement = document.getElementById(forAttr);
+                if (radioElement && radioElement.type === 'radio') {
+                  element = radioElement;
+                  break;
+                }
+              }
+              // Also check if label wraps the radio input
+              var radioInput = labels[j].querySelector('input[type="radio"]');
+              if (radioInput) {
+                element = radioInput;
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      attempts++;
+
+      if (element) {
+        clearInterval(selectRadio);
+        element.checked = true;
+        // Trigger change and click events for better compatibility
+        var changeEvent = new Event('change', { bubbles: true });
+        var clickEvent = new Event('click', { bubbles: true });
+        element.dispatchEvent(clickEvent);
+        element.dispatchEvent(changeEvent);
+        done({ found: true, value: element.value, name: element.name });
+      } else if (attempts >= maxAttempts) {
+        clearInterval(selectRadio);
+        done({ found: false });
+      }
+    }, 500);
+  }, [item], function(result) {
+    if (!result || !result.value || !result.value.found) {
+      browser.assert.fail('Radio button "' + item + '" was not found in dynamically generated content');
+    }
+  });
+});
+
+/**
  * Verify, that current page is or is not the homepage.
  *
  * Example #1: Then I should be on homepage
@@ -1494,6 +1576,122 @@ Then(/^(the )*checkbox "([^"]*)?" is( not)* checked$/, function (theCase, checkb
       }
     }
   });
+});
+
+/**
+ * Assert, that radio button with specified selector should or should not be selected.
+ *
+ * Example #1: Then the radio button "#gender-male" should be selected
+ * Example #2: Then the radio button "#gender-female" should not be selected
+ * Example #3: Then the radio button ".option-1" should be selected
+ *
+ */
+Then(/^(the )*radio button "([^"]*)?" should( not)* be selected$/, function (theCase, radioButton, notCase) {
+  // Actively wait for dynamically generated radio button by polling the DOM
+  return browser.executeAsync(function(radioSelector, shouldBeSelected, done) {
+    var maxAttempts = 20; // 20 attempts * 500ms = 10 seconds
+    var attempts = 0;
+
+    var checkRadio = setInterval(function() {
+      var element = document.querySelector(radioSelector);
+      attempts++;
+
+      if (element && element.type === 'radio') {
+        clearInterval(checkRadio);
+        var isSelected = element.checked;
+        done({ found: true, selected: isSelected });
+      } else if (attempts >= maxAttempts) {
+        clearInterval(checkRadio);
+        done({ found: false, selected: false });
+      }
+    }, 500);
+  }, [radioButton, !notCase], function(result) {
+    if (!result || !result.value || !result.value.found) {
+      browser.assert.fail('Radio button "' + radioButton + '" was not found in dynamically generated content');
+    } else {
+      if (notCase) {
+        if (result.value.selected) {
+          browser.assert.fail('Radio button "' + radioButton + '" should not be selected but it is');
+        }
+      } else {
+        if (!result.value.selected) {
+          browser.assert.fail('Radio button "' + radioButton + '" should be selected but it is not');
+        }
+      }
+    }
+  });
+});
+
+/**
+ * Assert, that radio button with specified value in a group should or should not be selected.
+ *
+ * Example #1: Then the radio button with value "male" should be selected
+ * Example #2: Then the radio button with value "female" should not be selected
+ *
+ */
+Then(/^(the )*radio button with value "([^"]*)?" should( not)* be selected$/, function (theCase, radioValue, notCase) {
+  // Actively wait for dynamically generated radio button by polling the DOM
+  return browser.executeAsync(function(value, shouldBeSelected, done) {
+    var maxAttempts = 20; // 20 attempts * 500ms = 10 seconds
+    var attempts = 0;
+
+    var checkRadio = setInterval(function() {
+      var radioButtons = document.querySelectorAll('input[type="radio"]');
+      var element = null;
+
+      for (var i = 0; i < radioButtons.length; i++) {
+        if (radioButtons[i].value === value) {
+          element = radioButtons[i];
+          break;
+        }
+      }
+
+      attempts++;
+
+      if (element) {
+        clearInterval(checkRadio);
+        var isSelected = element.checked;
+        done({ found: true, selected: isSelected });
+      } else if (attempts >= maxAttempts) {
+        clearInterval(checkRadio);
+        done({ found: false, selected: false });
+      }
+    }, 500);
+  }, [radioValue, !notCase], function(result) {
+    if (!result || !result.value || !result.value.found) {
+      browser.assert.fail('Radio button with value "' + radioValue + '" was not found in dynamically generated content');
+    } else {
+      if (notCase) {
+        if (result.value.selected) {
+          browser.assert.fail('Radio button with value "' + radioValue + '" should not be selected but it is');
+        }
+      } else {
+        if (!result.value.selected) {
+          browser.assert.fail('Radio button with value "' + radioValue + '" should be selected but it is not');
+        }
+      }
+    }
+  });
+});
+
+/**
+ * Check, whether the radio button specified is or is not selected (using Nightwatch built-in assertion).
+ *
+ * Example #1: Then the "#gender-male" radio button is selected
+ * Example #2: Then the "#gender-female" radio button is not selected
+ *
+ */
+Then(/^(the )*"([^"]*)?" radio button is( not)* selected$/, function (theCase, radioButton, notCase) {
+  // Wait for dynamic content to render (AJAX/JS)
+  browser.pause(500);
+  // Wait for radio button to be present (handles dynamically generated radio buttons)
+  browser.waitForElementPresent(radioButton, 5000);
+
+  if (notCase) {
+    return browser.expect.element(radioButton).to.not.be.selected;
+  } else {
+    return browser.expect.element(radioButton).to.be.selected;
+  }
 });
 
 /**
