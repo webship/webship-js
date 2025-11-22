@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset='utf-8'>
+  <title>Select Radio Button</title>
+  <style>
+    .style {
+      height: 50px;
+      font-size: 26px;
+      line-height: 50px;
+    }
+    .section {
+      margin: 20px 0;
+      padding: 15px;
+      border: 1px solid #ccc;
+    }
+  </style>
+  <script>
+    function onGenderSubmit() {
+      var genderForm = document.forms[0];
+      var selectedGender = "";
+      for (var i = 0; i < genderForm.length; i++) {
+        if (genderForm[i].type === 'radio' && genderForm[i].checked) {
+          selectedGender = genderForm[i].value;
+          break;
+        }
+      }
+      const element = document.getElementById("gender-result");
+      element.innerText = "Selected: " + selectedGender;
+    }
+
+    function onPlanSubmit() {
+      var planForm = document.forms[2];
+      var selectedPlan = "";
+      for (var i = 0; i < planForm.length; i++) {
+        if (planForm[i].type === 'radio' && planForm[i].checked) {
+          selectedPlan = planForm[i].value;
+          break;
+        }
+      }
+      const element = document.getElementById("plan-result");
+      element.innerText = "Plan: " + selectedPlan;
+    }
+  </script>
+</head>
+
+<body>
+  <h1>Select Radio Button Options</h1>
+
+  <div class="section">
+    <h2>Gender Selection (by Label)</h2>
+    <form>
+      <input type="radio" id="gender-male" name="gender" value="Male">
+      <label for="gender-male">Male</label><br>
+      <input type="radio" id="gender-female" name="gender" value="Female">
+      <label for="gender-female">Female</label><br>
+      <input type="radio" id="gender-other" name="gender" value="Other">
+      <label for="gender-other">Other</label><br>
+    </form>
+    <input type="button" value="Submit" onclick="onGenderSubmit()">
+    <div id="gender-result" class="style"></div>
+  </div>
+
+  <div class="section">
+    <h2>Color Selection (by Value)</h2>
+    <form>
+      <label>
+        <input type="radio" name="color" value="red"> Red
+      </label><br>
+      <label>
+        <input type="radio" name="color" value="blue"> Blue
+      </label><br>
+      <label>
+        <input type="radio" name="color" value="green"> Green
+      </label><br>
+    </form>
+  </div>
+
+  <div class="section">
+    <h2>Plan Selection (by ID Selector)</h2>
+    <form>
+      <input type="radio" id="plan-basic" name="plan" value="Basic">
+      <label for="plan-basic">Basic Plan</label><br>
+      <input type="radio" id="plan-premium" name="plan" value="Premium">
+      <label for="plan-premium">Premium Plan</label><br>
+      <input type="radio" id="plan-enterprise" name="plan" value="Enterprise">
+      <label for="plan-enterprise">Enterprise Plan</label><br>
+    </form>
+    <input type="button" value="Plan Submit" onclick="onPlanSubmit()">
+    <div id="plan-result" class="style"></div>
+  </div>
+</body>
+
+</html>
