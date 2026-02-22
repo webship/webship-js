@@ -9,7 +9,7 @@ pipelines:
         caches:
           - node
         script:
-          - npm install 
+          - npm install
           - npm test
 
 definitions:

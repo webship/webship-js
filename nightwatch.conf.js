@@ -45,10 +45,13 @@ module.exports = {
   test_settings: {
     default: {
       launch_url: 'http://localhost:8080',
+      selenium: {
+        start_process: false,
+        host: 'localhost',
+        port: 4444,
+      },
       webdriver: {
-        start_process: true,
-        server_path: Services.chromedriver ? Services.chromedriver.path : '',
-        port: 9515,
+        start_process: false,
       },
       silent: true,
       output: false,
