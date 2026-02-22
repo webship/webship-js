@@ -10,11 +10,9 @@ pipelines:
           - node
         script:
           - npm install
-          - npm test
+          - FORCE_COLOR=1 npm test
 
 definitions:
   services:
     selenium:
       image: selenium/standalone-chrome:latest
-      ports:
-        - 4444:4444

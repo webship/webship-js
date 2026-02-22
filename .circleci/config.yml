@@ -5,6 +5,8 @@ defaults: &defaults
       auth:
         username: mydockerhub-user
         password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
+  environment:
+    FORCE_COLOR: "1"
 commands:
   webship-js-build:
     steps:

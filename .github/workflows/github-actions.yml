@@ -9,6 +9,7 @@ jobs:
     env:
       TEST_BASE_URL: http://localhost:8080
       SELENIUM_HOST: http://localhost:4444/wd/hub
+      FORCE_COLOR: "1"
 
     steps:
       - name: Install/Update Google Chrome browser

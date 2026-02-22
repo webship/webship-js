@@ -6,6 +6,7 @@ services:
 
 variables:
   NODE_OPTIONS: "--openssl-legacy-provider"
+  FORCE_COLOR: "1"
 
 before_script:
   - sudo apt-get update -qq
