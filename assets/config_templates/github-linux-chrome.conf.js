@@ -26,7 +26,19 @@ module.exports = {
     options: {
       feature_path: 'tests/features/*.feature',
       additional_config: '',
-      parallel: 2,
+      parallel: 1,
+      'format-options': JSON.stringify({
+        colorsEnabled: true,
+        theme: {
+          'feature keyword': ['bold', 'blue'],
+          'feature name': ['blue', 'underline'],
+          'feature description': ['blueBright'],
+          'scenario keyword': ['bold', 'magenta'],
+          'scenario name': ['magenta', 'underline'],
+          'step keyword': ['bold', 'green'],
+          'step text': ['greenBright', 'italic'],
+        },
+      }),
     },
 
   },
