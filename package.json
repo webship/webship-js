@@ -45,6 +45,6 @@
     "webpack-dev-server": "^5.2.2"
   },
   "bin": {
-    "steplist": "./steplist.js"
+    "steplist": "steplist.js"
   }
 }
