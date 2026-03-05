@@ -7,7 +7,7 @@ const path = require('path');
 
 // ---------------------------------------------------------------------------
 // Helper: build CSS selector from attrValue + optional attr argument.
-// Mirrors the logic used throughout the original Nightwatch step definitions.
+// Mirrors the original step definition selector logic.
 // ---------------------------------------------------------------------------
 function buildSelector(attrValue, attr) {
   const hasASpace = attrValue.indexOf(' ');
@@ -85,7 +85,7 @@ When(/^(I go |I navigate |we go |we navigate |navigating )?to "([^"]*)?"$/, asyn
 // Captures: (pronounCase, notCase, expectedText) = 3
 // ---------------------------------------------------------------------------
 Then(/^(I |we )*should( not)* see "([^"]*)?"$/, async function (pronounCase, notCase, expectedText) {
-  // Use textContent (includes hidden elements) to match original NightwatchJS behaviour
+  // Use textContent (includes hidden elements) to match full page text
   const bodyText = await this.page.evaluate(() => document.documentElement.textContent || '');
   if (notCase) {
     assert.ok(!bodyText.includes(expectedText), `Page should NOT contain "${expectedText}" but it does.`);

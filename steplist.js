@@ -46,8 +46,8 @@ parser.add_argument('-i', '--info',
 
 parser.add_argument('-c', '--config',
   {
-    help: 'Add your nightwatch config file, Example: -c="nightwatch.conf.js" OR -c=nightwatch.conf.js OR -c nightwatch.conf.js',
-    default: 'nightwatch.conf.js',
+    help: 'Add your cucumber config file, Example: -c="cucumber.js" OR -c=cucumber.js OR -c cucumber.js',
+    default: 'cucumber.js',
   });
 
 parser.add_argument('-s', '--src_folders',
@@ -192,7 +192,14 @@ const configPath = require(argsParse.config);
 
 let configPathsArray = [];
 
-configPathsArray = configPath.src_folders;
+// Support both cucumber.js format (default.require) and legacy src_folders format
+if (configPath.default && configPath.default.require) {
+  configPathsArray = configPath.default.require
+    .filter(p => !p.includes('support') && !p.includes('world'))
+    .map(p => p.replace(/\/\*\*\/\*\.js$/, '').replace(/\/\*\.js$/, ''));
+} else if (configPath.src_folders) {
+  configPathsArray = configPath.src_folders;
+}
 setFoldersPath(configPathsArray, '-c');
 
 if (foldersPath.length === 0) {

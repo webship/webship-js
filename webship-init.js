@@ -2,6 +2,7 @@
 'use strict';
 
 const fs = require('fs');
+const path = require('path');
 var insidProject = false;
 var basePath = '';
 var projectPath = '';
@@ -14,7 +15,6 @@ if (currentPath.length > 1) {
 }
 else {
   projectPath = basePath;
-
 }
 
 /**
@@ -26,7 +26,7 @@ const { ArgumentParser } = require('argparse');
 const { version } = require('./package.json');
 
 const parser = new ArgumentParser({
-  description: 'Argparse example'
+  description: 'Webship JS initialization tool'
 });
 
 parser.add_argument('-ci', '--continuous_integration',
@@ -37,8 +37,8 @@ parser.add_argument('-ci', '--continuous_integration',
 
 parser.add_argument('-b', '--browser',
   {
-    help: 'Add your Browser (chrome, firefox), By default: -b chrome',
-    default: 'chrome',
+    help: 'Add your Browser (chromium, firefox, webkit), By default: -b chromium',
+    default: 'chromium',
   });
 
 parser.add_argument('-os', '--operating_system',
@@ -54,21 +54,23 @@ var argsParse = parser.parse_args();
  */
 
 /**
- * Generate the appropriate nightwatch.conf.js
- * 
- * Generate nightwatch testing configs according to the used CI
+ * Generate the appropriate cucumber.js config for Playwright
+ *
+ * Generate Playwright+Cucumber testing configs according to the used CI
  * service, operating system, and browser.
  */
 
-fs.unlink(projectPath + 'nightwatch.conf.js', (err) => {
-  if (err) {
-    throw err;
-  }
-});
-
 const confTemplate = projectPath + 'assets/config_templates/' + argsParse.continuous_integration + '-' + argsParse.operating_system + '-' + argsParse.browser + '.conf.js';
 
-fs.copyFile(confTemplate, projectPath + 'nightwatch.conf.js', (err) => {
+const cucumberConfig = projectPath + 'cucumber.js';
+
+// Remove existing cucumber.js if present
+fs.unlink(cucumberConfig, (err) => {
+  // Ignore error if file doesn't exist
+});
+
+// Copy the appropriate template
+fs.copyFile(confTemplate, cucumberConfig, (err) => {
   if (err) {
     throw err;
   }

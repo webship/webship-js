@@ -1,5 +1,14 @@
 module.exports = {
-  // An array of folders (excluding subfolders) where your tests are located;
-  // if this is not specified, the test source must be passed as the second argument to the test runner.
-  src_folders: ['tests/step-definitions'],
+  default: {
+    timeout: 30000,
+    require: [
+      'tests/support/world.js',
+      'tests/step-definitions/**/*.js',
+    ],
+    paths: ['tests/features/**/*.feature'],
+    format: [
+      '@cucumber/pretty-formatter',
+      'json:tests/reports/cucumber_report.json',
+    ],
+  },
 };
