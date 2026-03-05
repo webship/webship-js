@@ -4,15 +4,9 @@ pipelines:
   default:
     - step:
         name: Install and Test
-        services:
-          - selenium
         caches:
           - node
         script:
           - npm install
+          - npx playwright install --with-deps chromium
           - FORCE_COLOR=1 npm test
-
-definitions:
-  services:
-    selenium:
-      image: selenium/standalone-chrome:latest

@@ -10,71 +10,22 @@ defaults: &defaults
 commands:
   webship-js-build:
     steps:
-      - checkout         
-      ## Usefull must have utils.
+      - checkout
+      ## Useful must have utils.
       - run:
-          name: Usefull must have utils
+          name: Useful must have utils
           command: |
             sudo apt -qq update
             sudo apt -qqy upgrade
             sudo apt -yqq install vim links lynx git diffutils htop curl wget p7zip-full unzip zip sed gcc g++ make libfreetype6-dev libaio1 libaio-dev libonig-dev libpng-dev
-            sudo apt -yqq install xvfb libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 libnss3
-      ## Configure and run the virtual display.
-      - run:
-          name: Configure and run the virtual display.
-          command: Xvfb -ac :99 -screen 0 1600x1200x24 > /dev/null 2>&1
-          background: true
 
-      ## Install node js, npm, and gulp
+      ## Install node js, npm
       - run:
           name: Install node js
           command: |
             curl -sL https://deb.nodesource.com/setup_20.x | sudo bash -
-            sudo apt install -y nodejs 
-      ## Install Java.
-      - run:
-          name: Install Java
-          command: |
-            sudo apt update
-            sudo apt install -y openjdk-11-jre openjdk-11-jre-headless openjdk-11-jdk openjdk-11-jdk-headless
-      ## Install/Update Google Chrome browser.
-      - run:
-          name: Install/Update Google Chrome browser
-          command: |
-            sudo apt install libu2f-udev
-            sudo apt-get install libgbm1 libvulkan1 libnss3 libgconf-2-4 libxss1 fonts-liberation libappindicator3-1 libatk-bridge2.0-0 xdg-utils libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libnss3 libxss1 libasound2 libxtst6 xauth
-            wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-            sudo dpkg -i google-chrome-stable_current_amd64.deb
-            sudo apt-get install -f
-            rm google-chrome-stable_current_amd64.deb
-            sudo chmod +x /usr/bin/google-chrome
-            /usr/bin/google-chrome --version
-            google-chrome --version
-      - run:
-          name: Install/Update Chrome Driver
-          command: |
-            CHROME_VERSION=$(google-chrome --product-version);
-            echo $CHROME_VERSION;
-            wget https://storage.googleapis.com/chrome-for-testing-public/$CHROME_VERSION/linux64/chromedriver-linux64.zip
-            unzip chromedriver-linux64.zip
-            sudo chmod +x chromedriver-linux64/chromedriver
-            sudo mv -f chromedriver-linux64/chromedriver /usr/bin/
-            rm -rf chromedriver-linux64.zip chromedriver-linux64
-            chromedriver --version
-      - run:
-          name: Install Java
-          command: |
-            sudo apt update
-            sudo apt install -y openjdk-11-jre openjdk-11-jre-headless openjdk-11-jdk openjdk-11-jdk-headless
-      - run:
-          name: Run Selenium Standalone server
-          command: |
-            export DISPLAY=:99
-            if [[ ! -f /home/circleci/selenium-server-4.4.0.jar ]]; then wget -O /home/circleci/selenium-server-4.4.0.jar https://github.com/SeleniumHQ/selenium/releases/download/selenium-4.4.0/selenium-server-4.4.0.jar; fi
-            cd /home/circleci/
-            java -jar selenium-server-4.4.0.jar standalone --port 4444
-          background: true
-          
+            sudo apt install -y nodejs
+
 jobs:
   webship-js-testing:
     <<: *defaults
@@ -85,11 +36,11 @@ jobs:
           name: Install npm dependencies
           command: |
             npm install
-      ## Automated Functional Acceptance Testing
+      ## Install Playwright browsers
       - run:
-          name: Configure nightwatch.conf.js for Circle CI
+          name: Install Playwright browsers
           command: |
-            node webship-init -ci circleci -os linux -b chrome
+            npx playwright install --with-deps chromium
       - run:
           name: Start virtual server
           command: |

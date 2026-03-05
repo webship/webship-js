@@ -1,5 +1,4 @@
-const { Given, When, Then } = require('@cucumber/cucumber');
-const { Before, After, BeforeStep, AfterStep } = require('@cucumber/cucumber');
+const { Given, When, Then, Before } = require('@cucumber/cucumber');
 const axios = require('axios');
 const assert = require('assert');
 
@@ -11,37 +10,13 @@ let baseURL = '';
 let authorization = '';
 let placeHolders = {};
 
-/**
- * Safely pauses based on global config for API calls.
- * @param {string} key
- */
-function safePause(key) {
-  const time = (global.browser?.globals?.minimum_wait_time?.[key]) || 0;
-  if (time > 0) {
-    return new Promise(resolve => setTimeout(resolve, time));
-  }
-}
-
 Before(async function () {
-  await safePause('before_scenario');
   // Reset API state before each scenario
   apiResponse = null;
   apiRequestData = null;
   apiHeaders = {};
   authorization = '';
   placeHolders = {};
-});
-
-After(async function () {
-  await safePause('after_scenario');
-});
-
-BeforeStep(async function () {
-  await safePause('before_step');
-});
-
-AfterStep(async function () {
-  await safePause('after_step');
 });
 
 /**
@@ -105,11 +80,10 @@ Given(/^(?:the API base URL is|I set the API base URL to|the base URL is) "([^"]
   if (url.match(/^https?:\/\//)) {
     baseURL = url.replace(/\/$/, ''); // Remove trailing slash
   } else {
-    // If not a full URL, combine with launch_url from nightwatch.conf.js
-    const nightwatchConfig = require('../../nightwatch.conf.js');
-    const launchUrl = nightwatchConfig.test_settings.default.launch_url;
-    baseURL = (launchUrl + '/' + url).replace(/\/+/g, '/').replace(/\/$/, ''); // Normalize slashes and remove trailing slash
-    baseURL = baseURL.replace(':/', '://'); // Fix protocol separator
+    // If not a full URL, combine with the LAUNCH_URL env variable or default
+    const launchUrl = (process.env.LAUNCH_URL || 'http://localhost:8080').replace(/\/$/, '');
+    baseURL = (launchUrl + '/' + url).replace(/\/+/g, '/').replace(/\/$/, '');
+    baseURL = baseURL.replace(':/', '://');
   }
 });
 
