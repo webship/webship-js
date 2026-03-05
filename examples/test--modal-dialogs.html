@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Modal Dialogs Test</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    button { margin: 5px; padding: 8px 16px; cursor: pointer; border-radius: 4px; border: 1px solid #ccc; }
+    .open-settings { background: #6c757d; color: white; border-color: #6c757d; }
+    table { border-collapse: collapse; width: 100%; margin: 20px 0; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background: #f2f2f2; }
+    #notification { margin-top: 10px; padding: 8px; display: none; color: green; }
+
+    /* Modal overlay */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-overlay.active {
+      display: flex;
+    }
+    .modal {
+      background: white;
+      border-radius: 8px;
+      padding: 24px;
+      max-width: 500px;
+      width: 90%;
+      position: relative;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    .modal-title { margin: 0 0 16px; font-size: 1.3em; }
+    .modal-body { margin-bottom: 16px; }
+    .modal-footer { display: flex; gap: 8px; justify-content: flex-end; }
+    .modal-footer button { padding: 8px 16px; }
+    .btn-primary { background: #007bff; color: white; border-color: #007bff; }
+    .btn-danger { background: #dc3545; color: white; border-color: #dc3545; }
+    .btn-secondary { background: #6c757d; color: white; border-color: #6c757d; }
+    .close {
+      position: absolute;
+      top: 12px; right: 16px;
+      font-size: 1.4em;
+      cursor: pointer;
+      background: none;
+      border: none;
+      color: #888;
+    }
+    .modal-success { color: green; margin-top: 10px; display: none; }
+    input[type="text"], input[type="email"], textarea {
+      width: 100%; padding: 6px; margin: 4px 0 10px; box-sizing: border-box;
+      border: 1px solid #ddd; border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Modal Dialogs Test Page</h1>
+
+  <!-- Trigger buttons -->
+  <button id="show-welcome-modal" onclick="openModal('welcome-modal')">Show Welcome Modal</button>
+  <button class="open-settings" onclick="openModal('settings-modal')">Open Settings</button>
+  <button id="contact-form-btn" onclick="openModal('contact-modal')">Contact Form</button>
+  <button id="show-modal" onclick="openModal('basic-modal')">Show Modal</button>
+  <button id="trigger-modal" onclick="openModal('confirm-modal')">Trigger Modal</button>
+  <button id="delete-btn" onclick="openModal('delete-confirmation-modal')">Delete Item</button>
+
+  <div id="notification">Project deleted successfully</div>
+
+  <!-- Projects table for modal-error-handling-example -->
+  <h2>Projects</h2>
+  <table id="projects-table">
+    <thead>
+      <tr><th>Project</th><th>Status</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Project Alpha</td>
+        <td>Active</td>
+        <td><button onclick="openDeleteModal('Project Alpha')">Delete</button></td>
+      </tr>
+      <tr>
+        <td>Project Beta</td>
+        <td>Active</td>
+        <td><button onclick="openDeleteModal('Project Beta')">Delete</button></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Welcome Modal -->
+  <div id="welcome-modal-overlay" class="modal-overlay" role="dialog" aria-label="Welcome Message">
+    <div class="modal" id="welcome-modal">
+      <button class="close" onclick="closeModal('welcome-modal-overlay')">&times;</button>
+      <h2 class="modal-title">Welcome Message</h2>
+      <div class="modal-body">
+        <p>Thank you for joining us!</p>
+        <p>We're glad to have you here.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" onclick="closeModal('welcome-modal-overlay')">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal-overlay" class="modal-overlay" role="dialog" aria-label="User Settings">
+    <div class="modal" id="settings-modal">
+      <button class="close" onclick="closeModal('settings-modal-overlay')">&times;</button>
+      <h2 class="modal-title">User Settings</h2>
+      <div class="modal-body">
+        <label>Username:</label>
+        <input type="text" id="username" name="username" placeholder="Enter username">
+        <label>Email:</label>
+        <input type="email" id="email" name="email" placeholder="Enter email">
+        <div class="modal-success" id="settings-success">Settings saved successfully</div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" onclick="saveSettings()">Save Changes</button>
+        <button class="btn-secondary" onclick="closeModal('settings-modal-overlay')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contact Modal -->
+  <div id="contact-modal-overlay" class="modal-overlay" role="dialog" aria-label="Contact Form">
+    <div class="modal" id="contact-modal">
+      <button class="close" onclick="closeModal('contact-modal-overlay')">&times;</button>
+      <h2 class="modal-title">Contact Us</h2>
+      <div class="modal-body">
+        <p>Enter payment details</p>
+        <input type="text" id="contact-name" name="contact-name" placeholder="Your name">
+        <input type="email" id="contact-email" name="contact-email" placeholder="Your email">
+        <textarea id="contact-message" name="contact-message" rows="3" placeholder="Message"></textarea>
+        <div class="modal-success" id="contact-success">Message sent successfully</div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" onclick="submitContact()">Submit</button>
+        <button class="btn-secondary" onclick="closeModal('contact-modal-overlay')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Basic Modal -->
+  <div id="basic-modal-overlay" class="modal-overlay" role="dialog">
+    <div class="modal" id="basic-modal">
+      <button class="close" onclick="closeModal('basic-modal-overlay')">&times;</button>
+      <h2 class="modal-title">Welcome</h2>
+      <div class="modal-body">
+        <p>This is a sample modal dialog</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" onclick="closeModal('basic-modal-overlay')">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Modal -->
+  <div id="confirm-modal-overlay" class="modal-overlay" role="dialog">
+    <div class="modal" id="confirm-modal">
+      <button class="close" onclick="closeModal('confirm-modal-overlay')">&times;</button>
+      <h2 class="modal-title">Confirm Action</h2>
+      <div class="modal-body">
+        <p>Are you sure you want to proceed?</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-primary" onclick="closeModal('confirm-modal-overlay')">Confirm</button>
+        <button class="btn-secondary" onclick="closeModal('confirm-modal-overlay')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div id="delete-confirmation-modal-overlay" class="modal-overlay" role="dialog">
+    <div class="modal" id="delete-confirmation-modal">
+      <button class="close" onclick="closeModal('delete-confirmation-modal-overlay')">&times;</button>
+      <h2 class="modal-title">Confirm Delete</h2>
+      <div class="modal-body">
+        <p>Are you sure you want to delete this item?</p>
+        <p>This action cannot be undone</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-danger" onclick="confirmDelete()">Yes, Delete</button>
+        <button class="btn-secondary" onclick="closeModal('delete-confirmation-modal-overlay')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Project Delete Confirmation Modal -->
+  <div id="project-delete-modal-overlay" class="modal-overlay" role="dialog">
+    <div class="modal" id="project-delete-modal">
+      <button class="close" onclick="closeModal('project-delete-modal-overlay')">&times;</button>
+      <h2 class="modal-title">Confirm Delete</h2>
+      <div class="modal-body">
+        <p id="project-delete-message">Are you sure you want to delete this project?</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-danger" onclick="confirmProjectDelete()">Yes, Delete</button>
+        <button class="btn-secondary" onclick="closeModal('project-delete-modal-overlay')">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var currentProject = '';
+
+    function openModal(modalId) {
+      var overlay = document.getElementById(modalId + '-overlay');
+      if (overlay) overlay.classList.add('active');
+    }
+
+    function closeModal(overlayId) {
+      var overlay = document.getElementById(overlayId);
+      if (overlay) overlay.classList.remove('active');
+    }
+
+    function openDeleteModal(projectName) {
+      currentProject = projectName;
+      document.getElementById('project-delete-message').textContent =
+        'Are you sure you want to delete ' + projectName + '?';
+      openModal('project-delete-modal');
+    }
+
+    function confirmDelete() {
+      closeModal('delete-confirmation-modal-overlay');
+    }
+
+    function confirmProjectDelete() {
+      closeModal('project-delete-modal-overlay');
+      var n = document.getElementById('notification');
+      n.style.display = 'block';
+      setTimeout(function() { n.style.display = 'none'; }, 5000);
+    }
+
+    function saveSettings() {
+      var s = document.getElementById('settings-success');
+      s.style.display = 'block';
+    }
+
+    function submitContact() {
+      var s = document.getElementById('contact-success');
+      s.style.display = 'block';
+      setTimeout(function() {
+        closeModal('contact-modal-overlay');
+      }, 3000);
+    }
+  </script>
+</body>
+</html>

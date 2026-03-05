@@ -128,41 +128,42 @@
   }
 
   // Add scroll event listeners to show appropriate indicators
-  let scrollTimeout;
-  
-  window.addEventListener('scroll', function() {
-    clearTimeout(scrollTimeout);
-    scrollTimeout = setTimeout(function() {
-      const scrollY = window.scrollY;
-      const windowHeight = window.innerHeight;
-      const documentHeight = document.documentElement.scrollHeight;
-      
-      // Hide all indicators first
-      document.querySelectorAll('.indicator').forEach(el => el.style.display = 'none');
-      
-      // Show appropriate indicator based on scroll position
-      if (scrollY === 0) {
-        document.getElementById('scroll-to-top').style.display = 'block';
-      } else if (scrollY >= 300 && scrollY <= 400) {
-        document.getElementById('basic-scroll-down').style.display = 'block';
-      } else if (scrollY >= 450 && scrollY <= 550) {
-        document.getElementById('custom-scroll-down').style.display = 'block';
-      } else if (scrollY + windowHeight >= documentHeight - 50) {
-        // Near bottom of page
-        if (window.lastScrollDirection === 'up') {
-          document.getElementById('custom-scroll-up').style.display = 'block';
-        }
-      }
-      
-      // Track scroll direction
-      if (scrollY > (window.lastScrollY || 0)) {
-        window.lastScrollDirection = 'down';
+  var wasAtBottom = false;
+  var everScrolledDown = false;
+  var lastScrollY = 0;
+
+  window.addEventListener('scroll', function () {
+    var scrollY = window.scrollY;
+    var docHeight = document.documentElement.scrollHeight;
+    var winHeight = window.innerHeight;
+    var maxScroll = docHeight - winHeight;
+    var atBottom = scrollY >= maxScroll - 10;
+    var atTop = scrollY <= 0;
+    var goingDown = scrollY > lastScrollY;
+
+    document.querySelectorAll('.indicator').forEach(function (el) { el.style.display = 'none'; });
+
+    if (atTop && everScrolledDown) {
+      document.getElementById('scroll-to-top').style.display = 'block';
+    } else if (atBottom) {
+      wasAtBottom = true;
+      everScrolledDown = true;
+    } else if (wasAtBottom && !goingDown) {
+      var distFromBottom = maxScroll - scrollY;
+      if (distFromBottom >= 340) {
+        document.getElementById('basic-scroll-up').style.display = 'block';
       } else {
-        window.lastScrollDirection = 'up';
+        document.getElementById('custom-scroll-up').style.display = 'block';
       }
-      window.lastScrollY = scrollY;
-      
-    }, 100);
+    } else if (scrollY >= 450) {
+      document.getElementById('custom-scroll-down').style.display = 'block';
+      everScrolledDown = true;
+    } else if (scrollY > 0) {
+      document.getElementById('basic-scroll-down').style.display = 'block';
+      everScrolledDown = true;
+    }
+
+    lastScrollY = scrollY;
   });
 
   // Add scroll event listener for the scrollable container

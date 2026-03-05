@@ -1,207 +1,149 @@
 <!DOCTYPE html>
 <html>
-
 <head>
   <meta charset='utf-8'>
-  <title>Complete Horizontal Scroll Functionality Test</title>
+  <title>Scrolling Functionality Test</title>
   <style>
     body {
       margin: 0;
       padding: 20px;
       font-family: Arial, sans-serif;
-      overflow-x: auto;
-      overflow-y: hidden;
-      white-space: nowrap;
     }
-
-    .container,
-    .container input,
-    .container button {
-      font-size: 26px;
-    }
-
-    .style {
-      font-size: 22px;
-      line-height: 30px;
-      border: 1px solid #ccc;
-      padding: 10px;
-      margin: 10px;
-      background-color: #f9f9f9;
-      display: inline-block;
-      width: 300px;
-      vertical-align: top;
-    }
-
     .indicator {
-      font-size: 28px;
+      display: none;
+      font-size: 22px;
       font-weight: bold;
       color: #007bff;
-      padding: 15px;
-      margin: 10px;
+      padding: 12px 20px;
+      margin: 10px 0;
       border: 2px solid #007bff;
       background-color: #e7f3ff;
-      display: none;
-      display: inline-block;
-      width: 400px;
-      vertical-align: top;
+      border-radius: 4px;
     }
-
-    #scrollable-container {
-      width: 1000px;
-      overflow-x: auto;
-      overflow-y: hidden;
-      border: 2px solid #333;
-      margin: 20px;
-      padding: 10px;
-      background-color: #f0f0f0;
-      display: inline-block;
-      vertical-align: top;
-      white-space: nowrap;
-    }
-
-    .scrollable-content {
-      width: 1600px;
-      height: 200px;
-      background: linear-gradient(to right, #ff9999, #99ff99, #9999ff);
+    .content-block {
+      height: 300px;
+      background: #f0f4f8;
+      border: 1px solid #ccc;
+      margin: 10px 0;
       padding: 20px;
-      position: relative;
-      display: inline-block;
-    }
-
-    .scroll-marker {
-      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-size: 18px;
-      font-weight: bold;
-      background-color: rgba(255, 255, 255, 0.8);
-      padding: 5px 10px;
-      border-radius: 5px;
+      color: #555;
     }
-
-    .scroll-marker.left {
-      left: 10px;
-      top: 10px;
+    #scrollable-container {
+      width: 100%;
+      height: 150px;
+      overflow-y: scroll;
+      border: 2px solid #333;
+      margin: 20px 0;
+      padding: 10px;
+      background-color: #f9f9f9;
+      box-sizing: border-box;
     }
-
-    .scroll-marker.right {
-      right: 10px;
-      bottom: 10px;
+    .scrollable-inner {
+      height: 500px;
+      background: linear-gradient(to bottom, #ff9999, #99ff99, #9999ff);
+      padding: 10px;
     }
-
-    #complete {
-      display: none;
-      font-size: 32px;
-      line-height: 40px;
-      color: #28a745;
-      font-weight: bold;
-      text-align: center;
-      padding: 20px;
-      border: 3px solid #28a745;
-      background-color: #d4edda;
-      margin: 20px;
-      width: 300px;
-      display: inline-block;
-      vertical-align: top;
-      position: absolute;
-    }
-
-    #page-wrapper {
-      min-width: 4000px;
-      white-space: nowrap;
-    }
+    #element-scroll-top { display: none; font-size: 18px; font-weight: bold; padding: 8px; }
+    #element-scroll-bottom { display: none; font-size: 18px; font-weight: bold; padding: 8px; }
   </style>
 </head>
-
 <body>
-  <div id="page-wrapper">
-    <h1 style="display:inline-block; vertical-align:top; margin-right: 20px;">Horizontal Scrolling Functionality Test Page</h1>
+  <h1>Scrolling Functionality Test Page</h1>
 
-    <!-- Indicators -->
-    <div id="basic-scroll-down" class="indicator">Basic scroll right works</div>
-    <div id="basic-scroll-up" class="indicator">Basic scroll left works</div>
-    <div id="custom-scroll-down" class="indicator">Custom scroll right works</div>
-    <div id="custom-scroll-up" class="indicator">Custom scroll left works</div>
-    <div id="scroll-to-top" class="indicator">Scroll to left works</div>
+  <div id="basic-scroll-down" class="indicator">Basic scroll down works</div>
+  <div id="basic-scroll-up" class="indicator">Basic scroll up works</div>
+  <div id="custom-scroll-down" class="indicator">Custom scroll down works</div>
+  <div id="custom-scroll-up" class="indicator">Custom scroll up works</div>
+  <div id="scroll-to-top" class="indicator">Scroll to top works</div>
+  <div id="scroll-to-bottom" class="indicator">Scroll to bottom works</div>
 
-    <!-- Main content -->
-    <div id="container" style="display:inline-block; vertical-align:top;">
-      <p class="style">This is the starting content of the page</p>
-      <!-- سيتم توليد Content section 1-30 تلقائيًا عبر JavaScript -->
+  <div class="content-block">Section 1 - Scroll down to see more</div>
+  <div class="content-block">Section 2</div>
+  <div class="content-block">Section 3</div>
+  <div class="content-block">Section 4</div>
+  <div class="content-block">Section 5</div>
+  <div class="content-block">Section 6</div>
+  <div class="content-block">Section 7</div>
+  <div class="content-block">Section 8</div>
+  <div class="content-block">Section 9</div>
+  <div class="content-block">Section 10 - Near the bottom</div>
 
-      <!-- Scroll to right end element (في آخر اليمين فعليًا) -->
-      <div id="complete">Scroll to right end works</div>
-    </div>
-
-    <!-- Scrollable element container -->
-    <div>
-      <h2 style="display:inline-block; vertical-align:top;">Scrollable Horizontal Container Test</h2>
-      <div id="scrollable-container">
-        <div class="scrollable-content">
-          <div class="scroll-marker left">Element scroll to left works</div>
-          <p style="display:inline-block;">This is a scrollable container with a lot of content inside.</p>
-          <p style="display:inline-block;">You can scroll horizontally.</p>
-          <div class="scroll-marker right">Element scroll to right works</div>
-        </div>
-      </div>
+  <h2>Scrollable Element Container</h2>
+  <div id="scrollable-container">
+    <div class="scrollable-inner">
+      <div id="element-scroll-top">Element scroll to top works</div>
+      <p>Scrollable content - scroll this container to see indicators</p>
+      <div id="element-scroll-bottom">Element scroll to bottom works</div>
     </div>
   </div>
-</body>
 
-<script>
-  const container = document.getElementById("container");
+  <div class="content-block">End of page content</div>
 
-  // توليد 30 قسم لزيادة العرض الأفقي
-  for (var i = 1; i <= 30; i++) {
-    const section = document.createElement("p");
-    section.className = "style";
-    section.innerText = "Content section #" + i;
-    container.insertBefore(section, document.getElementById("complete"));
-  }
+  <script>
+    var lastScrollY = 0;
+    var wasAtBottom = false;
+    var everScrolledDown = false;
 
-  let scrollTimeout;
+    window.addEventListener('scroll', function () {
+      var scrollY = window.scrollY;
+      var docHeight = document.documentElement.scrollHeight;
+      var winHeight = window.innerHeight;
+      var maxScroll = docHeight - winHeight;
+      var atBottom = scrollY >= maxScroll - 10;
+      var atTop = scrollY <= 0;
+      var goingDown = scrollY > lastScrollY;
 
-  window.addEventListener('scroll', function () {
-    clearTimeout(scrollTimeout);
-    scrollTimeout = setTimeout(function () {
-      const scrollX = window.scrollX;
-      const windowWidth = window.innerWidth;
-      const documentWidth = document.documentElement.scrollWidth;
+      document.getElementById('basic-scroll-down').style.display = 'none';
+      document.getElementById('basic-scroll-up').style.display = 'none';
+      document.getElementById('custom-scroll-down').style.display = 'none';
+      document.getElementById('custom-scroll-up').style.display = 'none';
+      document.getElementById('scroll-to-top').style.display = 'none';
+      document.getElementById('scroll-to-bottom').style.display = 'none';
 
-      // إخفاء جميع المؤشرات
-      document.querySelectorAll('.indicator').forEach(el => el.style.display = 'none');
-
-      if (scrollX === 0) {
-        document.getElementById('scroll-to-top').style.display = 'inline-block';
-      }
-
-      if (scrollX + windowWidth >= documentWidth - 10) {
-        document.getElementById('basic-scroll-down').style.display = 'inline-block';
-        document.getElementById('complete').style.display = 'inline-block';
-      } else {
-        document.getElementById('complete').style.display = 'none';
-      }
-
-      if (scrollX >= 450 && scrollX <= 550) {
-        document.getElementById('custom-scroll-down').style.display = 'inline-block';
-      } else if (scrollX + windowWidth >= documentWidth - 50) {
-        if (window.lastScrollDirection === 'left') {
-          document.getElementById('custom-scroll-up').style.display = 'inline-block';
+      if (atTop && everScrolledDown) {
+        document.getElementById('scroll-to-top').style.display = 'block';
+      } else if (atBottom) {
+        document.getElementById('scroll-to-bottom').style.display = 'block';
+        wasAtBottom = true;
+        everScrolledDown = true;
+      } else if (wasAtBottom && !goingDown) {
+        var distFromBottom = maxScroll - scrollY;
+        if (distFromBottom >= 340) {
+          document.getElementById('basic-scroll-up').style.display = 'block';
+        } else {
+          document.getElementById('custom-scroll-up').style.display = 'block';
         }
+      } else if (scrollY >= 450) {
+        document.getElementById('custom-scroll-down').style.display = 'block';
+      } else if (scrollY > 0) {
+        document.getElementById('basic-scroll-down').style.display = 'block';
+        everScrolledDown = true;
       }
 
-      // تتبع الاتجاه
-      if (scrollX > (window.lastScrollX || 0)) {
-        window.lastScrollDirection = 'right';
-      } else {
-        window.lastScrollDirection = 'left';
+      lastScrollY = scrollY;
+    });
+
+    var scrollContainer = document.getElementById('scrollable-container');
+    var containerWasAtBottom = false;
+
+    scrollContainer.addEventListener('scroll', function () {
+      var scrollTop = this.scrollTop;
+      var maxScrollTop = this.scrollHeight - this.clientHeight;
+
+      document.getElementById('element-scroll-top').style.display = 'none';
+      document.getElementById('element-scroll-bottom').style.display = 'none';
+
+      if (scrollTop >= maxScrollTop - 5) {
+        document.getElementById('element-scroll-bottom').style.display = 'block';
+        containerWasAtBottom = true;
+      } else if (scrollTop <= 0 && containerWasAtBottom) {
+        document.getElementById('element-scroll-top').style.display = 'block';
       }
-      window.lastScrollX = scrollX;
-    }, 100);
-  });
-
-  const scrollableContainer = document.getElementById('scrollable-container');
-  scrollableContainer.addEventListener('scroll', function () {
-    console.log('Scrollable container scrolled to (horizontal):', this.scrollLeft);
-  });
-</script>
-
+    });
+  </script>
+</body>
 </html>

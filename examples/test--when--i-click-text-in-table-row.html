@@ -167,7 +167,7 @@
         function performAction(action, identifier) {
             const resultElement = document.getElementById('action-message');
             const timestamp = new Date().toLocaleTimeString();
-            resultElement.innerHTML = "Performed (${action}) action on (${identifier})";
+            resultElement.innerHTML = `Performed (${action}) action on (${identifier})`;
             
             // Prevent default link behavior
             event.preventDefault();

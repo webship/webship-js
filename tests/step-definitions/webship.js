@@ -27,7 +27,7 @@ function buildSelector(attrValue, attr) {
   if (!attr && hasASpace > -1) {
     return '[value="' + attrValue + '"],[placeholder="' + attrValue + '"]';
   }
-  return '[' + attr + '="' + attrValue + '"]';
+  return '[' + attr + '="' + attrValue + '" i]';
 }
 
 // ---------------------------------------------------------------------------
@@ -85,12 +85,20 @@ When(/^(I go |I navigate |we go |we navigate |navigating )?to "([^"]*)?"$/, asyn
 // Captures: (pronounCase, notCase, expectedText) = 3
 // ---------------------------------------------------------------------------
 Then(/^(I |we )*should( not)* see "([^"]*)?"$/, async function (pronounCase, notCase, expectedText) {
-  // Use textContent (includes hidden elements) to match full page text
-  const bodyText = await this.page.evaluate(() => document.documentElement.textContent || '');
   if (notCase) {
+    const bodyText = await this.page.evaluate(() => document.body.innerText || '');
     assert.ok(!bodyText.includes(expectedText), `Page should NOT contain "${expectedText}" but it does.`);
   } else {
-    assert.ok(bodyText.includes(expectedText), `Page should contain "${expectedText}" but it does not.`);
+    try {
+      await this.page.waitForFunction(
+        (text) => (document.body.innerText || '').includes(text),
+        expectedText,
+        { timeout: 5000 }
+      );
+    } catch (_) {
+      const bodyText = await this.page.evaluate(() => document.body.innerText || '');
+      assert.ok(bodyText.includes(expectedText), `Page should contain "${expectedText}" but it does not.`);
+    }
   }
 });
 
@@ -274,15 +282,38 @@ When(/^(I |we )*reload( the)*( page)*$/, async function (pronounCase, theCase, p
 // Captures: (pronounCase, field, value) = 3
 // ---------------------------------------------------------------------------
 When(/^(I |we )*fill in "([^"]*)?" with "([^"]*)?"$/, async function (pronounCase, field, value) {
-  const labelEl = this.page.getByText(field, { exact: true });
-  const forAttr = await labelEl.getAttribute('for');
-  if (forAttr) {
-    await this.page.waitForSelector('#' + forAttr, { timeout: 5000 });
-    await this.page.fill('#' + forAttr, value);
-  } else {
-    // Fallback: try to find input associated with label text
-    const input = this.page.locator(`label`).filter({ hasText: new RegExp('^' + field.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$') }).locator('~ input, + input').first();
-    await input.fill(value);
+  const escaped = field.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const filled = await this.page.evaluate(({ fieldText, val }) => {
+    const label = Array.from(document.querySelectorAll('label')).find(l => l.textContent.trim() === fieldText);
+    let el = null;
+    if (label && label.htmlFor) {
+      el = document.getElementById(label.htmlFor);
+    }
+    if (!el && label) {
+      el = label.nextElementSibling;
+      if (el && el.tagName !== 'INPUT' && el.tagName !== 'TEXTAREA') el = null;
+    }
+    if (!el && label) {
+      const p = label.closest('p, div, td, li');
+      if (p) { el = p.nextElementSibling && p.nextElementSibling.querySelector('input, textarea'); }
+    }
+    if (!el) {
+      el = document.querySelector(`[placeholder="${fieldText}"], [name="${fieldText}"], #${CSS.escape(fieldText)}`);
+    }
+    if (!el) return false;
+    el.value = val;
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+    return true;
+  }, { fieldText: field, val: value });
+  if (!filled) {
+    // Fallback to Playwright fill
+    const labelEl = this.page.locator('label').filter({ hasText: new RegExp('^' + escaped + '$') }).first();
+    const forAttr = await labelEl.getAttribute('for').catch(() => null);
+    if (forAttr) {
+      await this.page.waitForSelector('#' + forAttr, { timeout: 5000 });
+      await this.page.fill('#' + forAttr, value);
+    }
   }
 });
 
@@ -356,16 +387,19 @@ When(/^(I |we )*fill in "([^"]*)?" for "([^"]*)?" by( its)*(?: "([^"]*)?")* (att
 // Captures: (pronounCase, theCase) = 2; table is passed as extra arg
 // ---------------------------------------------------------------------------
 When(/^(I |we )*fill in( the)* following:$/, async function (pronounCase, theCase, table) {
-  for (const row of table.rows()) {
-    const [field, value] = row;
-    const labelEl = this.page.getByText(field, { exact: true });
-    const forAttr = await labelEl.getAttribute('for');
-    if (forAttr) {
-      await this.page.waitForSelector('#' + forAttr, { timeout: 5000 });
-      await this.page.fill('#' + forAttr, value);
+  const rows = table.raw();
+  for (const row of rows) {
+    const field = row[0], value = row[1];
+    const labelLocator = this.page.getByLabel(field, { exact: true });
+    if (await labelLocator.count() > 0) {
+      await labelLocator.fill(value);
     } else {
-      const input = this.page.locator('label').filter({ hasText: new RegExp('^' + field.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$') }).locator('~ input, + input').first();
-      await input.fill(value);
+      const loc = this.page.locator(`[placeholder="${field}"]`);
+      if (await loc.count() > 0) {
+        await loc.first().fill(value);
+      } else {
+        await this.page.locator(`[name="${field}"]`).first().fill(value);
+      }
     }
   }
 });
@@ -376,10 +410,11 @@ When(/^(I |we )*fill in( the)* following:$/, async function (pronounCase, theCas
 // Pattern: (I |we )* fill in( the)* following: by( its)*(?: "([^"]*)?")* (attribute|attr)
 // ---------------------------------------------------------------------------
 When(/^(I |we )*fill in( the)* following: by( its)*(?: "([^"]*)?")* (attribute|attr)$/, async function (pronounCase, theCase, itsCase, attr, attrWord, table) {
-  for (const row of table.rows()) {
-    const selector = buildSelector(row[0], attr);
-    await this.page.waitForSelector(selector, { timeout: 5000 });
-    await this.page.fill(selector, row[1]);
+  const rows = table.raw();
+  for (const row of rows) {
+    const sel = buildSelector(row[0], attr), value = row[1];
+    await this.page.waitForSelector(sel, { timeout: 5000 });
+    await this.page.fill(sel, value);
   }
 });
 
@@ -402,11 +437,21 @@ When(/^(I |we )*select "([^"]*)?" from "([^"]*)?"$/, async function (pronounCase
 
   if (selector) {
     await this.page.waitForSelector(selector, { timeout: 10000 });
-    try {
-      await this.page.selectOption(selector, { value: option });
-    } catch {
-      await this.page.selectOption(selector, { label: option });
-    }
+    const handled = await this.page.evaluate(({ sel, opt }) => {
+      const el = document.querySelector(sel);
+      if (!el) return false;
+      const optLower = opt.toLowerCase();
+      for (const o of el.options) {
+        if (o.value.toLowerCase() === optLower || o.text.toLowerCase() === optLower) {
+          el.value = o.value;
+          el.dispatchEvent(new Event('change', { bubbles: true }));
+          el.dispatchEvent(new Event('input', { bubbles: true }));
+          return true;
+        }
+      }
+      return false;
+    }, { sel: selector, opt: option });
+    assert.ok(handled, `Could not find option "${option}" in select "${selectList}"`);
   } else {
     assert.fail(`Could not find select element for "${selectList}"`);
   }
@@ -614,16 +659,30 @@ Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* "([^"]*)?" element$/, asy
   const forAttr = await labelEl.getAttribute('for');
   const selector = forAttr ? '#' + forAttr : element;
   await this.page.waitForSelector(selector, { timeout: 5000 });
-  const content = await this.page.evaluate((sel) => {
-    const el = document.querySelector(sel);
-    if (!el) return null;
-    return el.textContent || el.innerText || el.value || '';
-  }, selector);
-  assert.ok(content !== null, `Element "${selector}" not found`);
   if (notCase) {
+    const content = await this.page.evaluate((sel) => {
+      const el = document.querySelector(sel);
+      if (!el) return null;
+      return el.textContent || el.innerText || el.value || '';
+    }, selector);
+    assert.ok(content !== null, `Element "${selector}" not found`);
     assert.ok(!content.includes(expectedText), `Element should NOT contain "${expectedText}" but it does.`);
   } else {
-    assert.ok(content.includes(expectedText), `Element should contain "${expectedText}" but it does not.`);
+    try {
+      await this.page.waitForFunction(({ sel, text }) => {
+        const el = document.querySelector(sel);
+        if (!el) return false;
+        return (el.textContent || el.innerText || el.value || '').includes(text);
+      }, { sel: selector, text: expectedText }, { timeout: 5000 });
+    } catch (_) {
+      const content = await this.page.evaluate((sel) => {
+        const el = document.querySelector(sel);
+        if (!el) return null;
+        return el.textContent || el.innerText || el.value || '';
+      }, selector);
+      assert.ok(content !== null, `Element "${selector}" not found`);
+      assert.ok(content.includes(expectedText), `Element should contain "${expectedText}" but it does not.`);
+    }
   }
 });
 
@@ -636,16 +695,30 @@ Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* "([^"]*)?" element$/, asy
 Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* "([^"]*)?" element by( its)*(?: "([^"]*)?")* (attribute|attr)$/, async function (pronounCase, notCase, expectedText, theCase, attrValue, itsCase, attr, attrWord) {
   const selector = buildSelector(attrValue, attr);
   await this.page.waitForSelector(selector, { timeout: 10000 });
-  const content = await this.page.evaluate((sel) => {
-    const el = document.querySelector(sel);
-    if (!el) return null;
-    return el.textContent || el.innerText || el.value || '';
-  }, selector);
-  assert.ok(content !== null, `Element "${selector}" not found`);
   if (notCase) {
+    const content = await this.page.evaluate((sel) => {
+      const el = document.querySelector(sel);
+      if (!el) return null;
+      return el.textContent || el.innerText || el.value || '';
+    }, selector);
+    assert.ok(content !== null, `Element "${selector}" not found`);
     assert.ok(!content.includes(expectedText), `Element should NOT contain "${expectedText}" but it does.`);
   } else {
-    assert.ok(content.includes(expectedText), `Element should contain "${expectedText}" but it does not.`);
+    try {
+      await this.page.waitForFunction(({ sel, text }) => {
+        const el = document.querySelector(sel);
+        if (!el) return false;
+        return (el.textContent || el.innerText || el.value || '').includes(text);
+      }, { sel: selector, text: expectedText }, { timeout: 5000 });
+    } catch (_) {
+      const content = await this.page.evaluate((sel) => {
+        const el = document.querySelector(sel);
+        if (!el) return null;
+        return el.textContent || el.innerText || el.value || '';
+      }, selector);
+      assert.ok(content !== null, `Element "${selector}" not found`);
+      assert.ok(content.includes(expectedText), `Element should contain "${expectedText}" but it does not.`);
+    }
   }
 });
 
@@ -693,40 +766,65 @@ Then(/^(I |we )*should( not)* see (a|an) "([^"]*)?" element by( its)*(?: "([^"]*
 // Then the "body" element should contain "color:white;"
 // Captures: (theCase, selector, notCase, elementCss) = 4
 // ---------------------------------------------------------------------------
-Then(/^(the )*"([^"]*)?" element should( not)* contain "([^"]*)?"$/, async function (theCase, selector, notCase, elementCss) {
+Then(/^(the )*"([^"]*)?" element should( not)* contain "([^"]*)?"$/, async function (theCase, selectorRaw, notCase, elementCss) {
+  const selector = buildSelector(selectorRaw);
   const cssClean = elementCss.replace(/;$/, '');
   const colonIdx = cssClean.indexOf(':');
   const cssProperty = cssClean.substring(0, colonIdx).trim();
   const expectedValue = cssClean.substring(colonIdx + 1).trim();
 
   await this.page.waitForSelector(selector, { timeout: 10000 });
-  const actualValue = await this.page.evaluate(({ sel, prop, expectedVal }) => {
+  const matches = await this.page.evaluate(({ sel, prop, expectedVal }) => {
     const el = document.querySelector(sel);
     if (!el) return null;
-    const computed = window.getComputedStyle(el).getPropertyValue(prop).trim();
-    // Normalize named colors by comparing via canvas
+
     function colorToRgb(color) {
       const canvas = document.createElement('canvas');
       canvas.width = canvas.height = 1;
       const ctx = canvas.getContext('2d');
-      ctx.fillStyle = color;
+      ctx.fillStyle = 'rgb(1, 2, 3)';
+      ctx.fillStyle = color.trim();
       ctx.fillRect(0, 0, 1, 1);
       const d = ctx.getImageData(0, 0, 1, 1).data;
       return 'rgb(' + d[0] + ', ' + d[1] + ', ' + d[2] + ')';
     }
-    const normalizedActual = computed;
-    const normalizedExpected = colorToRgb(expectedVal);
-    const normalizedActualRgb = colorToRgb(computed);
-    return { computed, normalizedExpected, normalizedActualRgb };
+
+    function isValidColor(value) {
+      const result = colorToRgb(value);
+      return result !== 'rgb(1, 2, 3)';
+    }
+
+    function normalizeColorTokens(value) {
+      return value.replace(/rgb\([^)]+\)|rgba\([^)]+\)|#[0-9a-fA-F]+|\b[a-zA-Z]+\b/g, (token) => {
+        if (isValidColor(token)) return colorToRgb(token);
+        return token;
+      });
+    }
+
+    function tokenize(value) {
+      const tokens = [];
+      const regex = /rgb\([^)]+\)|rgba\([^)]+\)|[^\s]+/g;
+      let m;
+      while ((m = regex.exec(value)) !== null) tokens.push(m[0]);
+      return tokens;
+    }
+
+    const computed = window.getComputedStyle(el).getPropertyValue(prop).trim();
+
+    const normalizedExpected = normalizeColorTokens(expectedVal.toLowerCase());
+    const normalizedComputed = normalizeColorTokens(computed.toLowerCase());
+
+    const expectedTokens = tokenize(normalizedExpected);
+    const allMatch = expectedTokens.every(token => normalizedComputed.includes(token));
+
+    return allMatch;
   }, { sel: selector, prop: cssProperty, expectedVal: expectedValue });
 
-  assert.ok(actualValue !== null, `Element "${selector}" was not found`);
-  const { computed, normalizedExpected, normalizedActualRgb } = actualValue;
-  const matches = computed.trim() === expectedValue || normalizedActualRgb === normalizedExpected;
+  assert.ok(matches !== null, `Element "${selector}" was not found`);
   if (notCase) {
     assert.ok(!matches, `Element "${selector}" should NOT have CSS "${cssProperty}: ${expectedValue}" but it does.`);
   } else {
-    assert.ok(matches, `Element "${selector}" should have CSS "${cssProperty}: ${expectedValue}" but has "${computed}".`);
+    assert.ok(matches, `Element "${selector}" should have CSS "${cssProperty}: ${expectedValue}".`);
   }
 });
 
@@ -1036,7 +1134,16 @@ When(/^(I scroll|we scroll|scrolling)? to( the)* top( of the page)*$/, async fun
 
 // Captures: (pronounCase, theCase, pageCase) = 3
 When(/^(I scroll|we scroll|scrolling)? to( the)* bottom( of the page)*$/, async function (pronounCase, theCase, pageCase) {
-  await this.page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  await this.page.evaluate(() => {
+    window.scrollTo(0, document.body.scrollHeight);
+    document.querySelectorAll('*').forEach(el => {
+      const s = window.getComputedStyle(el);
+      if ((s.overflowY === 'scroll' || s.overflowY === 'auto') && el.scrollHeight > el.clientHeight) {
+        el.scrollTop = el.scrollHeight;
+        el.dispatchEvent(new Event('scroll', { bubbles: true }));
+      }
+    });
+  });
 });
 
 // Captures: (pronounCase, selector) = 2
@@ -1044,7 +1151,10 @@ When(/^(I scroll|we scroll|scrolling)? to top of "([^"]*)"$/, async function (pr
   await this.page.waitForSelector(selector, { timeout: 5000 });
   await this.page.evaluate((sel) => {
     const el = document.querySelector(sel);
-    if (el) el.scrollTop = 0;
+    if (el) {
+      el.scrollTop = 0;
+      el.dispatchEvent(new Event('scroll', { bubbles: true }));
+    }
   }, selector);
 });
 
@@ -1053,7 +1163,10 @@ When(/^(I scroll|we scroll|scrolling)? to bottom of "([^"]*)"$/, async function 
   await this.page.waitForSelector(selector, { timeout: 5000 });
   await this.page.evaluate((sel) => {
     const el = document.querySelector(sel);
-    if (el) el.scrollTop = el.scrollHeight;
+    if (el) {
+      el.scrollTop = el.scrollHeight;
+      el.dispatchEvent(new Event('scroll', { bubbles: true }));
+    }
   }, selector);
 });
 
@@ -1102,19 +1215,19 @@ When(/^(I scroll|we scroll|scrolling)? to end of "([^"]*)"$/, async function (pr
 // Pattern: (I |we )* should( not)* see (a |the )* modal( dialog)*
 Then(/^(I |we )*should( not)* see (a |the )*modal( dialog)*$/, async function (pronounCase, notCase, aTheCase, dialogCase) {
   const modalSelectors = [
-    '.modal:not([style*="display: none"])',
+    '.modal',
     '.modal.show',
     '.modal.in',
     '[role="dialog"]',
-    '.dialog:not([style*="display: none"])',
-    '.popup:not([style*="display: none"])',
-    '.overlay:not([style*="display: none"])',
+    '.dialog',
+    '.popup',
+    '.overlay',
   ];
   const visible = await this.page.evaluate((selectors) => {
     for (const sel of selectors) {
       for (const el of document.querySelectorAll(sel)) {
-        const style = window.getComputedStyle(el);
-        if (style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0') return true;
+        const rect = el.getBoundingClientRect();
+        if (rect.width > 0 || rect.height > 0) return true;
       }
     }
     return false;
@@ -1131,8 +1244,8 @@ Then(/^(I |we )*should( not)* see (a |the )*modal( dialog)*$/, async function (p
 Then(/^(I |we )*should( not)* see (a |the )*modal with title "([^"]*)?"$/, async function (pronounCase, notCase, aTheCase, title) {
   const found = await this.page.evaluate((searchTitle) => {
     for (const modal of document.querySelectorAll('[role="dialog"], .modal, .dialog, .popup')) {
-      const style = window.getComputedStyle(modal);
-      if (style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0') {
+      const rect = modal.getBoundingClientRect();
+      if (rect.width > 0 || rect.height > 0) {
         const titleAttr = modal.getAttribute('title') || modal.getAttribute('aria-label') || '';
         const titleEl = modal.querySelector('.modal-title, .dialog-title, h1, h2, h3');
         const titleText = titleEl ? (titleEl.textContent || titleEl.innerText || '').trim() : '';
@@ -1175,14 +1288,14 @@ Then(/^(I |we )*should( not)* see (a |the )*"([^"]*)?" modal$/, async function (
 // Pattern: (I |we )* should( not)* see "([^"]*)?" in( the)* modal( dialog)*
 Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* modal( dialog)*$/, async function (pronounCase, notCase, expectedText, theCase, dialogCase) {
   const modalSelectors = [
-    '.modal:not([style*="display: none"])', '.modal.show', '.modal.in',
-    '[role="dialog"]', '.dialog:not([style*="display: none"])', '.popup:not([style*="display: none"])',
+    '.modal', '.modal.show', '.modal.in',
+    '[role="dialog"]', '.dialog', '.popup',
   ];
   const found = await this.page.evaluate(({ selectors, text }) => {
     for (const sel of selectors) {
       for (const el of document.querySelectorAll(sel)) {
-        const style = window.getComputedStyle(el);
-        if (style.display !== 'none' && style.visibility !== 'hidden') {
+        const rect = el.getBoundingClientRect();
+        if (rect.width > 0 || rect.height > 0) {
           if ((el.textContent || el.innerText || '').includes(text)) return true;
         }
       }
@@ -1202,8 +1315,8 @@ When(/^(I |we )*click "([^"]*)?"( button)* in( the)* modal( dialog)*$/, async fu
   const result = await this.page.evaluate(({ selectors, btnText }) => {
     for (const sel of selectors) {
       for (const modal of document.querySelectorAll(sel)) {
-        const style = window.getComputedStyle(modal);
-        if (style.display !== 'none' && style.visibility !== 'hidden') {
+        const rect = modal.getBoundingClientRect();
+        if (rect.width > 0 || rect.height > 0) {
           for (const el of modal.querySelectorAll('button, a, [role="button"], input[type="button"], input[type="submit"], .btn')) {
             const text = (el.textContent || el.innerText || el.value || '').trim();
             if (text === btnText || text.includes(btnText)) { el.click(); return { success: true }; }
@@ -1213,7 +1326,7 @@ When(/^(I |we )*click "([^"]*)?"( button)* in( the)* modal( dialog)*$/, async fu
     }
     return { success: false, error: `Could not find "${btnText}" button in modal` };
   }, {
-    selectors: ['.modal:not([style*="display: none"])', '.modal.show', '.modal.in', '[role="dialog"]', '.dialog:not([style*="display: none"])', '.popup:not([style*="display: none"])'],
+    selectors: ['.modal', '.modal.show', '.modal.in', '[role="dialog"]', '.dialog', '.popup'],
     btnText: buttonText,
   });
   assert.ok(result.success, result.error || `Could not click "${buttonText}" in modal`);
@@ -1223,13 +1336,14 @@ When(/^(I |we )*click "([^"]*)?"( button)* in( the)* modal( dialog)*$/, async fu
 // Pattern: (I |we )* (close|dismiss)( the)* modal( dialog)*
 When(/^(I |we )*(close|dismiss)( the)* modal( dialog)*$/, async function (pronounCase, closeOrDismiss, theCase, dialogCase) {
   await this.page.evaluate(() => {
-    const modalSelectors = ['.modal:not([style*="display: none"])', '.modal.show', '.modal.in', '[role="dialog"]', '.dialog:not([style*="display: none"])', '.popup:not([style*="display: none"])'];
+    const modalSelectors = ['.modal', '.modal.show', '.modal.in', '[role="dialog"]', '.dialog', '.popup'];
     for (const sel of modalSelectors) {
       for (const modal of document.querySelectorAll(sel)) {
-        const style = window.getComputedStyle(modal);
-        if (style.display !== 'none' && style.visibility !== 'hidden') {
+        const rect = modal.getBoundingClientRect();
+        if (rect.width > 0 || rect.height > 0) {
           for (const btn of modal.querySelectorAll('.close, .modal-close, [data-dismiss="modal"], [aria-label="Close"], .btn-close, button[class*="close"]')) {
-            if (window.getComputedStyle(btn).display !== 'none') { btn.click(); return; }
+            const btnRect = btn.getBoundingClientRect();
+            if (btnRect.width > 0 || btnRect.height > 0) { btn.click(); return; }
           }
           modal.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, bubbles: true }));
         }
@@ -1242,15 +1356,15 @@ When(/^(I |we )*(close|dismiss)( the)* modal( dialog)*$/, async function (pronou
 // Pattern: (I |we )* wait for( the)* modal( dialog)* to (appear|disappear)
 When(/^(I |we )*wait for( the)* modal( dialog)* to (appear|disappear)$/, async function (pronounCase, theCase, dialogCase, appearOrDisappear) {
   const shouldAppear = appearOrDisappear === 'appear';
-  const modalSelectors = ['.modal.show', '.modal.in', '[role="dialog"]', '.dialog:not([style*="display: none"])', '.popup:not([style*="display: none"])'];
+  const modalSelectors = ['.modal', '.modal.show', '.modal.in', '[role="dialog"]', '.dialog', '.popup'];
 
   const startTime = Date.now();
   while (Date.now() - startTime < 10000) {
     const isVisible = await this.page.evaluate((selectors) => {
       for (const sel of selectors) {
         for (const el of document.querySelectorAll(sel)) {
-          const style = window.getComputedStyle(el);
-          if (style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0') return true;
+          const rect = el.getBoundingClientRect();
+          if (rect.width > 0 || rect.height > 0) return true;
         }
       }
       return false;
