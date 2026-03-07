@@ -29,6 +29,9 @@
     "axios": "~1",
     "cucumber-html-reporter": "^6.0.0",
     "http-server": "^14.1.1",
-    "playwright": "^1.58.2"
+    "playwright": "^1.58.2",
+    "@types/node": "~20",
+    "ts-node": "~10",
+    "typescript": "~5"
   }
 }

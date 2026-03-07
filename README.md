@@ -21,7 +21,7 @@ npm install webship-js
 ## Install files required by the webship-js tool
 
 ```
-bash <(wget -O - https://raw.githubusercontent.com/webship/wbash/v1/webship-js/v1/template.sh)
+bash <(wget -O - https://raw.githubusercontent.com/webship/wbash/v1/webship-js/v2/template.sh)
 ```
 
  ## Automated Functional Acceptance Testing

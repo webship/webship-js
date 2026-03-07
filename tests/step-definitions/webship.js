@@ -1,9 +1,72 @@
 'use strict';
 
-const { Given, When, Then } = require('@cucumber/cucumber');
+const { setWorldConstructor, World, Before, After, BeforeStep, AfterStep, setDefaultTimeout, Given, When, Then } = require('@cucumber/cucumber');
+const playwright = require('playwright');
+const playwrightConfig = require('../../playwright.config');
 const assert = require('assert');
 const axios = require('axios');
 const path = require('path');
+
+// ---------------------------------------------------------------------------
+// World
+// ---------------------------------------------------------------------------
+setDefaultTimeout(30 * 1000);
+
+class PlaywrightWorld extends World {
+  constructor(options) {
+    super(options);
+    this.launchUrl = this.parameters.launchUrl;
+    this.minWaitTime = this.parameters.minWaitTime;
+    this.playwrightBrowser = null;
+    this.context = null;
+    this.page = null;
+    this.assetsFolder = path.join(__dirname, '../assets/');
+  }
+
+  async openBrowser() {
+    const { browser: browserName, launchOptions, contextOptions } = playwrightConfig;
+    this.playwrightBrowser = await playwright[browserName].launch(launchOptions);
+    this.context = await this.playwrightBrowser.newContext(contextOptions);
+    this.page = await this.context.newPage();
+  }
+
+  async closeBrowser() {
+    if (this.playwrightBrowser) {
+      await this.playwrightBrowser.close();
+      this.playwrightBrowser = null;
+      this.context = null;
+      this.page = null;
+    }
+  }
+}
+
+setWorldConstructor(PlaywrightWorld);
+
+Before(async function () {
+  await this.openBrowser();
+  if (this.minWaitTime.before_scenario > 0) {
+    await this.page.waitForTimeout(this.minWaitTime.before_scenario);
+  }
+});
+
+After(async function () {
+  if (this.minWaitTime.after_scenario > 0) {
+    await this.page.waitForTimeout(this.minWaitTime.after_scenario);
+  }
+  await this.closeBrowser();
+});
+
+BeforeStep(async function () {
+  if (this.page && this.minWaitTime.before_step > 0) {
+    await this.page.waitForTimeout(this.minWaitTime.before_step);
+  }
+});
+
+AfterStep(async function () {
+  if (this.page && this.minWaitTime.after_step > 0) {
+    await this.page.waitForTimeout(this.minWaitTime.after_step);
+  }
+});
 
 // ---------------------------------------------------------------------------
 // Helper: build CSS selector from attrValue + optional attr argument.

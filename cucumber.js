@@ -1,8 +1,8 @@
 module.exports = {
   default: {
     timeout: 30000,
+    requireModule: ['ts-node/register'],
     require: [
-      'tests/support/world.js',
       'tests/step-definitions/**/*.js',
     ],
     paths: ['tests/features/**/*.feature'],
@@ -20,6 +20,16 @@ module.exports = {
         'scenario name': ['magenta', 'underline'],
         'step keyword': ['bold', 'green'],
         'step text': ['greenBright', 'italic'],
+      },
+    },
+    worldParameters: {
+      launchUrl: process.env.LAUNCH_URL || 'http://localhost:8080',
+      minWaitTime: {
+        page: 3000,
+        before_scenario: 0,
+        after_scenario: 0,
+        before_step: 0,
+        after_step: 0,
       },
     },
   },
