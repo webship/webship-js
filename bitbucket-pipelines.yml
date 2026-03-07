@@ -9,4 +9,6 @@ pipelines:
         script:
           - npm install
           - npx playwright install --with-deps chromium
+          - npm start &
+          - sleep 3
           - FORCE_COLOR=1 npm test

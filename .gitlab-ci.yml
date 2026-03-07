@@ -1,7 +1,6 @@
 image: node:20
 
 variables:
-  NODE_OPTIONS: "--openssl-legacy-provider"
   FORCE_COLOR: "1"
 
 before_script:
@@ -12,13 +11,13 @@ before_script:
   - npx playwright install --with-deps chromium
 
 stages:
-  - build
   - test
 
-webship-js-build:
-  stage: build
+webship-js-test:
+  stage: test
   script:
     - npm start &
+    - sleep 3
     - npm test
 
   only:

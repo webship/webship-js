@@ -46,6 +46,9 @@ jobs:
           command: npm start
           background: true
       - run:
+          name: Wait for server
+          command: sleep 3
+      - run:
           name: Test
           command: |
             npm test
@@ -56,6 +59,6 @@ workflows:
       - webship-js-testing:
           filters:
             tags:
-              only: /^1.0.*/
+              only: /^2.0.*/
             branches:
-              only: /^1.0.x/
+              only: /^2.0.x/
