@@ -26,9 +26,7 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Start virtual server
-        run: |
-          export NODE_OPTIONS=--openssl-legacy-provider
-          npm start &
+        run: npm start &
 
       - name: Run tests
         run: npm test

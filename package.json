@@ -1,6 +1,6 @@
 {
   "name": "webship-js",
-  "version": "2.0.x",
+  "version": "2.0.0",
   "description": "Webship JS automated functional testing.",
   "main": "index.js",
   "directories": {
@@ -12,9 +12,7 @@
   "scripts": {
     "test": "cucumber-js --config cucumber.js; node generate-reports.js;",
     "lint:js": "node ./node_modules/eslint/bin/eslint.js --config=.eslintrc.json .",
-    "build": "webpack",
-    "start": "npm run devServer",
-    "devServer": "webpack serve --port 8080"
+    "start": "http-server examples -p 8080 -s"
   },
   "repository": {
     "type": "git",
@@ -29,20 +27,12 @@
   "dependencies": {
     "@cucumber/cucumber": "*",
     "@cucumber/pretty-formatter": "~1",
-    "argparse": "~2",
-    "args-parser": "~1",
     "axios": "~1",
     "cucumber-html-reporter": "^6.0.0",
     "eslint": "~8",
     "eslint-config-airbnb-base": "~15",
     "eslint-plugin-import": "~2",
-    "lodash": "~4",
-    "playwright": "^1.58.2",
-    "webpack": "~5",
-    "webpack-cli": "~5",
-    "webpack-dev-server": "^5.2.2"
-  },
-  "bin": {
-    "steplist": "./steplist.js"
+    "http-server": "^14.1.1",
+    "playwright": "^1.58.2"
   }
 }

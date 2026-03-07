@@ -7,7 +7,6 @@ const path = require('path');
 
 // ---------------------------------------------------------------------------
 // Helper: build CSS selector from attrValue + optional attr argument.
-// Mirrors the original step definition selector logic.
 // ---------------------------------------------------------------------------
 function buildSelector(attrValue, attr) {
   const hasASpace = attrValue.indexOf(' ');
@@ -31,10 +30,89 @@ function buildSelector(attrValue, attr) {
 }
 
 // ---------------------------------------------------------------------------
-// Helper: wait for page readyState === 'complete'
+// Helper: wait for domcontentloaded
 // ---------------------------------------------------------------------------
 async function waitForPageLoad(page, timeout) {
   await page.waitForLoadState('domcontentloaded', { timeout: timeout || 10000 });
+}
+
+// ---------------------------------------------------------------------------
+// Helper: fill a field located by label, placeholder, or name
+// ---------------------------------------------------------------------------
+async function fillField(page, field, value) {
+  const byLabel = page.getByLabel(field, { exact: true });
+  if (await byLabel.count() > 0) {
+    await byLabel.fill(value);
+    return;
+  }
+  const byPlaceholder = page.getByPlaceholder(field, { exact: true });
+  if (await byPlaceholder.count() > 0) {
+    await byPlaceholder.fill(value);
+    return;
+  }
+  await page.locator(`[name="${field}"]`).first().fill(value);
+}
+
+// ---------------------------------------------------------------------------
+// Helper: get text from a locator — input value or text content
+// ---------------------------------------------------------------------------
+async function getLocatorText(locator) {
+  try {
+    return await locator.inputValue();
+  } catch {
+    return await locator.textContent() || '';
+  }
+}
+
+const MODAL_SELECTOR = '.modal, .modal.show, .modal.in, [role="dialog"], .dialog, .popup';
+
+// ---------------------------------------------------------------------------
+// Helper: wait for any matching modal element to reach a state
+// ---------------------------------------------------------------------------
+async function waitForModalState(page, state, timeout) {
+  const sel = MODAL_SELECTOR;
+  if (state === 'visible') {
+    await page.waitForFunction(
+      (s) => Array.from(document.querySelectorAll(s)).some(el => {
+        const cs = window.getComputedStyle(el);
+        return cs.display !== 'none' && cs.visibility !== 'hidden' && el.offsetParent !== null;
+      }),
+      sel, { timeout }
+    );
+  } else {
+    await page.waitForFunction(
+      (s) => !Array.from(document.querySelectorAll(s)).some(el => {
+        const cs = window.getComputedStyle(el);
+        return cs.display !== 'none' && cs.visibility !== 'hidden' && el.offsetParent !== null;
+      }),
+      sel, { timeout }
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Helper: find the first visible modal locator
+// ---------------------------------------------------------------------------
+async function findVisibleModal(page) {
+  const all = page.locator(MODAL_SELECTOR);
+  const count = await all.count();
+  for (let i = 0; i < count; i++) {
+    if (await all.nth(i).isVisible()) return all.nth(i);
+  }
+  throw new Error('No visible modal found');
+}
+
+// ---------------------------------------------------------------------------
+// Helper: check if any modal is currently visible
+// ---------------------------------------------------------------------------
+async function isAnyModalVisible(page) {
+  return page.evaluate((sel) =>
+    Array.from(document.querySelectorAll(sel)).some(el => {
+      const cs = window.getComputedStyle(el);
+      return cs.display !== 'none' && cs.visibility !== 'hidden' && el.offsetParent !== null;
+    }),
+    MODAL_SELECTOR
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -44,7 +122,7 @@ async function waitForPageLoad(page, timeout) {
 Given(/^(I am |we are )?on( the)* (homepage|frontpage)$/, async function (pronounCase, theCase, pageCase) {
   const defaultTime = this.minWaitTime.page || 3000;
   await this.page.goto(this.launchUrl);
-  await this.page.waitForSelector('body', { timeout: defaultTime });
+  await this.page.waitForSelector('body', { state: 'attached', timeout: defaultTime });
   await waitForPageLoad(this.page, defaultTime);
 });
 
@@ -54,7 +132,7 @@ Given(/^(I am |we are )?on( the)* (homepage|frontpage)$/, async function (pronou
 // ---------------------------------------------------------------------------
 Given(/^(I am |we are )*on( the)* "([^"]*)?"( page)*$/, async function (pronounCase, theCase, url, pageCase) {
   await this.page.goto(this.launchUrl + url);
-  await this.page.waitForSelector('body', { timeout: 10000 });
+  await this.page.waitForSelector('body', { state: 'attached', timeout: 10000 });
   await waitForPageLoad(this.page);
 });
 
@@ -65,7 +143,7 @@ Given(/^(I am |we are )*on( the)* "([^"]*)?"( page)*$/, async function (pronounC
 When(/^(I go |I navigate |we go |we navigate |navigating )?to( the)* (homepage|frontpage)$/, async function (pronounCase, theCase, pageCase) {
   const defaultTime = this.minWaitTime.page || 3000;
   await this.page.goto(this.launchUrl);
-  await this.page.waitForSelector('body', { timeout: defaultTime });
+  await this.page.waitForSelector('body', { state: 'attached', timeout: defaultTime });
   await waitForPageLoad(this.page, defaultTime);
 });
 
@@ -76,7 +154,7 @@ When(/^(I go |I navigate |we go |we navigate |navigating )?to( the)* (homepage|f
 When(/^(I go |I navigate |we go |we navigate |navigating )?to "([^"]*)?"$/, async function (pronounCase, url) {
   const defaultTime = this.minWaitTime.page || 3000;
   await this.page.goto(this.launchUrl + url);
-  await this.page.waitForSelector('body', { timeout: defaultTime });
+  await this.page.waitForSelector('body', { state: 'attached', timeout: defaultTime });
   await waitForPageLoad(this.page, defaultTime);
 });
 
@@ -86,19 +164,10 @@ When(/^(I go |I navigate |we go |we navigate |navigating )?to "([^"]*)?"$/, asyn
 // ---------------------------------------------------------------------------
 Then(/^(I |we )*should( not)* see "([^"]*)?"$/, async function (pronounCase, notCase, expectedText) {
   if (notCase) {
-    const bodyText = await this.page.evaluate(() => document.body.innerText || '');
-    assert.ok(!bodyText.includes(expectedText), `Page should NOT contain "${expectedText}" but it does.`);
+    const text = await this.page.locator('body').textContent() || '';
+    assert.ok(!text.includes(expectedText), `Page should NOT contain "${expectedText}" but it does.`);
   } else {
-    try {
-      await this.page.waitForFunction(
-        (text) => (document.body.innerText || '').includes(text),
-        expectedText,
-        { timeout: 5000 }
-      );
-    } catch (_) {
-      const bodyText = await this.page.evaluate(() => document.body.innerText || '');
-      assert.ok(bodyText.includes(expectedText), `Page should contain "${expectedText}" but it does not.`);
-    }
+    await this.page.locator('body').filter({ hasText: expectedText }).waitFor({ timeout: 5000 });
   }
 });
 
@@ -123,40 +192,19 @@ When(/^(I |we )*move backward one page$/, async function (pronounCase) {
 // Captures: (pronounCase, theCase, element, buttonCase) = 4
 // ---------------------------------------------------------------------------
 When(/^(I |we )*press( the)* "([^"]*)?"( button)*$/, async function (pronounCase, theCase, element, buttonCase) {
-  const locator = this.page.locator(
-    'button, input[type="button"], input[type="submit"], [role="button"], .btn, a'
-  ).filter({ hasText: new RegExp('^' + element.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$') });
-
-  try {
-    await locator.first().waitFor({ state: 'visible', timeout: 10000 });
-    await locator.first().click();
-  } catch {
-    // Fallback: JS click approach for dynamically generated buttons
-    const found = await this.page.evaluate((buttonText) => {
-      const buttons = document.querySelectorAll('button, input[type="button"], input[type="submit"], [role="button"], .btn, a');
-      for (const btn of buttons) {
-        const text = (btn.textContent || btn.innerText || btn.value || '').trim();
-        if (text === buttonText) {
-          btn.click();
-          return true;
-        }
-      }
-      return false;
-    }, element);
-    assert.ok(found, `Button "${element}" was not found`);
-  }
+  const esc = element.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  await this.page.locator('button, input[type="button"], input[type="submit"], [role="button"], .btn, a')
+    .filter({ hasText: new RegExp('^' + esc + '$') })
+    .first()
+    .click();
 });
 
 // ---------------------------------------------------------------------------
 // When I press "btn-pressid" by attr / attribute
 // Captures: (pronounCase, attrValue, itsCase, attr, attrWord) = 5
-// Pattern: (I |we )* press "([^"]*)?" by( its)*(?: "([^"]*)?")* (attribute|attr)
-// Note: outer group made non-capturing so inner ([^"]*) is direct root child
 // ---------------------------------------------------------------------------
 When(/^(I |we )*press "([^"]*)?" by( its)*(?: "([^"]*)?")* (attribute|attr)$/, async function (pronounCase, attrValue, itsCase, attr, attrWord) {
-  const selector = buildSelector(attrValue, attr);
-  await this.page.waitForSelector(selector, { timeout: 10000 });
-  await this.page.click(selector);
+  await this.page.locator(buildSelector(attrValue, attr)).first().click();
 });
 
 // ---------------------------------------------------------------------------
@@ -164,28 +212,11 @@ When(/^(I |we )*press "([^"]*)?" by( its)*(?: "([^"]*)?")* (attribute|attr)$/, a
 // Captures: (pronounCase, item) = 2
 // ---------------------------------------------------------------------------
 When(/^(I |we )*click "([^"]*)?"$/, async function (pronounCase, item) {
-  const locator = this.page.locator(
-    'a, button, [role="button"], .btn, input[type="button"], input[type="submit"]'
-  ).filter({ hasText: new RegExp('^' + item.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$') });
-
-  try {
-    await locator.first().waitFor({ state: 'visible', timeout: 10000 });
-    await locator.first().click();
-  } catch {
-    // Fallback JS click
-    const found = await this.page.evaluate((linkText) => {
-      const clickables = document.querySelectorAll('a, button, [role="button"], .btn, input[type="button"], input[type="submit"]');
-      for (const el of clickables) {
-        const text = (el.textContent || el.innerText || el.value || '').trim();
-        if (text === linkText) {
-          el.click();
-          return true;
-        }
-      }
-      return false;
-    }, item);
-    assert.ok(found, `Link/Button "${item}" was not found`);
-  }
+  const esc = item.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  await this.page.locator('a, button, [role="button"], .btn, input[type="button"], input[type="submit"]')
+    .filter({ hasText: new RegExp('^' + esc + '$') })
+    .first()
+    .click();
 });
 
 // ---------------------------------------------------------------------------
@@ -193,75 +224,34 @@ When(/^(I |we )*click "([^"]*)?"$/, async function (pronounCase, item) {
 // Captures: (pronounCase, attrValue, itsCase, attr, attrWord) = 5
 // ---------------------------------------------------------------------------
 When(/^(I |we )*click "([^"]*)?" by( its)*(?: "([^"]*)?")* (attribute|attr)$/, async function (pronounCase, attrValue, itsCase, attr, attrWord) {
-  const selector = buildSelector(attrValue, attr);
-  await this.page.waitForSelector(selector, { timeout: 10000 });
-  await this.page.click(selector);
+  await this.page.locator(buildSelector(attrValue, attr)).first().click();
 });
 
 // ---------------------------------------------------------------------------
 // When I click "Edit" in the "John Smith" row
 // Captures: (pronounCase, clickText, theCase, rowIdentifier) = 4
-// Pattern: (I |we )* click "([^"]*)?" in( the)* "([^"]*)?" row
-// Wait - let me recount: (I |we )* = 1, "([^"]*)?" = 2, in( the)* = 3 NO theCase doesn't have ()
-// Actually: (I |we )* click "([^"]*)?" in( the)* "([^"]*)?" row
-// Group 1: (I |we )*  Group 2: ([^"]*)  Group 3: ( the)*  Group 4: ([^"]*)
-// = 4 captures
 // ---------------------------------------------------------------------------
 When(/^(I |we )*click "([^"]*)?" in( the)* "([^"]*)?" row$/, async function (pronounCase, clickText, theCase, rowIdentifier) {
-  const result = await this.page.evaluate(({ rowId, targetText }) => {
-    const tables = document.querySelectorAll('table');
-    if (tables.length === 0) return { success: false, error: 'No tables found' };
-
-    for (const table of tables) {
-      const rows = table.querySelectorAll('tr');
-      for (const row of rows) {
-        const rowText = row.textContent || '';
-        if (rowText.includes(rowId)) {
-          const clickables = row.querySelectorAll('a, button, [onclick], [role="button"], .btn, input[type="submit"], input[type="button"]');
-          for (const el of clickables) {
-            const elText = (el.textContent || el.innerText || el.value || '').trim();
-            if (elText === targetText) {
-              el.click();
-              return { success: true };
-            }
-          }
-          // Try all elements
-          for (const el of row.querySelectorAll('*')) {
-            const elText = (el.textContent || el.innerText || '').trim();
-            if (elText === targetText) {
-              el.click();
-              return { success: true };
-            }
-          }
-          return { success: false, error: `Row found but "${targetText}" not clickable in it` };
-        }
-      }
-    }
-    return { success: false, error: `Row containing "${rowId}" not found` };
-  }, { rowId: rowIdentifier, targetText: clickText });
-
-  assert.ok(result.success, result.error || `Could not click "${clickText}" in the "${rowIdentifier}" row`);
+  const esc = clickText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const row = this.page.locator('tr').filter({ hasText: rowIdentifier }).first();
+  const clickable = row.locator('a, button, [role="button"], .btn, input[type="submit"], input[type="button"]')
+    .filter({ hasText: new RegExp('^' + esc + '$') });
+  if (await clickable.count() > 0) {
+    await clickable.first().click();
+  } else {
+    await row.getByText(clickText, { exact: true }).first().click();
+  }
 });
 
 // ---------------------------------------------------------------------------
 // Then I should see "Active" in the "John Smith" row
 // Captures: (pronounCase, notCase, expectedText, theCase, rowIdentifier) = 5
-// Pattern: (I |we )* should( not)* see "([^"]*)?" in( the)* "([^"]*)?" row
-// = 5 captures
 // ---------------------------------------------------------------------------
 Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* "([^"]*)?" row$/, async function (pronounCase, notCase, expectedText, theCase, rowIdentifier) {
-  const found = await this.page.evaluate(({ rowId, expected }) => {
-    const tables = document.querySelectorAll('table');
-    if (tables.length === 0) throw new Error('No tables found on the page');
-    for (const table of tables) {
-      for (const row of table.querySelectorAll('tr')) {
-        const rowText = row.textContent || '';
-        if (rowText.includes(rowId) && rowText.includes(expected)) return true;
-      }
-    }
-    return false;
-  }, { rowId: rowIdentifier, expected: expectedText });
-
+  const found = await this.page.evaluate(({ id, text }) => {
+    const rows = Array.from(document.querySelectorAll('tr'));
+    return rows.filter(r => r.textContent.includes(id)).some(r => r.textContent.includes(text));
+  }, { id: rowIdentifier, text: expectedText });
   if (notCase) {
     assert.ok(!found, `Found "${expectedText}" in the "${rowIdentifier}" row, but it should not be there.`);
   } else {
@@ -282,50 +272,15 @@ When(/^(I |we )*reload( the)*( page)*$/, async function (pronounCase, theCase, p
 // Captures: (pronounCase, field, value) = 3
 // ---------------------------------------------------------------------------
 When(/^(I |we )*fill in "([^"]*)?" with "([^"]*)?"$/, async function (pronounCase, field, value) {
-  const escaped = field.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const filled = await this.page.evaluate(({ fieldText, val }) => {
-    const label = Array.from(document.querySelectorAll('label')).find(l => l.textContent.trim() === fieldText);
-    let el = null;
-    if (label && label.htmlFor) {
-      el = document.getElementById(label.htmlFor);
-    }
-    if (!el && label) {
-      el = label.nextElementSibling;
-      if (el && el.tagName !== 'INPUT' && el.tagName !== 'TEXTAREA') el = null;
-    }
-    if (!el && label) {
-      const p = label.closest('p, div, td, li');
-      if (p) { el = p.nextElementSibling && p.nextElementSibling.querySelector('input, textarea'); }
-    }
-    if (!el) {
-      el = document.querySelector(`[placeholder="${fieldText}"], [name="${fieldText}"], #${CSS.escape(fieldText)}`);
-    }
-    if (!el) return false;
-    el.value = val;
-    el.dispatchEvent(new Event('input', { bubbles: true }));
-    el.dispatchEvent(new Event('change', { bubbles: true }));
-    return true;
-  }, { fieldText: field, val: value });
-  if (!filled) {
-    // Fallback to Playwright fill
-    const labelEl = this.page.locator('label').filter({ hasText: new RegExp('^' + escaped + '$') }).first();
-    const forAttr = await labelEl.getAttribute('for').catch(() => null);
-    if (forAttr) {
-      await this.page.waitForSelector('#' + forAttr, { timeout: 5000 });
-      await this.page.fill('#' + forAttr, value);
-    }
-  }
+  await fillField(this.page, field, value);
 });
 
 // ---------------------------------------------------------------------------
 // When I fill in "uname" with "John Smith" by attr
 // Captures: (pronounCase, attrValue, txtValue, itsCase, attr, attrWord) = 6
-// Pattern: (I |we )* fill in "([^"]*)?" with "([^"]*)?" by( its)*(?: "([^"]*)?")* (attribute|attr)
 // ---------------------------------------------------------------------------
 When(/^(I |we )*fill in "([^"]*)?" with "([^"]*)?" by( its)*(?: "([^"]*)?")* (attribute|attr)$/, async function (pronounCase, attrValue, txtValue, itsCase, attr, attrWord) {
-  const selector = buildSelector(attrValue, attr);
-  await this.page.waitForSelector(selector, { timeout: 5000 });
-  await this.page.fill(selector, txtValue);
+  await this.page.locator(buildSelector(attrValue, attr)).first().fill(txtValue);
 });
 
 // ---------------------------------------------------------------------------
@@ -333,26 +288,15 @@ When(/^(I |we )*fill in "([^"]*)?" with "([^"]*)?" by( its)*(?: "([^"]*)?")* (at
 // Captures: (pronounCase, field) = 2
 // ---------------------------------------------------------------------------
 When(/^(I |we )*fill in "([^"]*)?" with:$/, async function (pronounCase, field) {
-  const labelEl = this.page.getByText(field, { exact: true });
-  const forAttr = await labelEl.getAttribute('for');
-  if (forAttr) {
-    await this.page.waitForSelector('#' + forAttr, { timeout: 5000 });
-    await this.page.fill('#' + forAttr, '');
-  } else {
-    const input = this.page.locator('label').filter({ hasText: new RegExp('^' + field.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$') }).locator('~ input, + input').first();
-    await input.fill('');
-  }
+  await fillField(this.page, field, '');
 });
 
 // ---------------------------------------------------------------------------
 // When I fill in "uname" with: by attr (empty by attr)
 // Captures: (pronounCase, attrValue, itsCase, attr, attrWord) = 5
-// Pattern: (I |we )* fill in "([^"]*)?" with: by( its)*(?: "([^"]*)?")* (attribute|attr)
 // ---------------------------------------------------------------------------
 When(/^(I |we )*fill in "([^"]*)?" with: by( its)*(?: "([^"]*)?")* (attribute|attr)$/, async function (pronounCase, attrValue, itsCase, attr, attrWord) {
-  const selector = buildSelector(attrValue, attr);
-  await this.page.waitForSelector(selector, { timeout: 5000 });
-  await this.page.fill(selector, '');
+  await this.page.locator(buildSelector(attrValue, attr)).first().fill('');
 });
 
 // ---------------------------------------------------------------------------
@@ -360,61 +304,34 @@ When(/^(I |we )*fill in "([^"]*)?" with: by( its)*(?: "([^"]*)?")* (attribute|at
 // Captures: (pronounCase, value, field) = 3
 // ---------------------------------------------------------------------------
 When(/^(I |we )*fill in "([^"]*)?" for "([^"]*)?"$/, async function (pronounCase, value, field) {
-  const labelEl = this.page.getByText(field, { exact: true });
-  const forAttr = await labelEl.getAttribute('for');
-  if (forAttr) {
-    await this.page.waitForSelector('#' + forAttr, { timeout: 5000 });
-    await this.page.fill('#' + forAttr, value);
-  } else {
-    const input = this.page.locator('label').filter({ hasText: new RegExp('^' + field.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$') }).locator('~ input, + input').first();
-    await input.fill(value);
-  }
+  await fillField(this.page, field, value);
 });
 
 // ---------------------------------------------------------------------------
 // When I fill in "John Smith" for "uname" by attr
 // Captures: (pronounCase, txtValue, attrValue, itsCase, attr, attrWord) = 6
-// Pattern: (I |we )* fill in "([^"]*)?" for "([^"]*)?" by( its)*(?: "([^"]*)?")* (attribute|attr)
 // ---------------------------------------------------------------------------
 When(/^(I |we )*fill in "([^"]*)?" for "([^"]*)?" by( its)*(?: "([^"]*)?")* (attribute|attr)$/, async function (pronounCase, txtValue, attrValue, itsCase, attr, attrWord) {
-  const selector = buildSelector(attrValue, attr);
-  await this.page.waitForSelector(selector, { timeout: 5000 });
-  await this.page.fill(selector, txtValue);
+  await this.page.locator(buildSelector(attrValue, attr)).first().fill(txtValue);
 });
 
 // ---------------------------------------------------------------------------
 // When I fill in the following: (table by label)
-// Captures: (pronounCase, theCase) = 2; table is passed as extra arg
+// Captures: (pronounCase, theCase) = 2
 // ---------------------------------------------------------------------------
 When(/^(I |we )*fill in( the)* following:$/, async function (pronounCase, theCase, table) {
-  const rows = table.raw();
-  for (const row of rows) {
-    const field = row[0], value = row[1];
-    const labelLocator = this.page.getByLabel(field, { exact: true });
-    if (await labelLocator.count() > 0) {
-      await labelLocator.fill(value);
-    } else {
-      const loc = this.page.locator(`[placeholder="${field}"]`);
-      if (await loc.count() > 0) {
-        await loc.first().fill(value);
-      } else {
-        await this.page.locator(`[name="${field}"]`).first().fill(value);
-      }
-    }
+  for (const [field, value] of table.raw()) {
+    await fillField(this.page, field, value);
   }
 });
 
 // ---------------------------------------------------------------------------
 // When I fill in the following: by attr (table by attribute)
-// Captures: (pronounCase, theCase, itsCase, attr, attrWord) = 5; table is extra arg
-// Pattern: (I |we )* fill in( the)* following: by( its)*(?: "([^"]*)?")* (attribute|attr)
+// Captures: (pronounCase, theCase, itsCase, attr, attrWord) = 5
 // ---------------------------------------------------------------------------
 When(/^(I |we )*fill in( the)* following: by( its)*(?: "([^"]*)?")* (attribute|attr)$/, async function (pronounCase, theCase, itsCase, attr, attrWord, table) {
-  const rows = table.raw();
-  for (const row of rows) {
-    const sel = buildSelector(row[0], attr), value = row[1];
-    await this.page.waitForSelector(sel, { timeout: 5000 });
-    await this.page.fill(sel, value);
+  for (const [attrValue, value] of table.raw()) {
+    await this.page.locator(buildSelector(attrValue, attr)).first().fill(value);
   }
 });
 
@@ -423,37 +340,18 @@ When(/^(I |we )*fill in( the)* following: by( its)*(?: "([^"]*)?")* (attribute|a
 // Captures: (pronounCase, option, selectList) = 3
 // ---------------------------------------------------------------------------
 When(/^(I |we )*select "([^"]*)?" from "([^"]*)?"$/, async function (pronounCase, option, selectList) {
-  let selector;
-  const hasASpace = selectList.indexOf(' ');
+  let loc;
   if (selectList.startsWith('#') || selectList.startsWith('.')) {
-    selector = selectList;
-  } else if (hasASpace === -1) {
-    selector = '[name="' + selectList + '"],[id="' + selectList + '"],[class="' + selectList + '"]';
+    loc = this.page.locator(selectList);
+  } else if (!selectList.includes(' ')) {
+    loc = this.page.locator(`[name="${selectList}"], #${selectList}`).first();
   } else {
-    const labelEl = this.page.getByText(selectList, { exact: true });
-    const forAttr = await labelEl.getAttribute('for');
-    selector = forAttr ? '#' + forAttr : null;
+    loc = this.page.getByLabel(selectList, { exact: true });
   }
-
-  if (selector) {
-    await this.page.waitForSelector(selector, { timeout: 10000 });
-    const handled = await this.page.evaluate(({ sel, opt }) => {
-      const el = document.querySelector(sel);
-      if (!el) return false;
-      const optLower = opt.toLowerCase();
-      for (const o of el.options) {
-        if (o.value.toLowerCase() === optLower || o.text.toLowerCase() === optLower) {
-          el.value = o.value;
-          el.dispatchEvent(new Event('change', { bubbles: true }));
-          el.dispatchEvent(new Event('input', { bubbles: true }));
-          return true;
-        }
-      }
-      return false;
-    }, { sel: selector, opt: option });
-    assert.ok(handled, `Could not find option "${option}" in select "${selectList}"`);
-  } else {
-    assert.fail(`Could not find select element for "${selectList}"`);
+  try {
+    await loc.selectOption({ label: option }, { timeout: 3000 });
+  } catch {
+    await loc.selectOption(option);
   }
 });
 
@@ -462,34 +360,16 @@ When(/^(I |we )*select "([^"]*)?" from "([^"]*)?"$/, async function (pronounCase
 // Captures: (pronounCase, item) = 2
 // ---------------------------------------------------------------------------
 When(/^(I |we )*check "([^"]*)?"$/, async function (pronounCase, item) {
-  const found = await this.page.evaluate((checkboxItem) => {
-    function check(el) {
-      if (!el) return false;
-      el.checked = true;
-      el.dispatchEvent(new Event('change', { bubbles: true }));
-      return true;
+  if (item.startsWith('#') || item.startsWith('.')) {
+    await this.page.locator(item).check();
+  } else {
+    const byLabel = this.page.getByLabel(item, { exact: true });
+    if (await byLabel.count() > 0) {
+      await byLabel.check();
+    } else {
+      await this.page.locator(`input[type="checkbox"][id="${item}"], input[type="checkbox"][name="${item}"], input[type="checkbox"][value="${item}"]`).first().check();
     }
-    if (checkboxItem.startsWith('#') || checkboxItem.startsWith('.')) {
-      return check(document.querySelector(checkboxItem));
-    }
-    // By id, name, or value
-    const byAttr = document.querySelector(
-      `input[type="checkbox"][id="${checkboxItem}"],input[type="checkbox"][name="${checkboxItem}"],input[type="checkbox"][value="${checkboxItem}"]`
-    );
-    if (byAttr) return check(byAttr);
-    // By label text
-    for (const label of document.querySelectorAll('label')) {
-      const text = (label.textContent || label.innerText || '').trim();
-      if (text === checkboxItem) {
-        const forAttr = label.getAttribute('for');
-        if (forAttr) return check(document.getElementById(forAttr));
-        const nested = label.querySelector('input[type="checkbox"]');
-        if (nested) return check(nested);
-      }
-    }
-    return false;
-  }, item);
-  assert.ok(found, `Checkbox "${item}" was not found`);
+  }
 });
 
 // ---------------------------------------------------------------------------
@@ -497,34 +377,16 @@ When(/^(I |we )*check "([^"]*)?"$/, async function (pronounCase, item) {
 // Captures: (pronounCase, item) = 2
 // ---------------------------------------------------------------------------
 When(/^(I |we )*uncheck "([^"]*)?"$/, async function (pronounCase, item) {
-  const found = await this.page.evaluate((checkboxItem) => {
-    function uncheck(el) {
-      if (!el) return false;
-      el.checked = false;
-      el.dispatchEvent(new Event('change', { bubbles: true }));
-      return true;
+  if (item.startsWith('#') || item.startsWith('.')) {
+    await this.page.locator(item).uncheck();
+  } else {
+    const byLabel = this.page.getByLabel(item, { exact: true });
+    if (await byLabel.count() > 0) {
+      await byLabel.uncheck();
+    } else {
+      await this.page.locator(`input[type="checkbox"][id="${item}"], input[type="checkbox"][name="${item}"], input[type="checkbox"][value="${item}"]`).first().uncheck();
     }
-    if (checkboxItem.startsWith('#') || checkboxItem.startsWith('.')) {
-      return uncheck(document.querySelector(checkboxItem));
-    }
-    // By id, name, or value
-    const byAttr = document.querySelector(
-      `input[type="checkbox"][id="${checkboxItem}"],input[type="checkbox"][name="${checkboxItem}"],input[type="checkbox"][value="${checkboxItem}"]`
-    );
-    if (byAttr) return uncheck(byAttr);
-    // By label text
-    for (const label of document.querySelectorAll('label')) {
-      const text = (label.textContent || label.innerText || '').trim();
-      if (text === checkboxItem) {
-        const forAttr = label.getAttribute('for');
-        if (forAttr) return uncheck(document.getElementById(forAttr));
-        const nested = label.querySelector('input[type="checkbox"]');
-        if (nested) return uncheck(nested);
-      }
-    }
-    return false;
-  }, item);
-  assert.ok(found, `Checkbox "${item}" was not found`);
+  }
 });
 
 // ---------------------------------------------------------------------------
@@ -532,52 +394,16 @@ When(/^(I |we )*uncheck "([^"]*)?"$/, async function (pronounCase, item) {
 // Captures: (pronounCase, item) = 2
 // ---------------------------------------------------------------------------
 When(/^(I |we )*select radio button "([^"]*)?"$/, async function (pronounCase, item) {
-  const found = await this.page.evaluate((radioItem) => {
-    if (radioItem.startsWith('#') || radioItem.startsWith('.')) {
-      const el = document.querySelector(radioItem);
-      if (el && el.type === 'radio') {
-        el.checked = true;
-        el.dispatchEvent(new Event('click', { bubbles: true }));
-        el.dispatchEvent(new Event('change', { bubbles: true }));
-        return true;
-      }
-      return false;
+  if (item.startsWith('#') || item.startsWith('.')) {
+    await this.page.locator(item).check();
+  } else {
+    const byValue = this.page.locator(`input[type="radio"][value="${item}"]`);
+    if (await byValue.count() > 0) {
+      await byValue.first().check();
+    } else {
+      await this.page.getByLabel(item, { exact: true }).check();
     }
-    // By value
-    for (const rb of document.querySelectorAll('input[type="radio"]')) {
-      if (rb.value === radioItem) {
-        rb.checked = true;
-        rb.dispatchEvent(new Event('click', { bubbles: true }));
-        rb.dispatchEvent(new Event('change', { bubbles: true }));
-        return true;
-      }
-    }
-    // By label
-    for (const label of document.querySelectorAll('label')) {
-      const text = (label.textContent || label.innerText || '').trim();
-      if (text === radioItem) {
-        const forAttr = label.getAttribute('for');
-        if (forAttr) {
-          const el = document.getElementById(forAttr);
-          if (el && el.type === 'radio') {
-            el.checked = true;
-            el.dispatchEvent(new Event('click', { bubbles: true }));
-            el.dispatchEvent(new Event('change', { bubbles: true }));
-            return true;
-          }
-        }
-        const radioInput = label.querySelector('input[type="radio"]');
-        if (radioInput) {
-          radioInput.checked = true;
-          radioInput.dispatchEvent(new Event('click', { bubbles: true }));
-          radioInput.dispatchEvent(new Event('change', { bubbles: true }));
-          return true;
-        }
-      }
-    }
-    return false;
-  }, item);
-  assert.ok(found, `Radio button "${item}" was not found`);
+  }
 });
 
 // ---------------------------------------------------------------------------
@@ -613,26 +439,21 @@ Then(/^(I |we )*should( not)* be on( the)* "([^"]*)?"( page)*$/, async function 
 // Captures: (theCase, element, url) = 3
 // ---------------------------------------------------------------------------
 Then(/^(the )*"([^"]*)?" link should contain "([^"]*)?"$/, async function (theCase, element, url) {
-  const el = this.page.getByText(element, { exact: true });
-  await el.waitFor({ timeout: 5000 });
-  const href = await el.evaluate((node) => node.href || node.getAttribute('href') || '');
-  assert.ok(href && href.includes(url), `Expected link "${element}" href to contain "${url}" but got "${href}"`);
+  const loc = this.page.getByText(element, { exact: true }).first();
+  await loc.waitFor({ timeout: 5000 });
+  const href = await loc.evaluate(el => el.href || el.getAttribute('href') || '');
+  assert.ok(href.includes(url), `Expected link "${element}" href to contain "${url}" but got "${href}"`);
 });
 
 // ---------------------------------------------------------------------------
 // Then the "#about-us-id" link should contain "about" by attr
-// Captures: (theCase, attrValue, url, itsCase, attrQuote, attr, attrWord) = 7
-// Pattern: (the )* "([^"]*)?" link should contain "([^"]*)?" by( its)*(?: "([^"]*)?")* (attribute|attr)
-// Groups: 1=theCase, 2=attrValue, 3=url, 4=itsCase, 5=attr, 6=attrWord
+// Captures: (theCase, attrValue, url, itsCase, attr, attrWord) = 6
 // ---------------------------------------------------------------------------
 Then(/^(the )*"([^"]*)?" link should contain "([^"]*)?" by( its)*(?: "([^"]*)?")* (attribute|attr)$/, async function (theCase, attrValue, url, itsCase, attr, attrWord) {
-  const selector = buildSelector(attrValue, attr);
-  await this.page.waitForSelector(selector, { timeout: 5000 });
-  const href = await this.page.evaluate((sel) => {
-    const el = document.querySelector(sel);
-    return el ? (el.href || el.getAttribute('href') || '') : '';
-  }, selector);
-  assert.ok(href && href.includes(url), `Expected element "${selector}" href to contain "${url}" but got "${href}"`);
+  const loc = this.page.locator(buildSelector(attrValue, attr)).first();
+  await loc.waitFor({ timeout: 5000 });
+  const href = await loc.evaluate(el => el.href || el.getAttribute('href') || '');
+  assert.ok(href.includes(url), `Expected element href to contain "${url}" but got "${href}"`);
 });
 
 // ---------------------------------------------------------------------------
@@ -640,85 +461,42 @@ Then(/^(the )*"([^"]*)?" link should contain "([^"]*)?" by( its)*(?: "([^"]*)?")
 // Captures: (theCase, notCase, expectedText) = 3
 // ---------------------------------------------------------------------------
 Then(/^(the )*response should( not)* contain "([^"]*)?"$/, async function (theCase, notCase, expectedText) {
-  const bodyText = await this.page.evaluate(() => document.documentElement.textContent || '');
+  const text = await this.page.locator('html').textContent() || '';
   if (notCase) {
-    assert.ok(!bodyText.includes(expectedText), `Response should NOT contain "${expectedText}" but it does.`);
+    assert.ok(!text.includes(expectedText), `Response should NOT contain "${expectedText}" but it does.`);
   } else {
-    assert.ok(bodyText.includes(expectedText), `Response should contain "${expectedText}" but it does not.`);
+    assert.ok(text.includes(expectedText), `Response should contain "${expectedText}" but it does not.`);
   }
 });
 
 // ---------------------------------------------------------------------------
 // Then I should see "John Smith" in the "Username" element
 // Captures: (pronounCase, notCase, expectedText, theCase, element) = 5
-// Pattern: (I |we )* should( not)* see "([^"]*)?" in( the)* "([^"]*)?" element
-// Groups: 1, 2, 3, 4=theCase, 5=element
 // ---------------------------------------------------------------------------
 Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* "([^"]*)?" element$/, async function (pronounCase, notCase, expectedText, theCase, element) {
-  const labelEl = this.page.getByText(element, { exact: true });
-  const forAttr = await labelEl.getAttribute('for');
-  const selector = forAttr ? '#' + forAttr : element;
-  await this.page.waitForSelector(selector, { timeout: 5000 });
+  const forAttr = await this.page.getByText(element, { exact: true }).getAttribute('for').catch(() => null);
+  const loc = this.page.locator(forAttr ? '#' + forAttr : element).first();
+  await loc.waitFor({ timeout: 5000 });
+  const content = await getLocatorText(loc);
   if (notCase) {
-    const content = await this.page.evaluate((sel) => {
-      const el = document.querySelector(sel);
-      if (!el) return null;
-      return el.textContent || el.innerText || el.value || '';
-    }, selector);
-    assert.ok(content !== null, `Element "${selector}" not found`);
     assert.ok(!content.includes(expectedText), `Element should NOT contain "${expectedText}" but it does.`);
   } else {
-    try {
-      await this.page.waitForFunction(({ sel, text }) => {
-        const el = document.querySelector(sel);
-        if (!el) return false;
-        return (el.textContent || el.innerText || el.value || '').includes(text);
-      }, { sel: selector, text: expectedText }, { timeout: 5000 });
-    } catch (_) {
-      const content = await this.page.evaluate((sel) => {
-        const el = document.querySelector(sel);
-        if (!el) return null;
-        return el.textContent || el.innerText || el.value || '';
-      }, selector);
-      assert.ok(content !== null, `Element "${selector}" not found`);
-      assert.ok(content.includes(expectedText), `Element should contain "${expectedText}" but it does not.`);
-    }
+    assert.ok(content.includes(expectedText), `Element should contain "${expectedText}" but it does not.`);
   }
 });
 
 // ---------------------------------------------------------------------------
 // Then I should see "John Smith" in the "uname" element by attr
-// Captures: (pronounCase, notCase, expectedText, theCase, attrValue, itsCase, attrQuote, attr, attrWord) = 9
-// Pattern: (I |we )* should( not)* see "([^"]*)?" in( the)* "([^"]*)?" element by( its)*(?: "([^"]*)?")* (attribute|attr)
-// Groups: 1, 2, 3, 4, 5=attrValue, 6=itsCase, 7=attr, 8=attrWord
+// Captures: (pronounCase, notCase, expectedText, theCase, attrValue, itsCase, attr, attrWord) = 8
 // ---------------------------------------------------------------------------
 Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* "([^"]*)?" element by( its)*(?: "([^"]*)?")* (attribute|attr)$/, async function (pronounCase, notCase, expectedText, theCase, attrValue, itsCase, attr, attrWord) {
-  const selector = buildSelector(attrValue, attr);
-  await this.page.waitForSelector(selector, { timeout: 10000 });
+  const loc = this.page.locator(buildSelector(attrValue, attr)).first();
+  await loc.waitFor({ timeout: 10000 });
+  const content = await getLocatorText(loc);
   if (notCase) {
-    const content = await this.page.evaluate((sel) => {
-      const el = document.querySelector(sel);
-      if (!el) return null;
-      return el.textContent || el.innerText || el.value || '';
-    }, selector);
-    assert.ok(content !== null, `Element "${selector}" not found`);
     assert.ok(!content.includes(expectedText), `Element should NOT contain "${expectedText}" but it does.`);
   } else {
-    try {
-      await this.page.waitForFunction(({ sel, text }) => {
-        const el = document.querySelector(sel);
-        if (!el) return false;
-        return (el.textContent || el.innerText || el.value || '').includes(text);
-      }, { sel: selector, text: expectedText }, { timeout: 5000 });
-    } catch (_) {
-      const content = await this.page.evaluate((sel) => {
-        const el = document.querySelector(sel);
-        if (!el) return null;
-        return el.textContent || el.innerText || el.value || '';
-      }, selector);
-      assert.ok(content !== null, `Element "${selector}" not found`);
-      assert.ok(content.includes(expectedText), `Element should contain "${expectedText}" but it does not.`);
-    }
+    assert.ok(content.includes(expectedText), `Element should contain "${expectedText}" but it does not.`);
   }
 });
 
@@ -728,56 +506,45 @@ Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* "([^"]*)?" element by( it
 // ---------------------------------------------------------------------------
 Then(/^(I |we )*should( not)* see (a|an) "([^"]*)?" element$/, async function (pronounCase, notCase, aAnCase, element) {
   if (notCase) {
-    const bodyText = await this.page.evaluate(() => document.documentElement.innerText || document.documentElement.textContent);
-    assert.ok(!bodyText.includes(element), `Page should NOT contain element text "${element}" but it does.`);
+    const text = await this.page.locator('body').textContent() || '';
+    assert.ok(!text.includes(element), `Page should NOT contain element text "${element}" but it does.`);
   } else {
-    const labelEl = this.page.getByText(element, { exact: true });
-    const forAttr = await labelEl.getAttribute('for');
+    const loc = this.page.getByText(element, { exact: true }).first();
+    const forAttr = await loc.getAttribute('for').catch(() => null);
     if (forAttr) {
-      await this.page.waitForSelector('#' + forAttr, { timeout: 3000 });
-      const visible = await this.page.isVisible('#' + forAttr);
-      assert.ok(visible, `Element "#${forAttr}" should be visible but is not.`);
+      await this.page.locator('#' + forAttr).waitFor({ state: 'visible', timeout: 3000 });
     } else {
-      const visible = await labelEl.isVisible();
-      assert.ok(visible, `Element with text "${element}" should be visible but is not.`);
+      await loc.waitFor({ state: 'visible', timeout: 3000 });
     }
   }
 });
 
 // ---------------------------------------------------------------------------
 // Then I should see a "uname" element by attr
-// Captures: (pronounCase, notCase, aAnCase, attrValue, itsCase, attrQuote, attr, attrWord) = 8
-// Pattern: (I |we )* should( not)* see (a|an) "([^"]*)?" element by( its)*(?: "([^"]*)?")* (attribute|attr)
-// Groups: 1, 2, 3, 4=attrValue, 5=itsCase, 6=attr, 7=attrWord
+// Captures: (pronounCase, notCase, aAnCase, attrValue, itsCase, attr, attrWord) = 7
 // ---------------------------------------------------------------------------
 Then(/^(I |we )*should( not)* see (a|an) "([^"]*)?" element by( its)*(?: "([^"]*)?")* (attribute|attr)$/, async function (pronounCase, notCase, aAnCase, attrValue, itsCase, attr, attrWord) {
-  const selector = buildSelector(attrValue, attr);
+  const loc = this.page.locator(buildSelector(attrValue, attr));
   if (notCase) {
-    const present = await this.page.locator(selector).count();
-    assert.strictEqual(present, 0, `Element "${selector}" should NOT be present but it is.`);
+    assert.strictEqual(await loc.count(), 0, `Element should NOT be present but it is.`);
   } else {
-    await this.page.waitForSelector(selector, { timeout: 3000, state: 'visible' });
-    const visible = await this.page.isVisible(selector);
-    assert.ok(visible, `Element "${selector}" should be visible but is not.`);
+    await loc.first().waitFor({ state: 'visible', timeout: 3000 });
   }
 });
 
 // ---------------------------------------------------------------------------
 // Then the "body" element should contain "color:white;"
-// Captures: (theCase, selector, notCase, elementCss) = 4
+// Captures: (theCase, selectorRaw, notCase, elementCss) = 4
 // ---------------------------------------------------------------------------
 Then(/^(the )*"([^"]*)?" element should( not)* contain "([^"]*)?"$/, async function (theCase, selectorRaw, notCase, elementCss) {
-  const selector = buildSelector(selectorRaw);
   const cssClean = elementCss.replace(/;$/, '');
   const colonIdx = cssClean.indexOf(':');
   const cssProperty = cssClean.substring(0, colonIdx).trim();
   const expectedValue = cssClean.substring(colonIdx + 1).trim();
 
-  await this.page.waitForSelector(selector, { timeout: 10000 });
-  const matches = await this.page.evaluate(({ sel, prop, expectedVal }) => {
-    const el = document.querySelector(sel);
-    if (!el) return null;
-
+  const loc = this.page.locator(buildSelector(selectorRaw)).first();
+  await loc.waitFor({ timeout: 10000 });
+  const matches = await loc.evaluate((el, { prop, expectedVal }) => {
     function colorToRgb(color) {
       const canvas = document.createElement('canvas');
       canvas.width = canvas.height = 1;
@@ -788,43 +555,26 @@ Then(/^(the )*"([^"]*)?" element should( not)* contain "([^"]*)?"$/, async funct
       const d = ctx.getImageData(0, 0, 1, 1).data;
       return 'rgb(' + d[0] + ', ' + d[1] + ', ' + d[2] + ')';
     }
-
-    function isValidColor(value) {
-      const result = colorToRgb(value);
-      return result !== 'rgb(1, 2, 3)';
-    }
-
+    function isValidColor(value) { return colorToRgb(value) !== 'rgb(1, 2, 3)'; }
     function normalizeColorTokens(value) {
-      return value.replace(/rgb\([^)]+\)|rgba\([^)]+\)|#[0-9a-fA-F]+|\b[a-zA-Z]+\b/g, (token) => {
-        if (isValidColor(token)) return colorToRgb(token);
-        return token;
-      });
+      return value.replace(/rgb\([^)]+\)|rgba\([^)]+\)|#[0-9a-fA-F]+|\b[a-zA-Z]+\b/g,
+        (token) => isValidColor(token) ? colorToRgb(token) : token);
     }
-
     function tokenize(value) {
-      const tokens = [];
-      const regex = /rgb\([^)]+\)|rgba\([^)]+\)|[^\s]+/g;
+      const tokens = [], regex = /rgb\([^)]+\)|rgba\([^)]+\)|[^\s]+/g;
       let m;
       while ((m = regex.exec(value)) !== null) tokens.push(m[0]);
       return tokens;
     }
-
     const computed = window.getComputedStyle(el).getPropertyValue(prop).trim();
+    return tokenize(normalizeColorTokens(expectedVal.toLowerCase()))
+      .every(token => normalizeColorTokens(computed.toLowerCase()).includes(token));
+  }, { prop: cssProperty, expectedVal: expectedValue });
 
-    const normalizedExpected = normalizeColorTokens(expectedVal.toLowerCase());
-    const normalizedComputed = normalizeColorTokens(computed.toLowerCase());
-
-    const expectedTokens = tokenize(normalizedExpected);
-    const allMatch = expectedTokens.every(token => normalizedComputed.includes(token));
-
-    return allMatch;
-  }, { sel: selector, prop: cssProperty, expectedVal: expectedValue });
-
-  assert.ok(matches !== null, `Element "${selector}" was not found`);
   if (notCase) {
-    assert.ok(!matches, `Element "${selector}" should NOT have CSS "${cssProperty}: ${expectedValue}" but it does.`);
+    assert.ok(!matches, `Element should NOT have CSS "${cssProperty}: ${expectedValue}" but it does.`);
   } else {
-    assert.ok(matches, `Element "${selector}" should have CSS "${cssProperty}: ${expectedValue}".`);
+    assert.ok(matches, `Element should have CSS "${cssProperty}: ${expectedValue}".`);
   }
 });
 
@@ -835,22 +585,16 @@ Then(/^(the )*"([^"]*)?" element should( not)* contain "([^"]*)?"$/, async funct
 Then(/^(the )*"([^"]*)?" field should( not)* contain "([^"]*)?"$/, async function (theCase, field, notCase, expectedText) {
   let selector = field;
   if (!field.startsWith('#') && !field.startsWith('.')) {
-    try {
-      const labelEl = this.page.getByText(field, { exact: true });
-      const forAttr = await labelEl.getAttribute('for');
-      if (forAttr) selector = '#' + forAttr;
-    } catch (_) { /* use field as selector */ }
+    const forAttr = await this.page.getByText(field, { exact: true }).getAttribute('for').catch(() => null);
+    if (forAttr) selector = '#' + forAttr;
   }
-  await this.page.waitForSelector(selector, { timeout: 5000 });
-  const content = await this.page.evaluate((sel) => {
-    const el = document.querySelector(sel);
-    if (!el) return null;
-    return el.textContent || el.innerText || el.value || '';
-  }, selector);
+  const loc = this.page.locator(selector).first();
+  await loc.waitFor({ timeout: 5000 });
+  const content = await getLocatorText(loc);
   if (notCase) {
-    assert.ok(!content.includes(expectedText), `Field "${selector}" should NOT contain "${expectedText}" but it does.`);
+    assert.ok(!content.includes(expectedText), `Field should NOT contain "${expectedText}" but it does.`);
   } else {
-    assert.ok(content.includes(expectedText), `Field "${selector}" should contain "${expectedText}" but it does not.`);
+    assert.ok(content.includes(expectedText), `Field should contain "${expectedText}" but it does not.`);
   }
 });
 
@@ -859,12 +603,7 @@ Then(/^(the )*"([^"]*)?" field should( not)* contain "([^"]*)?"$/, async functio
 // Captures: (theCase, checkbox, notCase) = 3
 // ---------------------------------------------------------------------------
 Then(/^(the )*"([^"]*)?" checkbox should( not)* be checked$/, async function (theCase, checkbox, notCase) {
-  await this.page.waitForSelector(checkbox, { timeout: 10000 });
-  const isChecked = await this.page.evaluate((sel) => {
-    const el = document.querySelector(sel);
-    return el ? el.checked : null;
-  }, checkbox);
-  assert.ok(isChecked !== null, `Checkbox "${checkbox}" was not found`);
+  const isChecked = await this.page.locator(checkbox).isChecked();
   if (notCase) {
     assert.ok(!isChecked, `Checkbox "${checkbox}" should NOT be checked but it is.`);
   } else {
@@ -877,8 +616,7 @@ Then(/^(the )*"([^"]*)?" checkbox should( not)* be checked$/, async function (th
 // Captures: (theCase, checkbox, notCase) = 3
 // ---------------------------------------------------------------------------
 Then(/^(the )*"([^"]*)?" checkbox is( not)* checked$/, async function (theCase, checkbox, notCase) {
-  await this.page.waitForSelector(checkbox, { timeout: 5000 });
-  const isChecked = await this.page.isChecked(checkbox);
+  const isChecked = await this.page.locator(checkbox).isChecked();
   if (notCase) {
     assert.ok(!isChecked, `Checkbox "${checkbox}" should NOT be checked but it is.`);
   } else {
@@ -891,12 +629,7 @@ Then(/^(the )*"([^"]*)?" checkbox is( not)* checked$/, async function (theCase, 
 // Captures: (theCase, checkbox, notCase) = 3
 // ---------------------------------------------------------------------------
 Then(/^(the )*checkbox "([^"]*)?" should( not)* be checked$/, async function (theCase, checkbox, notCase) {
-  await this.page.waitForSelector(checkbox, { timeout: 10000 });
-  const isChecked = await this.page.evaluate((sel) => {
-    const el = document.querySelector(sel);
-    return el ? el.checked : null;
-  }, checkbox);
-  assert.ok(isChecked !== null, `Checkbox "${checkbox}" was not found`);
+  const isChecked = await this.page.locator(checkbox).isChecked();
   if (notCase) {
     assert.ok(!isChecked, `Checkbox "${checkbox}" should NOT be checked but it is.`);
   } else {
@@ -909,12 +642,7 @@ Then(/^(the )*checkbox "([^"]*)?" should( not)* be checked$/, async function (th
 // Captures: (theCase, checkbox, notCase) = 3
 // ---------------------------------------------------------------------------
 Then(/^(the )*checkbox "([^"]*)?" is( not)* checked$/, async function (theCase, checkbox, notCase) {
-  await this.page.waitForSelector(checkbox, { timeout: 10000 });
-  const isChecked = await this.page.evaluate((sel) => {
-    const el = document.querySelector(sel);
-    return el ? el.checked : null;
-  }, checkbox);
-  assert.ok(isChecked !== null, `Checkbox "${checkbox}" was not found`);
+  const isChecked = await this.page.locator(checkbox).isChecked();
   if (notCase) {
     assert.ok(!isChecked, `Checkbox "${checkbox}" should NOT be checked but it is.`);
   } else {
@@ -927,16 +655,11 @@ Then(/^(the )*checkbox "([^"]*)?" is( not)* checked$/, async function (theCase, 
 // Captures: (theCase, radioButton, notCase) = 3
 // ---------------------------------------------------------------------------
 Then(/^(the )*radio button "([^"]*)?" should( not)* be selected$/, async function (theCase, radioButton, notCase) {
-  await this.page.waitForSelector(radioButton, { timeout: 10000 });
-  const isSelected = await this.page.evaluate((sel) => {
-    const el = document.querySelector(sel);
-    return el && el.type === 'radio' ? el.checked : null;
-  }, radioButton);
-  assert.ok(isSelected !== null, `Radio button "${radioButton}" was not found`);
+  const isChecked = await this.page.locator(radioButton).isChecked();
   if (notCase) {
-    assert.ok(!isSelected, `Radio button "${radioButton}" should NOT be selected but it is.`);
+    assert.ok(!isChecked, `Radio button "${radioButton}" should NOT be selected but it is.`);
   } else {
-    assert.ok(isSelected, `Radio button "${radioButton}" should be selected but it is not.`);
+    assert.ok(isChecked, `Radio button "${radioButton}" should be selected but it is not.`);
   }
 });
 
@@ -945,17 +668,11 @@ Then(/^(the )*radio button "([^"]*)?" should( not)* be selected$/, async functio
 // Captures: (theCase, radioValue, notCase) = 3
 // ---------------------------------------------------------------------------
 Then(/^(the )*radio button with value "([^"]*)?" should( not)* be selected$/, async function (theCase, radioValue, notCase) {
-  const isSelected = await this.page.evaluate((value) => {
-    for (const rb of document.querySelectorAll('input[type="radio"]')) {
-      if (rb.value === value) return rb.checked;
-    }
-    return null;
-  }, radioValue);
-  assert.ok(isSelected !== null, `Radio button with value "${radioValue}" was not found`);
+  const isChecked = await this.page.locator(`input[type="radio"][value="${radioValue}"]`).first().isChecked();
   if (notCase) {
-    assert.ok(!isSelected, `Radio button with value "${radioValue}" should NOT be selected but it is.`);
+    assert.ok(!isChecked, `Radio button with value "${radioValue}" should NOT be selected but it is.`);
   } else {
-    assert.ok(isSelected, `Radio button with value "${radioValue}" should be selected but it is not.`);
+    assert.ok(isChecked, `Radio button with value "${radioValue}" should be selected but it is not.`);
   }
 });
 
@@ -964,8 +681,7 @@ Then(/^(the )*radio button with value "([^"]*)?" should( not)* be selected$/, as
 // Captures: (theCase, radioButton, notCase) = 3
 // ---------------------------------------------------------------------------
 Then(/^(the )*"([^"]*)?" radio button is( not)* selected$/, async function (theCase, radioButton, notCase) {
-  await this.page.waitForSelector(radioButton, { timeout: 5000 });
-  const isChecked = await this.page.isChecked(radioButton);
+  const isChecked = await this.page.locator(radioButton).isChecked();
   if (notCase) {
     assert.ok(!isChecked, `Radio button "${radioButton}" should NOT be selected but it is.`);
   } else {
@@ -1002,8 +718,7 @@ Then(/^(the )*response status code should( not)* be (\d+)$/, async function (the
 // Captures: (pronounCase, notCase, textPattern) = 3
 // ---------------------------------------------------------------------------
 Then(/^(I |we )*should( not)* see text matching "([^"]*)?"$/, async function (pronounCase, notCase, textPattern) {
-  await this.page.waitForSelector('body', { timeout: 5000 });
-  const bodyText = await this.page.evaluate(() => document.body.innerText || document.body.textContent || '');
+  const bodyText = await this.page.evaluate(() => document.body.innerText || '');
   const regex = new RegExp(textPattern);
   if (notCase) {
     assert.ok(!regex.test(bodyText), `Page text should NOT match "${textPattern}" but it does.`);
@@ -1015,15 +730,11 @@ Then(/^(I |we )*should( not)* see text matching "([^"]*)?"$/, async function (pr
 // ---------------------------------------------------------------------------
 // Then I should see text matching "..." in the "#date" element
 // Captures: (pronounCase, notCase, textPattern, theCase, element) = 5
-// Pattern: (I |we )* should( not)* see text matching "([^"]*)?" in( the)* "([^"]*)?" element
-// Groups: 1, 2, 3, 4=theCase, 5=element
 // ---------------------------------------------------------------------------
 Then(/^(I |we )*should( not)* see text matching "([^"]*)?" in( the)* "([^"]*)?" element$/, async function (pronounCase, notCase, textPattern, theCase, element) {
-  await this.page.waitForSelector(element, { timeout: 5000 });
-  const text = await this.page.evaluate((sel) => {
-    const el = document.querySelector(sel);
-    return el ? (el.textContent || el.innerText || el.value || '') : '';
-  }, element);
+  const loc = this.page.locator(element).first();
+  await loc.waitFor({ timeout: 5000 });
+  const text = await getLocatorText(loc);
   const regex = new RegExp(textPattern);
   if (notCase) {
     assert.ok(!regex.test(text), `Element "${element}" text should NOT match "${textPattern}" but it does.`);
@@ -1037,7 +748,6 @@ Then(/^(I |we )*should( not)* see text matching "([^"]*)?" in( the)* "([^"]*)?" 
 // Captures: (theCase, notCase, pattern) = 3
 // ---------------------------------------------------------------------------
 Then(/^(the )*url should( not)* match "([^"]*)?"$/, async function (theCase, notCase, pattern) {
-  await this.page.waitForSelector('body', { timeout: 5000 });
   const currentUrl = this.page.url();
   const regex = new RegExp(pattern);
   if (notCase) {
@@ -1050,13 +760,9 @@ Then(/^(the )*url should( not)* match "([^"]*)?"$/, async function (theCase, not
 // ---------------------------------------------------------------------------
 // When I attach the file "profileIcon.jpg" to "#profile-icon-upload"
 // Captures: (pronounCase, theCase, fileName, element) = 4
-// Pattern: (I |we )* attach( the)* file "([^"]*)?" to "([^"]*)?"
-// Groups: 1, 2=theCase, 3=fileName, 4=element
 // ---------------------------------------------------------------------------
 When(/^(I |we )*attach( the)* file "([^"]*)?" to "([^"]*)?"$/, async function (pronounCase, theCase, fileName, element) {
-  const localFilePath = path.resolve(this.assetsFolder, fileName);
-  await this.page.waitForSelector(element, { timeout: 5000 });
-  await this.page.locator(element).setInputFiles(localFilePath);
+  await this.page.locator(element).setInputFiles(path.resolve(this.assetsFolder, fileName));
 });
 
 // ---------------------------------------------------------------------------
@@ -1096,7 +802,6 @@ When(/^(I |we )*wait max of (\d*)( minute| minutes|m)?$/, async function (pronou
 // Captures: (pronounCase, theCase, withIs) = 3
 // ---------------------------------------------------------------------------
 When(/^(I |we )*wait until( the)* page( is)* loaded*$/, async function (pronounCase, theCase, withIs) {
-  await this.page.waitForSelector('body', { timeout: 10000 });
   await waitForPageLoad(this.page, 10000);
 });
 
@@ -1105,34 +810,24 @@ When(/^(I |we )*wait until( the)* page( is)* loaded*$/, async function (pronounC
 // Captures: (pronounCase) = 1
 // ---------------------------------------------------------------------------
 When(/^(I |we )*wait for AJAX to finish$/, async function (pronounCase) {
-  await this.page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {
-    // Not a failure if network isn't completely idle
-  });
+  await this.page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
 });
 
 // ---------------------------------------------------------------------------
 // Scroll steps
 // ---------------------------------------------------------------------------
-// When I scroll down / When I scroll down 800
-// Captures: (pronounCase, numValue) = 2
-// Pattern: (I scroll|we scroll|scrolling)? down(?: (\d+))?
-// ---------------------------------------------------------------------------
 When(/^(I scroll|we scroll|scrolling)? down(?: (\d+))?$/, async function (pronounCase, numValue) {
-  const scrollValue = numValue ? parseInt(numValue, 10) : 350;
-  await this.page.evaluate((v) => window.scrollBy(0, v), scrollValue);
+  await this.page.evaluate((v) => window.scrollBy(0, v), numValue ? parseInt(numValue, 10) : 350);
 });
 
 When(/^(I scroll|we scroll|scrolling)? up(?: (\d+))?$/, async function (pronounCase, numValue) {
-  const scrollValue = numValue ? parseInt(numValue, 10) : 350;
-  await this.page.evaluate((v) => window.scrollBy(0, -v), scrollValue);
+  await this.page.evaluate((v) => window.scrollBy(0, -v), numValue ? parseInt(numValue, 10) : 350);
 });
 
-// Captures: (pronounCase, theCase, pageCase) = 3
 When(/^(I scroll|we scroll|scrolling)? to( the)* top( of the page)*$/, async function (pronounCase, theCase, pageCase) {
-  await this.page.evaluate(() => { document.documentElement.scrollTop = 0; });
+  await this.page.evaluate(() => window.scrollTo(0, 0));
 });
 
-// Captures: (pronounCase, theCase, pageCase) = 3
 When(/^(I scroll|we scroll|scrolling)? to( the)* bottom( of the page)*$/, async function (pronounCase, theCase, pageCase) {
   await this.page.evaluate(() => {
     window.scrollTo(0, document.body.scrollHeight);
@@ -1146,92 +841,49 @@ When(/^(I scroll|we scroll|scrolling)? to( the)* bottom( of the page)*$/, async 
   });
 });
 
-// Captures: (pronounCase, selector) = 2
 When(/^(I scroll|we scroll|scrolling)? to top of "([^"]*)"$/, async function (pronounCase, selector) {
-  await this.page.waitForSelector(selector, { timeout: 5000 });
-  await this.page.evaluate((sel) => {
-    const el = document.querySelector(sel);
-    if (el) {
-      el.scrollTop = 0;
-      el.dispatchEvent(new Event('scroll', { bubbles: true }));
-    }
-  }, selector);
+  await this.page.locator(selector).evaluate(el => {
+    el.scrollTop = 0;
+    el.dispatchEvent(new Event('scroll', { bubbles: true }));
+  });
 });
 
-// Captures: (pronounCase, selector) = 2
 When(/^(I scroll|we scroll|scrolling)? to bottom of "([^"]*)"$/, async function (pronounCase, selector) {
-  await this.page.waitForSelector(selector, { timeout: 5000 });
-  await this.page.evaluate((sel) => {
-    const el = document.querySelector(sel);
-    if (el) {
-      el.scrollTop = el.scrollHeight;
-      el.dispatchEvent(new Event('scroll', { bubbles: true }));
-    }
-  }, selector);
+  await this.page.locator(selector).evaluate(el => {
+    el.scrollTop = el.scrollHeight;
+    el.dispatchEvent(new Event('scroll', { bubbles: true }));
+  });
 });
 
 When(/^(I scroll|we scroll|scrolling)? right(?: (\d+))?$/, async function (pronounCase, numValue) {
-  const scrollValue = numValue ? parseInt(numValue, 10) : 350;
-  await this.page.evaluate((v) => window.scrollBy(v, 0), scrollValue);
+  await this.page.evaluate((v) => window.scrollBy(v, 0), numValue ? parseInt(numValue, 10) : 350);
 });
 
 When(/^(I scroll|we scroll|scrolling)? left(?: (\d+))?$/, async function (pronounCase, numValue) {
-  const scrollValue = numValue ? parseInt(numValue, 10) : 350;
-  await this.page.evaluate((v) => window.scrollBy(-v, 0), scrollValue);
+  await this.page.evaluate((v) => window.scrollBy(-v, 0), numValue ? parseInt(numValue, 10) : 350);
 });
 
-// Captures: (pronounCase, theCase, pageCase) = 3
 When(/^(I scroll|we scroll|scrolling)? to( the)* start( of the page)*$/, async function (pronounCase, theCase, pageCase) {
   await this.page.evaluate(() => window.scrollTo(0, window.scrollY));
 });
 
-// Captures: (pronounCase, theCase, pageCase) = 3
 When(/^(I scroll|we scroll|scrolling)? to( the)* end( of the page)*$/, async function (pronounCase, theCase, pageCase) {
   await this.page.evaluate(() => window.scrollTo(document.body.scrollWidth, window.scrollY));
 });
 
-// Captures: (pronounCase, selector) = 2
 When(/^(I scroll|we scroll|scrolling)? to start of "([^"]*)"$/, async function (pronounCase, selector) {
-  await this.page.waitForSelector(selector, { timeout: 5000 });
-  await this.page.evaluate((sel) => {
-    const el = document.querySelector(sel);
-    if (el) el.scrollLeft = 0;
-  }, selector);
+  await this.page.locator(selector).evaluate(el => { el.scrollLeft = 0; });
 });
 
-// Captures: (pronounCase, selector) = 2
 When(/^(I scroll|we scroll|scrolling)? to end of "([^"]*)"$/, async function (pronounCase, selector) {
-  await this.page.waitForSelector(selector, { timeout: 5000 });
-  await this.page.evaluate((sel) => {
-    const el = document.querySelector(sel);
-    if (el) el.scrollLeft = el.scrollWidth;
-  }, selector);
+  await this.page.locator(selector).evaluate(el => { el.scrollLeft = el.scrollWidth; });
 });
 
 // ---------------------------------------------------------------------------
 // Modal steps
 // ---------------------------------------------------------------------------
-// Captures: (pronounCase, notCase, aTheCase, dialogCase) = 4
-// Pattern: (I |we )* should( not)* see (a |the )* modal( dialog)*
 Then(/^(I |we )*should( not)* see (a |the )*modal( dialog)*$/, async function (pronounCase, notCase, aTheCase, dialogCase) {
-  const modalSelectors = [
-    '.modal',
-    '.modal.show',
-    '.modal.in',
-    '[role="dialog"]',
-    '.dialog',
-    '.popup',
-    '.overlay',
-  ];
-  const visible = await this.page.evaluate((selectors) => {
-    for (const sel of selectors) {
-      for (const el of document.querySelectorAll(sel)) {
-        const rect = el.getBoundingClientRect();
-        if (rect.width > 0 || rect.height > 0) return true;
-      }
-    }
-    return false;
-  }, modalSelectors);
+  const visible = await isAnyModalVisible(this.page);
   if (notCase) {
     assert.ok(!visible, 'Modal dialog is visible, but it should not be.');
   } else {
@@ -1239,21 +891,11 @@ Then(/^(I |we )*should( not)* see (a |the )*modal( dialog)*$/, async function (p
   }
 });
 
-// Captures: (pronounCase, notCase, aTheCase, title) = 4
-// Pattern: (I |we )* should( not)* see (a |the )* modal with title "([^"]*)?"
 Then(/^(I |we )*should( not)* see (a |the )*modal with title "([^"]*)?"$/, async function (pronounCase, notCase, aTheCase, title) {
-  const found = await this.page.evaluate((searchTitle) => {
-    for (const modal of document.querySelectorAll('[role="dialog"], .modal, .dialog, .popup')) {
-      const rect = modal.getBoundingClientRect();
-      if (rect.width > 0 || rect.height > 0) {
-        const titleAttr = modal.getAttribute('title') || modal.getAttribute('aria-label') || '';
-        const titleEl = modal.querySelector('.modal-title, .dialog-title, h1, h2, h3');
-        const titleText = titleEl ? (titleEl.textContent || titleEl.innerText || '').trim() : '';
-        if (titleAttr.includes(searchTitle) || titleText.includes(searchTitle)) return true;
-      }
-    }
-    return false;
-  }, title);
+  const modal = this.page.locator(MODAL_SELECTOR);
+  const byHeading = modal.locator('.modal-title, .dialog-title, h1, h2, h3').filter({ hasText: title });
+  const byAttr = modal.locator(`[title*="${title}"], [aria-label*="${title}"]`);
+  const found = await byHeading.count() > 0 || await byAttr.count() > 0;
   if (notCase) {
     assert.ok(!found, `Modal with title "${title}" is visible, but it should not be.`);
   } else {
@@ -1261,22 +903,11 @@ Then(/^(I |we )*should( not)* see (a |the )*modal with title "([^"]*)?"$/, async
   }
 });
 
-// Captures: (pronounCase, notCase, aTheCase, identifier) = 4
-// Pattern: (I |we )* should( not)* see (a |the )* "([^"]*)?" modal
 Then(/^(I |we )*should( not)* see (a |the )*"([^"]*)?" modal$/, async function (pronounCase, notCase, aTheCase, identifier) {
-  const visible = await this.page.evaluate((searchId) => {
-    let modal = null;
-    if (searchId.startsWith('#') || searchId.startsWith('.')) {
-      modal = document.querySelector(searchId);
-    } else {
-      modal = document.querySelector(`#${searchId}`) ||
-              document.querySelector(`.${searchId}`) ||
-              document.querySelector(`[data-modal="${searchId}"]`);
-    }
-    if (!modal) return false;
-    const style = window.getComputedStyle(modal);
-    return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
-  }, identifier);
+  const selector = (identifier.startsWith('#') || identifier.startsWith('.'))
+    ? identifier
+    : `#${identifier}, .${identifier}, [data-modal="${identifier}"]`;
+  const visible = await this.page.locator(selector).first().isVisible();
   if (notCase) {
     assert.ok(!visible, `Modal "${identifier}" is visible, but it should not be.`);
   } else {
@@ -1284,24 +915,8 @@ Then(/^(I |we )*should( not)* see (a |the )*"([^"]*)?" modal$/, async function (
   }
 });
 
-// Captures: (pronounCase, notCase, expectedText, theCase, dialogCase) = 5
-// Pattern: (I |we )* should( not)* see "([^"]*)?" in( the)* modal( dialog)*
 Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* modal( dialog)*$/, async function (pronounCase, notCase, expectedText, theCase, dialogCase) {
-  const modalSelectors = [
-    '.modal', '.modal.show', '.modal.in',
-    '[role="dialog"]', '.dialog', '.popup',
-  ];
-  const found = await this.page.evaluate(({ selectors, text }) => {
-    for (const sel of selectors) {
-      for (const el of document.querySelectorAll(sel)) {
-        const rect = el.getBoundingClientRect();
-        if (rect.width > 0 || rect.height > 0) {
-          if ((el.textContent || el.innerText || '').includes(text)) return true;
-        }
-      }
-    }
-    return false;
-  }, { selectors: modalSelectors, text: expectedText });
+  const found = await this.page.locator(MODAL_SELECTOR).filter({ hasText: expectedText }).count() > 0;
   if (notCase) {
     assert.ok(!found, `Found "${expectedText}" in modal, but it should not be there.`);
   } else {
@@ -1309,68 +924,27 @@ Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* modal( dialog)*$/, async 
   }
 });
 
-// Captures: (pronounCase, buttonText, buttonCase, theCase, dialogCase) = 5
-// Pattern: (I |we )* click "([^"]*)?"( button)* in( the)* modal( dialog)*
 When(/^(I |we )*click "([^"]*)?"( button)* in( the)* modal( dialog)*$/, async function (pronounCase, buttonText, buttonCase, theCase, dialogCase) {
-  const result = await this.page.evaluate(({ selectors, btnText }) => {
-    for (const sel of selectors) {
-      for (const modal of document.querySelectorAll(sel)) {
-        const rect = modal.getBoundingClientRect();
-        if (rect.width > 0 || rect.height > 0) {
-          for (const el of modal.querySelectorAll('button, a, [role="button"], input[type="button"], input[type="submit"], .btn')) {
-            const text = (el.textContent || el.innerText || el.value || '').trim();
-            if (text === btnText || text.includes(btnText)) { el.click(); return { success: true }; }
-          }
-        }
-      }
-    }
-    return { success: false, error: `Could not find "${btnText}" button in modal` };
-  }, {
-    selectors: ['.modal', '.modal.show', '.modal.in', '[role="dialog"]', '.dialog', '.popup'],
-    btnText: buttonText,
-  });
-  assert.ok(result.success, result.error || `Could not click "${buttonText}" in modal`);
+  await waitForModalState(this.page, 'visible', 10000);
+  const modal = await findVisibleModal(this.page);
+  await modal.locator('button, a, [role="button"], input[type="button"], input[type="submit"], .btn')
+    .filter({ hasText: buttonText })
+    .first()
+    .click();
 });
 
-// Captures: (pronounCase, closeOrDismiss, theCase, dialogCase) = 4
-// Pattern: (I |we )* (close|dismiss)( the)* modal( dialog)*
 When(/^(I |we )*(close|dismiss)( the)* modal( dialog)*$/, async function (pronounCase, closeOrDismiss, theCase, dialogCase) {
-  await this.page.evaluate(() => {
-    const modalSelectors = ['.modal', '.modal.show', '.modal.in', '[role="dialog"]', '.dialog', '.popup'];
-    for (const sel of modalSelectors) {
-      for (const modal of document.querySelectorAll(sel)) {
-        const rect = modal.getBoundingClientRect();
-        if (rect.width > 0 || rect.height > 0) {
-          for (const btn of modal.querySelectorAll('.close, .modal-close, [data-dismiss="modal"], [aria-label="Close"], .btn-close, button[class*="close"]')) {
-            const btnRect = btn.getBoundingClientRect();
-            if (btnRect.width > 0 || btnRect.height > 0) { btn.click(); return; }
-          }
-          modal.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, bubbles: true }));
-        }
-      }
-    }
-  });
+  await waitForModalState(this.page, 'visible', 10000);
+  const modal = await findVisibleModal(this.page);
+  const closeBtn = modal.locator('.close, .modal-close, [data-dismiss="modal"], [aria-label="Close"], .btn-close, button[class*="close"]').first();
+  if (await closeBtn.isVisible()) {
+    await closeBtn.click();
+  } else {
+    await modal.press('Escape');
+  }
 });
 
-// Captures: (pronounCase, theCase, dialogCase, appearOrDisappear) = 4
-// Pattern: (I |we )* wait for( the)* modal( dialog)* to (appear|disappear)
 When(/^(I |we )*wait for( the)* modal( dialog)* to (appear|disappear)$/, async function (pronounCase, theCase, dialogCase, appearOrDisappear) {
-  const shouldAppear = appearOrDisappear === 'appear';
-  const modalSelectors = ['.modal', '.modal.show', '.modal.in', '[role="dialog"]', '.dialog', '.popup'];
-
-  const startTime = Date.now();
-  while (Date.now() - startTime < 10000) {
-    const isVisible = await this.page.evaluate((selectors) => {
-      for (const sel of selectors) {
-        for (const el of document.querySelectorAll(sel)) {
-          const rect = el.getBoundingClientRect();
-          if (rect.width > 0 || rect.height > 0) return true;
-        }
-      }
-      return false;
-    }, modalSelectors);
-    if (shouldAppear === isVisible) return;
-    await this.page.waitForTimeout(200);
-  }
-  throw new Error(`Timeout: Modal did not ${appearOrDisappear} within 10000ms`);
+  const state = appearOrDisappear === 'appear' ? 'visible' : 'hidden';
+  await waitForModalState(this.page, state, 10000);
 });
