@@ -11,7 +11,6 @@
   },
   "scripts": {
     "test": "cucumber-js --config cucumber.js; node generate-reports.js;",
-    "lint:js": "node ./node_modules/eslint/bin/eslint.js --config=.eslintrc.json .",
     "start": "http-server examples -p 8080 -s"
   },
   "repository": {
@@ -29,9 +28,6 @@
     "@cucumber/pretty-formatter": "~1",
     "axios": "~1",
     "cucumber-html-reporter": "^6.0.0",
-    "eslint": "~8",
-    "eslint-config-airbnb-base": "~15",
-    "eslint-plugin-import": "~2",
     "http-server": "^14.1.1",
     "playwright": "^1.58.2"
   }
