@@ -29,7 +29,7 @@ class PlaywrightWorld extends World {
 
   async openBrowser() {
     this.playwrightBrowser = await chromium.launch({
-      headless: false,
+      headless: true,
       slowMo: 300,
       args: [
         '--no-sandbox',
