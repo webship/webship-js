@@ -100,6 +100,17 @@ async function waitForPageLoad(page, timeout) {
 }
 
 // ---------------------------------------------------------------------------
+// Helper: navigate to a URL, tolerating empty-response errors (Firefox)
+// ---------------------------------------------------------------------------
+async function gotoUrl(page, url) {
+  try {
+    await page.goto(url, { waitUntil: 'domcontentloaded' });
+  } catch (e) {
+    if (!/NS_ERROR_NET_EMPTY_RESPONSE|net::ERR_EMPTY_RESPONSE/.test(e.message)) throw e;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Helper: fill a field located by label, placeholder, or name
 // ---------------------------------------------------------------------------
 async function fillField(page, field, value) {
@@ -184,7 +195,7 @@ async function isAnyModalVisible(page) {
 // ---------------------------------------------------------------------------
 Given(/^(I am |we are )?on( the)* (homepage|frontpage)$/, async function (pronounCase, theCase, pageCase) {
   const defaultTime = this.minWaitTime.page || 3000;
-  await this.page.goto(this.launchUrl);
+  await gotoUrl(this.page, this.launchUrl);
   await this.page.waitForSelector('body', { state: 'attached', timeout: defaultTime });
   await waitForPageLoad(this.page, defaultTime);
 });
@@ -194,7 +205,7 @@ Given(/^(I am |we are )?on( the)* (homepage|frontpage)$/, async function (pronou
 // Captures: (pronounCase, theCase, url, pageCase) = 4
 // ---------------------------------------------------------------------------
 Given(/^(I am |we are )*on( the)* "([^"]*)?"( page)*$/, async function (pronounCase, theCase, url, pageCase) {
-  await this.page.goto(this.launchUrl + url);
+  await gotoUrl(this.page, this.launchUrl + url);
   await this.page.waitForSelector('body', { state: 'attached', timeout: 10000 });
   await waitForPageLoad(this.page);
 });
@@ -205,7 +216,7 @@ Given(/^(I am |we are )*on( the)* "([^"]*)?"( page)*$/, async function (pronounC
 // ---------------------------------------------------------------------------
 When(/^(I go |I navigate |we go |we navigate |navigating )?to( the)* (homepage|frontpage)$/, async function (pronounCase, theCase, pageCase) {
   const defaultTime = this.minWaitTime.page || 3000;
-  await this.page.goto(this.launchUrl);
+  await gotoUrl(this.page, this.launchUrl);
   await this.page.waitForSelector('body', { state: 'attached', timeout: defaultTime });
   await waitForPageLoad(this.page, defaultTime);
 });
@@ -216,7 +227,7 @@ When(/^(I go |I navigate |we go |we navigate |navigating )?to( the)* (homepage|f
 // ---------------------------------------------------------------------------
 When(/^(I go |I navigate |we go |we navigate |navigating )?to "([^"]*)?"$/, async function (pronounCase, url) {
   const defaultTime = this.minWaitTime.page || 3000;
-  await this.page.goto(this.launchUrl + url);
+  await gotoUrl(this.page, this.launchUrl + url);
   await this.page.waitForSelector('body', { state: 'attached', timeout: defaultTime });
   await waitForPageLoad(this.page, defaultTime);
 });

@@ -11,6 +11,8 @@
   },
   "scripts": {
     "test": "cucumber-js --config cucumber.js; node generate-reports.js;",
+    "test:firefox": "BROWSER=firefox cucumber-js --config cucumber.js; node generate-reports.js;",
+    "test:webkit": "BROWSER=webkit cucumber-js --config cucumber.js; node generate-reports.js;",
     "start": "http-server examples -p 8080 -s"
   },
   "repository": {
