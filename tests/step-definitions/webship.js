@@ -2,7 +2,7 @@
 
 const { setWorldConstructor, World, Before, After, BeforeStep, AfterStep, setDefaultTimeout, Given, When, Then } = require('@cucumber/cucumber');
 const playwright = require('playwright');
-const playwrightConfig = require('../../playwright.config');
+const playwrightConfig = require(require('path').join(process.cwd(), 'playwright.config'));
 const assert = require('assert');
 const axios = require('axios');
 const path = require('path');
