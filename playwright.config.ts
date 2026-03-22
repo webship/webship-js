@@ -13,6 +13,7 @@ const chromiumArgs: string[] = [
   '--disable-extensions',
   '--incognito',
   '--disable-infobars',
+  '--start-maximized',
 ];
 
 interface PlaywrightConfig {
@@ -29,7 +30,7 @@ const config: PlaywrightConfig = {
     args: browser === 'chromium' ? chromiumArgs : [],
   },
   contextOptions: {
-    viewport: { width: 1600, height: 1200 },
+    viewport: null,
     ignoreHTTPSErrors: true,
   },
 };
