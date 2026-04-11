@@ -10,6 +10,7 @@
     "node": ">= 20.0"
   },
   "scripts": {
+    "postinstall": "node ./bin/postinstall.js",
     "test": "cucumber-js --config cucumber.js; node generate-reports.js;",
     "test:firefox": "BROWSER=firefox cucumber-js --config cucumber.js; node generate-reports.js;",
     "test:webkit": "BROWSER=webkit cucumber-js --config cucumber.js; node generate-reports.js;",

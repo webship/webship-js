@@ -18,13 +18,7 @@ All you need to know is at [webship-js Docs](https://webship.co/docs/webship-js/
 npm install webship-js
 ```
 
-## Install files required by the webship-js tool
-
-```
-bash <(wget -O - https://raw.githubusercontent.com/webship/wbash/v1/webship-js/v2/template.sh)
-```
-
- ## Automated Functional Acceptance Testing
+## Automated Functional Acceptance Testing
 
 ```
 npm test
