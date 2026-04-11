@@ -190,6 +190,16 @@ async function isAnyModalVisible(page) {
 }
 
 // ---------------------------------------------------------------------------
+// Given I am an anonymous user
+// Captures: (pronounCase) = 1
+// ---------------------------------------------------------------------------
+Given(/^(I am |we are )?an anonymous user$/, async function (pronounCase) {
+  await this.context.clearCookies();
+  await gotoUrl(this.page, this.launchUrl);
+  await waitForPageLoad(this.page, this.minWaitTime.page || 3000);
+});
+
+// ---------------------------------------------------------------------------
 // Given I am on homepage / frontpage
 // Captures: (pronounCase, theCase, pageCase) = 3
 // ---------------------------------------------------------------------------
