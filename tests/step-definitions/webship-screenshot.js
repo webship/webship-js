@@ -304,10 +304,7 @@ AfterStep(async function (step) {
  * Example #10: Given I am on "/partners/un.org"
  *              Then I save screenshot
  */
-When(/^I save screenshot$/, async function () {
-  await captureScreenshot(this, {});
-});
-When(/^save screenshot$/, async function () {
+When(/^(I |we )*save screenshot$/, async function (pronounCase) {
   await captureScreenshot(this, {});
 });
 
@@ -333,10 +330,7 @@ When(/^save screenshot$/, async function () {
  * Example #10: Given I am on "/long-article"
  *              Then I save fullscreen screenshot
  */
-When(/^I save fullscreen screenshot$/, async function () {
-  await captureScreenshot(this, { fullscreen: true });
-});
-When(/^save fullscreen screenshot$/, async function () {
+When(/^(I |we )*save fullscreen screenshot$/, async function (pronounCase) {
   await captureScreenshot(this, { fullscreen: true });
 });
 
@@ -359,11 +353,7 @@ When(/^save fullscreen screenshot$/, async function () {
  * Example #10: Given I am on "/un.org"
  *              Then I save 414 x 896 screenshot
  */
-When(/^I save (\d+) x (\d+) screenshot$/, async function (width, height) {
-  await this.page.setViewportSize({ width: parseInt(width, 10), height: parseInt(height, 10) });
-  await captureScreenshot(this, {});
-});
-When(/^save (\d+) x (\d+) screenshot$/, async function (width, height) {
+When(/^(I |we )*save (\d+) x (\d+) screenshot$/, async function (pronounCase, width, height) {
   await this.page.setViewportSize({ width: parseInt(width, 10), height: parseInt(height, 10) });
   await captureScreenshot(this, {});
 });
@@ -387,11 +377,7 @@ When(/^save (\d+) x (\d+) screenshot$/, async function (width, height) {
  * Example #10: Given I am on "/long-article"
  *              Then I save fullscreen 1440 x 900 screenshot
  */
-When(/^I save fullscreen (\d+) x (\d+) screenshot$/, async function (width, height) {
-  await this.page.setViewportSize({ width: parseInt(width, 10), height: parseInt(height, 10) });
-  await captureScreenshot(this, { fullscreen: true });
-});
-When(/^save fullscreen (\d+) x (\d+) screenshot$/, async function (width, height) {
+When(/^(I |we )*save fullscreen (\d+) x (\d+) screenshot$/, async function (pronounCase, width, height) {
   await this.page.setViewportSize({ width: parseInt(width, 10), height: parseInt(height, 10) });
   await captureScreenshot(this, { fullscreen: true });
 });
@@ -413,10 +399,7 @@ When(/^save fullscreen (\d+) x (\d+) screenshot$/, async function (width, height
  *             Then I save screenshot with name "un-home.png"
  * Example #10: Then I save screenshot with name "contact-form-before-submit.png"
  */
-When(/^I save screenshot with name "([^"]*)"$/, async function (filename) {
-  await captureScreenshot(this, { filename });
-});
-When(/^save screenshot with name "([^"]*)"$/, async function (filename) {
+When(/^(I |we )*save screenshot with name "([^"]*)"$/, async function (pronounCase, filename) {
   await captureScreenshot(this, { filename });
 });
 
@@ -437,10 +420,7 @@ When(/^save screenshot with name "([^"]*)"$/, async function (filename) {
  *             Then I save fullscreen screenshot with name "un-home-full.png"
  * Example #10: Then I save fullscreen screenshot with name "long-article-full.png"
  */
-When(/^I save fullscreen screenshot with name "([^"]*)"$/, async function (filename) {
-  await captureScreenshot(this, { filename, fullscreen: true });
-});
-When(/^save fullscreen screenshot with name "([^"]*)"$/, async function (filename) {
+When(/^(I |we )*save fullscreen screenshot with name "([^"]*)"$/, async function (pronounCase, filename) {
   await captureScreenshot(this, { filename, fullscreen: true });
 });
 
