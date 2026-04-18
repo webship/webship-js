@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Diffy Example — Changed</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; color: #222; }
+    header { background: #b91c1c; color: #fff; padding: 24px 32px; }
+    header h1 { margin: 0; font-size: 32px; }
+    nav { background: #fee2e2; padding: 12px 32px; }
+    nav a { margin-right: 16px; color: #b91c1c; text-decoration: none; }
+    main { padding: 32px; max-width: 960px; margin: 0 auto; }
+    .card {
+      background: #fff; border: 2px solid #fca5a5; border-radius: 12px;
+      padding: 24px; margin-bottom: 20px;
+    }
+    .card h2 { margin-top: 0; color: #b91c1c; }
+    .cta {
+      display: inline-block; background: #b91c1c; color: #fff;
+      padding: 12px 28px; border-radius: 999px; text-decoration: none;
+      font-weight: bold;
+    }
+    .badge {
+      display: inline-block; background: #fbbf24; color: #7c2d12;
+      padding: 4px 10px; border-radius: 4px; font-size: 13px; margin-left: 8px;
+    }
+    footer { background: #fef2f2; padding: 16px 32px; color: #7f1d1d; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Webship-JS — Diffy Changed <span style="font-size:14px;">(v2)</span></h1>
+    <p>Layout + palette shifted. Diffy should report regressions vs baseline.</p>
+  </header>
+  <nav>
+    <a href="../index.html">Home</a>
+    <a href="index.html">Diffy index</a>
+    <a href="baseline.html">Baseline</a>
+    <a href="changed.html">Changed</a>
+  </nav>
+  <main>
+    <div class="card">
+      <h2>Feature A</h2>
+      <p>Baseline copy for feature A. This block is unchanged between versions.</p>
+    </div>
+    <div class="card">
+      <h2>Feature B <span class="badge">NEW</span></h2>
+      <p><strong>Redesigned</strong> copy with a new badge and fatter card padding.</p>
+      <a class="cta" href="#">Buy now</a>
+    </div>
+    <div class="card">
+      <h2>Pricing</h2>
+      <p>Plan: <strong>$29/month</strong> (was $19)</p>
+    </div>
+    <div class="card">
+      <h2>Testimonials</h2>
+      <p>Entirely new section — Diffy should flag this as added content.</p>
+    </div>
+  </main>
+  <footer>&copy; 2026 Webship-JS Diffy example — changed build</footer>
+</body>
+</html>

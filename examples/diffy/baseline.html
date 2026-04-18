@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Diffy Example — Baseline</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; color: #222; }
+    header { background: #1e40af; color: #fff; padding: 24px 32px; }
+    header h1 { margin: 0; font-size: 28px; }
+    nav { background: #eef2ff; padding: 12px 32px; }
+    nav a { margin-right: 16px; color: #1e40af; text-decoration: none; }
+    main { padding: 32px; max-width: 960px; margin: 0 auto; }
+    .card {
+      background: #fff; border: 1px solid #e5e7eb; border-radius: 8px;
+      padding: 20px; margin-bottom: 16px;
+    }
+    .card h2 { margin-top: 0; color: #1e40af; }
+    .cta {
+      display: inline-block; background: #1e40af; color: #fff;
+      padding: 10px 20px; border-radius: 6px; text-decoration: none;
+    }
+    footer { background: #f3f4f6; padding: 16px 32px; color: #6b7280; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Webship-JS — Diffy Baseline</h1>
+    <p>Stable layout captured as the reference snapshot.</p>
+  </header>
+  <nav>
+    <a href="../index.html">Home</a>
+    <a href="index.html">Diffy index</a>
+    <a href="baseline.html">Baseline</a>
+    <a href="changed.html">Changed</a>
+  </nav>
+  <main>
+    <div class="card">
+      <h2>Feature A</h2>
+      <p>Baseline copy for feature A. This block is unchanged between versions.</p>
+    </div>
+    <div class="card">
+      <h2>Feature B</h2>
+      <p>Original baseline copy. Diffy should flag differences on the changed page.</p>
+      <a class="cta" href="#">Call to action</a>
+    </div>
+    <div class="card">
+      <h2>Pricing</h2>
+      <p>Plan: <strong>$19/month</strong></p>
+    </div>
+  </main>
+  <footer>&copy; 2026 Webship-JS Diffy example — baseline</footer>
+</body>
+</html>

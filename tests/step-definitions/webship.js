@@ -189,20 +189,35 @@ async function isAnyModalVisible(page) {
   );
 }
 
-// ---------------------------------------------------------------------------
-// Given I am an anonymous user
-// Captures: (pronounCase) = 1
-// ---------------------------------------------------------------------------
+/**
+ * Clear cookies and navigate to the launch URL as an anonymous visitor.
+ *
+ * Example #1: Given I am an anonymous user
+ * Example #2: Given we are an anonymous user
+ * Example #3: Given an anonymous user
+ *
+ */
 Given(/^(I am |we are )?an anonymous user$/, async function (pronounCase) {
   await this.context.clearCookies();
   await gotoUrl(this.page, this.launchUrl);
   await waitForPageLoad(this.page, this.minWaitTime.page || 3000);
 });
 
-// ---------------------------------------------------------------------------
-// Given I am on homepage / frontpage
-// Captures: (pronounCase, theCase, pageCase) = 3
-// ---------------------------------------------------------------------------
+/**
+ * Open the homepage.
+ *
+ * Example #1: Given I am on homepage
+ * Example #2: Given I am on the homepage
+ * Example #3: Given I am on frontpage
+ * Example #4: Given I am on the frontpage
+ * Example #5: Given we are on homepage
+ * Example #6: Given we are on the frontpage
+ * Example #7: Given on homepage
+ * Example #8: Given on the homepage
+ * Example #9: Given on frontpage
+ * Example #10: Given on the frontpage
+ *
+ */
 Given(/^(I am |we are )?on( the)* (homepage|frontpage)$/, async function (pronounCase, theCase, pageCase) {
   const defaultTime = this.minWaitTime.page || 3000;
   await gotoUrl(this.page, this.launchUrl);
@@ -210,20 +225,37 @@ Given(/^(I am |we are )?on( the)* (homepage|frontpage)$/, async function (pronou
   await waitForPageLoad(this.page, defaultTime);
 });
 
-// ---------------------------------------------------------------------------
-// Given I am on "/about-us.html"
-// Captures: (pronounCase, theCase, url, pageCase) = 4
-// ---------------------------------------------------------------------------
+/**
+ * Open a specific page under the launch URL.
+ *
+ * Example #1: Given I am on "/about-us.html"
+ * Example #2: Given I am on the "/about-us.html" page
+ * Example #3: Given we are on "/user/login"
+ * Example #4: Given we are on the "/contact-us.html" page
+ * Example #5: Given on "/about-us.html"
+ * Example #6: Given on the "/about-us.html" page
+ * Example #7: Given I am on "https://un.org"
+ *
+ */
 Given(/^(I am |we are )*on( the)* "([^"]*)?"( page)*$/, async function (pronounCase, theCase, url, pageCase) {
   await gotoUrl(this.page, this.launchUrl + url);
   await this.page.waitForSelector('body', { state: 'attached', timeout: 10000 });
   await waitForPageLoad(this.page);
 });
 
-// ---------------------------------------------------------------------------
-// When I go to homepage / frontpage
-// Captures: (pronounCase, theCase, pageCase) = 3
-// ---------------------------------------------------------------------------
+/**
+ * Navigate to the homepage.
+ *
+ * Example #1: When I go to homepage
+ * Example #2: When I go to the homepage
+ * Example #3: When I navigate to the homepage
+ * Example #4: When navigating to the homepage
+ * Example #5: When navigating to homepage
+ * Example #6: When navigating to the frontpage
+ * Example #7: When we go to the homepage
+ * Example #8: When we navigate to the homepage
+ *
+ */
 When(/^(I go |I navigate |we go |we navigate |navigating )?to( the)* (homepage|frontpage)$/, async function (pronounCase, theCase, pageCase) {
   const defaultTime = this.minWaitTime.page || 3000;
   await gotoUrl(this.page, this.launchUrl);
@@ -231,10 +263,17 @@ When(/^(I go |I navigate |we go |we navigate |navigating )?to( the)* (homepage|f
   await waitForPageLoad(this.page, defaultTime);
 });
 
-// ---------------------------------------------------------------------------
-// When I go to "/contact-us.html"
-// Captures: (pronounCase, url) = 2
-// ---------------------------------------------------------------------------
+/**
+ * Navigate to a specific page.
+ *
+ * Example #1: When I go to "/contact-us.html"
+ * Example #2: When I go to "/user/login"
+ * Example #3: When I navigate to "/admin/dashboard"
+ * Example #4: When navigating to "/products"
+ * Example #5: When we go to "/products"
+ * Example #6: When we navigate to "/terms"
+ *
+ */
 When(/^(I go |I navigate |we go |we navigate |navigating )?to "([^"]*)?"$/, async function (pronounCase, url) {
   const defaultTime = this.minWaitTime.page || 3000;
   await gotoUrl(this.page, this.launchUrl + url);
@@ -242,10 +281,15 @@ When(/^(I go |I navigate |we go |we navigate |navigating )?to "([^"]*)?"$/, asyn
   await waitForPageLoad(this.page, defaultTime);
 });
 
-// ---------------------------------------------------------------------------
-// Then I should see "text" / Then I should not see "text"
-// Captures: (pronounCase, notCase, expectedText) = 3
-// ---------------------------------------------------------------------------
+/**
+ * Assert that text is or is not present on the page.
+ *
+ * Example #1: Then I should see "Welcome"
+ * Example #2: Then we should see "Your accounts for the group is public"
+ * Example #3: Then I should not see "Access denied"
+ * Example #4: Then we should not see "Edit layout"
+ *
+ */
 Then(/^(I |we )*should( not)* see "([^"]*)?"$/, async function (pronounCase, notCase, expectedText) {
   if (notCase) {
     const text = await this.page.locator('body').textContent() || '';
@@ -255,26 +299,40 @@ Then(/^(I |we )*should( not)* see "([^"]*)?"$/, async function (pronounCase, not
   }
 });
 
-// ---------------------------------------------------------------------------
-// When I move forward one page
-// Captures: (pronounCase) = 1
-// ---------------------------------------------------------------------------
+/**
+ * Moves forward one page in browser history.
+ *
+ * Example #1: When I move forward one page
+ * Example #2: When we move forward one page
+ * Example #3: And move forward one page
+ *
+ */
 When(/^(I |we )*move forward one page$/, async function (pronounCase) {
   await this.page.goForward();
 });
 
-// ---------------------------------------------------------------------------
-// When I move backward one page
-// Captures: (pronounCase) = 1
-// ---------------------------------------------------------------------------
+/**
+ * Moves backward one page in browser history.
+ *
+ * Example #1: When I move backward one page
+ * Example #2: When we move backward one page
+ * Example #3: And move backward one page
+ *
+ */
 When(/^(I |we )*move backward one page$/, async function (pronounCase) {
   await this.page.goBack();
 });
 
-// ---------------------------------------------------------------------------
-// When I press "Log In" button
-// Captures: (pronounCase, theCase, element, buttonCase) = 4
-// ---------------------------------------------------------------------------
+/**
+ * Press a button, submit input, or link by its visible text.
+ *
+ * Example #1: When I press "Log In"
+ * Example #2: And I press the "Log In" button
+ * Example #3: And I press the "Save as" button
+ * Example #4: When we press "Submit"
+ * Example #5: And press "Cancel"
+ *
+ */
 When(/^(I |we )*press( the)* "([^"]*)?"( button)*$/, async function (pronounCase, theCase, element, buttonCase) {
   const esc = element.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   await this.page.locator('button, input[type="button"], input[type="submit"], [role="button"], .btn, a')
@@ -283,18 +341,29 @@ When(/^(I |we )*press( the)* "([^"]*)?"( button)*$/, async function (pronounCase
     .click();
 });
 
-// ---------------------------------------------------------------------------
-// When I press "btn-pressid" by attr / attribute
-// Captures: (pronounCase, attrValue, itsCase, attr, attrWord) = 5
-// ---------------------------------------------------------------------------
+/**
+ * Press a button by its attribute (id, class, name, placeholder, data-*).
+ *
+ * Example #1: When I press "btn-pressid" by attr
+ * Example #2: When I press "btn-pressid" by attribute
+ * Example #3: And I press "Your full name" by "placeholder" attribute
+ * Example #4: And I press "Your full name" by its "placeholder" attribute
+ * Example #5: And I press "save-name" by "data-selector" attr
+ *
+ */
 When(/^(I |we )*press "([^"]*)?" by( its)*(?: "([^"]*)?")* (attribute|attr)$/, async function (pronounCase, attrValue, itsCase, attr, attrWord) {
   await this.page.locator(buildSelector(attrValue, attr)).first().click();
 });
 
-// ---------------------------------------------------------------------------
-// When I click "Contact Us"
-// Captures: (pronounCase, item) = 2
-// ---------------------------------------------------------------------------
+/**
+ * Click a link or button by its visible text.
+ *
+ * Example #1: When I click "Contact Us"
+ * Example #2: And I click "aboutUs"
+ * Example #3: When we click "Read more"
+ * Example #4: And click "Home"
+ *
+ */
 When(/^(I |we )*click "([^"]*)?"$/, async function (pronounCase, item) {
   const esc = item.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   await this.page.locator('a, button, [role="button"], .btn, input[type="button"], input[type="submit"]')
@@ -303,18 +372,28 @@ When(/^(I |we )*click "([^"]*)?"$/, async function (pronounCase, item) {
     .click();
 });
 
-// ---------------------------------------------------------------------------
-// When I click "#about-us-id" by attr / attribute
-// Captures: (pronounCase, attrValue, itsCase, attr, attrWord) = 5
-// ---------------------------------------------------------------------------
+/**
+ * Click a link or button by its attribute (id, class, name, data-*).
+ *
+ * Example #1: When I click "#about-us-id" by attr
+ * Example #2: When I click "data-selector-about" by attribute
+ * Example #3: And I click "about-us-css" by "class" attr
+ * Example #4: And I click "about-us-id" by its "id" attribute
+ *
+ */
 When(/^(I |we )*click "([^"]*)?" by( its)*(?: "([^"]*)?")* (attribute|attr)$/, async function (pronounCase, attrValue, itsCase, attr, attrWord) {
   await this.page.locator(buildSelector(attrValue, attr)).first().click();
 });
 
-// ---------------------------------------------------------------------------
-// When I click "Edit" in the "John Smith" row
-// Captures: (pronounCase, clickText, theCase, rowIdentifier) = 4
-// ---------------------------------------------------------------------------
+/**
+ * Click a clickable element inside a table row identified by text.
+ *
+ * Example #1: When I click "Edit" in the "John Smith" row
+ * Example #2: When I click "Delete" in the "Product A" row
+ * Example #3: When we click "View Details" in the "Order #12345" row
+ * Example #4: And I click "Download" in the "Report 2024" row
+ *
+ */
 When(/^(I |we )*click "([^"]*)?" in( the)* "([^"]*)?" row$/, async function (pronounCase, clickText, theCase, rowIdentifier) {
   const esc = clickText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const row = this.page.locator('tr').filter({ hasText: rowIdentifier }).first();
@@ -327,10 +406,18 @@ When(/^(I |we )*click "([^"]*)?" in( the)* "([^"]*)?" row$/, async function (pro
   }
 });
 
-// ---------------------------------------------------------------------------
-// Then I should see "Active" in the "John Smith" row
-// Captures: (pronounCase, notCase, expectedText, theCase, rowIdentifier) = 5
-// ---------------------------------------------------------------------------
+/**
+ * Assert text is or is not visible inside a table row identified by text.
+ *
+ * Example #1: Then I should see "Active" in the "John Smith" row
+ * Example #2: Then I should see "In Stock" in the "Product A" row
+ * Example #3: Then we should see "Processing" in the "Order #12345" row
+ * Example #4: And I should see "Admin" in the "john.smith@example.com" row
+ * Example #5: Then I should not see "Admin" in the "Jane Doe" row
+ * Example #6: Then I should not see "Out of Stock" in the "Product A" row
+ * Example #7: And I should not see "Inactive" in the "john.smith@example.com" row
+ *
+ */
 Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* "([^"]*)?" row$/, async function (pronounCase, notCase, expectedText, theCase, rowIdentifier) {
   const found = await this.page.evaluate(({ id, text }) => {
     const rows = Array.from(document.querySelectorAll('tr'));
@@ -343,86 +430,138 @@ Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* "([^"]*)?" row$/, async f
   }
 });
 
-// ---------------------------------------------------------------------------
-// When I reload the page
-// Captures: (pronounCase, theCase, pageCase) = 3
-// ---------------------------------------------------------------------------
+/**
+ * Reloads the current page.
+ *
+ * Example #1: When I reload
+ * Example #2: And I reload the page
+ * Example #3: And we reload page
+ * Example #4: And we reload the page
+ *
+ */
 When(/^(I |we )*reload( the)*( page)*$/, async function (pronounCase, theCase, pageCase) {
   await this.page.reload();
 });
 
-// ---------------------------------------------------------------------------
-// When I fill in "Username" with "John Smith"
-// Captures: (pronounCase, field, value) = 3
-// ---------------------------------------------------------------------------
+/**
+ * Fill an input field located by its label, placeholder, or name.
+ *
+ * Example #1: When I fill in "Username" with "John Smith"
+ * Example #2: When I fill in "Email" with "jon@example.com"
+ * Example #3: And we fill in "Organization" with "Webship.co"
+ * Example #4: And I fill in "Password" with "1234"
+ *
+ */
 When(/^(I |we )*fill in "([^"]*)?" with "([^"]*)?"$/, async function (pronounCase, field, value) {
   await fillField(this.page, field, value);
 });
 
-// ---------------------------------------------------------------------------
-// When I fill in "uname" with "John Smith" by attr
-// Captures: (pronounCase, attrValue, txtValue, itsCase, attr, attrWord) = 6
-// ---------------------------------------------------------------------------
+/**
+ * Fill an input field located by its attribute.
+ *
+ * Example #1: When I fill in "#uname" with "John Smith" by attr
+ * Example #2: When I fill in "uname" with "John Smith" by attr
+ * Example #3: And I fill in "pwordcss" with "1234" by "class" attr
+ * Example #4: And I fill in "Your full name" with "John Smith" by its "placeholder" attribute
+ *
+ */
 When(/^(I |we )*fill in "([^"]*)?" with "([^"]*)?" by( its)*(?: "([^"]*)?")* (attribute|attr)$/, async function (pronounCase, attrValue, txtValue, itsCase, attr, attrWord) {
   await this.page.locator(buildSelector(attrValue, attr)).first().fill(txtValue);
 });
 
-// ---------------------------------------------------------------------------
-// When I fill in "Username" with: (empty)
-// Captures: (pronounCase, field) = 2
-// ---------------------------------------------------------------------------
+/**
+ * Clear an input field located by its label.
+ *
+ * Example #1: When I fill in "Username" with:
+ * Example #2: And we fill in "Email" with:
+ * Example #3: And I fill in "Password" with:
+ *
+ */
 When(/^(I |we )*fill in "([^"]*)?" with:$/, async function (pronounCase, field) {
   await fillField(this.page, field, '');
 });
 
-// ---------------------------------------------------------------------------
-// When I fill in "uname" with: by attr (empty by attr)
-// Captures: (pronounCase, attrValue, itsCase, attr, attrWord) = 5
-// ---------------------------------------------------------------------------
+/**
+ * Clear an input field located by its attribute.
+ *
+ * Example #1: When I fill in "#uname" with: by attr
+ * Example #2: When I fill in "uname" with: by attr
+ * Example #3: And I fill in "pwordcss" with: by "class" attr
+ * Example #4: And I fill in "Your full name" with: by its "placeholder" attribute
+ *
+ */
 When(/^(I |we )*fill in "([^"]*)?" with: by( its)*(?: "([^"]*)?")* (attribute|attr)$/, async function (pronounCase, attrValue, itsCase, attr, attrWord) {
   await this.page.locator(buildSelector(attrValue, attr)).first().fill('');
 });
 
-// ---------------------------------------------------------------------------
-// When I fill in "John Smith" for "Username"
-// Captures: (pronounCase, value, field) = 3
-// ---------------------------------------------------------------------------
+/**
+ * Fill an input field located by label (reverse syntax).
+ *
+ * Example #1: When I fill in "jon-smith" for "Username"
+ * Example #2: When we fill in "Testing" for "Organization options"
+ * Example #3: And I fill in "1234" for "Password"
+ *
+ */
 When(/^(I |we )*fill in "([^"]*)?" for "([^"]*)?"$/, async function (pronounCase, value, field) {
   await fillField(this.page, field, value);
 });
 
-// ---------------------------------------------------------------------------
-// When I fill in "John Smith" for "uname" by attr
-// Captures: (pronounCase, txtValue, attrValue, itsCase, attr, attrWord) = 6
-// ---------------------------------------------------------------------------
+/**
+ * Fill an input field located by attribute (reverse syntax).
+ *
+ * Example #1: When I fill in "John Smith" for "#uname" by attr
+ * Example #2: When I fill in "John Smith" for "uname" by attr
+ * Example #3: And I fill in "1234" for "password" by "class" attr
+ * Example #4: And I fill in "John Smith" for "Your full name" by its "placeholder" attribute
+ *
+ */
 When(/^(I |we )*fill in "([^"]*)?" for "([^"]*)?" by( its)*(?: "([^"]*)?")* (attribute|attr)$/, async function (pronounCase, txtValue, attrValue, itsCase, attr, attrWord) {
   await this.page.locator(buildSelector(attrValue, attr)).first().fill(txtValue);
 });
 
-// ---------------------------------------------------------------------------
-// When I fill in the following: (table by label)
-// Captures: (pronounCase, theCase) = 2
-// ---------------------------------------------------------------------------
+/**
+ * Fills multiple form fields from a data table, located by their labels.
+ *
+ * Example #1: When I fill in the following:
+ *               | Username | webshipco |
+ *               | Password | 1234 |
+ * Example #2: And we fill in the following:
+ *               | Email | jon@example.com |
+ *               | Organization | Webship.co |
+ *
+ */
 When(/^(I |we )*fill in( the)* following:$/, async function (pronounCase, theCase, table) {
   for (const [field, value] of table.raw()) {
     await fillField(this.page, field, value);
   }
 });
 
-// ---------------------------------------------------------------------------
-// When I fill in the following: by attr (table by attribute)
-// Captures: (pronounCase, theCase, itsCase, attr, attrWord) = 5
-// ---------------------------------------------------------------------------
+/**
+ * Fills multiple form fields from a data table, located by their attributes.
+ *
+ * Example #1: When I fill in the following: by attr
+ *               | #uname | John Smith |
+ *               | password | 1234 |
+ * Example #2: When I fill in the following: by its "placeholder" attribute
+ *               | Your full name | John Smith |
+ *               | Your Password | 1234 |
+ *
+ */
 When(/^(I |we )*fill in( the)* following: by( its)*(?: "([^"]*)?")* (attribute|attr)$/, async function (pronounCase, theCase, itsCase, attr, attrWord, table) {
   for (const [attrValue, value] of table.raw()) {
     await this.page.locator(buildSelector(attrValue, attr)).first().fill(value);
   }
 });
 
-// ---------------------------------------------------------------------------
-// When I select "Mercedes" from "Cars"
-// Captures: (pronounCase, option, selectList) = 3
-// ---------------------------------------------------------------------------
+/**
+ * Select an option from a dropdown by label, id, class, or name.
+ *
+ * Example #1: When I select "Mercedes" from "Cars"
+ * Example #2: When I select "saab" from "#cars"
+ * Example #3: When I select "Mercedes" from "cars"
+ * Example #4: And we select "English" from "Language"
+ *
+ */
 When(/^(I |we )*select "([^"]*)?" from "([^"]*)?"$/, async function (pronounCase, option, selectList) {
   let loc;
   if (selectList.startsWith('#') || selectList.startsWith('.')) {
@@ -439,10 +578,15 @@ When(/^(I |we )*select "([^"]*)?" from "([^"]*)?"$/, async function (pronounCase
   }
 });
 
-// ---------------------------------------------------------------------------
-// When I check "Remember me"
-// Captures: (pronounCase, item) = 2
-// ---------------------------------------------------------------------------
+/**
+ * Checks the specified checkbox by label, id, class, or name.
+ *
+ * Example #1: When I check "Remember me"
+ * Example #2: When we check "Put site into maintenance mode"
+ * Example #3: And I check "#newsletter"
+ * Example #4: And we check ".terms-and-conditions"
+ *
+ */
 When(/^(I |we )*check "([^"]*)?"$/, async function (pronounCase, item) {
   if (item.startsWith('#') || item.startsWith('.')) {
     await this.page.locator(item).check();
@@ -456,10 +600,15 @@ When(/^(I |we )*check "([^"]*)?"$/, async function (pronounCase, item) {
   }
 });
 
-// ---------------------------------------------------------------------------
-// When I uncheck "Remember me"
-// Captures: (pronounCase, item) = 2
-// ---------------------------------------------------------------------------
+/**
+ * Unchecks the specified checkbox by label, id, class, or name.
+ *
+ * Example #1: When I uncheck "Remember me"
+ * Example #2: When we uncheck "Put site into maintenance mode"
+ * Example #3: And I uncheck "#newsletter"
+ * Example #4: And we uncheck ".terms-and-conditions"
+ *
+ */
 When(/^(I |we )*uncheck "([^"]*)?"$/, async function (pronounCase, item) {
   if (item.startsWith('#') || item.startsWith('.')) {
     await this.page.locator(item).uncheck();
@@ -473,10 +622,15 @@ When(/^(I |we )*uncheck "([^"]*)?"$/, async function (pronounCase, item) {
   }
 });
 
-// ---------------------------------------------------------------------------
-// When I select radio button "Male"
-// Captures: (pronounCase, item) = 2
-// ---------------------------------------------------------------------------
+/**
+ * Selects a radio button by label, value, id, or class.
+ *
+ * Example #1: When I select radio button "Male"
+ * Example #2: When I select radio button "female"
+ * Example #3: When I select radio button "#gender-male"
+ * Example #4: When we select radio button "option1"
+ *
+ */
 When(/^(I |we )*select radio button "([^"]*)?"$/, async function (pronounCase, item) {
   if (item.startsWith('#') || item.startsWith('.')) {
     await this.page.locator(item).check();
@@ -490,10 +644,21 @@ When(/^(I |we )*select radio button "([^"]*)?"$/, async function (pronounCase, i
   }
 });
 
-// ---------------------------------------------------------------------------
-// Then I should be on homepage / frontpage
-// Captures: (pronounCase, notCase, theCase, pageCase) = 4
-// ---------------------------------------------------------------------------
+/**
+ * Assert that the current page is or is not the homepage.
+ *
+ * Example #1: Then I should be on homepage
+ * Example #2: And I should be on the homepage
+ * Example #3: Then I should be on frontpage
+ * Example #4: And should be on the homepage
+ * Example #5: Then should be on homepage
+ * Example #6: And we should be on homepage
+ * Example #7: Then should be on frontpage
+ * Example #8: And we should be on the homepage
+ * Example #9: Then I should not be on homepage
+ * Example #10: And I should not be on the homepage
+ *
+ */
 Then(/^(I |we )*should( not)* be on( the)* (homepage|frontpage)$/, async function (pronounCase, notCase, theCase, pageCase) {
   const currentUrl = this.page.url();
   if (notCase) {
@@ -505,10 +670,21 @@ Then(/^(I |we )*should( not)* be on( the)* (homepage|frontpage)$/, async functio
   }
 });
 
-// ---------------------------------------------------------------------------
-// Then I should be on "/user/login"
-// Captures: (pronounCase, notCase, theCase, url, pageCase) = 5
-// ---------------------------------------------------------------------------
+/**
+ * Assert that the current path is or is not equal to the specified path.
+ *
+ * Example #1: Then I should be on "/"
+ * Example #2: And I should be on "/user/login"
+ * Example #3: And I should be on "https://un.org"
+ * Example #4: Then we should be on the "/" page
+ * Example #5: And we should be on "/user/login"
+ * Example #6: Then should be on the "/user/reset" page
+ * Example #7: Then I should not be on "/"
+ * Example #8: And I should not be on "/user/login"
+ * Example #9: And I should not be on "https://un.org"
+ * Example #10: And we should not be on the "https://un.org" page
+ *
+ */
 Then(/^(I |we )*should( not)* be on( the)* "([^"]*)?"( page)*$/, async function (pronounCase, notCase, theCase, url, pageCase) {
   const currentUrl = this.page.url();
   if (notCase) {
@@ -518,10 +694,14 @@ Then(/^(I |we )*should( not)* be on( the)* "([^"]*)?"( page)*$/, async function 
   }
 });
 
-// ---------------------------------------------------------------------------
-// Then the "Login" link should contain "/log-in"
-// Captures: (theCase, element, url) = 3
-// ---------------------------------------------------------------------------
+/**
+ * Assert that a link (located by its visible text) contains the given URL.
+ *
+ * Example #1: Then the "Login" link should contain "/log-in"
+ * Example #2: And the "About Us" link should contain "/about"
+ * Example #3: Then "Home" link should contain "/"
+ *
+ */
 Then(/^(the )*"([^"]*)?" link should contain "([^"]*)?"$/, async function (theCase, element, url) {
   const loc = this.page.getByText(element, { exact: true }).first();
   await loc.waitFor({ timeout: 5000 });
@@ -529,10 +709,14 @@ Then(/^(the )*"([^"]*)?" link should contain "([^"]*)?"$/, async function (theCa
   assert.ok(href.includes(url), `Expected link "${element}" href to contain "${url}" but got "${href}"`);
 });
 
-// ---------------------------------------------------------------------------
-// Then the "#about-us-id" link should contain "about" by attr
-// Captures: (theCase, attrValue, url, itsCase, attr, attrWord) = 6
-// ---------------------------------------------------------------------------
+/**
+ * Assert that a link located by its attribute contains the given URL.
+ *
+ * Example #1: Then the "#about-us-id" link should contain "about" by attr
+ * Example #2: And the "aboutUs" link should contain "about" by its "class" attribute
+ * Example #3: And the ".contactUs" link should contain "/contact-" by attr
+ *
+ */
 Then(/^(the )*"([^"]*)?" link should contain "([^"]*)?" by( its)*(?: "([^"]*)?")* (attribute|attr)$/, async function (theCase, attrValue, url, itsCase, attr, attrWord) {
   const loc = this.page.locator(buildSelector(attrValue, attr)).first();
   await loc.waitFor({ timeout: 5000 });
@@ -540,10 +724,13 @@ Then(/^(the )*"([^"]*)?" link should contain "([^"]*)?" by( its)*(?: "([^"]*)?")
   assert.ok(href.includes(url), `Expected element href to contain "${url}" but got "${href}"`);
 });
 
-// ---------------------------------------------------------------------------
-// Then the response should contain "text"
-// Captures: (theCase, notCase, expectedText) = 3
-// ---------------------------------------------------------------------------
+/**
+ * Assert that HTML response contains or does not contain specific text.
+ *
+ * Example #1: Then the response should contain "Welcome visitor, How can I help you?"
+ * Example #2: Then the response should not contain "Access denied"
+ *
+ */
 Then(/^(the )*response should( not)* contain "([^"]*)?"$/, async function (theCase, notCase, expectedText) {
   const text = await this.page.locator('html').textContent() || '';
   if (notCase) {
@@ -553,10 +740,14 @@ Then(/^(the )*response should( not)* contain "([^"]*)?"$/, async function (theCa
   }
 });
 
-// ---------------------------------------------------------------------------
-// Then I should see "John Smith" in the "Username" element
-// Captures: (pronounCase, notCase, expectedText, theCase, element) = 5
-// ---------------------------------------------------------------------------
+/**
+ * Assert that an element (found by its label) contains or does not contain text.
+ *
+ * Example #1: Then I should see "John Smith" in the "Username" element
+ * Example #2: Then I should not see "Joe Smith" in the "Username" element
+ * Example #3: And we should see "1234" in the "Password" element
+ *
+ */
 Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* "([^"]*)?" element$/, async function (pronounCase, notCase, expectedText, theCase, element) {
   const forAttr = await this.page.getByText(element, { exact: true }).getAttribute('for').catch(() => null);
   const loc = this.page.locator(forAttr ? '#' + forAttr : element).first();
@@ -569,10 +760,15 @@ Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* "([^"]*)?" element$/, asy
   }
 });
 
-// ---------------------------------------------------------------------------
-// Then I should see "John Smith" in the "uname" element by attr
-// Captures: (pronounCase, notCase, expectedText, theCase, attrValue, itsCase, attr, attrWord) = 8
-// ---------------------------------------------------------------------------
+/**
+ * Assert that an element (found by its attribute) contains or does not contain text.
+ *
+ * Example #1: Then I should see "John Smith" in the "uname" element by its "id" attr
+ * Example #2: Then I should see "1234" in the "pwordcss" element by attr
+ * Example #3: Then I should not see "John Smith" in the "uname" element by its "id" attr
+ * Example #4: Then I should not see "1234" in the "pwordcss" element by attr
+ *
+ */
 Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* "([^"]*)?" element by( its)*(?: "([^"]*)?")* (attribute|attr)$/, async function (pronounCase, notCase, expectedText, theCase, attrValue, itsCase, attr, attrWord) {
   const loc = this.page.locator(buildSelector(attrValue, attr)).first();
   await loc.waitFor({ timeout: 10000 });
@@ -584,10 +780,14 @@ Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* "([^"]*)?" element by( it
   }
 });
 
-// ---------------------------------------------------------------------------
-// Then I should see a "Username" element
-// Captures: (pronounCase, notCase, aAnCase, element) = 4
-// ---------------------------------------------------------------------------
+/**
+ * Assert that an element with a given label exists (or does not) on the page.
+ *
+ * Example #1: Then I should see a "Username" element
+ * Example #2: Then I should not see a "Username" element
+ * Example #3: And we should see an "Email" element
+ *
+ */
 Then(/^(I |we )*should( not)* see (a|an) "([^"]*)?" element$/, async function (pronounCase, notCase, aAnCase, element) {
   if (notCase) {
     const text = await this.page.locator('body').textContent() || '';
@@ -603,10 +803,15 @@ Then(/^(I |we )*should( not)* see (a|an) "([^"]*)?" element$/, async function (p
   }
 });
 
-// ---------------------------------------------------------------------------
-// Then I should see a "uname" element by attr
-// Captures: (pronounCase, notCase, aAnCase, attrValue, itsCase, attr, attrWord) = 7
-// ---------------------------------------------------------------------------
+/**
+ * Assert that an element, identified by attribute, exists (or does not) on the page.
+ *
+ * Example #1: Then I should see a "uname" element by its "id" attr
+ * Example #2: Then I should see a "pwordcss" element by attr
+ * Example #3: Then I should not see an "emailId" element by its "id" attr
+ * Example #4: And I should not see a "countryCss" element by attr
+ *
+ */
 Then(/^(I |we )*should( not)* see (a|an) "([^"]*)?" element by( its)*(?: "([^"]*)?")* (attribute|attr)$/, async function (pronounCase, notCase, aAnCase, attrValue, itsCase, attr, attrWord) {
   const loc = this.page.locator(buildSelector(attrValue, attr));
   if (notCase) {
@@ -616,10 +821,15 @@ Then(/^(I |we )*should( not)* see (a|an) "([^"]*)?" element by( its)*(?: "([^"]*
   }
 });
 
-// ---------------------------------------------------------------------------
-// Then the "body" element should contain "color:white;"
-// Captures: (theCase, selectorRaw, notCase, elementCss) = 4
-// ---------------------------------------------------------------------------
+/**
+ * Assert that an element has or does not have a specific CSS property.
+ *
+ * Example #1: Then the "body" element should contain "color:white;"
+ * Example #2: Then the "body" element should not contain "color:white;"
+ * Example #3: Then the "#uname" element should not contain "border:solid 5px red;"
+ * Example #4: Then the "pword" element should not contain "font-size: 26px;"
+ *
+ */
 Then(/^(the )*"([^"]*)?" element should( not)* contain "([^"]*)?"$/, async function (theCase, selectorRaw, notCase, elementCss) {
   const cssClean = elementCss.replace(/;$/, '');
   const colonIdx = cssClean.indexOf(':');
@@ -662,10 +872,14 @@ Then(/^(the )*"([^"]*)?" element should( not)* contain "([^"]*)?"$/, async funct
   }
 });
 
-// ---------------------------------------------------------------------------
-// Then the "Username" field should contain "John Smith"
-// Captures: (theCase, field, notCase, expectedText) = 4
-// ---------------------------------------------------------------------------
+/**
+ * Assert that a form field contains or does not contain specific text.
+ *
+ * Example #1: Then the "Username" field should contain "John Smith"
+ * Example #2: Then the "#username" field should not contain "John Smith"
+ * Example #3: And the "Email" field should contain "jon@example.com"
+ *
+ */
 Then(/^(the )*"([^"]*)?" field should( not)* contain "([^"]*)?"$/, async function (theCase, field, notCase, expectedText) {
   let selector = field;
   if (!field.startsWith('#') && !field.startsWith('.')) {
@@ -682,10 +896,13 @@ Then(/^(the )*"([^"]*)?" field should( not)* contain "([^"]*)?"$/, async functio
   }
 });
 
-// ---------------------------------------------------------------------------
-// Then the "#PrivacyPolicy" checkbox should be checked
-// Captures: (theCase, checkbox, notCase) = 3
-// ---------------------------------------------------------------------------
+/**
+ * Assert that a checkbox should or should not be checked.
+ *
+ * Example #1: Then the "#PrivacyPolicy" checkbox should be checked
+ * Example #2: Then the "#PrivacyPolicy" checkbox should not be checked
+ *
+ */
 Then(/^(the )*"([^"]*)?" checkbox should( not)* be checked$/, async function (theCase, checkbox, notCase) {
   const isChecked = await this.page.locator(checkbox).isChecked();
   if (notCase) {
@@ -695,10 +912,13 @@ Then(/^(the )*"([^"]*)?" checkbox should( not)* be checked$/, async function (th
   }
 });
 
-// ---------------------------------------------------------------------------
-// Then the "#rememberMe" checkbox is checked
-// Captures: (theCase, checkbox, notCase) = 3
-// ---------------------------------------------------------------------------
+/**
+ * Assert that a checkbox is or is not checked.
+ *
+ * Example #1: Then the "#rememberMe" checkbox is checked
+ * Example #2: Then the "#rememberMe" checkbox is not checked
+ *
+ */
 Then(/^(the )*"([^"]*)?" checkbox is( not)* checked$/, async function (theCase, checkbox, notCase) {
   const isChecked = await this.page.locator(checkbox).isChecked();
   if (notCase) {
@@ -708,10 +928,13 @@ Then(/^(the )*"([^"]*)?" checkbox is( not)* checked$/, async function (theCase, 
   }
 });
 
-// ---------------------------------------------------------------------------
-// Then the checkbox "#PrivacyPolicy" should be checked
-// Captures: (theCase, checkbox, notCase) = 3
-// ---------------------------------------------------------------------------
+/**
+ * Assert that a named checkbox should or should not be checked.
+ *
+ * Example #1: Then the checkbox "#PrivacyPolicy" should be checked
+ * Example #2: Then the checkbox "#PrivacyPolicy" should not be checked
+ *
+ */
 Then(/^(the )*checkbox "([^"]*)?" should( not)* be checked$/, async function (theCase, checkbox, notCase) {
   const isChecked = await this.page.locator(checkbox).isChecked();
   if (notCase) {
@@ -721,10 +944,13 @@ Then(/^(the )*checkbox "([^"]*)?" should( not)* be checked$/, async function (th
   }
 });
 
-// ---------------------------------------------------------------------------
-// Then the checkbox "#rememberMe" is checked
-// Captures: (theCase, checkbox, notCase) = 3
-// ---------------------------------------------------------------------------
+/**
+ * Assert that a named checkbox is or is not checked.
+ *
+ * Example #1: Then the checkbox "#rememberMe" is checked
+ * Example #2: Then the checkbox "#rememberMe" is not checked
+ *
+ */
 Then(/^(the )*checkbox "([^"]*)?" is( not)* checked$/, async function (theCase, checkbox, notCase) {
   const isChecked = await this.page.locator(checkbox).isChecked();
   if (notCase) {
@@ -734,10 +960,14 @@ Then(/^(the )*checkbox "([^"]*)?" is( not)* checked$/, async function (theCase, 
   }
 });
 
-// ---------------------------------------------------------------------------
-// Then the radio button "#gender-male" should be selected
-// Captures: (theCase, radioButton, notCase) = 3
-// ---------------------------------------------------------------------------
+/**
+ * Assert that a radio button should or should not be selected.
+ *
+ * Example #1: Then the radio button "#gender-male" should be selected
+ * Example #2: Then the radio button "#gender-female" should not be selected
+ * Example #3: Then the radio button ".option-1" should be selected
+ *
+ */
 Then(/^(the )*radio button "([^"]*)?" should( not)* be selected$/, async function (theCase, radioButton, notCase) {
   const isChecked = await this.page.locator(radioButton).isChecked();
   if (notCase) {
@@ -747,10 +977,13 @@ Then(/^(the )*radio button "([^"]*)?" should( not)* be selected$/, async functio
   }
 });
 
-// ---------------------------------------------------------------------------
-// Then the radio button with value "male" should be selected
-// Captures: (theCase, radioValue, notCase) = 3
-// ---------------------------------------------------------------------------
+/**
+ * Assert that a radio button with a given value should or should not be selected.
+ *
+ * Example #1: Then the radio button with value "male" should be selected
+ * Example #2: Then the radio button with value "female" should not be selected
+ *
+ */
 Then(/^(the )*radio button with value "([^"]*)?" should( not)* be selected$/, async function (theCase, radioValue, notCase) {
   const isChecked = await this.page.locator(`input[type="radio"][value="${radioValue}"]`).first().isChecked();
   if (notCase) {
@@ -760,10 +993,13 @@ Then(/^(the )*radio button with value "([^"]*)?" should( not)* be selected$/, as
   }
 });
 
-// ---------------------------------------------------------------------------
-// Then the "#gender-male" radio button is selected
-// Captures: (theCase, radioButton, notCase) = 3
-// ---------------------------------------------------------------------------
+/**
+ * Assert that the radio button is or is not selected.
+ *
+ * Example #1: Then the "#gender-male" radio button is selected
+ * Example #2: Then the "#gender-female" radio button is not selected
+ *
+ */
 Then(/^(the )*"([^"]*)?" radio button is( not)* selected$/, async function (theCase, radioButton, notCase) {
   const isChecked = await this.page.locator(radioButton).isChecked();
   if (notCase) {
@@ -773,10 +1009,14 @@ Then(/^(the )*"([^"]*)?" radio button is( not)* selected$/, async function (theC
   }
 });
 
-// ---------------------------------------------------------------------------
-// Then the response status code should be 200
-// Captures: (theCase, notCase, expectedStatusCode) = 3
-// ---------------------------------------------------------------------------
+/**
+ * Assert that the current page's response status is or is not a given code.
+ *
+ * Example #1: Then the response status code should be 200
+ * Example #2: And the response status code should not be 404
+ * Example #3: Then the response status code should be 301
+ *
+ */
 Then(/^(the )*response status code should( not)* be (\d+)$/, async function (theCase, notCase, expectedStatusCode) {
   const currentURL = this.page.url();
   try {
@@ -797,10 +1037,14 @@ Then(/^(the )*response status code should( not)* be (\d+)$/, async function (the
   }
 });
 
-// ---------------------------------------------------------------------------
-// Then I should see text matching "^T\w+"
-// Captures: (pronounCase, notCase, textPattern) = 3
-// ---------------------------------------------------------------------------
+/**
+ * Assert that page contains or does not contain text matching a regex pattern.
+ *
+ * Example #1: Then I should see text matching "^T\w+"
+ * Example #2: Then I should not see text matching "^O\w+"
+ * Example #3: And we should see text matching "\d{4}"
+ *
+ */
 Then(/^(I |we )*should( not)* see text matching "([^"]*)?"$/, async function (pronounCase, notCase, textPattern) {
   const bodyText = await this.page.evaluate(() => document.body.innerText || '');
   const regex = new RegExp(textPattern);
@@ -811,10 +1055,13 @@ Then(/^(I |we )*should( not)* see text matching "([^"]*)?"$/, async function (pr
   }
 });
 
-// ---------------------------------------------------------------------------
-// Then I should see text matching "..." in the "#date" element
-// Captures: (pronounCase, notCase, textPattern, theCase, element) = 5
-// ---------------------------------------------------------------------------
+/**
+ * Assert that an element contains or does not contain text matching a pattern.
+ *
+ * Example #1: Then I should see text matching "(0?[1-9]|[12][0-9]|3[01])[\/\-](0?[1-9]|1[012])[\/\-]\d{4}" in the "#date" element
+ * Example #2: Then I should not see text matching "(0?[1-9]|[12][0-9]|3[01])[\/\-](0?[1-9]|1[012])[\/\-]\d{4}" in the "#date" element
+ *
+ */
 Then(/^(I |we )*should( not)* see text matching "([^"]*)?" in( the)* "([^"]*)?" element$/, async function (pronounCase, notCase, textPattern, theCase, element) {
   const loc = this.page.locator(element).first();
   await loc.waitFor({ timeout: 5000 });
@@ -827,10 +1074,14 @@ Then(/^(I |we )*should( not)* see text matching "([^"]*)?" in( the)* "([^"]*)?" 
   }
 });
 
-// ---------------------------------------------------------------------------
-// Then the url should match "/contact-us.html"
-// Captures: (theCase, notCase, pattern) = 3
-// ---------------------------------------------------------------------------
+/**
+ * Assert that the current URL matches or does not match a regex pattern.
+ *
+ * Example #1: Then the url should match "/contact-us.html"
+ * Example #2: Then the url should not match "/contact-us.html"
+ * Example #3: And the url should match "^https://"
+ *
+ */
 Then(/^(the )*url should( not)* match "([^"]*)?"$/, async function (theCase, notCase, pattern) {
   const currentUrl = this.page.url();
   const regex = new RegExp(pattern);
@@ -841,77 +1092,152 @@ Then(/^(the )*url should( not)* match "([^"]*)?"$/, async function (theCase, not
   }
 });
 
-// ---------------------------------------------------------------------------
-// When I attach the file "profileIcon.jpg" to "#profile-icon-upload"
-// Captures: (pronounCase, theCase, fileName, element) = 4
-// ---------------------------------------------------------------------------
+/**
+ * Attach a file from tests/assets/ to a file input.
+ *
+ * Example #1: When I attach the file "profileIcon.jpg" to "#profile-icon-upload"
+ * Example #2: And we attach file "resume.pdf" to "#resume"
+ *
+ */
 When(/^(I |we )*attach( the)* file "([^"]*)?" to "([^"]*)?"$/, async function (pronounCase, theCase, fileName, element) {
   await this.page.locator(element).setInputFiles(path.resolve(this.assetsFolder, fileName));
 });
 
-// ---------------------------------------------------------------------------
-// When I wait 1 second / 5 seconds
-// Captures: (pronounCase, number, withSecondWord) = 3
-// ---------------------------------------------------------------------------
+/**
+ * Wait a specific number of seconds.
+ *
+ * Example #1: When I wait 1 second
+ * Example #2: When I wait 5 seconds
+ * Example #3: When we wait 3s
+ * Example #4: And wait 2s
+ * Example #5: And wait 2 seconds
+ * Example #6: When we wait 1 second
+ * Example #7: When we wait 5 seconds
+ * Example #8: When we wait 4s
+ *
+ */
 When(/^(I |we )*wait (\d*)( second| seconds|s)?$/, async function (pronounCase, number, withSecondWord) {
   await this.page.waitForTimeout(parseInt(number) * 1000);
 });
 
-// ---------------------------------------------------------------------------
-// When I wait max of 5 seconds
-// Captures: (pronounCase, number, withSecondWord) = 3
-// ---------------------------------------------------------------------------
+/**
+ * Wait a max number of seconds until the page body is present.
+ *
+ * Example #1: When I wait max of 1 second
+ * Example #2: When I wait max of 5 seconds
+ * Example #3: When we wait max of 3s
+ * Example #4: And wait max of 2s
+ * Example #5: And wait max of 2 seconds
+ * Example #6: When we wait max of 1 second
+ * Example #7: When we wait max of 5 seconds
+ * Example #8: When we wait max of 4s
+ *
+ */
 When(/^(I |we )*wait max of (\d*)( second| seconds|s)?$/, async function (pronounCase, number, withSecondWord) {
   await this.page.waitForTimeout(parseInt(number) * 1000);
 });
 
-// ---------------------------------------------------------------------------
-// When I wait 1 minute
-// Captures: (pronounCase, number, withMinuteWord) = 3
-// ---------------------------------------------------------------------------
+/**
+ * Wait a specific number of minutes.
+ *
+ * Example #1: When I wait 1 minute
+ * Example #2: When I wait 10 minutes
+ * Example #3: When we wait 1m
+ * Example #4: And wait 2m
+ * Example #5: And wait 2 minutes
+ * Example #6: When we wait 1 minute
+ * Example #7: When we wait 10 minutes
+ *
+ */
 When(/^(I |we )*wait (\d*)( minute| minutes|m)?$/, async function (pronounCase, number, withMinuteWord) {
   await this.page.waitForTimeout(parseInt(number) * 1000 * 60);
 });
 
-// ---------------------------------------------------------------------------
-// When I wait max of 1 minute
-// Captures: (pronounCase, number, withMinuteWord) = 3
-// ---------------------------------------------------------------------------
+/**
+ * Wait a max number of minutes until the page body is present.
+ *
+ * Example #1: When I wait max of 1 minute
+ * Example #2: When I wait max of 10 minutes
+ * Example #3: When we wait max of 1m
+ * Example #4: And wait max of 2m
+ * Example #5: And wait max of 2 minutes
+ *
+ */
 When(/^(I |we )*wait max of (\d*)( minute| minutes|m)?$/, async function (pronounCase, number, withMinuteWord) {
   await this.page.waitForTimeout(parseInt(number) * 1000 * 60);
 });
 
-// ---------------------------------------------------------------------------
-// When I wait until the page is loaded
-// Captures: (pronounCase, theCase, withIs) = 3
-// ---------------------------------------------------------------------------
+/**
+ * Wait until the page is loaded.
+ *
+ * Example #1: When I wait until the page is loaded
+ * Example #2: When we wait until the page is loaded
+ * Example #3: When wait until page loaded
+ *
+ */
 When(/^(I |we )*wait until( the)* page( is)* loaded*$/, async function (pronounCase, theCase, withIs) {
   await waitForPageLoad(this.page, 10000);
 });
 
-// ---------------------------------------------------------------------------
-// When I wait for AJAX to finish
-// Captures: (pronounCase) = 1
-// ---------------------------------------------------------------------------
+/**
+ * Wait for active XHR/fetch requests to complete.
+ *
+ * Example #1: When I wait for AJAX to finish
+ * Example #2: And I wait for AJAX to finish
+ * Example #3: When we wait for AJAX to finish
+ * Example #4: And wait for AJAX to finish
+ *
+ */
 When(/^(I |we )*wait for AJAX to finish$/, async function (pronounCase) {
   await this.page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
 });
 
-// ---------------------------------------------------------------------------
-// Scroll steps
-// ---------------------------------------------------------------------------
+/**
+ * Scrolls the page down by a custom number of pixels (default 350).
+ *
+ * Example #1: And I scroll down
+ * Example #2: When I scroll down 800
+ * Example #3: And we scroll down 500
+ * Example #4: When scrolling down 1200
+ *
+ */
 When(/^(I scroll|we scroll|scrolling)? down(?: (\d+))?$/, async function (pronounCase, numValue) {
   await this.page.evaluate((v) => window.scrollBy(0, v), numValue ? parseInt(numValue, 10) : 350);
 });
 
+/**
+ * Scrolls the page up by a custom number of pixels (default 350).
+ *
+ * Example #1: And I scroll up
+ * Example #2: When I scroll up 1000
+ * Example #3: And we scroll up 300
+ * Example #4: When scrolling up 750
+ *
+ */
 When(/^(I scroll|we scroll|scrolling)? up(?: (\d+))?$/, async function (pronounCase, numValue) {
   await this.page.evaluate((v) => window.scrollBy(0, -v), numValue ? parseInt(numValue, 10) : 350);
 });
 
+/**
+ * Scrolls to the very top of the current page.
+ *
+ * Example #1: When I scroll to top
+ * Example #2: And we scroll to the top
+ * Example #3: When scrolling to the top of the page
+ *
+ */
 When(/^(I scroll|we scroll|scrolling)? to( the)* top( of the page)*$/, async function (pronounCase, theCase, pageCase) {
   await this.page.evaluate(() => window.scrollTo(0, 0));
 });
 
+/**
+ * Scrolls to the bottom of the current page.
+ *
+ * Example #1: When I scroll to the bottom
+ * Example #2: And we scroll to bottom
+ * Example #3: When scrolling to the bottom of the page
+ *
+ */
 When(/^(I scroll|we scroll|scrolling)? to( the)* bottom( of the page)*$/, async function (pronounCase, theCase, pageCase) {
   await this.page.evaluate(() => {
     window.scrollTo(0, document.body.scrollHeight);
@@ -925,6 +1251,14 @@ When(/^(I scroll|we scroll|scrolling)? to( the)* bottom( of the page)*$/, async 
   });
 });
 
+/**
+ * Scrolls to the top of a specific element identified by a CSS selector.
+ *
+ * Example #1: When I scroll to top of "#off-canvas"
+ * Example #2: And we scroll to top of "#sidebar"
+ * Example #3: When scrolling to top of "#main-container"
+ *
+ */
 When(/^(I scroll|we scroll|scrolling)? to top of "([^"]*)"$/, async function (pronounCase, selector) {
   await this.page.locator(selector).evaluate(el => {
     el.scrollTop = 0;
@@ -932,6 +1266,14 @@ When(/^(I scroll|we scroll|scrolling)? to top of "([^"]*)"$/, async function (pr
   });
 });
 
+/**
+ * Scrolls to the bottom of a specific element identified by a CSS selector.
+ *
+ * Example #1: When I scroll to bottom of "#off-canvas"
+ * Example #2: And we scroll to bottom of "#sidebar"
+ * Example #3: When scrolling to bottom of "#main-container"
+ *
+ */
 When(/^(I scroll|we scroll|scrolling)? to bottom of "([^"]*)"$/, async function (pronounCase, selector) {
   await this.page.locator(selector).evaluate(el => {
     el.scrollTop = el.scrollHeight;
@@ -939,33 +1281,90 @@ When(/^(I scroll|we scroll|scrolling)? to bottom of "([^"]*)"$/, async function 
   });
 });
 
+/**
+ * Scrolls the page right by a custom number of pixels (default 350).
+ *
+ * Example #1: And I scroll right
+ * Example #2: When I scroll right 1000
+ * Example #3: And we scroll right 300
+ * Example #4: When scrolling right 750
+ *
+ */
 When(/^(I scroll|we scroll|scrolling)? right(?: (\d+))?$/, async function (pronounCase, numValue) {
   await this.page.evaluate((v) => window.scrollBy(v, 0), numValue ? parseInt(numValue, 10) : 350);
 });
 
+/**
+ * Scrolls the page left by a custom number of pixels (default 350).
+ *
+ * Example #1: And I scroll left
+ * Example #2: When I scroll left 800
+ * Example #3: And we scroll left 500
+ * Example #4: When scrolling left 1200
+ *
+ */
 When(/^(I scroll|we scroll|scrolling)? left(?: (\d+))?$/, async function (pronounCase, numValue) {
   await this.page.evaluate((v) => window.scrollBy(-v, 0), numValue ? parseInt(numValue, 10) : 350);
 });
 
+/**
+ * Scrolls to the start (horizontal origin) of the page.
+ *
+ * Example #1: When I scroll to start
+ * Example #2: And we scroll to the start
+ * Example #3: When scrolling to the start of the page
+ *
+ */
 When(/^(I scroll|we scroll|scrolling)? to( the)* start( of the page)*$/, async function (pronounCase, theCase, pageCase) {
   await this.page.evaluate(() => window.scrollTo(0, window.scrollY));
 });
 
+/**
+ * Scrolls to the end (horizontal maximum) of the page.
+ *
+ * Example #1: When I scroll to the end
+ * Example #2: And we scroll to end
+ * Example #3: When scrolling to the end of the page
+ *
+ */
 When(/^(I scroll|we scroll|scrolling)? to( the)* end( of the page)*$/, async function (pronounCase, theCase, pageCase) {
   await this.page.evaluate(() => window.scrollTo(document.body.scrollWidth, window.scrollY));
 });
 
+/**
+ * Scrolls to the start of a specific element identified by a CSS selector.
+ *
+ * Example #1: When I scroll to start of "#off-canvas"
+ * Example #2: And we scroll to start of "#sidebar"
+ * Example #3: When scrolling to start of "#main-container"
+ *
+ */
 When(/^(I scroll|we scroll|scrolling)? to start of "([^"]*)"$/, async function (pronounCase, selector) {
   await this.page.locator(selector).evaluate(el => { el.scrollLeft = 0; });
 });
 
+/**
+ * Scrolls to the end of a specific element identified by a CSS selector.
+ *
+ * Example #1: When I scroll to end of "#off-canvas"
+ * Example #2: And we scroll to end of "#sidebar"
+ * Example #3: When scrolling to end of "#main-container"
+ *
+ */
 When(/^(I scroll|we scroll|scrolling)? to end of "([^"]*)"$/, async function (pronounCase, selector) {
   await this.page.locator(selector).evaluate(el => { el.scrollLeft = el.scrollWidth; });
 });
 
-// ---------------------------------------------------------------------------
-// Modal steps
-// ---------------------------------------------------------------------------
+/**
+ * Assert that a modal dialog is visible or not visible on the page.
+ *
+ * Example #1: Then I should see a modal
+ * Example #2: Then I should see the modal
+ * Example #3: Then we should see a modal dialog
+ * Example #4: Then I should not see a modal
+ * Example #5: Then I should not see the modal dialog
+ *
+ */
 Then(/^(I |we )*should( not)* see (a |the )*modal( dialog)*$/, async function (pronounCase, notCase, aTheCase, dialogCase) {
   const visible = await isAnyModalVisible(this.page);
   if (notCase) {
@@ -975,6 +1374,16 @@ Then(/^(I |we )*should( not)* see (a |the )*modal( dialog)*$/, async function (p
   }
 });
 
+/**
+ * Assert that a modal dialog with a given title is visible or not visible.
+ *
+ * Example #1: Then I should see a modal with title "Confirm Action"
+ * Example #2: Then I should see the modal with title "Welcome"
+ * Example #3: Then we should see a modal with title "Welcome Message"
+ * Example #4: Then I should not see a modal with title "Error"
+ * Example #5: Then I should not see the modal with title "Validation Error"
+ *
+ */
 Then(/^(I |we )*should( not)* see (a |the )*modal with title "([^"]*)?"$/, async function (pronounCase, notCase, aTheCase, title) {
   const modal = this.page.locator(MODAL_SELECTOR);
   const byHeading = modal.locator('.modal-title, .dialog-title, h1, h2, h3').filter({ hasText: title });
@@ -987,6 +1396,16 @@ Then(/^(I |we )*should( not)* see (a |the )*modal with title "([^"]*)?"$/, async
   }
 });
 
+/**
+ * Assert that a specific modal by id/class/data-modal is visible or not.
+ *
+ * Example #1: Then I should see a "confirmation-modal" modal
+ * Example #2: Then I should see the "#delete-modal" modal
+ * Example #3: Then we should see a "settings-modal" modal
+ * Example #4: Then I should not see a "error-modal" modal
+ * Example #5: Then I should not see the "#success-modal" modal
+ *
+ */
 Then(/^(I |we )*should( not)* see (a |the )*"([^"]*)?" modal$/, async function (pronounCase, notCase, aTheCase, identifier) {
   const selector = (identifier.startsWith('#') || identifier.startsWith('.'))
     ? identifier
@@ -999,6 +1418,15 @@ Then(/^(I |we )*should( not)* see (a |the )*"([^"]*)?" modal$/, async function (
   }
 });
 
+/**
+ * Assert that a modal contains or does not contain specific text.
+ *
+ * Example #1: Then I should see "Are you sure?" in the modal
+ * Example #2: Then I should see "Delete this item" in the modal
+ * Example #3: Then we should see "Confirmation required" in the modal dialog
+ * Example #4: Then I should not see "Error occurred" in the modal
+ *
+ */
 Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* modal( dialog)*$/, async function (pronounCase, notCase, expectedText, theCase, dialogCase) {
   const found = await this.page.locator(MODAL_SELECTOR).filter({ hasText: expectedText }).count() > 0;
   if (notCase) {
@@ -1008,6 +1436,15 @@ Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* modal( dialog)*$/, async 
   }
 });
 
+/**
+ * Click a button or link inside a modal dialog.
+ *
+ * Example #1: When I click "Confirm" in the modal
+ * Example #2: When I click "Cancel" in the modal dialog
+ * Example #3: When we click "OK" button in the modal
+ * Example #4: And I click "Close" in the modal
+ *
+ */
 When(/^(I |we )*click "([^"]*)?"( button)* in( the)* modal( dialog)*$/, async function (pronounCase, buttonText, buttonCase, theCase, dialogCase) {
   await waitForModalState(this.page, 'visible', 10000);
   const modal = await findVisibleModal(this.page);
@@ -1017,6 +1454,15 @@ When(/^(I |we )*click "([^"]*)?"( button)* in( the)* modal( dialog)*$/, async fu
     .click();
 });
 
+/**
+ * Close or dismiss a modal dialog (uses close button, or Escape fallback).
+ *
+ * Example #1: When I close the modal
+ * Example #2: When I dismiss the modal dialog
+ * Example #3: When we close the modal
+ * Example #4: And I dismiss the modal
+ *
+ */
 When(/^(I |we )*(close|dismiss)( the)* modal( dialog)*$/, async function (pronounCase, closeOrDismiss, theCase, dialogCase) {
   await waitForModalState(this.page, 'visible', 10000);
   const modal = await findVisibleModal(this.page);
@@ -1028,6 +1474,15 @@ When(/^(I |we )*(close|dismiss)( the)* modal( dialog)*$/, async function (pronou
   }
 });
 
+/**
+ * Wait for a modal dialog to appear or disappear.
+ *
+ * Example #1: When I wait for the modal to appear
+ * Example #2: When I wait for the modal to disappear
+ * Example #3: When we wait for modal to appear
+ * Example #4: And I wait for the modal dialog to disappear
+ *
+ */
 When(/^(I |we )*wait for( the)* modal( dialog)* to (appear|disappear)$/, async function (pronounCase, theCase, dialogCase, appearOrDisappear) {
   const state = appearOrDisappear === 'appear' ? 'visible' : 'hidden';
   await waitForModalState(this.page, state, 10000);
