@@ -32,6 +32,17 @@ module.exports = {
         before_step: 0,
         after_step: 0,
       },
+      screenshot: {
+        dir: './screenshots',                        // WEBSHIP_SCREENSHOT_DIR
+        purge: false,                                // WEBSHIP_SCREENSHOT_PURGE
+        onFailed: true,                              // WEBSHIP_SCREENSHOT_ON_FAILED
+        onEveryStep: false,                          // WEBSHIP_SCREENSHOT_ON_EVERY_STEP
+        alwaysFullscreen: false,                     // WEBSHIP_SCREENSHOT_FULLSCREEN
+        failedPrefix: 'failed_',                     // WEBSHIP_SCREENSHOT_FAILED_PREFIX
+        filenamePattern: '{datetime}.{feature_file}.feature_{step_line}.{ext}', // WEBSHIP_SCREENSHOT_PATTERN
+        filenamePatternFailed: '{failed_prefix}{datetime}.{feature_file}.feature_{step_line}.{ext}', // WEBSHIP_SCREENSHOT_PATTERN_FAIL
+        infoTypes: '',                               // WEBSHIP_SCREENSHOT_INFO_TYPES  e.g. "url,feature,step,datetime"
+      },
       diffy: {
         apiKey: 'mock-key',                          // DIFFY_API_KEY
         projectId: 1,                                // DIFFY_PROJECT_ID
