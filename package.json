@@ -3,6 +3,10 @@
   "version": "2.0.1",
   "description": "Webship JS automated functional testing.",
   "main": "index.js",
+  "bin": {
+    "init-webship-js": "./bin/init-webship.js",
+    "generate-reports": "./bin/generate-reports.js"
+  },
   "directories": {
     "test": "test"
   },
@@ -11,9 +15,11 @@
   },
   "scripts": {
     "postinstall": "node ./bin/postinstall.js",
-    "test": "cucumber-js --config cucumber.js; node generate-reports.js;",
-    "test:firefox": "BROWSER=firefox cucumber-js --config cucumber.js; node generate-reports.js;",
-    "test:webkit": "BROWSER=webkit cucumber-js --config cucumber.js; node generate-reports.js;",
+    "test": "cucumber-js --config cucumber.js",
+    "test:chromium": "BROWSER=chromium cucumber-js --config cucumber.js",
+    "test:firefox": "BROWSER=firefox cucumber-js --config cucumber.js",
+    "test:webkit": "BROWSER=webkit cucumber-js --config cucumber.js",
+    "generate-reports": "node ./bin/generate-reports.js",
     "start": "http-server examples -p 8080 -s"
   },
   "repository": {

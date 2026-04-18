@@ -8,6 +8,25 @@ const axios = require('axios');
 const path = require('path');
 
 // ---------------------------------------------------------------------------
+// Auto HTML report on cucumber-js process exit.
+// Disable: WEBSHIP_REPORT_DISABLE=1. Extra flags: WEBSHIP_REPORT_ARGS="--theme hierarchy --layout 2".
+// Registered once per process.
+// ---------------------------------------------------------------------------
+if (!global.__WEBSHIP_AUTO_REPORT__) {
+  global.__WEBSHIP_AUTO_REPORT__ = true;
+  process.on('exit', () => {
+    if (process.env.WEBSHIP_REPORT_DISABLE) return;
+    try {
+      const { run } = require(path.join(__dirname, '..', '..', 'bin', 'generate-reports'));
+      const extra = (process.env.WEBSHIP_REPORT_ARGS || '').split(/\s+/).filter(Boolean);
+      run(extra);
+    } catch (err) {
+      console.error('[webship-js] Report generation failed:', err.message);
+    }
+  });
+}
+
+// ---------------------------------------------------------------------------
 // World
 // ---------------------------------------------------------------------------
 setDefaultTimeout(30 * 1000);
