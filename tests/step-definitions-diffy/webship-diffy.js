@@ -175,6 +175,13 @@ When(/^(?:I |we )?resize window to "([^"]*)"$/, async function (breakpoint) {
  * Example #1: Then I take screenshot
  * Example #2: Then we take screenshot
  * Example #3: And I take screenshot
+ * Example #4: And we take screenshot
+ * Example #5: But I take screenshot
+ * Example #6: Then take screenshot
+ * Example #7: And take screenshot
+ * Example #8: When I take screenshot
+ * Example #9: When we take screenshot
+ * Example #10: Given I take screenshot
  *
  */
 Then(/^(?:I |we )?take screenshot$/, async function () {
@@ -188,6 +195,13 @@ Then(/^(?:I |we )?take screenshot$/, async function () {
  * Example #1: Then I take screenshots for all breakpoints
  * Example #2: Then we take screenshots for all breakpoints
  * Example #3: And I take screenshots for all breakpoints
+ * Example #4: And we take screenshots for all breakpoints
+ * Example #5: Then take screenshots for all breakpoints
+ * Example #6: And take screenshots for all breakpoints
+ * Example #7: When I take screenshots for all breakpoints
+ * Example #8: When we take screenshots for all breakpoints
+ * Example #9: But I take screenshots for all breakpoints
+ * Example #10: Given I take screenshots for all breakpoints
  *
  */
 Then(/^(?:I |we )?take screenshots for all breakpoints$/, async function () {
@@ -216,7 +230,7 @@ Then(/^(?:I |we )?take screenshots for all breakpoints$/, async function () {
  * Example #6: Then send screenshots to diffy with name "webship.co-prod"
  *
  */
-Then(/^send screenshots to diffy with name "([^"]*)"$/, async function (snapshotName) {
+Then(/^(I |we )*send screenshots to diffy with name "([^"]*)"$/, async function (pronounCase, snapshotName) {
   const cfg = this.diffyConfig;
   ensureProjectId(cfg);
   const shots = this.diffyScreenshots || [];
@@ -255,9 +269,17 @@ Then(/^send screenshots to diffy with name "([^"]*)"$/, async function (snapshot
  *
  * Example #1: Then create diffy comparison
  * Example #2: And create diffy comparison
+ * Example #3: Then I create diffy comparison
+ * Example #4: Then we create diffy comparison
+ * Example #5: And I create diffy comparison
+ * Example #6: And we create diffy comparison
+ * Example #7: But I create diffy comparison
+ * Example #8: When I create diffy comparison
+ * Example #9: When we create diffy comparison
+ * Example #10: Given create diffy comparison
  *
  */
-Then(/^create diffy comparison$/, async function () {
+Then(/^(I |we )*create diffy comparison$/, async function (pronounCase) {
   const cfg = this.diffyConfig;
   ensureProjectId(cfg);
   const ids = this.diffyCreatedScreenshotIds || [];
@@ -282,7 +304,7 @@ Then(/^create diffy comparison$/, async function () {
  * Example #6: Then create diffy comparison with name "homepage-baseline-vs-changed"
  *
  */
-Then(/^create diffy comparison with name "([^"]*)"$/, async function (name) {
+Then(/^(I |we )*create diffy comparison with name "([^"]*)"$/, async function (pronounCase, name) {
   const cfg = this.diffyConfig;
   ensureProjectId(cfg);
   const ids = this.diffyCreatedScreenshotIds || [];
@@ -309,7 +331,7 @@ Then(/^create diffy comparison with name "([^"]*)"$/, async function (name) {
  * Example #7: Then create diffy screenshot from "custom" environment
  *
  */
-Then(/^create diffy screenshot from "([^"]*)" environment$/, async function (environment) {
+Then(/^(I |we )*create diffy screenshot from "([^"]*)" environment$/, async function (pronounCase, environment) {
   const cfg = this.diffyConfig;
   ensureProjectId(cfg);
   const map = { prod: 'production', stage: 'staging', dev: 'development' };
@@ -342,7 +364,7 @@ Then(/^create diffy screenshot from "([^"]*)" environment$/, async function (env
  * Example #8: Then compare diffy "production" with "development"
  *
  */
-Then(/^compare diffy "([^"]*)" with "([^"]*)"$/, async function (env1, env2) {
+Then(/^(I |we )*compare diffy "([^"]*)" with "([^"]*)"$/, async function (pronounCase, env1, env2) {
   const cfg = this.diffyConfig;
   ensureProjectId(cfg);
   const toShort = { production: 'prod', staging: 'stage', development: 'dev' };
@@ -372,7 +394,7 @@ Then(/^compare diffy "([^"]*)" with "([^"]*)"$/, async function (env1, env2) {
  * Example #6: Then upload folder "./diffy/before" to diffy as "before-deploy"
  *
  */
-Then(/^upload folder "([^"]*)" to diffy as "([^"]*)"$/, async function (folderPath, snapshotName) {
+Then(/^(I |we )*upload folder "([^"]*)" to diffy as "([^"]*)"$/, async function (pronounCase, folderPath, snapshotName) {
   const cfg = this.diffyConfig;
   ensureProjectId(cfg);
   if (!fs.existsSync(folderPath) || !fs.statSync(folderPath).isDirectory()) {
@@ -424,9 +446,17 @@ function detectPngWidth(buffer) {
  *
  * Example #1: Then wait for diffy comparison to complete
  * Example #2: And wait for diffy comparison to complete
+ * Example #3: Then I wait for diffy comparison to complete
+ * Example #4: Then we wait for diffy comparison to complete
+ * Example #5: And I wait for diffy comparison to complete
+ * Example #6: And we wait for diffy comparison to complete
+ * Example #7: But I wait for diffy comparison to complete
+ * Example #8: When I wait for diffy comparison to complete
+ * Example #9: When we wait for diffy comparison to complete
+ * Example #10: Given wait for diffy comparison to complete
  *
  */
-Then(/^wait for diffy comparison to complete$/, { timeout: 60 * 60 * 1000 }, async function () {
+Then(/^(I |we )*wait for diffy comparison to complete$/, { timeout: 60 * 60 * 1000 }, async function (pronounCase) {
   const cfg = this.diffyConfig;
   const ids = this.diffyCreatedDiffIds || [];
   if (!ids.length) throw new Error('No Diffy comparison created yet.');
