@@ -579,6 +579,56 @@ When(/^(I |we )*select "([^"]*)?" from "([^"]*)?"$/, async function (pronounCase
 });
 
 /**
+ * Add an option to a <select multiple> without clearing the existing selection.
+ * Resolves the select by label, then by [name]/#id fallback.
+ *
+ * Example #1: When I additionally select "Red" from "Colors"
+ * Example #2: When I additionally select "Blue" from "Colors"
+ * Example #3: When we additionally select "Green" from "Colors"
+ * Example #4: And additionally select "Yellow" from "Colors"
+ * Example #5: When I additionally select "Admin" from "Roles"
+ * Example #6: When we additionally select "Editor" from "Roles"
+ * Example #7: When I additionally select "Viewer" from "Roles"
+ * Example #8: And I additionally select "EN" from "Languages"
+ * Example #9: When I additionally select "FR" from "Languages"
+ * Example #10: When we additionally select "ES" from "Languages"
+ *
+ * Advanced:
+ * Example #11: Build a full multi-selection in sequence:
+ *   When I select "Red" from "Colors"
+ *   And  I additionally select "Blue" from "Colors"
+ *   And  I additionally select "Green" from "Colors"
+ * Example #12: Works against a [name] select:
+ *   When I additionally select "tag-a" from "tags"
+ *   And  I additionally select "tag-b" from "tags"
+ * Example #13: Confirm the select stays multi-valued after adds:
+ *   When I select "One" from "Items"
+ *   And  I additionally select "Two" from "Items"
+ */
+When(/^(I |we )*additionally select "([^"]*)" from "([^"]*)"$/, async function (pronounCase, option, select) {
+  const loc = this.page.getByLabel(select).or(
+    this.page.locator(`select[name="${select}"], select#${select}`)
+  ).first();
+
+  const currentValues = await loc.evaluate((el) => {
+    if (!el || !el.selectedOptions) return [];
+    return Array.from(el.selectedOptions).map((o) => o.value);
+  });
+
+  const nextValueForLabel = await loc.evaluate((el, label) => {
+    const opt = Array.from(el.options || []).find((o) => o.label === label || o.text === label);
+    return opt ? opt.value : null;
+  }, option);
+
+  if (nextValueForLabel === null) {
+    throw new Error(`Option "${option}" not found in select "${select}".`);
+  }
+
+  const combined = Array.from(new Set([...currentValues, nextValueForLabel]));
+  await loc.selectOption(combined);
+});
+
+/**
  * Checks the specified checkbox by label, id, class, or name.
  *
  * Example #1: When I check "Remember me"
@@ -1486,4 +1536,79 @@ When(/^(I |we )*(close|dismiss)( the)* modal( dialog)*$/, async function (pronou
 When(/^(I |we )*wait for( the)* modal( dialog)* to (appear|disappear)$/, async function (pronounCase, theCase, dialogCase, appearOrDisappear) {
   const state = appearOrDisappear === 'appear' ? 'visible' : 'hidden';
   await waitForModalState(this.page, state, 10000);
+});
+
+// ===========================================================================
+// STEP DEFINITIONS — Follow link, count elements, debug helpers.
+// ===========================================================================
+
+/**
+ * Follow a link by its visible text.
+ * Uses Playwright's accessibility-first `getByRole('link', { name })` with a
+ * text-match fallback.
+ *
+ * Example #1: When I follow "Contact Us"
+ * Example #2: When I follow "About"
+ * Example #3: When we follow "Home"
+ * Example #4: And follow "Read more"
+ * Example #5: When I follow "Documentation"
+ * Example #6: When we follow "Sign in"
+ * Example #7: When I follow "Log out"
+ * Example #8: When I follow "Download report"
+ * Example #9: And I follow "Previous"
+ * Example #10: When I follow "Next"
+ */
+When(/^(I |we )*follow "([^"]*)"$/, async function (pronounCase, link) {
+  const esc = link.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const loc = this.page.getByRole('link', { name: link, exact: true }).or(
+    this.page.locator('a').filter({ hasText: new RegExp('^' + esc + '$') })
+  ).first();
+  await loc.click();
+});
+
+/**
+ * Assert the exact number of elements matching a CSS selector.
+ *
+ * Example #1: Then I should see 3 "li" elements
+ * Example #2: Then I should see 1 "h1" element
+ * Example #3: Then we should see 5 ".card" elements
+ * Example #4: Then I should see 0 ".error" elements
+ * Example #5: And I should see 10 "table tr" elements
+ * Example #6: Then I should see 2 "nav a" elements
+ * Example #7: Then we should see 4 "ul li" elements
+ * Example #8: Then I should see 1 "form" element
+ * Example #9: And should see 6 ".product" elements
+ * Example #10: Then I should see 8 "[data-testid='row']" elements
+ */
+Then(/^(I |we )*should see (\d+) "([^"]*)" elements?$/, async function (pronounCase, num, selector) {
+  const expected = parseInt(num, 10);
+  const actual = await this.page.locator(selector).count();
+  if (actual !== expected) {
+    throw new Error(`Expected ${expected} "${selector}" element(s), got ${actual}.`);
+  }
+});
+
+/**
+ * Print the current page URL to console (debug).
+ *
+ * Example #1: Then print current URL
+ * Example #2: When print current URL
+ * Example #3: And print current URL
+ */
+Then(/^print current URL$/, function () {
+  console.log('\n--- Current URL ---');
+  console.log(`  ${this.page.url()}`);
+});
+
+/**
+ * Print the full page HTML (last response) to console (debug).
+ *
+ * Example #1: Then print last response
+ * Example #2: When print last response
+ * Example #3: And print last response
+ */
+Then(/^print last response$/, async function () {
+  const html = await this.page.content();
+  console.log('\n--- Last Response (HTML) ---');
+  console.log(html);
 });
