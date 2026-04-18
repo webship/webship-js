@@ -1,0 +1,16 @@
+{
+  "css": {
+    "page heading": "h1",
+    "second level": "h2",
+    "third level": "h3",
+    "first list": "ul:first-of-type",
+    "first list item": "ul:first-of-type li:first-child",
+    "page body": "body"
+  },
+  "xpath": {
+    "first heading": "//h1[1]",
+    "first subline": "//h3[1]",
+    "first list xp": "//ul[1]",
+    "first list item xp": "//ul[1]/li[1]"
+  }
+}

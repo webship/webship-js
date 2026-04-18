@@ -1,0 +1,13 @@
+{
+  "css": {
+    "admin heading": "h1",
+    "admin subline": "h3",
+    "admin list": "ul",
+    "admin body": "body"
+  },
+  "xpath": {
+    "admin first heading": "//h1[1]",
+    "admin first subline": "//h3[1]",
+    "admin first list item": "//ul[1]/li[1]"
+  }
+}

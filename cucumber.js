@@ -32,6 +32,41 @@ module.exports = {
         before_step: 0,
         after_step: 0,
       },
+      selectors: {
+        // Named CSS selectors — layout components and element locators in one registry.
+        // Register inline: When I add "name" selector for "css" css selector
+        // Or in bulk:      Given I define css selectors:
+        //                    | name | css selector |
+        css: {
+          // 'header':                'header.page-header',
+          // 'main nav':              'nav[role="navigation"]',
+          // 'breadcrumb':            '.breadcrumb',
+          // 'breadcrumb first link': '.breadcrumb li:nth-child(1) a',
+          // 'message':               '.messages',
+          // 'error message':         '.messages.error',
+          // 'success message':       '.messages.status',
+          // 'warning message':       '.messages.warning',
+        },
+        // Named XPath selectors — use with: When I add "name" selector for "xpath" xpath selector
+        xpath: {
+          // 'page title': '//h1[contains(@class,"page-header")]',
+        },
+        // Load additional selectors from JSON files at scenario start.
+        filesPath: './tests/selectors/',             // base path for selector files
+        files: [],                                   // e.g. ['homepage-selectors.json'] or ['front-end-selectors.json', 'back-end-selectors.json']
+        // Relative-position scroll offset (px) — WEBSHIP_SELECTORS_OFFSET
+        offset: 60,
+        // Viewport breakpoints — WEBSHIP_SELECTORS_BREAKPOINTS (JSON string)
+        breakpoints: {
+          xs:   { width: 375,  height: 667  },                    // phone portrait
+          sm:   { width: 576,  height: 800  },                    // large phone / phablet
+          md:   { width: 768,  height: 1024 },                    // tablet portrait
+          lg:   { width: 992,  height: 768  },                    // small laptop / tablet landscape
+          xl:   { width: 1200, height: 900, default: true },      // desktop
+          xxl:  { width: 1400, height: 900  },                    // wide desktop / HD
+          xxxl: { width: 1920, height: 1080 },                    // Full HD / large monitor
+        },
+      },
       screenshot: {
         dir: './screenshots',                        // WEBSHIP_SCREENSHOT_DIR
         purge: false,                                // WEBSHIP_SCREENSHOT_PURGE
