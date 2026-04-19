@@ -179,9 +179,6 @@ When(/^(?:I |we )?resize window to "([^"]*)"$/, async function (breakpoint) {
  * Example #5: But I take screenshot
  * Example #6: Then take screenshot
  * Example #7: And take screenshot
- * Example #8: When I take screenshot
- * Example #9: When we take screenshot
- * Example #10: Given I take screenshot
  *
  */
 Then(/^(?:I |we )?take screenshot$/, async function () {
@@ -198,10 +195,6 @@ Then(/^(?:I |we )?take screenshot$/, async function () {
  * Example #4: And we take screenshots for all breakpoints
  * Example #5: Then take screenshots for all breakpoints
  * Example #6: And take screenshots for all breakpoints
- * Example #7: When I take screenshots for all breakpoints
- * Example #8: When we take screenshots for all breakpoints
- * Example #9: But I take screenshots for all breakpoints
- * Example #10: Given I take screenshots for all breakpoints
  *
  */
 Then(/^(?:I |we )?take screenshots for all breakpoints$/, async function () {
@@ -274,9 +267,6 @@ Then(/^(I |we )*send screenshots to diffy with name "([^"]*)"$/, async function 
  * Example #5: And I create diffy comparison
  * Example #6: And we create diffy comparison
  * Example #7: But I create diffy comparison
- * Example #8: When I create diffy comparison
- * Example #9: When we create diffy comparison
- * Example #10: Given create diffy comparison
  *
  */
 Then(/^(I |we )*create diffy comparison$/, async function (pronounCase) {
@@ -451,9 +441,6 @@ function detectPngWidth(buffer) {
  * Example #5: And I wait for diffy comparison to complete
  * Example #6: And we wait for diffy comparison to complete
  * Example #7: But I wait for diffy comparison to complete
- * Example #8: When I wait for diffy comparison to complete
- * Example #9: When we wait for diffy comparison to complete
- * Example #10: Given wait for diffy comparison to complete
  *
  */
 Then(/^(I |we )*wait for diffy comparison to complete$/, { timeout: 60 * 60 * 1000 }, async function (pronounCase) {
