@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Accessibility Demo</title>
+</head>
+<body>
+  <header>
+    <nav aria-label="Primary"><ul><li><a href="/">Home</a></li></ul></nav>
+  </header>
+  <main>
+    <h1>Accessibility Demo</h1>
+    <img src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" alt="Pixel">
+    <img src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==" alt="" role="presentation">
+    <form>
+      <label for="email">Email</label>
+      <input id="email" type="email" name="email">
+
+      <label for="message">Message</label>
+      <textarea id="message" name="message"></textarea>
+
+      <label>
+        <input type="checkbox" name="agree"> I agree
+      </label>
+
+      <button type="submit">Submit</button>
+    </form>
+  </main>
+  <footer><small>&copy; 2026</small></footer>
+</body>
+</html>
