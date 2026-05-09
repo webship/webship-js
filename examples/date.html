@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html><head><title>Date demo</title></head>
+<body>
+<h1>Date</h1>
+<p id="year"></p>
+<p id="month"></p>
+<script>
+  var now = new Date();
+  document.getElementById('year').textContent  = String(now.getFullYear());
+  document.getElementById('month').textContent = String(now.getMonth() + 1).padStart(2, '0');
+</script>
+</body></html>
