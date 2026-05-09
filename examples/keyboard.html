@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html><head><title>Keyboard</title></head>
+<body>
+  <input id="inp" />
+  <span id="last"></span>
+  <script>
+    document.getElementById('inp').addEventListener('keydown', (e) => {
+      document.getElementById('last').textContent = e.key;
+    });
+  </script>
+</body></html>
