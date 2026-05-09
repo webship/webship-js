@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html><head><title>Field Demo</title></head>
+<body>
+  <form id="f">
+    <label for="username">Username</label>
+    <input id="username" name="username" type="text" required />
+
+    <label for="bio">Bio</label>
+    <textarea id="bio" name="bio"></textarea>
+
+    <label for="role">Role</label>
+    <select id="role" name="role">
+      <option value="">--</option>
+      <option value="admin">Admin</option>
+      <option value="user">User</option>
+    </select>
+
+    <label><input type="checkbox" id="agree" name="agree" /> Agree</label>
+    <label><input type="radio" name="color" value="red" id="r-red"/> Red</label>
+    <label><input type="radio" name="color" value="blue" id="r-blue"/> Blue</label>
+
+    <input type="color" id="fav" name="fav" value="#000000" />
+  </form>
+</body></html>
