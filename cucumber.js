@@ -6,8 +6,10 @@ module.exports = {
     // JavaScript, drop `requireModule` and the `.ts` half of the glob.
     requireModule: ['tsx/cjs'],
     require: [
-      'tests/step-definitions/**/*.{js,ts}',       // Core + extended step definitions (JS or TS).
-      'tests/step-definitions-diffy/**/*.{js,ts}', // diffy.website step definitions.
+      'tests/step-definitions/**/*.js',
+      'tests/step-definitions/**/*.ts',
+      'tests/step-definitions-diffy/**/*.js',
+      'tests/step-definitions-diffy/**/*.ts',
     ],
     paths: ['tests/features/**/*.feature'],
     format: [
