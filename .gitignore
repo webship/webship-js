@@ -3,9 +3,11 @@ node_modules
 *.log
 .vscode
 tests_output
-tests/reports/cucumber_report*
+tests/reports/*.json
+tests/reports/*.html
+tests/reports/*.pdf
+!tests/reports/README.md
 package-lock.json
-docs
 .playwright-mcp
 .claude
 screenshots
