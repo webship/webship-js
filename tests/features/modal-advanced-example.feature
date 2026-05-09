@@ -50,5 +50,5 @@ Feature: Modal Dialog - Advanced Scenarios
     And I click "Submit" button in the modal
     And I wait 1 second
     Then I should see "Message sent successfully" in the modal
-    And I wait 3 seconds
+    And I wait for the modal to disappear
     Then I should not see the modal

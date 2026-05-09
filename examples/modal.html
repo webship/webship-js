@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html><head><title>Modal Demo</title>
+<style>
+  .modal { display: none; position: fixed; top: 20%; left: 30%; padding: 20px; background: #fff; border: 1px solid #ccc; }
+  .modal.show { display: block; }
+</style>
+</head>
+<body>
+  <button id="open" onclick="document.getElementById('m').classList.add('show')">Open</button>
+  <div id="m" class="modal" role="dialog" aria-label="Welcome dialog">
+    <p>Welcome modal text</p>
+    <button id="close-btn" class="close" aria-label="Close" onclick="document.getElementById('m').classList.remove('show')">X</button>
+  </div>
+</body></html>
