@@ -25,8 +25,9 @@ interface PlaywrightConfig {
 const config: PlaywrightConfig = {
   browser,
   launchOptions: {
-    headless: true,
-    slowMo: 300,
+    headless: process.env.HEADLESS !== 'false',
+    // SLOW_MO env var: 0 in CI for speed, 800ms when watching headed runs.
+    slowMo: parseInt(process.env.SLOW_MO || (process.env.HEADLESS === 'false' ? '800' : '300'), 10),
     args: browser === 'chromium' ? chromiumArgs : [],
   },
   contextOptions: {
