@@ -1,6 +1,6 @@
 {
   "name": "webship-js",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "Webship JS automated functional testing.",
   "main": "index.js",
   "bin": {
@@ -19,6 +19,8 @@
     "test:chromium": "BROWSER=chromium cucumber-js --config cucumber.js",
     "test:firefox": "BROWSER=firefox cucumber-js --config cucumber.js",
     "test:webkit": "BROWSER=webkit cucumber-js --config cucumber.js",
+    "test:headed": "HEADLESS=false cucumber-js --config cucumber.js",
+    "test:fast": "SLOW_MO=0 cucumber-js --config cucumber.js",
     "generate-reports": "node ./bin/generate-reports.js",
     "start": "http-server examples -p 8080 -s"
   },
@@ -33,14 +35,19 @@
   },
   "homepage": "https://github.com/webship/webship-js",
   "dependencies": {
+    "@axe-core/playwright": "^4.11.3",
     "@cucumber/cucumber": "*",
     "@cucumber/pretty-formatter": "~1",
+    "@types/node": "~20",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
+    "axe-core": "^4.11.4",
     "axios": "~1",
     "cucumber-html-reporter": "^6.0.0",
     "http-server": "^14.1.1",
+    "js-yaml": "^4.1.1",
     "playwright": "^1.58.2",
-    "@types/node": "~20",
-    "ts-node": "~10",
+    "tsx": "^4.19.2",
     "typescript": "~5"
   }
 }

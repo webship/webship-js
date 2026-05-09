@@ -1,10 +1,13 @@
 module.exports = {
   default: {
     timeout: 30000,
-    requireModule: ['ts-node/register'],
+    // tsx/cjs registers a require() hook so cucumber-js can load both
+    // `.js` and `.ts` step files with zero build step. If you ship only
+    // JavaScript, drop `requireModule` and the `.ts` half of the glob.
+    requireModule: ['tsx/cjs'],
     require: [
-      'tests/step-definitions/**/*.js',       // Default Webship-js step definitions.
-      'tests/step-definitions-diffy/**/*.js', // diffy.website step definitions.
+      'tests/step-definitions/**/*.{js,ts}',       // Core + extended step definitions (JS or TS).
+      'tests/step-definitions-diffy/**/*.{js,ts}', // diffy.website step definitions.
     ],
     paths: ['tests/features/**/*.feature'],
     format: [
@@ -12,7 +15,8 @@ module.exports = {
       'json:tests/reports/cucumber_report.json',
     ],
     formatOptions: {
-      colorsEnabled: true,
+      // Color toggle is controlled via the FORCE_COLOR env var (per
+      // cucumber-js v10+); the deprecated `colorsEnabled` option is gone.
       theme: {
         'feature keyword': ['bold', 'blue'],
         'feature name': ['blue', 'underline'],
