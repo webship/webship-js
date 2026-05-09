@@ -1,0 +1,38 @@
+{
+  "css": {
+    "modal": ".modal.show, [role=\"dialog\"]",
+    "main nav": "#nav-sidebar, .nav-sidebar",
+    "main nav item": ".nav-sidebar li.link-levelone > a",
+    "submenu": ".submenu",
+    "page header": "#header_infos, .page-head",
+    "page title": ".page-title, h2.page-title, h1.page-title",
+    "save button": "button.btn-primary[name='submitAdd'], button#save-button",
+    "save stay button": "button[name='submitAddAndStay']",
+    "cancel button": "a.btn-default, button.btn-default[type='button']",
+    "delete button": "a.delete, .btn-danger",
+    "primary button": ".btn-primary",
+    "notice success": ".alert-success, .alert.alert-success",
+    "notice error": ".alert-danger, .alert.alert-danger",
+    "notice warning": ".alert-warning",
+    "notice info": ".alert-info",
+    "data table": "table.table",
+    "table row": "tbody tr",
+    "table first row": "tbody tr:first-child",
+    "filter input": "input.filter, .column-filters input",
+    "tabs": "ul.nav-tabs",
+    "active tab": "ul.nav-tabs li.active, .nav-tabs .active",
+    "form item": ".form-group",
+    "form label": ".form-control-label, .control-label",
+    "form input": ".form-control",
+    "form switch": ".switch-input, .ps-switch",
+    "search input": "input#bo_query, #shop_search input",
+    "user menu": "#employee_infos",
+    "breadcrumb": ".breadcrumb",
+    "page sidebar": "#main_page_aside, .page-sidebar"
+  },
+  "xpath": {
+    "page main heading": "//h2[contains(@class,'page-title')] | //h1[contains(@class,'page-title')]",
+    "save button": "//button[contains(@class,'btn-primary') and contains(@name,'submitAdd')]",
+    "first data row": "//table//tbody/tr[1]"
+  }
+}

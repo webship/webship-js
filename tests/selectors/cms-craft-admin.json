@@ -1,0 +1,39 @@
+{
+  "css": {
+    "modal": ".modal.shown, [role=\"dialog\"], .hud",
+    "sidebar": "#global-sidebar, .global-sidebar",
+    "main nav": "#nav, nav#nav",
+    "main nav item": "#nav li a",
+    "page title": "#header h1, .header h1, h1.title",
+    "page header": "#page-title, #header",
+    "save button": "button.submit, .btn.submit, #save-btn",
+    "save and continue": "#action-menu .action-btn",
+    "primary button": "button.btn.submit, .btn.primary",
+    "secondary button": ".btn.secondary",
+    "delete button": ".btn.delete",
+    "notice success": ".notification.notice, .notice",
+    "notice error": ".notification.error, .errors",
+    "notice warning": ".notification.warning",
+    "data table": "table.data, table.fullwidth",
+    "table row": "tbody tr",
+    "table first row": "tbody tr:first-child",
+    "table checkbox": "td.checkbox-cell input",
+    "tabs": "#tabs, .tabs",
+    "active tab": "#tabs li.sel, .tabs li.sel",
+    "form item": ".field, .flex-fields .field",
+    "form input": ".field input.text, .field .nicetext",
+    "form label": ".field .heading label, .field label",
+    "lightswitch": ".lightswitch",
+    "search input": ".search input, #search-container input",
+    "filter button": ".btn.menubtn",
+    "site picker": "#site-crumb, .site-crumb-button",
+    "user menu": "#user-info, .user.menubtn",
+    "breadcrumb": ".crumbs, #crumbs"
+  },
+  "xpath": {
+    "page main heading": "//div[@id='header']//h1 | //h1[@class='title']",
+    "save button": "//button[contains(@class,'submit')]",
+    "first table row": "//table[contains(@class,'data')]//tbody/tr[1]",
+    "notification": "//div[contains(@class,'notification')]"
+  }
+}

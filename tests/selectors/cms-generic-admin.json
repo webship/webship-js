@@ -1,0 +1,34 @@
+{
+  "css": {
+    "modal": "[role=\"dialog\"], dialog, .modal.show, .modal.active, .modal.open",
+    "sidebar": "aside, nav.sidebar, .sidebar, #sidebar",
+    "main nav": "nav, .navbar, .navigation, header nav",
+    "page title": "h1, .page-title, .page-heading",
+    "save button": "button[type=\"submit\"], input[type=\"submit\"], .btn-save, .btn-primary",
+    "cancel button": "button.cancel, .btn-cancel, .btn-secondary",
+    "delete button": "button.delete, .btn-delete, .btn-danger",
+    "notice success": ".alert-success, .success, .notice-success, [role=\"alert\"].success",
+    "notice error": ".alert-danger, .alert-error, .error, .notice-error, [role=\"alert\"].error",
+    "notice warning": ".alert-warning, .warning, .notice-warning",
+    "notice info": ".alert-info, .info, .notice-info",
+    "data table": "table, .data-table, .list-table",
+    "table row": "tbody tr",
+    "table first row": "tbody tr:first-child",
+    "pagination": ".pagination, nav[aria-label*=\"page\"], [role=\"navigation\"].pagination",
+    "search input": "input[type=\"search\"], input[name=\"search\"], input[placeholder*=\"Search\"]",
+    "breadcrumb": ".breadcrumb, [aria-label=\"breadcrumb\"], nav.breadcrumb",
+    "dropdown menu": ".dropdown-menu, .dropdown-content",
+    "form": "form",
+    "form input": "input:not([type=\"hidden\"]):not([type=\"submit\"]):not([type=\"button\"])",
+    "loading spinner": ".spinner, .loader, .loading, [role=\"progressbar\"]",
+    "user avatar": ".avatar, .user-avatar",
+    "logout link": "a[href*=\"logout\"], a[href*=\"signout\"], button.logout"
+  },
+  "xpath": {
+    "page main heading": "//h1[1]",
+    "first table row": "//table//tbody/tr[1]",
+    "nav first item": "//nav//a[1]",
+    "any alert": "//div[contains(@class,'alert') or contains(@class,'notice') or contains(@class,'message')]",
+    "submit form": "//button[@type='submit' or @type='button'][contains(.,'Save') or contains(.,'Submit') or contains(.,'Update')]"
+  }
+}

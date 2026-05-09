@@ -1,0 +1,41 @@
+{
+  "css": {
+    "modal": ".modal.show, .modal.in, [role=\"dialog\"], #joomla-dialog",
+    "sidebar": "#sidebar-wrapper, #aside",
+    "main nav": "#sidebarmenu, .nav-sidebar",
+    "main nav item": "#sidebarmenu a, .nav-sidebar a",
+    "page title": ".page-title, h1.page-title, .subhead h1",
+    "subhead": ".subhead, #subhead",
+    "save button": "#toolbar-save button, button.button-save, joomla-toolbar-button[task='article.save']",
+    "save close button": "#toolbar-save-new button, button.button-save-new",
+    "cancel button": "#toolbar-cancel button, button.button-cancel",
+    "delete button": "#toolbar-delete button, button.button-delete",
+    "publish button": "#toolbar-publish button",
+    "unpublish button": "#toolbar-unpublish button",
+    "trash button": "#toolbar-trash button",
+    "notice success": ".alert-success, .alert.alert-message, joomla-alert[type='success']",
+    "notice error": ".alert-error, .alert-danger, joomla-alert[type='danger']",
+    "notice warning": ".alert-warning, joomla-alert[type='warning']",
+    "notice info": ".alert-info, joomla-alert[type='info']",
+    "data table": "table.table, table.adminlist, table.itemList",
+    "table row": "tbody tr",
+    "table first row": "tbody tr:first-child",
+    "table checkbox": "input[name='cid[]']",
+    "filter bar": ".js-stools, #filter-bar",
+    "filter search": "#filter_search",
+    "pagination": ".pagination, .pagination-toolbar",
+    "breadcrumb": "#breadcrumb, .breadcrumb",
+    "tabs": "joomla-tab, .nav-tabs",
+    "active tab": ".nav-tabs li.active, joomla-tab-element.active",
+    "form actions": ".form-actions, .control-group",
+    "form input": "input.form-control, .form-element",
+    "user menu": "#header-items .user, #user-menu",
+    "search input": "#filter-search-bar input"
+  },
+  "xpath": {
+    "page main heading": "//h1[contains(@class,'page-title')]",
+    "save button": "//button[contains(@class,'button-save') and not(contains(@class,'button-save-new'))]",
+    "first data row": "//table//tbody/tr[1]",
+    "alert message": "//*[self::div or self::joomla-alert][contains(@class,'alert')]"
+  }
+}

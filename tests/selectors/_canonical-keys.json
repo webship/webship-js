@@ -1,0 +1,113 @@
+{
+  "_description": "Canonical selector key index. CMS/framework JSON files should expose these names so steps work consistently across projects. Framework-specific extras may also be present.",
+  "categories": {
+    "layout": [
+      "main nav",
+      "main nav item",
+      "sidebar",
+      "header bar",
+      "main content",
+      "page title",
+      "page header",
+      "footer",
+      "breadcrumb",
+      "user menu",
+      "container"
+    ],
+    "modal": [
+      "modal",
+      "modal overlay",
+      "modal content",
+      "modal header",
+      "modal title",
+      "modal body",
+      "modal footer",
+      "modal close"
+    ],
+    "buttons": [
+      "primary button",
+      "secondary button",
+      "danger button",
+      "save button",
+      "cancel button",
+      "delete button",
+      "publish button",
+      "icon button",
+      "link button",
+      "ghost button"
+    ],
+    "notices": [
+      "notice success",
+      "notice error",
+      "notice warning",
+      "notice info",
+      "toast"
+    ],
+    "forms": [
+      "form",
+      "form item",
+      "form label",
+      "form input",
+      "form select",
+      "form textarea",
+      "form actions",
+      "form error",
+      "checkbox",
+      "checkbox checked",
+      "radio",
+      "radio checked",
+      "switch"
+    ],
+    "tables": [
+      "data table",
+      "table header",
+      "table row",
+      "table first row",
+      "table row cell"
+    ],
+    "lists": [
+      "data list",
+      "list item",
+      "first list item"
+    ],
+    "tabs": [
+      "tabs",
+      "tab item",
+      "active tab",
+      "tab content"
+    ],
+    "navigation": [
+      "menu",
+      "active menu item",
+      "dropdown",
+      "dropdown menu",
+      "dropdown item",
+      "pagination"
+    ],
+    "feedback": [
+      "tooltip",
+      "popover",
+      "spinner",
+      "skeleton",
+      "progress",
+      "badge",
+      "tag"
+    ],
+    "search": [
+      "search input"
+    ],
+    "card": [
+      "card",
+      "card content",
+      "card header",
+      "card footer"
+    ]
+  },
+  "naming_rules": {
+    "case": "kebab words separated by single space (e.g. \"primary button\", \"data table\")",
+    "modifiers": "place modifier first (e.g. \"active tab\", \"danger button\", \"first list item\")",
+    "no_synonyms": "use canonical name; do not add \"alert\"/\"notification\"/\"callout\" — always \"notice\"",
+    "tables_vs_lists": "\"data table\" for HTML tables; \"data list\" for ul/ol/list-of-cards collections",
+    "navigation": "site-wide nav = \"main nav\"; admin app sidebar = \"sidebar\"; collapsible inline menu = \"menu\""
+  }
+}

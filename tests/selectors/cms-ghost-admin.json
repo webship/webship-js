@@ -1,0 +1,34 @@
+{
+  "css": {
+    "modal": ".fullscreen-modal, .modal-content, [role=\"dialog\"]",
+    "main nav": ".gh-nav, nav.gh-nav",
+    "main nav item": ".gh-nav-list a",
+    "main content": ".gh-main, main.gh-main",
+    "page title": ".gh-canvas-header h1, .gh-canvas-header h2",
+    "canvas header": ".gh-canvas-header",
+    "save button": ".gh-publishmenu-trigger, button.gh-btn-primary",
+    "publish button": ".gh-publishmenu-button.gh-btn-black",
+    "preview button": ".gh-editor-preview-trigger",
+    "settings button": ".settings-menu-toggle",
+    "primary button": ".gh-btn-primary, .gh-btn.gh-btn-primary",
+    "danger button": ".gh-btn-red, .gh-btn-outline-red",
+    "notice success": ".gh-notification-success, .gh-alert-blue",
+    "notice error": ".gh-notification-error, .gh-alert-red",
+    "notice warning": ".gh-notification-warn, .gh-alert-yellow",
+    "data list": ".posts-list, .gh-list",
+    "table row": ".gh-posts-list-item, .gh-list-row",
+    "first list item": ".gh-list-row:first-of-type, .gh-posts-list-item:first-of-type",
+    "search input": ".gh-search-input, .gh-input-icon input",
+    "tag input": ".select-tags input",
+    "title input": ".gh-editor-title, textarea.gh-editor-title",
+    "editor": ".gh-koenig-editor, .koenig-editor",
+    "filter dropdown": ".gh-contentfilter",
+    "user menu": ".gh-user-avatar, .gh-user-list-action",
+    "settings panel": ".settings-menu-pane, .gh-settings-menu"
+  },
+  "xpath": {
+    "page main heading": "//header[contains(@class,'gh-canvas-header')]//h1",
+    "first post item": "//ol[contains(@class,'posts-list')]/li[1]",
+    "publish button": "//button[contains(@class,'gh-publishmenu-trigger')]"
+  }
+}

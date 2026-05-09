@@ -1,0 +1,25 @@
+{
+  "css": {
+    "modal": "[role=\"dialog\"], .Polaris-Modal-Dialog__Modal",
+    "main nav": ".Polaris-Navigation, #AppNavigation",
+    "page title": ".Polaris-Page__Title h1, .Polaris-DisplayText",
+    "save button": "button.Polaris-Button--primary, .Polaris-PageActions__PrimaryAction button",
+    "secondary button": "button.Polaris-Button--secondary",
+    "notice success": ".Polaris-Banner--statusSuccess, .Polaris-Toast",
+    "notice error": ".Polaris-Banner--statusCritical",
+    "notice warning": ".Polaris-Banner--statusWarning",
+    "data table": ".Polaris-DataTable, .Polaris-ResourceList",
+    "table row": ".Polaris-ResourceItem__ListItem, .Polaris-DataTable__TableRow",
+    "search input": ".Polaris-TextField__Input[type=\"text\"], .Polaris-Filters input",
+    "loading": ".Polaris-Spinner, .Polaris-SkeletonBodyText",
+    "breadcrumb": ".Polaris-Breadcrumbs",
+    "badge": ".Polaris-Badge",
+    "card": ".Polaris-Card",
+    "modal title": ".Polaris-Modal-Header__Title"
+  },
+  "xpath": {
+    "page main heading": "//h1[contains(@class,'Polaris-DisplayText') or contains(@class,'Title')]",
+    "first resource item": "//ul[contains(@class,'Polaris-ResourceList')]//li[1]",
+    "nav first item": "//nav[contains(@class,'Polaris-Navigation')]//a[1]"
+  }
+}

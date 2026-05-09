@@ -1,0 +1,32 @@
+{
+  "css": {
+    "modal": "aside.modal-slide._show, .modal-popup._show, [role=\"dialog\"]",
+    "main nav": "#nav",
+    "main nav item": "#nav li a",
+    "page title": "h1.page-title, .page-header h1",
+    "save button": "button.save, #save, .action-save",
+    "primary button": "button.action-primary",
+    "notice success": ".message-success, .message.success",
+    "notice error": ".message-error, .message.error",
+    "notice warning": ".message-warning",
+    "loader": ".loading-mask",
+    "data table": ".admin__data-grid-wrap table",
+    "grid search": "#fulltext",
+    "grid filter": ".admin__data-grid-filters",
+    "pagination": ".admin__data-grid-pager",
+    "mass actions": ".action-select-wrap",
+    "breadcrumb": ".nav-breadcrumb",
+    "tabs": ".nav-tabs",
+    "active tab": ".nav-tabs li.ui-state-active",
+    "toolbar": ".page-toolbar",
+    "delete button": "button.action-delete",
+    "confirm dialog": "aside.confirm",
+    "confirm ok": "aside.confirm .action-primary"
+  },
+  "xpath": {
+    "admin first menu item": "//nav[@id='nav']//li[1]/a",
+    "page main heading": "//h1[contains(@class,'page-title')]",
+    "data grid first row": "//table[contains(@class,'data-grid')]//tbody/tr[1]",
+    "admin message": "//div[contains(@class,'message-')]"
+  }
+}

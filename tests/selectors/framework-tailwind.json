@@ -1,0 +1,40 @@
+{
+  "css": {
+    "modal": "[role=\"dialog\"], dialog[open]",
+    "modal backdrop": ".fixed.inset-0.bg-black",
+    "main nav": "nav, header nav",
+    "primary button": "button.bg-blue-600, button.bg-indigo-600, button[class*='bg-primary']",
+    "secondary button": "button.bg-gray-600, button.bg-slate-600, button.border.bg-transparent",
+    "danger button": "button.bg-red-600, button.bg-rose-600",
+    "ghost button": "button.bg-transparent",
+    "alert": "[role=\"alert\"]",
+    "notice success": "[role=\"alert\"].bg-green-50, [role=\"alert\"].bg-emerald-50",
+    "notice error": "[role=\"alert\"].bg-red-50, [role=\"alert\"].bg-rose-50",
+    "notice warning": "[role=\"alert\"].bg-yellow-50, [role=\"alert\"].bg-amber-50",
+    "notice info": "[role=\"alert\"].bg-blue-50, [role=\"alert\"].bg-sky-50",
+    "card": ".rounded-lg.shadow, .rounded-xl.shadow",
+    "form input": "input.rounded-md, input.border-gray-300",
+    "form select": "select.rounded-md",
+    "form label": "label.font-medium, label.text-sm",
+    "form error": ".text-red-600, .text-red-500",
+    "data table": "table.min-w-full, table.divide-y",
+    "table header": "thead.bg-gray-50",
+    "table row": "tbody tr",
+    "tabs": "[role=\"tablist\"]",
+    "tab item": "[role=\"tab\"]",
+    "active tab": "[role=\"tab\"][aria-selected=\"true\"]",
+    "tab content": "[role=\"tabpanel\"]",
+    "dropdown menu": "[role=\"menu\"]",
+    "dropdown item": "[role=\"menuitem\"]",
+    "badge": ".inline-flex.rounded-full.text-xs",
+    "spinner": ".animate-spin",
+    "skeleton": ".animate-pulse",
+    "container": ".container, .max-w-7xl.mx-auto",
+    "section": "section",
+    "screen reader only": ".sr-only"
+  },
+  "xpath": {
+    "primary button": "//button[contains(@class,'bg-blue-') or contains(@class,'bg-indigo-')]",
+    "first card": "(//*[contains(@class,'rounded-lg') and contains(@class,'shadow')])[1]"
+  }
+}

@@ -1,9 +1,15 @@
 {
   "css": {
+    "modal": "[role=\"dialog\"], dialog",
     "admin heading": "h1",
     "admin subline": "h3",
     "admin list": "ul",
-    "admin body": "body"
+    "admin body": "body",
+    "save button": "button[type=\"submit\"], input[type=\"submit\"]",
+    "notice success": ".alert-success, .notice-success",
+    "notice error": ".alert-danger, .notice-error",
+    "data table": "table",
+    "search input": "input[type=\"search\"], input[name=\"search\"]"
   },
   "xpath": {
     "admin first heading": "//h1[1]",

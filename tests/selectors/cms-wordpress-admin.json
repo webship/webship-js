@@ -1,0 +1,31 @@
+{
+  "css": {
+    "modal": "#TB_ajaxContent, .wp-dialog, [role=\"dialog\"]",
+    "main nav": "#adminmenu",
+    "main nav item": "#adminmenu a",
+    "admin bar": "#wpadminbar",
+    "page title": "#title, h1.wp-heading-inline, .edit-post-header__title",
+    "save button": "#publish, #save-post, .editor-post-publish-button",
+    "notice success": ".notice-success, #setting-error-settings_updated",
+    "notice error": ".notice-error",
+    "notice warning": ".notice-warning",
+    "toolbar": "#wp-toolbar",
+    "content editor": "#content, .wp-editor-area",
+    "media uploader": "#media-upload",
+    "post status": "#post-status-display",
+    "permalink": "#sample-permalink",
+    "submit button": "#submit",
+    "update button": "#publish",
+    "user menu": "#wp-admin-bar-user-info",
+    "search input": "#search-input, .wp-filter-search",
+    "table list": "#the-list",
+    "bulk actions": "#bulk-action-selector-top",
+    "screen options": "#screen-options-wrap"
+  },
+  "xpath": {
+    "admin first menu item": "//ul[@id='adminmenu']/li[1]/a",
+    "page main heading": "//h1[@class='wp-heading-inline']",
+    "posts table first row": "//table[@class='wp-list-table']//tbody/tr[1]",
+    "admin notice": "//div[contains(@class,'notice')]"
+  }
+}

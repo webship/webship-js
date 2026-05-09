@@ -1,0 +1,42 @@
+{
+  "css": {
+    "modal": "[role=\"dialog\"], [data-strapi-portal] [role=\"dialog\"]",
+    "main nav": "nav[aria-label=\"Main navigation\"]",
+    "main nav item": "nav[aria-label=\"Main navigation\"] a",
+    "secondary nav": "nav[aria-label*=\"Settings\"], nav[aria-label*=\"Content\"]",
+    "page title": "main h1, .main-content h1",
+    "header": "header[aria-label]",
+    "save button": "button[type=\"submit\"][name=\"submit\"], button[type=\"submit\"]",
+    "publish button": "button:has-text('Publish'), button[data-strapi-action='publish']",
+    "primary button": "button[data-variant=\"default\"], button.sc-primary",
+    "secondary button": "button[data-variant=\"secondary\"], button[data-variant=\"tertiary\"]",
+    "danger button": "button[data-variant=\"danger\"], button[data-variant=\"danger-light\"]",
+    "notice success": "[data-strapi-toast-type=\"success\"], [role=\"status\"]",
+    "notice error": "[data-strapi-toast-type=\"danger\"], [role=\"alert\"]",
+    "notice warning": "[data-strapi-toast-type=\"warning\"]",
+    "notice info": "[data-strapi-toast-type=\"info\"]",
+    "data table": "table[role=\"grid\"]",
+    "table row": "tbody tr",
+    "table first row": "tbody tr:first-child",
+    "table row cell": "td",
+    "row checkbox": "input[type=\"checkbox\"]",
+    "filter button": "button:has-text('Filters')",
+    "search input": "input[name=\"search\"], input[placeholder*=\"Search\"]",
+    "form label": "label",
+    "form input": "input[name], textarea[name]",
+    "select trigger": "[role=\"combobox\"]",
+    "switch": "[role=\"switch\"]",
+    "tabs": "[role=\"tablist\"]",
+    "tab item": "[role=\"tab\"]",
+    "active tab": "[role=\"tab\"][aria-selected=\"true\"]",
+    "tab content": "[role=\"tabpanel\"]",
+    "breadcrumb": "[aria-label*=\"breadcrumb\" i]",
+    "user menu": "header button[aria-label*=\"profile\" i]",
+    "pagination": "nav[aria-label*=\"Pagination\"]"
+  },
+  "xpath": {
+    "page main heading": "//main//h1[1]",
+    "save button": "//button[@type='submit'][.//span[normalize-space()='Save']] | //button[@name='submit']",
+    "first table row": "//table[@role='grid']//tbody/tr[1]"
+  }
+}

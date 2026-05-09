@@ -1,0 +1,35 @@
+{
+  "css": {
+    "modal": "[role=\"dialog\"], [data-test-id=\"cf-ui-modal\"]",
+    "main nav": "[data-test-id=\"main-nav\"], nav[aria-label*=\"main\" i]",
+    "page header": "[data-test-id=\"workbench-header\"]",
+    "page title": "[data-test-id=\"workbench-header\"] h1",
+    "sidebar": "[data-test-id=\"workbench-sidebar\"]",
+    "main content": "[data-test-id=\"workbench-main\"]",
+    "save button": "[data-test-id=\"workbench-header-actions\"] button:has-text('Save')",
+    "publish button": "[data-test-id=\"change-state-published\"], button:has-text('Publish')",
+    "archive button": "[data-test-id=\"change-state-archived\"]",
+    "primary button": "button.btn-primary, button[data-variant=\"primary\"]",
+    "secondary button": "button[data-variant=\"secondary\"]",
+    "danger button": "button[data-variant=\"negative\"]",
+    "notice success": "[data-test-id=\"cf-ui-notification\"][class*=\"success\"]",
+    "notice error": "[data-test-id=\"cf-ui-notification\"][class*=\"error\"]",
+    "notice warning": "[data-test-id=\"cf-ui-notification\"][class*=\"warning\"]",
+    "data table": "[data-test-id=\"entry-list\"]",
+    "table row": "[data-test-id=\"entry-row\"]",
+    "form input": "[data-test-id*=\"cf-ui-text-input\"], input.cf-form-input",
+    "form label": "[data-test-id*=\"cf-ui-form-label\"], label.cf-form-label",
+    "select trigger": "[data-test-id=\"cf-ui-select\"]",
+    "tabs": "[data-test-id=\"workbench-tabs\"], [role=\"tablist\"]",
+    "tab item": "[role=\"tab\"]",
+    "active tab": "[role=\"tab\"][aria-selected=\"true\"]",
+    "search input": "[data-test-id=\"search-input\"]",
+    "user menu": "[data-test-id=\"account-menu-trigger\"]",
+    "breadcrumb": "[data-test-id=\"breadcrumbs\"]"
+  },
+  "xpath": {
+    "page main heading": "//header[@data-test-id='workbench-header']//h1",
+    "save button": "//button[contains(.,'Save')]",
+    "first entry row": "//*[@data-test-id='entry-row'][1]"
+  }
+}

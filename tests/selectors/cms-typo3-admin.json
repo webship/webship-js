@@ -1,0 +1,41 @@
+{
+  "css": {
+    "modal": ".modal.show, [role=\"dialog\"], typo3-backend-modal",
+    "main nav": "#typo3-module-menu, .modulemenu",
+    "main nav item": ".modulemenu-action",
+    "main content": "#typo3-contentBody, .module",
+    "page tree": "#typo3-pagetree, typo3-backend-navigation-component-pagetree",
+    "page tree node": ".node, .x-tree-node",
+    "page title": ".module-docheader-bar h1, .typo3-module-docheader-pagePath",
+    "doc header": ".module-docheader, typo3-backend-module-docheader",
+    "save button": "button[name='_savedok'], button[name='_saveandclosedok']",
+    "save close button": "button[name='_saveandclosedok']",
+    "close button": "button.t3js-editform-close, button[name='_closedok']",
+    "delete button": "button[name='_deletedok']",
+    "primary button": "button.btn-primary",
+    "secondary button": "button.btn-default",
+    "danger button": "button.btn-danger",
+    "notice success": ".callout-success, .alert-success",
+    "notice error": ".callout-danger, .alert-danger",
+    "notice warning": ".callout-warning, .alert-warning",
+    "notice info": ".callout-info, .alert-info, .typo3-messages, #typo3-messages",
+    "data table": "table.table",
+    "table row": "tbody tr",
+    "table first row": "tbody tr:first-child",
+    "tabs": ".nav-tabs, ul.tabs",
+    "active tab": ".nav-tabs .active, .nav-tabs .nav-link.active",
+    "tab content": ".tab-content",
+    "form item": ".form-group, .form-section",
+    "form input": ".form-control",
+    "checkbox": "input.checkbox, input[type='checkbox'].form-check-input",
+    "search input": "input.t3js-toolbar-search-field, #live-search-box",
+    "user menu": "#typo3-cms-backend-backend-toolbaritems-usertoolbaritem",
+    "context menu": "#contentMenu0, #contentMenu1"
+  },
+  "xpath": {
+    "page main heading": "//div[contains(@class,'module-docheader-bar')]//h1",
+    "save button": "//button[@name='_savedok']",
+    "first data row": "//table//tbody/tr[1]",
+    "flash message": "//*[contains(@class,'typo3-messages') or contains(@class,'callout')]"
+  }
+}
