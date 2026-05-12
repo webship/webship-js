@@ -1,17 +1,38 @@
 language: node_js
+os: linux
+dist: jammy
 
 node_js:
-  - '20'
+  - "20"
 
 env:
-  - FORCE_COLOR=1
+  global:
+    - FORCE_COLOR=1
+    - LAUNCH_URL=http://localhost:8080
 
-before_install:
+cache:
+  npm: true
+  directories:
+    - $HOME/.cache/ms-playwright
+
+branches:
+  only:
+    - 2.0.x
+    - /^2\.0\..*$/
+
+install:
+  - npm install
   - npx playwright install --with-deps chromium
 
 before_script:
   - npm start &
   - sleep 3
+  - curl -sf http://localhost:8080/ > /dev/null
 
 script:
   - npm test
+
+notifications:
+  email:
+    on_success: never
+    on_failure: change
