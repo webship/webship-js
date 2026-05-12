@@ -1,46 +1,22 @@
 version: 2.1
+
 defaults: &defaults
   docker:
-    - image: cimg/base:stable-20.04
-      auth:
-        username: mydockerhub-user
-        password: $DOCKERHUB_PASSWORD  # context / project UI env-var reference
+    - image: cimg/node:20.20
   environment:
     FORCE_COLOR: "1"
-commands:
-  webship-js-build:
-    steps:
-      - checkout
-      ## Useful must have utils.
-      - run:
-          name: Useful must have utils
-          command: |
-            sudo apt -qq update
-            sudo apt -qqy upgrade
-            sudo apt -yqq install vim links lynx git diffutils htop curl wget p7zip-full unzip zip sed gcc g++ make libfreetype6-dev libaio1 libaio-dev libonig-dev libpng-dev
-
-      ## Install node js, npm
-      - run:
-          name: Install node js
-          command: |
-            curl -sL https://deb.nodesource.com/setup_20.x | sudo bash -
-            sudo apt install -y nodejs
 
 jobs:
   webship-js-testing:
     <<: *defaults
     steps:
-      - webship-js-build
-      ## Install npm dependencies
+      - checkout
       - run:
           name: Install npm dependencies
-          command: |
-            npm install
-      ## Install Playwright browsers
+          command: npm install
       - run:
           name: Install Playwright browsers
-          command: |
-            npx playwright install --with-deps chromium
+          command: npx playwright install --with-deps chromium
       - run:
           name: Start virtual server
           command: npm start
@@ -50,8 +26,8 @@ jobs:
           command: sleep 3
       - run:
           name: Test
-          command: |
-            npm test
+          command: npm test
+
 workflows:
   version: 2
   webship-js-workflow:
