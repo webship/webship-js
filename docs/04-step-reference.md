@@ -197,9 +197,37 @@ Then the focused element should be labeled "..."
 
 ```
 Then there should be no JavaScript errors
+Then there should be no JavaScript warnings
+Then JavaScript errors should not match "TypeError"
+Then print JavaScript errors
 ```
 
-Always tracking. With `@javascript` tag, scenario fails automatically if any errors are collected. With `@js-errors` tag, suppresses the auto-assert.
+Errors are always tracked (page errors + matched console levels). At scenario end the collector reports per the active **mode**:
+
+| Mode | Behaviour |
+| --- | --- |
+| `warn` (default) | Logs a yellow warning to stderr — scenario still passes |
+| `fail` | Fails the scenario with the error list |
+| `off` | Silent |
+
+Mode resolution (first match wins):
+
+1. **Scenario tag** — `@js-fail`, `@js-warn`, `@js-off`, plus back-compat `@javascript` (= fail) and `@js-errors` (= off).
+2. **Env var** — `WEBSHIP_JS_ERROR_MODE=warn|fail|off`.
+3. **`worldParameters.javascript.mode`** in `cucumber.js`.
+4. **Default** — `warn`.
+
+Settings (`worldParameters.javascript`):
+
+| Key | Env override | Default | Effect |
+| --- | --- | --- | --- |
+| `mode` | `WEBSHIP_JS_ERROR_MODE` | `warn` | `warn` / `fail` / `off` |
+| `levels` | `WEBSHIP_JS_ERROR_LEVELS` | `['error']` | Console levels to capture (csv when via env: `error,warning`) |
+| `ignore` | `WEBSHIP_JS_ERROR_IGNORE` | _none_ | Regex; matching messages dropped before report |
+| `beforeScenario` | `WEBSHIP_JS_ERROR_BEFORE` | `false` | Snapshot pre-existing errors at scenario start |
+| `afterScenario` | `WEBSHIP_JS_ERROR_AFTER` | `true` | Report at scenario end |
+
+The explicit step `Then there should be no JavaScript errors` always asserts (independent of `mode`) and suppresses the auto-report so a single error is not announced twice.
 
 ## Date tokens
 
@@ -451,6 +479,9 @@ This index lists every public step grouped by source file, with one Gherkin exam
 ### javascript.steps.js
 
 - *^there should be no JavaScript errors$*  ·  Example: `Then there should be no JavaScript errors`
+- *^there should be no JavaScript warnings$*  ·  Example: `Then there should be no JavaScript warnings`
+- *^JavaScript errors should not match "([^"]*)"$*  ·  Example: `Then JavaScript errors should not match "TypeError"`
+- *^print JavaScript errors$*  ·  Example: `Then print JavaScript errors`
 
 ### keyboard.steps.js
 

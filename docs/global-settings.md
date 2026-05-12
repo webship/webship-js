@@ -136,6 +136,28 @@ Filename pattern tokens: `{datetime}`, `{date}`, `{time}`, `{feature_file}`,
 `{feature}`, `{scenario}`, `{step_line}`, `{ext}`, `{failed_prefix}`,
 `{url}`, `{host}`, `{path}`.
 
+### `javascript` — page-error / console capture
+
+```js
+javascript: {
+  mode: 'warn',                  // WEBSHIP_JS_ERROR_MODE — 'warn' | 'fail' | 'off'
+  levels: ['error'],             // WEBSHIP_JS_ERROR_LEVELS (csv) — console levels to capture
+  ignore: '',                    // WEBSHIP_JS_ERROR_IGNORE — regex of messages to drop
+  beforeScenario: false,         // WEBSHIP_JS_ERROR_BEFORE — snapshot pre-existing errors
+  afterScenario: true,           // WEBSHIP_JS_ERROR_AFTER — report at scenario end
+}
+```
+
+Tags override `mode` per scenario:
+
+| Tag | Effect |
+| --- | --- |
+| `@js-fail` / `@javascript` (legacy) | force `fail` |
+| `@js-warn` | force `warn` |
+| `@js-off` / `@js-errors` (legacy) | force `off` |
+
+The explicit step `Then there should be no JavaScript errors` always asserts (independent of mode).
+
 ### `diffy` — visual-diff integration (optional)
 
 ```js

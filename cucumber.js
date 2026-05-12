@@ -84,6 +84,24 @@ module.exports = {
         filenamePatternFailed: '{failed_prefix}{datetime}.{feature_file}.feature_{step_line}.{ext}', // WEBSHIP_SCREENSHOT_PATTERN_FAIL
         infoTypes: '',                               // WEBSHIP_SCREENSHOT_INFO_TYPES  e.g. "url,feature,step,datetime"
       },
+      javascript: {
+        // How to report collected JavaScript errors at scenario end.
+        //   'warn' (default) — log a yellow warning, scenario still passes.
+        //   'fail'           — fail the scenario.
+        //   'off'            — silent.
+        // Override per scenario with tags: @js-fail, @js-warn, @js-off.
+        // Override per run with env: WEBSHIP_JS_ERROR_MODE.
+        mode: 'warn',                                // WEBSHIP_JS_ERROR_MODE
+        // Console levels to capture in addition to `pageerror`.
+        // Common: ['error'], ['error','warning'], ['error','warning','info'].
+        levels: ['error'],                           // WEBSHIP_JS_ERROR_LEVELS (csv)
+        // Regex string. Errors whose message matches are ignored.
+        ignore: '',                                  // WEBSHIP_JS_ERROR_IGNORE
+        // Snapshot any pre-existing errors at scenario start.
+        beforeScenario: false,                       // WEBSHIP_JS_ERROR_BEFORE
+        // Report collected errors at scenario end (default true).
+        afterScenario: true,                         // WEBSHIP_JS_ERROR_AFTER
+      },
       diffy: {
         apiKey: 'mock-key',                          // DIFFY_API_KEY
         projectId: 1,                                // DIFFY_PROJECT_ID
