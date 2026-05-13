@@ -1,0 +1,82 @@
+# Azure DevOps Pipelines for webship-js.
+#
+# Runs the full BDD suite on a Microsoft-hosted Ubuntu agent. Free tier for
+# public projects: 10 parallel jobs, unlimited minutes. Free tier for private
+# projects: 1 job, 1,800 minutes / month.
+#
+# Setup:
+#   1. dev.azure.com → sign in → create Organization → create Project.
+#   2. Pipelines → New pipeline → GitHub → authorise OAuth.
+#   3. "Existing Azure Pipelines YAML file" → /azure-pipelines.yml.
+#
+# Badge after first run (paste in README.md):
+#   ![Azure Pipelines](https://dev.azure.com/<org>/<project>/_apis/build/status/webship-js?branchName=2.0.x)
+
+trigger:
+  branches:
+    include:
+      - 2.0.x
+  tags:
+    include:
+      - '2.0.*'
+
+pr:
+  branches:
+    include:
+      - 2.0.x
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  FORCE_COLOR: '1'
+  LAUNCH_URL: 'http://localhost:8080'
+
+steps:
+  - task: NodeTool@0
+    inputs:
+      versionSpec: '20.x'
+    displayName: 'Install Node 20'
+
+  - task: Cache@2
+    inputs:
+      key: '"npm" | "$(Agent.OS)" | package.json'
+      restoreKeys: '"npm" | "$(Agent.OS)"'
+      path: $(Pipeline.Workspace)/.npm
+    displayName: 'Cache npm'
+
+  - task: Cache@2
+    inputs:
+      key: '"playwright" | "$(Agent.OS)"'
+      restoreKeys: '"playwright" | "$(Agent.OS)"'
+      path: $(HOME)/.cache/ms-playwright
+    displayName: 'Cache Playwright browsers'
+
+  - script: npm install
+    displayName: 'Install npm dependencies'
+
+  - script: npx playwright install --with-deps chromium
+    displayName: 'Install Playwright browsers'
+
+  - script: |
+      nohup npm start > /tmp/srv.log 2>&1 &
+      sleep 3
+      curl -sf http://localhost:8080/ > /dev/null
+    displayName: 'Start virtual server'
+
+  - script: npm test
+    displayName: 'Run tests'
+
+  - task: PublishBuildArtifacts@1
+    condition: always()
+    inputs:
+      pathToPublish: 'tests/reports'
+      artifactName: 'cucumber-report'
+    displayName: 'Publish HTML / PDF / JSON report'
+
+  - task: PublishBuildArtifacts@1
+    condition: failed()
+    inputs:
+      pathToPublish: 'screenshots'
+      artifactName: 'failure-screenshots'
+    displayName: 'Publish failure screenshots'

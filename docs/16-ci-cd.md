@@ -12,6 +12,7 @@ Webship-js ships ready-to-use config files for every major CI/CD provider. The p
 | Bitbucket Pipelines | `bitbucket-pipelines.yml` | Bitbucket | yes |
 | Travis CI | `.travis.yml` | travis-ci.com | yes |
 | Jenkins | `Jenkinsfile` | self-hosted | no |
+| Azure Pipelines | `azure-pipelines.yml` | dev.azure.com | yes |
 
 Each provider's setup notes live in its own section below.
 
@@ -56,3 +57,58 @@ Jenkins has no public badge endpoint by default — the controller is usually pr
 - `args '-u root:root'` runs the container as root so `npm install` and `npx playwright install --with-deps` can touch system paths. Switch to a non-root image if you tighten security.
 - The Playwright base image already has every browser dep, so `--with-deps` is a no-op — kept for symmetry with other lanes.
 - Need parallelism? Wrap the `Test` stage in `parallel { stage('chromium') {...}; stage('firefox') {...} }` and switch the image to `mcr.microsoft.com/playwright` (latest) which includes all three browsers.
+
+---
+
+## Azure Pipelines
+
+**File**: `azure-pipelines.yml` at repo root.
+
+Microsoft's hosted CI, generous free tier for both public and private repos. Microsoft-hosted `ubuntu-latest` agents already have Node + most browser deps; the pipeline still calls `--with-deps` for safety.
+
+### Setup steps — open account + connect repo
+
+1. **Microsoft account**: if you do not already have one, create at <https://account.microsoft.com/>. Free.
+2. **Sign in to Azure DevOps**: <https://dev.azure.com> → "Start free with GitHub" *or* sign in with the Microsoft account.
+3. **Create an Organization**. Pick a unique slug (used in the URL `https://dev.azure.com/<org>/`). Example: `webship`.
+4. **Create a Project**. Name `webship-js`. Visibility:
+   - **Public** for open source — unlocks the free OSS tier (10 parallel jobs, unlimited minutes).
+   - **Private** otherwise (1 free parallel job, 1,800 min/mo).
+5. **Pipelines → Create Pipeline → GitHub**. Authorise the **Azure Pipelines** GitHub app, scope it to `webship/webship-js`.
+6. **Configure your pipeline**: choose **"Existing Azure Pipelines YAML file"** → branch `2.0.x` → path `/azure-pipelines.yml` → **Continue → Run**.
+7. **Request OSS free parallelism** (only for public projects): `Organization settings → Billing → Public project parallelism request`. Microsoft enables it manually within a day or two.
+
+### Badge
+
+After the first build runs, copy the badge URL from `Pipelines → … → Status badge`:
+
+```markdown
+[![Azure Pipelines](https://dev.azure.com/<org>/<project>/_apis/build/status/webship-js?branchName=2.0.x)](https://dev.azure.com/<org>/<project>/_build/latest?definitionId=<id>&branchName=2.0.x)
+```
+
+Replace `<org>`, `<project>`, `<id>`. Paste into `README.md` next to the other badges.
+
+### Reports
+
+The pipeline publishes two build artefacts:
+
+- `cucumber-report` — `tests/reports/cucumber_report.{html,pdf,json}`
+- `failure-screenshots` (only on failure) — every `screenshots/**/*` capture
+
+Browse via **Pipelines → Run → Artifacts → 1 published**.
+
+### Caching
+
+Two `Cache@2` tasks are configured:
+
+| Key | Path | Effect |
+| --- | --- | --- |
+| `npm \| <os> \| package.json` | `$(Pipeline.Workspace)/.npm` | Cuts `npm install` to seconds when `package.json` is unchanged. |
+| `playwright \| <os>` | `$(HOME)/.cache/ms-playwright` | Skips the chromium download (~120 MB) on reruns. |
+
+### Notes
+
+- `trigger.tags` matches `2.0.*` so a tag push runs the pipeline once. Adjust if you tag differently.
+- `pr.branches` triggers on PRs targeting `2.0.x` — Azure runs the PR head against the target branch.
+- `npm start &` backgrounds the fixture server; `curl -sf` then fails fast if the bind never landed.
+- If you want a per-browser matrix, replace `steps:` with `jobs:` + `strategy.matrix: { chromium: {BROWSER: chromium}, firefox: {BROWSER: firefox} }` and add `--with-deps $(BROWSER)`.
