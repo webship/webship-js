@@ -22,6 +22,7 @@ Webship-js ships ready-to-use config files for every major CI/CD provider. The p
 | Forgejo Actions | reuses `.github/workflows/*` | Forgejo/Codeberg | yes |
 | Harness CI | `.harness/webship-js-pipeline.yml` | app.harness.io | yes |
 | Bamboo Data Center | `bamboo-specs/bamboo.yml` | self-hosted (Atlassian) | yes |
+| Codefresh | `codefresh.yml` | codefresh.io | yes |
 
 Each provider's setup notes live in its own section below.
 
@@ -527,3 +528,47 @@ Browse per build under `Plan Result → Artifacts`. The `shared: true` flag make
 - `triggers.polling` is used instead of webhook triggers; webhooks are also supported but need network access from GitHub to the Bamboo server.
 - `branches.create: manually` and `delete: never` keep branch hygiene strict — flip if you want feature-branch builds.
 - For per-browser matrix, duplicate the `Cucumber` job under `stages.Test.jobs` and override `BROWSER` per copy.
+
+---
+
+## Codefresh
+
+**File**: `codefresh.yml` at repo root.
+
+Kubernetes-native CI/CD. The Classic pipeline format reads `codefresh.yml` from the repo. Free tier: 100 build-minutes / month on shared infrastructure — fits ~11 runs of the 9-minute suite. Public OSS repos can apply for the Community plan for more capacity.
+
+### Setup steps — open account + connect repo
+
+1. **Sign up**: <https://g.codefresh.io/signup> → "Sign up with GitHub" → authorise the Codefresh GitHub App on `webship/webship-js`.
+2. **Pick a runtime**: dashboard prompts you to "Add Runtime" → pick **Codefresh Hosted** for the managed free tier. (Self-hosted runtimes via `cf-runtime install` are also available but out of scope here.)
+3. **Create a pipeline**:
+   - `Pipelines → New Pipeline → From Git`.
+   - Repository `webship/webship-js`, branch `2.0.x`.
+   - Choose **"Inline YAML from repository"** → path `codefresh.yml`.
+4. **Add a trigger**:
+   - `Triggers → Git → push events on branch ^2\.0\.x$`.
+   - First push runs the pipeline.
+
+### Badge
+
+```markdown
+[![Codefresh build status](https://g.codefresh.io/api/badges/pipeline/<account>/webship-js?type=cf-1)](https://g.codefresh.io/pipelines/edit/new/builds?id=<pipeline-id>)
+```
+
+Replace `<account>` with the Codefresh account slug picked at signup and `<pipeline-id>` with the value from the URL of the pipeline editor.
+
+### Reports
+
+The `upload_reports` step copies `cucumber_report.{html,pdf,json}` + `screenshots/` to `/codefresh/volume/cucumber-report/` — a Codefresh-managed shared volume that persists across pipeline runs. From there you can:
+
+1. Mount the same volume in a follow-up step that uploads to S3/GCS.
+2. Browse via the **Codefresh storage browser** (Pro+ plans only).
+3. Pipe to the built-in **Test Reports** feature by emitting JUnit XML — add a `--format junit:tests/reports/junit.xml` argument to the cucumber-js call.
+
+### Notes
+
+- `type: git-clone` + `working_directory: ${{main_clone}}` is the canonical Codefresh pattern; the variable expands to the path of the cloned repo on the runtime.
+- Both `freestyle` steps reuse the Playwright base image to skip apt installs entirely.
+- `successOnly` / `failureToo` inside `when.condition.any` is Codefresh's way of saying "always" — keeps the upload step running even when tests fail so artefacts are still collected.
+- For per-browser matrix, replace `test_suite` with a parallel `steps` block (Codefresh 1.0 spec supports `mode: parallel`) and parameterise `BROWSER`.
+- Codefresh's GitOps platform (Argo Workflows / Argo CD) reads a different format (`csdp` workflow definitions). This file is for the Classic pipeline runtime — the more common path.

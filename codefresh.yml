@@ -1,0 +1,77 @@
+# Codefresh Classic pipeline for webship-js.
+#
+# Codefresh is a Kubernetes-native CI/CD platform. The Classic pipeline format
+# (used here) reads `codefresh.yml` from the repository. Free tier covers 100
+# build-minutes per month on shared infrastructure; OSS public repositories
+# can apply for the Community plan with more capacity.
+#
+# Setup (full walkthrough in docs/16-ci-cd.md → "Codefresh"):
+#   1. codefresh.io → sign up with GitHub → create pipeline → "Inline YAML
+#      from repository".
+#   2. Point at this file on branch 2.0.x.
+#
+# References:
+#   - https://codefresh.io/docs/docs/pipelines/pipeline-spec/
+#   - https://codefresh.io/docs/docs/pipelines/steps/
+
+version: "1.0"
+kind: pipeline
+
+stages:
+  - prepare
+  - test
+
+steps:
+  main_clone:
+    title: "Clone repository"
+    type: git-clone
+    arguments:
+      repo: "${{CF_REPO_OWNER}}/${{CF_REPO_NAME}}"
+      revision: "${{CF_REVISION}}"
+      git: github
+    stage: prepare
+
+  install_dependencies:
+    title: "Install npm dependencies + Playwright browsers"
+    type: freestyle
+    image: mcr.microsoft.com/playwright:v1.58.2-jammy
+    working_directory: ${{main_clone}}
+    environment:
+      - FORCE_COLOR=1
+    commands:
+      - node --version
+      - npm --version
+      - npm install
+      - npx playwright install --with-deps chromium
+    stage: prepare
+
+  test_suite:
+    title: "Run cucumber-js"
+    type: freestyle
+    image: mcr.microsoft.com/playwright:v1.58.2-jammy
+    working_directory: ${{main_clone}}
+    environment:
+      - FORCE_COLOR=1
+      - LAUNCH_URL=http://localhost:8080
+    commands:
+      - nohup npm start > /tmp/srv.log 2>&1 &
+      - sleep 3
+      - curl -sf http://localhost:8080/ > /dev/null
+      - npm test
+    stage: test
+
+  upload_reports:
+    title: "Upload HTML / PDF / JSON cucumber report"
+    type: freestyle
+    image: alpine:3
+    working_directory: ${{main_clone}}
+    when:
+      condition:
+        any:
+          successOnly: "'${{TEST_SUITE_OUTCOME}}' == 'success'"
+          failureToo: "true"
+    commands:
+      - mkdir -p /codefresh/volume/cucumber-report
+      - cp -a tests/reports/cucumber_report.html tests/reports/cucumber_report.pdf tests/reports/cucumber_report.json /codefresh/volume/cucumber-report/ || true
+      - cp -a screenshots /codefresh/volume/cucumber-report/screenshots 2>/dev/null || true
+    stage: test
