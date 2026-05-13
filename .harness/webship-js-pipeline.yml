@@ -1,0 +1,101 @@
+# Harness CI pipeline for webship-js (Pipeline-as-Code).
+#
+# Harness CI is part of the Harness Software Delivery Platform. The free
+# Developer plan includes 90 build credits/day on hosted Linux x86 builds —
+# enough for ~9 runs of the 9-minute suite per day. After signup, point a
+# Git Sync connector at this repo and pick `.harness/webship-js-pipeline.yml`
+# as the pipeline definition.
+#
+# Full walkthrough: docs/16-ci-cd.md → "Harness CI".
+
+pipeline:
+  name: webship-js
+  identifier: webship_js
+  projectIdentifier: <PROJECT_ID>           # set after project creation
+  orgIdentifier: <ORG_ID>                   # set after org creation
+  tags: {}
+  properties:
+    ci:
+      codebase:
+        connectorRef: <GITHUB_CONNECTOR_ID> # GitHub OAuth connector created in Harness
+        repoName: webship/webship-js
+        build: <+input>
+  stages:
+    - stage:
+        name: Test
+        identifier: Test
+        type: CI
+        spec:
+          cloneCodebase: true
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: Install + browsers
+                  identifier: install
+                  spec:
+                    shell: Bash
+                    command: |
+                      node --version
+                      npm --version
+                      npm install
+                      npx playwright install --with-deps chromium
+                    envVariables:
+                      FORCE_COLOR: "1"
+              - step:
+                  type: Background
+                  name: Fixture server
+                  identifier: fixture_server
+                  spec:
+                    shell: Bash
+                    command: npm start
+                    envVariables:
+                      FORCE_COLOR: "1"
+              - step:
+                  type: Run
+                  name: Wait for server
+                  identifier: wait
+                  spec:
+                    shell: Bash
+                    command: |
+                      sleep 3
+                      curl -sf http://localhost:8080/ > /dev/null
+              - step:
+                  type: Run
+                  name: Cucumber
+                  identifier: cucumber
+                  spec:
+                    shell: Bash
+                    command: npm test
+                    envVariables:
+                      FORCE_COLOR: "1"
+                      LAUNCH_URL: http://localhost:8080
+                    reports:
+                      type: JUnit
+                      spec:
+                        paths:
+                          - tests/reports/junit.xml      # populated only if you add a junit formatter
+              - step:
+                  type: Plugin
+                  name: Upload report artefacts
+                  identifier: upload_artefacts
+                  when:
+                    stageStatus: All
+                  spec:
+                    connectorRef: <DOCKER_CONNECTOR_ID>
+                    image: plugins/s3
+                    settings:
+                      bucket: webship-js-reports
+                      source: tests/reports/cucumber_report.{html,pdf,json}
+                      target: harness/$DRONE_BUILD_NUMBER/
+                      access_key: <+secrets.getValue("aws_access_key")>
+                      secret_key: <+secrets.getValue("aws_secret_key")>
+        when:
+          pipelineStatus: All
+  variables: []

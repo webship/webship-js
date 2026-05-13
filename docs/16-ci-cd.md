@@ -20,6 +20,7 @@ Webship-js ships ready-to-use config files for every major CI/CD provider. The p
 | Drone CI | `.drone.yml` | self-hosted | yes (shields.io endpoint) |
 | Woodpecker CI | reuses `.drone.yml` | self-hosted | yes |
 | Forgejo Actions | reuses `.github/workflows/*` | Forgejo/Codeberg | yes |
+| Harness CI | `.harness/webship-js-pipeline.yml` | app.harness.io | yes |
 
 Each provider's setup notes live in its own section below.
 
@@ -437,3 +438,43 @@ Adjust to your Forgejo host.
 - `uses: actions/checkout@v3` and friends are pulled from the public GitHub registry by default — Forgejo proxies them. If you need to pin actions to a private registry, set `ACTIONS_RUNNER_HOOK_*` env vars on the runner.
 - Forgejo does not run reusable workflows (`workflow_call`) yet (as of Forgejo 7) — split shared logic into shell scripts under `scripts/` and call them from the YAML if you need portability.
 - Secret handling, matrix builds, and concurrency groups all work the same way as on GitHub.
+
+---
+
+## Harness CI
+
+**File**: `.harness/webship-js-pipeline.yml`.
+
+Harness ships an enterprise Software Delivery Platform; Harness CI is the build/test module. The Developer (free) plan covers 90 build credits per day on hosted Linux-x86 builders — fits ~9 runs of the 9-minute suite.
+
+### Setup steps — open account + connect repo
+
+1. **Sign up**: <https://app.harness.io/auth/#/signup> → email or Google/Microsoft SSO → confirm via email.
+2. **Onboarding wizard**: choose **Continuous Integration** as the first module. Harness creates a Project + Org with the names you pick. Record both IDs — they replace `<ORG_ID>` and `<PROJECT_ID>` in the shipped pipeline file.
+3. **GitHub connector**: `Project Setup → Connectors → Create Connector → GitHub` → "Github App" or "OAuth" → install the **Harness GitHub App** on `webship/webship-js`. Save the connector ID and replace `<GITHUB_CONNECTOR_ID>` in the pipeline.
+4. **Optional Docker / S3 connectors** (only if you want artefact upload):
+   - `Connectors → Docker Registry → Docker Hub anonymous` (used by `plugins/s3`).
+   - `Secrets → Add Encrypted Text → aws_access_key`, `aws_secret_key`.
+5. **Import the pipeline**:
+   - `Pipelines → New Pipeline → Import from Git`.
+   - Repo `webship/webship-js`, branch `2.0.x`, file path `.harness/webship-js-pipeline.yml`.
+   - Harness validates the YAML and renders the visual graph.
+6. **Trigger**:
+   - `Triggers → New Trigger → Webhook → GitHub → On Push`.
+   - Branch regex `^2\.0\.x$`. Save.
+   - First push runs the pipeline.
+
+### Badge
+
+Public dashboards are an Enterprise feature. For the free plan, expose status via the GitHub commit status that the Harness GitHub App posts automatically, or write a tiny shields.io endpoint backed by the Harness REST API (`GET /pipeline/api/pipelines/execution`).
+
+### Reports
+
+The shipped pipeline includes an optional `Upload report artefacts` step that uses the `plugins/s3` connector. Replace the secret IDs and bucket name; or rip the step out entirely and pull reports from Harness's built-in **CI Insights** tab (test logs are retained per-build).
+
+### Notes
+
+- `runtime.type: Cloud` uses Harness-hosted infra (no agents to manage). For self-hosted runners, switch to `runtime.type: KubernetesCluster` and point at a connector.
+- Placeholders to fill before first run: `<ORG_ID>`, `<PROJECT_ID>`, `<GITHUB_CONNECTOR_ID>`, `<DOCKER_CONNECTOR_ID>`. Harness's UI does the substitution if you start from "Import from Git".
+- `step.type: Background` is the Harness equivalent of `nohup ... &` — keeps `npm start` alive across following steps.
+- The `reports.type: JUnit` block expects a junit XML; cucumber-js can emit one with `--format junit:tests/reports/junit.xml`. Add to a CI-only `WEBSHIP_REPORT_ARGS` env if you want it.
