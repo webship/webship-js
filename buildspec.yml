@@ -1,0 +1,56 @@
+# AWS CodeBuild spec for webship-js.
+#
+# Runs the full BDD suite on AWS-managed compute. Pair with CodePipeline
+# (for source/build/test orchestration) or invoke CodeBuild directly from a
+# GitHub webhook. Free tier covers 100 build-minutes / month on
+# `general1.small` indefinitely.
+#
+# Suggested CodeBuild project settings:
+#   Environment image: aws/codebuild/standard:7.0
+#   Compute:           general1.small (3 GB RAM, 2 vCPU) — fits the suite
+#   Service role:      needs S3 PutObject for the artifacts bucket
+#
+# See docs/16-ci-cd.md → "AWS CodeBuild" for the account + project walkthrough.
+
+version: 0.2
+
+env:
+  variables:
+    FORCE_COLOR: "1"
+    LAUNCH_URL: "http://localhost:8080"
+    NPM_CONFIG_CACHE: "/codebuild/output/npm-cache"
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 20
+    commands:
+      - node --version
+      - npm --version
+      - npm install
+      - npx playwright install --with-deps chromium
+
+  pre_build:
+    commands:
+      - nohup npm start > /tmp/srv.log 2>&1 &
+      - sleep 3
+      - curl -sf http://localhost:8080/ > /dev/null
+
+  build:
+    commands:
+      - npm test
+
+cache:
+  paths:
+    - 'node_modules/**/*'
+    - '/root/.cache/ms-playwright/**/*'
+    - '/codebuild/output/npm-cache/**/*'
+
+artifacts:
+  name: webship-js-report-$(date +%Y%m%d-%H%M%S)
+  files:
+    - tests/reports/cucumber_report.html
+    - tests/reports/cucumber_report.pdf
+    - tests/reports/cucumber_report.json
+    - screenshots/**/*
+  discard-paths: no

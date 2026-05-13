@@ -13,6 +13,7 @@ Webship-js ships ready-to-use config files for every major CI/CD provider. The p
 | Travis CI | `.travis.yml` | travis-ci.com | yes |
 | Jenkins | `Jenkinsfile` | self-hosted | no |
 | Azure Pipelines | `azure-pipelines.yml` | dev.azure.com | yes |
+| AWS CodeBuild | `buildspec.yml` | aws.amazon.com | indirect (via CloudWatch) |
 
 Each provider's setup notes live in its own section below.
 
@@ -112,3 +113,61 @@ Two `Cache@2` tasks are configured:
 - `pr.branches` triggers on PRs targeting `2.0.x` — Azure runs the PR head against the target branch.
 - `npm start &` backgrounds the fixture server; `curl -sf` then fails fast if the bind never landed.
 - If you want a per-browser matrix, replace `steps:` with `jobs:` + `strategy.matrix: { chromium: {BROWSER: chromium}, firefox: {BROWSER: firefox} }` and add `--with-deps $(BROWSER)`.
+
+---
+
+## AWS CodeBuild
+
+**File**: `buildspec.yml` at repo root.
+
+AWS-managed build service. Free tier: 100 build-minutes per month on the `general1.small` compute class indefinitely. The 9-minute suite fits roughly 11 free runs / month — beyond that, each minute costs ~$0.005.
+
+### Setup steps — open account + create project
+
+1. **Create an AWS account** at <https://aws.amazon.com/>. Requires a credit card, phone verification, and an email confirmation. The 12-month free tier and the always-free CodeBuild tier both apply.
+2. **Sign in to the AWS Console** → switch to a region close to you (e.g. `us-east-1`, `eu-west-1`).
+3. **IAM → Roles → Create role**:
+   - Trusted entity: **AWS service** → **CodeBuild**.
+   - Permissions: attach `AmazonS3FullAccess` (artefact upload) and `CloudWatchLogsFullAccess`.
+   - Name: `webship-js-codebuild-role`.
+4. **S3 → Create bucket** for artefacts (e.g. `webship-js-reports`). Region must match the CodeBuild region.
+5. **CodeBuild → Create build project**:
+   - Project name: `webship-js`.
+   - Source provider: **GitHub** → "Connect using OAuth" → authorise the AWS CodeBuild GitHub app → pick `webship/webship-js` → branch `2.0.x`.
+   - Webhook: tick "Rebuild every time a code change is pushed".
+   - Environment: **Managed image** → operating system **Ubuntu** → runtime **Standard** → image `aws/codebuild/standard:7.0` → privileged unchecked.
+   - Service role: pick the existing `webship-js-codebuild-role` you just created.
+   - Build spec: **Use a buildspec file** → buildspec name `buildspec.yml` (default).
+   - Artifacts: **Amazon S3** → bucket `webship-js-reports` → name `webship-js-report-$(date)`.
+   - Logs: tick CloudWatch Logs → group `/aws/codebuild/webship-js`.
+6. **Create build project → Start build**.
+
+### Badge
+
+CodeBuild has no native badge endpoint. Two common patterns:
+
+1. **GitHub commit status**: CodeBuild posts the build status to the GitHub commit, so the GitHub UI shows pass / fail next to each commit.
+2. **shields.io custom badge**: write a tiny Lambda that polls CodeBuild's `BatchGetBuilds` API and exposes a JSON endpoint; shields.io renders it via `https://img.shields.io/endpoint?url=https://...`.
+
+### Reports
+
+`buildspec.yml` declares artefacts:
+
+```
+tests/reports/cucumber_report.html
+tests/reports/cucumber_report.pdf
+tests/reports/cucumber_report.json
+screenshots/**/*
+```
+
+They land in the configured S3 bucket. Grant pre-signed URLs or make the bucket public if you want links you can share.
+
+### Caching
+
+`cache.paths` lists `node_modules`, `/root/.cache/ms-playwright`, and the npm cache. Enable caching in the CodeBuild project: **Artifacts → Additional configuration → Cache type → Local → Custom cache**. Skips most of `npm install` and the chromium download on reruns.
+
+### Notes
+
+- 9-min suite × $0.005/min ≈ $0.045 per build past the free tier — cheap unless you push hundreds of builds.
+- For multi-AZ or multi-region resilience, place the buildspec in `aws-codebuild/buildspec.yml` and point the CodeBuild project at that path — the file is just a relative source path.
+- CodeBuild can run inside a VPC if your dev server needs private network access — toggle in **VPC configuration** before starting the first build.
