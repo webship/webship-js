@@ -1,0 +1,68 @@
+# Drone CI for webship-js.
+#
+# Runs the full BDD suite inside the official Playwright container, so
+# chromium + every apt dependency are pre-installed. Anyone running a Drone
+# server can drop the repo in: enable in the UI and push.
+#
+# Setup (full walkthrough in docs/16-ci-cd.md → "Drone CI"):
+#   1. Self-host Drone:
+#        docker run -d \
+#          -e DRONE_GITHUB_CLIENT_ID=... \
+#          -e DRONE_GITHUB_CLIENT_SECRET=... \
+#          -e DRONE_RPC_SECRET=$(openssl rand -hex 16) \
+#          -e DRONE_SERVER_HOST=ci.example.com \
+#          -e DRONE_SERVER_PROTO=https \
+#          -p 80:80 -p 443:443 \
+#          --restart=always --name=drone drone/drone:2
+#      Plus at least one runner (docker runner is the common choice).
+#   2. Sign in at https://ci.example.com → activate webship-js.
+#
+# Drone Cloud (drone.io) is paid as of 2023 — self-host is the OSS path.
+
+kind: pipeline
+type: docker
+name: default
+
+trigger:
+  branch:
+    - 2.0.x
+  ref:
+    include:
+      - refs/heads/2.0.x
+      - refs/tags/2.0.*
+    exclude:
+      - refs/pull/**
+
+steps:
+  - name: test
+    image: mcr.microsoft.com/playwright:v1.58.2-jammy
+    environment:
+      FORCE_COLOR: "1"
+      LAUNCH_URL: "http://localhost:8080"
+    commands:
+      - node --version
+      - npm --version
+      - npm install
+      - npx playwright install --with-deps chromium
+      - nohup npm start > /tmp/srv.log 2>&1 &
+      - sleep 3
+      - curl -sf http://localhost:8080/ > /dev/null
+      - npm test
+
+  - name: archive-reports
+    image: alpine:3
+    when:
+      status:
+        - success
+        - failure
+    commands:
+      - apk add --no-cache tar
+      - tar czf /artifacts/cucumber-report-${DRONE_BUILD_NUMBER}.tar.gz tests/reports screenshots || true
+    volumes:
+      - name: artifacts
+        path: /artifacts
+
+volumes:
+  - name: artifacts
+    host:
+      path: /var/lib/drone/artifacts

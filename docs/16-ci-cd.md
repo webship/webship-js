@@ -17,6 +17,9 @@ Webship-js ships ready-to-use config files for every major CI/CD provider. The p
 | Google Cloud Build | `cloudbuild.yaml` | console.cloud.google.com | indirect (via shields.io endpoint) |
 | TeamCity | `.teamcity/settings.kts` (+ `pom.xml`) | jetbrains.com/teamcity | yes (shields.io endpoint) |
 | Semaphore | `.semaphore/semaphore.yml` | semaphoreci.com | yes |
+| Drone CI | `.drone.yml` | self-hosted | yes (shields.io endpoint) |
+| Woodpecker CI | reuses `.drone.yml` | self-hosted | yes |
+| Forgejo Actions | reuses `.github/workflows/*` | Forgejo/Codeberg | yes |
 
 Each provider's setup notes live in its own section below.
 
@@ -312,3 +315,125 @@ Two cache slots are populated in the `Install` block and restored in `prologue` 
 - `nohup npm start > /tmp/srv.log 2>&1 &` keeps the fixture server alive after the `commands` block exits; `curl -sf` is the same ready-probe as the other lanes.
 - Add a `promotions` block (e.g. tag release, deploy to staging) once the test pipeline is stable — see Semaphore docs for the `auto_promote` shape.
 - For per-browser matrix, add three jobs under the `Test` task and parameterise via env (`BROWSER=chromium` etc.) — Semaphore runs them in parallel within the free-tier concurrency limit.
+
+---
+
+## Drone CI
+
+**File**: `.drone.yml` at repo root.
+
+Open-source CI/CD that pipelines via simple YAML and runs steps in Docker containers. Drone Cloud (drone.io) moved to a paid model in 2023, so the open-source path is **self-host**. The shipped `.drone.yml` is provider-agnostic — anyone running a Drone server can enable the repo and go.
+
+### Setup steps — open account + bring up a server
+
+There is **no SaaS sign-up** for the free version. You have two routes:
+
+#### Route A — self-host Drone (recommended for OSS)
+
+1. Pick a host with Docker + a TLS-terminated domain (e.g. `ci.example.com`).
+2. Create a GitHub OAuth App at <https://github.com/settings/developers> →
+   New OAuth App → Homepage `https://ci.example.com` →
+   Authorization callback `https://ci.example.com/login`.
+   Save the Client ID and Client Secret.
+3. Generate a shared secret: `openssl rand -hex 16`.
+4. Run the server:
+   ```bash
+   docker run -d \
+     -e DRONE_GITHUB_CLIENT_ID=... \
+     -e DRONE_GITHUB_CLIENT_SECRET=... \
+     -e DRONE_RPC_SECRET=... \
+     -e DRONE_SERVER_HOST=ci.example.com \
+     -e DRONE_SERVER_PROTO=https \
+     -p 80:80 -p 443:443 \
+     -v /var/lib/drone:/data \
+     --restart=always --name=drone drone/drone:2
+   ```
+5. Run at least one runner (Docker is the common choice):
+   ```bash
+   docker run -d \
+     -e DRONE_RPC_PROTO=https \
+     -e DRONE_RPC_HOST=ci.example.com \
+     -e DRONE_RPC_SECRET=... \
+     -e DRONE_RUNNER_CAPACITY=2 \
+     -v /var/run/docker.sock:/var/run/docker.sock \
+     --restart=always --name=drone-runner drone/drone-runner-docker:1
+   ```
+6. Visit `https://ci.example.com` → sign in with GitHub → **Activate** `webship/webship-js`. Drone reads `.drone.yml` on the next push.
+
+#### Route B — Drone Cloud (paid)
+
+<https://drone.io> → "Sign up" → pick a paid plan. Then point at the same `.drone.yml`. No further config differences.
+
+### Badge
+
+```markdown
+[![Build Status](https://ci.example.com/api/badges/webship/webship-js/status.svg?branch=2.0.x)](https://ci.example.com/webship/webship-js)
+```
+
+Replace `ci.example.com` with your server hostname.
+
+### Reports
+
+The `archive-reports` step tars `tests/reports/` + `screenshots/` into `/var/lib/drone/artifacts/cucumber-report-<build>.tar.gz` on the host. Serve the directory via a static file server (e.g. `python3 -m http.server` behind nginx) or copy to S3/GCS via an extra step.
+
+### Notes
+
+- Pull-request runs are filtered out by `trigger.ref.exclude: refs/pull/**` — flip to allow forks once you have secret management figured out.
+- The `archive-reports` step uses a host-mounted volume; if your runner is ephemeral (e.g. Kubernetes), swap the volume for an `s3` plugin or `drone/s3-cache`.
+- `DRONE_BUILD_NUMBER` is provided by the server. Other handy vars: `DRONE_COMMIT_SHA`, `DRONE_BRANCH`, `DRONE_TAG`.
+- Per-browser matrix: duplicate the `test` step three times with different `BROWSER` env values, or use the `matrix` keyword (Drone 1.x style).
+
+---
+
+## Woodpecker CI
+
+**File**: reuses `.drone.yml`.
+
+Woodpecker is a community-driven fork of Drone 0.8 that preserves the original Apache-2 licence. The pipeline syntax is a near-superset of `.drone.yml` — most files (ours included) run unchanged. Self-hosted only.
+
+### Setup steps
+
+1. Self-host Woodpecker: <https://woodpecker-ci.org/docs/administration/getting-started>. The Docker Compose example takes ~5 minutes to bring up.
+2. Enable the repo in the Woodpecker UI and trigger a build.
+3. If Woodpecker complains about Drone-specific keys, rename `.drone.yml` → `.woodpecker.yml` (or `.woodpecker/*.yml` for split pipelines). Most projects keep both as symlinks.
+
+### Badge
+
+```markdown
+[![Build Status](https://ci.example.com/api/badges/webship/webship-js/status.svg?branch=2.0.x)](https://ci.example.com/repos/webship/webship-js)
+```
+
+### Notes
+
+- Woodpecker reads the same `trigger`, `steps`, `image`, `commands` keys we already use.
+- `when:` syntax matches Drone 1.x.
+- For maximum compatibility, prefer `.woodpecker.yml`; some Drone-only keywords (e.g. `kind: pipeline` is optional in Woodpecker but tolerated).
+
+---
+
+## Forgejo Actions
+
+**Files**: reuses `.github/workflows/*.yml`.
+
+Forgejo is a hard fork of Gitea (used by Codeberg.org and many self-hosted shops). It implements a GitHub Actions-compatible runner via the [act_runner](https://forgejo.org/docs/latest/admin/actions/) project, so the existing `.github/workflows/github-actions.yml` runs without modification.
+
+### Setup steps
+
+1. Push the repo to a Forgejo instance (e.g. <https://codeberg.org/> for OSS — sign up with email).
+2. Enable Actions: `Repo Settings → Actions → Enable Repository Actions`.
+3. Make sure at least one `act_runner` is registered against the instance. Codeberg provides shared runners for OSS; self-hosted instances need a manual `act_runner register` step (see Forgejo docs).
+4. Push to branch `2.0.x` — the existing GitHub workflow YAML runs on the Forgejo runner.
+
+### Badge
+
+```markdown
+[![Build Status](https://codeberg.org/webship/webship-js/badges/workflows/github-actions.yml/badge.svg?branch=2.0.x)](https://codeberg.org/webship/webship-js/actions)
+```
+
+Adjust to your Forgejo host.
+
+### Notes
+
+- `uses: actions/checkout@v3` and friends are pulled from the public GitHub registry by default — Forgejo proxies them. If you need to pin actions to a private registry, set `ACTIONS_RUNNER_HOOK_*` env vars on the runner.
+- Forgejo does not run reusable workflows (`workflow_call`) yet (as of Forgejo 7) — split shared logic into shell scripts under `scripts/` and call them from the YAML if you need portability.
+- Secret handling, matrix builds, and concurrency groups all work the same way as on GitHub.
