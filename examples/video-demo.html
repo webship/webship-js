@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🎬 Video Demo</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 1rem; background: linear-gradient(180deg, #fdf6e3 0%, #eee8d5 100%); color: #073642; }
+    h1 { font-size: 2rem; }
+    main { background: #fff; border-radius: 12px; padding: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    button { font-size: 1.1rem; padding: 0.6rem 1.2rem; background: #268bd2; color: #fff; border: 0; border-radius: 8px; cursor: pointer; margin-right: 0.5rem; }
+    button:hover { background: #2aa198; }
+    .status { font-size: 1.4rem; padding: 1rem; margin-top: 1rem; border-radius: 8px; background: #fdf6e3; min-height: 2rem; }
+    .smile { font-size: 3rem; }
+  </style>
+</head>
+<body>
+  <h1>🎬 Webship-js Video Demo</h1>
+  <main role="main">
+    <p>Click a button below — the recording captures the page state change.</p>
+    <button id="wave">👋 Wave</button>
+    <button id="rocket">🚀 Launch</button>
+    <button id="party">🎉 Celebrate</button>
+    <div class="status" id="status">Ready to record ⏺️</div>
+    <div class="smile" id="smile"></div>
+  </main>
+  <script>
+    const status = document.getElementById('status');
+    const smile = document.getElementById('smile');
+    document.getElementById('wave').addEventListener('click', () => {
+      status.textContent = 'Hello, world 👋';
+      smile.textContent = '😀';
+    });
+    document.getElementById('rocket').addEventListener('click', () => {
+      status.textContent = 'Liftoff! 🚀';
+      smile.textContent = '🌕';
+    });
+    document.getElementById('party').addEventListener('click', () => {
+      status.textContent = 'Party time 🎉';
+      smile.textContent = '🥳';
+    });
+  </script>
+</body>
+</html>

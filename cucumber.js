@@ -84,6 +84,23 @@ module.exports = {
         filenamePatternFailed: '{failed_prefix}{datetime}.{feature_file}.feature_{step_line}.{ext}', // WEBSHIP_SCREENSHOT_PATTERN_FAIL
         infoTypes: '',                               // WEBSHIP_SCREENSHOT_INFO_TYPES  e.g. "url,feature,step,datetime"
       },
+      video: {
+        // Record the browser as a webm video.
+        //   'off' (default) — no recording.
+        //   'on'            — record every scenario.
+        //   'on-failure'    — record every scenario, keep only failures.
+        //   'tag'           — record only scenarios tagged @video.
+        // Override per scenario with tags:
+        //   @video    — force recording on (independent of mode).
+        //   @no-video — suppress recording for this scenario.
+        // Override per run with env: WEBSHIP_VIDEO.
+        mode: 'off',                                 // WEBSHIP_VIDEO
+        dir: './videos',                             // WEBSHIP_VIDEO_DIR
+        size: { width: 1280, height: 720 },          // viewport size of the recording
+        // Filename template tokens: {datetime} {feature_file} {feature} {scenario}
+        // {status} {ext}. Sanitised to filesystem-safe characters.
+        filenamePattern: '{datetime}.{feature_file}.{scenario}.{status}.{ext}',
+      },
       javascript: {
         // How to report collected JavaScript errors at scenario end.
         //   'warn' (default) — log a yellow warning, scenario still passes.

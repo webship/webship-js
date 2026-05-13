@@ -229,6 +229,41 @@ Settings (`worldParameters.javascript`):
 
 The explicit step `Then there should be no JavaScript errors` always asserts (independent of `mode`) and suppresses the auto-report so a single error is not announced twice.
 
+## Video recording
+
+```
+When I start video recording
+When I stop video recording
+When I save the current video as "checkout-flow.webm"
+Then print video path
+```
+
+Recording is **off by default**. Resolution priority:
+
+1. **Scenario tag** — `@video` (force on) / `@no-video` (force off).
+2. **Env var** — `WEBSHIP_VIDEO=on|off|on-failure|tag`.
+3. **`worldParameters.video.mode`** — `'off'` (default) / `'on'` / `'on-failure'` / `'tag'`.
+
+Mode semantics:
+
+| Mode | Behaviour |
+| --- | --- |
+| `off` (default) | No recording. |
+| `on` | Every scenario produces a `webm`. |
+| `on-failure` | Every scenario records; only failures are kept on disk. |
+| `tag` | Only scenarios tagged `@video` record. |
+
+Settings (`worldParameters.video`):
+
+| Key | Env override | Default | Effect |
+| --- | --- | --- | --- |
+| `mode` | `WEBSHIP_VIDEO` | `off` | Activation mode. |
+| `dir` | `WEBSHIP_VIDEO_DIR` | `./videos` | Output directory (created automatically). |
+| `size` | _none_ | `{ width: 1280, height: 720 }` | Recording resolution. |
+| `filenamePattern` | _none_ | `{datetime}.{feature_file}.{scenario}.{status}.{ext}` | Per-scenario filename. Tokens: `{datetime} {feature_file} {feature} {scenario} {status} {ext}`. |
+
+The `start` / `stop` mid-scenario steps close + reopen the browser context (Playwright records at context creation only). Page state is lost across the boundary — call `start` BEFORE any navigation. `videos/` is gitignored.
+
 ## Date tokens
 
 Use `[relative:OFFSET]` or `[relative:OFFSET#FORMAT]` anywhere in a step argument:
@@ -652,6 +687,13 @@ This index lists every public step grouped by source file, with one Gherkin exam
 - *the table {string} should be sorted by {string} in {string} order*  ·  Example: `Then the table "#users" should be sorted by "Name" in "ascending" order`
 - *the table {string} should contain the following rows:*  ·  Example: `Then the table "#users" should contain the following rows:`
 - *the {string} row should contain the following:*  ·  Example: `Then the "Alice" row should contain the following:`
+
+### video.steps.js
+
+- *^(I |we )*start video recording$*  ·  Example: `When I start video recording`
+- *^(I |we )*stop video recording$*  ·  Example: `When I stop video recording`
+- *^(I |we )*save the current video as "([^"]*)"$*  ·  Example: `When I save the current video as "checkout-flow.webm"`
+- *^print video path$*  ·  Example: `Then print video path`
 
 ### wait.steps.js
 

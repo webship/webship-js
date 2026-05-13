@@ -2,7 +2,7 @@
 
 Webship-js is a BDD-first browser-automation harness built on Playwright + Cucumber-js. Feature files in plain Gherkin; selectors that survive redesigns; smart waits that never sleep.
 
-**407 built-in steps** across **35 step files**. **288 example scenarios / 1,406 step executions** in the bundled suite, all green on chromium, firefox, and webkit.
+**411 built-in steps** across **36 step files**. **288 example scenarios / 1,406 step executions** in the bundled suite, all green on chromium, firefox, and webkit.
 
 ## Reading order
 
@@ -102,6 +102,7 @@ webship-js/
 │       ├── selectors.steps.js          (22)   # named CSS / XPath registry + 22 CMS / framework presets
 │       ├── storage.steps.js             (9)   # local / session storage
 │       ├── table.steps.js               (8)   # data-table row / column assertions
+│       ├── video.steps.js               (4)   # start / stop / save webm recording
 │       ├── wait.steps.js               (21)   # every wait phrasing — all BBR-backed
 │       ├── web-first.steps.js          (12)   # auto-retrying matchers (`within N seconds`)
 │       ├── xml.steps.js                (20)   # XPath equals / contains / count / attr

@@ -136,6 +136,35 @@ Filename pattern tokens: `{datetime}`, `{date}`, `{time}`, `{feature_file}`,
 `{feature}`, `{scenario}`, `{step_line}`, `{ext}`, `{failed_prefix}`,
 `{url}`, `{host}`, `{path}`.
 
+### `video` — Playwright video recording
+
+```js
+video: {
+  mode: 'off',                                   // WEBSHIP_VIDEO — 'off' | 'on' | 'on-failure' | 'tag'
+  dir: './videos',                               // WEBSHIP_VIDEO_DIR
+  size: { width: 1280, height: 720 },            // recording viewport
+  filenamePattern: '{datetime}.{feature_file}.{scenario}.{status}.{ext}',
+}
+```
+
+Tag overrides per scenario:
+
+| Tag | Effect |
+| --- | --- |
+| `@video` | Force recording on. |
+| `@no-video` | Suppress recording. |
+
+Modes:
+
+| Mode | Behaviour |
+| --- | --- |
+| `off` (default) | No recording. |
+| `on` | Record every scenario. |
+| `on-failure` | Record every scenario, keep only failures. |
+| `tag` | Record only scenarios tagged `@video`. |
+
+Mid-scenario start / stop steps live in `video.steps.js`. Recording starts at context creation only — `When I start video recording` closes + reopens the context, losing page state. Call before any navigation.
+
 ### `javascript` — page-error / console capture
 
 ```js

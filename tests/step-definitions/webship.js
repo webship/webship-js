@@ -523,10 +523,11 @@ class PlaywrightWorld extends World {
     this.assetsFolder = path.join(__dirname, '../assets/');
   }
 
-  async openBrowser() {
+  async openBrowser(extraContextOptions) {
     const { browser: browserName, launchOptions, contextOptions } = playwrightConfig;
     this.playwrightBrowser = await playwright[browserName].launch(launchOptions);
-    this.context = await this.playwrightBrowser.newContext(contextOptions);
+    const merged = Object.assign({}, contextOptions, extraContextOptions || {});
+    this.context = await this.playwrightBrowser.newContext(merged);
     // BBR: install in-flight fetch/XHR counter on every page (init script runs
     // before any document script). The counter lets smartSettle() detect the
     // edge of background activity rather than guessing a fixed delay.
@@ -620,18 +621,126 @@ class PlaywrightWorld extends World {
 
 setWorldConstructor(PlaywrightWorld);
 
-Before(async function () {
-  await this.openBrowser();
+// ---------------------------------------------------------------------------
+// Video recording — Playwright records at browser-context creation. The
+// helpers below resolve config + tags into either an empty {} (no
+// recording) or { recordVideo: { dir, size } } that gets merged into the
+// context options.
+// ---------------------------------------------------------------------------
+
+const VIDEO_MODES = new Set(['off', 'on', 'on-failure', 'tag']);
+
+function videoSettings(world, scope) {
+  const cfg = (world.parameters && world.parameters.video) || {};
+  let mode = process.env.WEBSHIP_VIDEO || cfg.mode || 'off';
+  if (!VIDEO_MODES.has(mode)) mode = 'off';
+  return {
+    mode,
+    dir: process.env.WEBSHIP_VIDEO_DIR || cfg.dir || './videos',
+    size: cfg.size || { width: 1280, height: 720 },
+    filenamePattern: cfg.filenamePattern || '{datetime}.{feature_file}.{scenario}.{status}.{ext}',
+  };
+}
+
+function videoHasTag(scope, name) {
+  return !!(scope && scope.pickle && Array.isArray(scope.pickle.tags) &&
+            scope.pickle.tags.some((t) => t.name === name));
+}
+
+function shouldRecordAtStart(s, scope) {
+  if (videoHasTag(scope, '@no-video')) return false;
+  if (videoHasTag(scope, '@video')) return true;
+  return s.mode === 'on' || s.mode === 'on-failure';
+}
+
+function sanitisePart(s) {
+  return String(s || '').replace(/[^a-zA-Z0-9._-]+/g, '_').slice(0, 80);
+}
+
+function buildVideoFilename(template, scope, status) {
+  const featurePath = (scope && scope.gherkinDocument && scope.gherkinDocument.uri) || 'unknown';
+  const feature = (scope && scope.gherkinDocument && scope.gherkinDocument.feature && scope.gherkinDocument.feature.name) || 'feature';
+  const scenario = (scope && scope.pickle && scope.pickle.name) || 'scenario';
+  const featureFile = featurePath.split('/').pop().replace(/\.feature$/, '');
+  const dt = new Date().toISOString().replace(/[:.]/g, '-');
+  return template
+    .replace('{datetime}', dt)
+    .replace('{feature_file}', sanitisePart(featureFile))
+    .replace('{feature}', sanitisePart(feature))
+    .replace('{scenario}', sanitisePart(scenario))
+    .replace('{status}', sanitisePart(status))
+    .replace('{ext}', 'webm');
+}
+
+Before({ order: 5 }, async function (scope) {
+  this._videoSettings = videoSettings(this, scope);
+  this._videoRequested = shouldRecordAtStart(this._videoSettings, scope);
+  this._videoForcedByTag = videoHasTag(scope, '@video');
+
+  const extra = {};
+  if (this._videoRequested) {
+    require('fs').mkdirSync(this._videoSettings.dir, { recursive: true });
+    extra.recordVideo = {
+      dir: this._videoSettings.dir,
+      size: this._videoSettings.size,
+    };
+  }
+
+  await this.openBrowser(extra);
   if (this.minWaitTime.before_scenario > 0) {
     await this.page.waitForTimeout(this.minWaitTime.before_scenario);
   }
 });
 
-After(async function () {
+After({ order: 5 }, async function (scope) {
   if (this.minWaitTime.after_scenario > 0) {
-    await this.page.waitForTimeout(this.minWaitTime.after_scenario);
+    try { await this.page.waitForTimeout(this.minWaitTime.after_scenario); } catch { /* page already closed */ }
   }
-  await this.closeBrowser();
+
+  const status = (scope && scope.result && scope.result.status) || 'unknown';
+  const videoRef = (this._videoRequested && this.page) ? this.page.video() : null;
+  // Capture the raw Playwright path BEFORE closing the context — after
+  // close, the remote handle is gone and video.path() throws.
+  let rawPath = null;
+  if (videoRef) {
+    try { rawPath = await videoRef.path(); } catch { /* may throw on remote */ }
+  }
+
+  // Close the *context* (flushes the webm to disk). Browser stays up so
+  // saveAs() / delete() can still talk to it.
+  if (this.context) {
+    try { await this.context.close(); } catch { /* ignore */ }
+  }
+
+  if (videoRef) {
+    const settings = this._videoSettings;
+    const filename = this._videoSaveAsName || buildVideoFilename(settings.filenamePattern, scope, status);
+    const dest = require('path').join(settings.dir, filename);
+    try {
+      const passed = status === 'PASSED' || status === 'passed';
+      if (settings.mode === 'on-failure' && passed && !this._videoForcedByTag) {
+        await videoRef.delete().catch(() => {});
+      } else {
+        await videoRef.saveAs(dest);
+        await videoRef.delete().catch(() => {});
+        process.stderr.write(`\n[webship-js] video saved → ${dest}\n`);
+      }
+    } catch (e) {
+      process.stderr.write(`\n[webship-js] video save failed: ${e.message}\n`);
+    }
+    // Fallback: remove the Playwright scratch file via fs if it still exists.
+    if (rawPath) {
+      try { require('fs').unlinkSync(rawPath); } catch { /* already gone */ }
+    }
+  }
+
+  // Finally close the browser.
+  if (this.playwrightBrowser) {
+    try { await this.playwrightBrowser.close(); } catch { /* ignore */ }
+    this.playwrightBrowser = null;
+  }
+  this.context = null;
+  this.page = null;
 });
 
 BeforeStep(async function () {

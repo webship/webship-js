@@ -11,3 +11,6 @@ package-lock.json
 .playwright-mcp
 .claude
 screenshots
+videos/*.webm
+videos/page@*
+!videos/README.md
