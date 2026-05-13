@@ -4,7 +4,6 @@
 [![Gitlab CI](https://gitlab.com/webship/webship-js/badges/2.0.x/pipeline.svg?job=karma&key_text=Gitlab+CI&key_width=60)](https://gitlab.com/webship/webship-js/-/pipelines)
 [![CircleCI](https://circleci.com/gh/webship/webship-js/tree/2.0.x.svg?style=svg)](https://circleci.com/gh/webship/webship-js/tree/2.0.x)
 [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/webshipco/webship-js/2.0.x)](https://bitbucket.org/webshipco/webship-js/pipelines)
-[![Travis CI](https://app.travis-ci.com/webship/webship-js.svg?branch=2.0.x)](https://app.travis-ci.com/webship/webship-js)
 
 
 Webship-js is an Automated Functional Acceptance Testing tool. Helps to ease and speed the work with the End-to-end testing features in web apps or projects. Utilizing [Playwright](https://playwright.dev) and [Cucumber-js](https://github.com/cucumber/cucumber-js). Having custom and advanced general step definitions.
