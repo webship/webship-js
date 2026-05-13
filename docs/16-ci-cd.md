@@ -14,6 +14,7 @@ Webship-js ships ready-to-use config files for every major CI/CD provider. The p
 | Jenkins | `Jenkinsfile` | self-hosted | no |
 | Azure Pipelines | `azure-pipelines.yml` | dev.azure.com | yes |
 | AWS CodeBuild | `buildspec.yml` | aws.amazon.com | indirect (via CloudWatch) |
+| Google Cloud Build | `cloudbuild.yaml` | console.cloud.google.com | indirect (via shields.io endpoint) |
 
 Each provider's setup notes live in its own section below.
 
@@ -171,3 +172,55 @@ They land in the configured S3 bucket. Grant pre-signed URLs or make the bucket 
 - 9-min suite × $0.005/min ≈ $0.045 per build past the free tier — cheap unless you push hundreds of builds.
 - For multi-AZ or multi-region resilience, place the buildspec in `aws-codebuild/buildspec.yml` and point the CodeBuild project at that path — the file is just a relative source path.
 - CodeBuild can run inside a VPC if your dev server needs private network access — toggle in **VPC configuration** before starting the first build.
+
+---
+
+## Google Cloud Build
+
+**File**: `cloudbuild.yaml` at repo root.
+
+Google's managed CI inside GCP. First $300 of usage is free for new accounts (90-day trial); after that the always-free tier covers ~120 build-minutes per day on the default `e2-standard-2` machine — about 13 runs of the 9-min suite per day.
+
+### Setup steps — open account + connect repo
+
+1. **Create a Google Cloud account** at <https://console.cloud.google.com/>. Sign in with a Google account, accept the terms, claim the $300 / 90-day credit (a card is required for verification but is not charged).
+2. **Create a Project**: top bar → "Select a project" → "New project" → name `webship-js`. Note the project ID — Cloud Build references it implicitly.
+3. **Enable billing** on the project: `Billing → Link a billing account`. Required even for free-tier-only usage.
+4. **Enable the Cloud Build API**: `APIs & Services → Library → Cloud Build API → Enable`. Wait ~30 s.
+5. **Create the artefact bucket**: `Cloud Storage → Buckets → Create` → name `webship-js-reports` (must be globally unique — prepend your project ID if taken) → region matching your build region.
+6. **Grant Cloud Build write to the bucket**: bucket → `Permissions → Grant access` → principal `<project-number>@cloudbuild.gserviceaccount.com` → role `Storage Object Creator`.
+7. **Connect GitHub**: `Cloud Build → Triggers → Manage repositories → Connect Repository` → GitHub (Cloud Build GitHub App) → install on `webship/webship-js`.
+8. **Create a Trigger**:
+   - Name `webship-js-2-0-x`.
+   - Event: **Push to a branch**.
+   - Source: select the GitHub repo + branch regex `^2\.0\.x$`.
+   - Configuration: **Cloud Build configuration file (yaml or json)** → location `Repository` → `/cloudbuild.yaml`.
+   - Service account: leave default (`<project-number>@cloudbuild.gserviceaccount.com`).
+   - Substitution variables (optional): override `_ARTIFACT_BUCKET` if your bucket differs.
+   - **Create**.
+9. **Test**: `Run trigger` → first build pulls the Playwright image (~1 GB, cached on the build pool afterwards).
+
+### Badge
+
+Cloud Build has no native badge. Two workarounds:
+
+1. **Custom shields.io endpoint**: deploy a Cloud Function that calls `builds.list` filtered by the trigger ID + branch, returns shields.io JSON, then embed `https://img.shields.io/endpoint?url=https://<region>-<project>.cloudfunctions.net/buildBadge`.
+2. **Workflow Run badge via mirror**: if you mirror to GitHub Actions, the GH Actions badge already covers green/red status.
+
+### Reports
+
+The `artifacts.objects` section uploads the HTML / PDF / JSON to `gs://webship-js-reports/<BUILD_ID>/` on every run. Browse via Cloud Storage UI or share pre-signed URLs.
+
+### Caching
+
+Cloud Build does not have a first-class cache step. Common patterns:
+
+1. **Kaniko image cache** for Docker-based builds (not what this pipeline does).
+2. **Volume cache via `dir` + GCS sync**: copy `node_modules` and `~/.cache/ms-playwright` to GCS at the end of each build, restore at the start. Adds two extra steps but cuts a hot rerun from ~9 min to ~5 min.
+
+### Notes
+
+- `options.logging: CLOUD_LOGGING_ONLY` skips the legacy log bucket — saves a few cents per build and avoids the IAM warning Cloud Build prints by default.
+- `timeout: 1800s` matches the 30-minute cap from other lanes; the suite finishes in ~9 min headless.
+- `_BRANCH_NAME` and `_ARTIFACT_BUCKET` are substitution variables — override per-trigger to point at a different bucket without forking the YAML.
+- For per-browser parallelism, replace the single `step` with three steps, each setting `BROWSER=chromium/firefox/webkit` — `--with-deps` will fetch the matching browser deps inside the container.

@@ -1,0 +1,49 @@
+# Google Cloud Build config for webship-js.
+#
+# Runs the full BDD suite inside a Playwright-prepped container on Google's
+# managed builder pool. Free tier (post-$300 credit): 120 build-minutes per
+# day on the default `e2-standard-2` machine — the 9-minute suite fits ~13
+# runs / day.
+#
+# Setup (full walkthrough in docs/16-ci-cd.md → "Google Cloud Build"):
+#   1. console.cloud.google.com → create project → enable Cloud Build API.
+#   2. Cloud Build → Triggers → Connect repository → GitHub OAuth.
+#   3. Add trigger pointing at this file on branch ^2\.0\.x$.
+
+substitutions:
+  _BRANCH_NAME: '2.0.x'
+  _ARTIFACT_BUCKET: 'webship-js-reports'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: 'E2_STANDARD_2'
+
+timeout: '1800s'
+
+steps:
+  - id: install-and-test
+    name: 'mcr.microsoft.com/playwright:v1.58.2-jammy'
+    entrypoint: 'bash'
+    env:
+      - 'FORCE_COLOR=1'
+      - 'LAUNCH_URL=http://localhost:8080'
+    args:
+      - '-c'
+      - |
+        set -euo pipefail
+        node --version
+        npm --version
+        npm install
+        npx playwright install --with-deps chromium
+        nohup npm start > /tmp/srv.log 2>&1 &
+        sleep 3
+        curl -sf http://localhost:8080/ > /dev/null
+        npm test
+
+artifacts:
+  objects:
+    location: 'gs://${_ARTIFACT_BUCKET}/$BUILD_ID/'
+    paths:
+      - 'tests/reports/cucumber_report.html'
+      - 'tests/reports/cucumber_report.pdf'
+      - 'tests/reports/cucumber_report.json'
