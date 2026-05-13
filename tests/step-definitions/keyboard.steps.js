@@ -1,5 +1,7 @@
 'use strict';
 
+const { friendly } = require('./webship');
+
 // Simulate keyboard interactions on the page or on a specific element.
 
 const { When } = require('@cucumber/cucumber');
@@ -31,7 +33,15 @@ function normalizeKey(key) {
  *
  */
 When(/^(I |we )*press the key "([^"]*)"$/, async function (pronoun, key) {
-  await this.page.keyboard.press(normalizeKey(key));
+  try {
+    await this.page.keyboard.press(normalizeKey(key));
+  } catch (e) {
+    throw friendly({
+      action: `press the key "${key}"`,
+      cause: e,
+      hint: `use a real key name like Enter, Escape, Tab, ArrowDown, or a short alias (enter, esc, tab, up, down, left, right, space).`,
+    });
+  }
 });
 
 /**
@@ -45,7 +55,15 @@ When(/^(I |we )*press the key "([^"]*)"$/, async function (pronoun, key) {
  *
  */
 When(/^(I |we )*press the key "([^"]*)" on the element "([^"]*)"$/, async function (pronoun, key, sel) {
-  await this.page.locator(sel).first().press(normalizeKey(key));
+  try {
+    await this.page.locator(sel).first().press(normalizeKey(key));
+  } catch (e) {
+    throw friendly({
+      action: `press the key "${key}" on "${sel}"`,
+      cause: e,
+      hint: `check that "${sel}" matches an element on the page that can be focused (input, button, link).`,
+    });
+  }
 });
 
 /**
@@ -60,7 +78,15 @@ When(/^(I |we )*press the key "([^"]*)" on the element "([^"]*)"$/, async functi
  *
  */
 When(/^(I |we )*press the keys "([^"]*)"$/, async function (pronoun, keys) {
-  await this.page.keyboard.press(keys);
+  try {
+    await this.page.keyboard.press(keys);
+  } catch (e) {
+    throw friendly({
+      action: `press the keys "${keys}"`,
+      cause: e,
+      hint: `use a "+" between modifier and key, e.g. "Control+a", "Meta+s", or "Shift+Tab".`,
+    });
+  }
 });
 
 /**
@@ -74,5 +100,13 @@ When(/^(I |we )*press the keys "([^"]*)"$/, async function (pronoun, keys) {
  *
  */
 When(/^(I |we )*press the keys "([^"]*)" on the element "([^"]*)"$/, async function (pronoun, keys, sel) {
-  await this.page.locator(sel).first().press(keys);
+  try {
+    await this.page.locator(sel).first().press(keys);
+  } catch (e) {
+    throw friendly({
+      action: `press "${keys}" on "${sel}"`,
+      cause: e,
+      hint: `check the element exists and use "+" between modifier and key, e.g. "Control+s".`,
+    });
+  }
 });

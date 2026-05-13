@@ -1,5 +1,7 @@
 'use strict';
 
+const { friendly } = require('./webship');
+
 // Network interception and mocking via Playwright's `page.route()` API.
 //
 // Lets BDD scenarios stub external dependencies, simulate slow / offline
@@ -56,13 +58,21 @@ function ensureRequestLog(world) {
  *
  */
 Given(/^the URL "([^"]*)" returns the JSON:$/, async function (urlPattern, body) {
-  await this.page.route(urlPattern, async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body,
+  try {
+    await this.page.route(urlPattern, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body,
+      });
     });
-  });
+  } catch (e) {
+    throw friendly({
+      action: `register a JSON stub for "${urlPattern}"`,
+      cause: e,
+      hint: `URL pattern uses glob syntax — try "**/api/users" or "*.png".`,
+    });
+  }
 });
 
 /**
@@ -76,9 +86,17 @@ Given(/^the URL "([^"]*)" returns the JSON:$/, async function (urlPattern, body)
  *
  */
 Given(/^the URL "([^"]*)" returns status (\d+)(?: with body "([^"]*)")?$/, async function (urlPattern, status, body) {
-  await this.page.route(urlPattern, async (route) => {
-    await route.fulfill({ status: parseInt(status, 10), body: body || '' });
-  });
+  try {
+    await this.page.route(urlPattern, async (route) => {
+      await route.fulfill({ status: parseInt(status, 10), body: body || '' });
+    });
+  } catch (e) {
+    throw friendly({
+      action: `register a status-${status} stub for "${urlPattern}"`,
+      cause: e,
+      hint: `URL pattern uses glob syntax — try "**/api/users" or "*.png".`,
+    });
+  }
 });
 
 /**
@@ -92,7 +110,15 @@ Given(/^the URL "([^"]*)" returns status (\d+)(?: with body "([^"]*)")?$/, async
  *
  */
 Given(/^the URL "([^"]*)" is blocked$/, async function (urlPattern) {
-  await this.page.route(urlPattern, (route) => route.abort());
+  try {
+    await this.page.route(urlPattern, (route) => route.abort());
+  } catch (e) {
+    throw friendly({
+      action: `block "${urlPattern}"`,
+      cause: e,
+      hint: `URL pattern uses glob syntax — try "**/analytics.js" or "*.gif".`,
+    });
+  }
 });
 
 /**
@@ -110,10 +136,18 @@ Given(/^the URL "([^"]*)" is blocked$/, async function (urlPattern) {
  */
 Given(/^the URL "([^"]*)" is delayed by (\d+) ?ms$/, async function (urlPattern, delay) {
   const ms = parseInt(delay, 10);
-  await this.page.route(urlPattern, async (route) => {
-    await new Promise((r) => setTimeout(r, ms));
-    await route.continue();
-  });
+  try {
+    await this.page.route(urlPattern, async (route) => {
+      await new Promise((r) => setTimeout(r, ms));
+      await route.continue();
+    });
+  } catch (e) {
+    throw friendly({
+      action: `delay "${urlPattern}" by ${ms} ms`,
+      cause: e,
+      hint: `URL pattern uses glob syntax — try "**/api/**" or "*.png".`,
+    });
+  }
 });
 
 /**
@@ -135,7 +169,8 @@ Given(/^the URL "([^"]*)" is delayed by (\d+) ?ms$/, async function (urlPattern,
  *
  */
 Given(/^the network is offline$/, async function () {
-  await this.context.setOffline(true);
+  try { await this.context.setOffline(true); }
+  catch (e) { throw friendly({ action: 'switch the network offline', cause: e, hint: 'the browser context may have been closed; try a fresh scenario.' }); }
 });
 
 /**
@@ -157,7 +192,8 @@ Given(/^the network is offline$/, async function () {
  *
  */
 Given(/^the network is online$/, async function () {
-  await this.context.setOffline(false);
+  try { await this.context.setOffline(false); }
+  catch (e) { throw friendly({ action: 'switch the network online', cause: e, hint: 'the browser context may have been closed; try a fresh scenario.' }); }
 });
 
 // ---------------------------------------------------------------------------
@@ -198,7 +234,9 @@ Given(/^(I |we )*start recording network requests$/, function () {
  */
 Then(/^a request to "([^"]*)" should have been made$/, function (urlPattern) {
   ensureRequestLog(this);
-  const re = new RegExp(urlPattern.replace(/\*/g, '.*'));
+  let re;
+  try { re = new RegExp(urlPattern.replace(/\*/g, '.*')); }
+  catch (e) { throw friendly({ action: `match URL pattern "${urlPattern}"`, cause: e, hint: "URL pattern must be a valid regex or glob; check for unmatched brackets." }); }
   const found = this._requestLog.some((r) => re.test(r.url));
   assert.ok(found, `Expected at least one request matching "${urlPattern}".`);
 });
@@ -215,7 +253,9 @@ Then(/^a request to "([^"]*)" should have been made$/, function (urlPattern) {
  */
 Then(/^a (GET|POST|PUT|PATCH|DELETE) request to "([^"]*)" should have been made$/, function (method, urlPattern) {
   ensureRequestLog(this);
-  const re = new RegExp(urlPattern.replace(/\*/g, '.*'));
+  let re;
+  try { re = new RegExp(urlPattern.replace(/\*/g, '.*')); }
+  catch (e) { throw friendly({ action: `match URL pattern "${urlPattern}"`, cause: e, hint: "URL pattern must be a valid regex or glob; check for unmatched brackets." }); }
   const found = this._requestLog.some((r) => r.method === method && re.test(r.url));
   assert.ok(found, `Expected at least one ${method} request matching "${urlPattern}".`);
 });
@@ -232,7 +272,9 @@ Then(/^a (GET|POST|PUT|PATCH|DELETE) request to "([^"]*)" should have been made$
  */
 Then(/^no request to "([^"]*)" should have been made$/, function (urlPattern) {
   ensureRequestLog(this);
-  const re = new RegExp(urlPattern.replace(/\*/g, '.*'));
+  let re;
+  try { re = new RegExp(urlPattern.replace(/\*/g, '.*')); }
+  catch (e) { throw friendly({ action: `match URL pattern "${urlPattern}"`, cause: e, hint: "URL pattern must be a valid regex or glob; check for unmatched brackets." }); }
   const found = this._requestLog.some((r) => re.test(r.url));
   assert.ok(!found, `Did not expect any request matching "${urlPattern}".`);
 });

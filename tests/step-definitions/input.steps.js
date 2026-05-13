@@ -1,9 +1,19 @@
 'use strict';
 
+const { friendly } = require('./webship');
+
 // Pointer input steps not covered by the core element/click steps:
 // hover variants, drag-and-drop, double-click, right-click, viewport size.
 
 const { When } = require('@cucumber/cucumber');
+
+function explainPtr(action, sel, e) {
+  return friendly({
+    action: `${action} "${sel}"`,
+    cause: e,
+    hint: `check the element exists on the page, is visible, and is not covered by an overlay.`,
+  });
+}
 
 // ---------------------------------------------------------------------------
 // Hover (variants)
@@ -20,7 +30,8 @@ const { When } = require('@cucumber/cucumber');
  *
  */
 When(/^(I |we )*hover over "([^"]*)"$/, async function (pronoun, sel) {
-  await this.page.locator(sel).first().hover();
+  try { await this.page.locator(sel).first().hover(); }
+  catch (e) { throw explainPtr('hover over', sel, e); }
 });
 
 /**
@@ -34,7 +45,8 @@ When(/^(I |we )*hover over "([^"]*)"$/, async function (pronoun, sel) {
  *
  */
 When(/^(I |we )*move the pointer to "([^"]*)"$/, async function (pronoun, sel) {
-  await this.page.locator(sel).first().hover();
+  try { await this.page.locator(sel).first().hover(); }
+  catch (e) { throw explainPtr('move pointer to', sel, e); }
 });
 
 // ---------------------------------------------------------------------------
@@ -52,7 +64,8 @@ When(/^(I |we )*move the pointer to "([^"]*)"$/, async function (pronoun, sel) {
  *
  */
 When(/^(I |we )*double[- ]click on "([^"]*)"$/, async function (pronoun, sel) {
-  await this.page.locator(sel).first().dblclick();
+  try { await this.page.locator(sel).first().dblclick(); }
+  catch (e) { throw explainPtr('double-click', sel, e); }
 });
 
 /**
@@ -66,7 +79,8 @@ When(/^(I |we )*double[- ]click on "([^"]*)"$/, async function (pronoun, sel) {
  *
  */
 When(/^(I |we )*right[- ]click on "([^"]*)"$/, async function (pronoun, sel) {
-  await this.page.locator(sel).first().click({ button: 'right' });
+  try { await this.page.locator(sel).first().click({ button: 'right' }); }
+  catch (e) { throw explainPtr('right-click', sel, e); }
 });
 
 /**
@@ -80,7 +94,8 @@ When(/^(I |we )*right[- ]click on "([^"]*)"$/, async function (pronoun, sel) {
  *
  */
 When(/^(I |we )*middle[- ]click on "([^"]*)"$/, async function (pronoun, sel) {
-  await this.page.locator(sel).first().click({ button: 'middle' });
+  try { await this.page.locator(sel).first().click({ button: 'middle' }); }
+  catch (e) { throw explainPtr('middle-click', sel, e); }
 });
 
 /**
@@ -96,7 +111,15 @@ When(/^(I |we )*middle[- ]click on "([^"]*)"$/, async function (pronoun, sel) {
  *
  */
 When(/^(I |we )*click on "([^"]*)" while holding "([^"]*)"$/, async function (pronoun, sel, key) {
-  await this.page.locator(sel).first().click({ modifiers: [key] });
+  try {
+    await this.page.locator(sel).first().click({ modifiers: [key] });
+  } catch (e) {
+    throw friendly({
+      action: `click "${sel}" while holding "${key}"`,
+      cause: e,
+      hint: `modifier must be one of: Shift, Control, Alt, Meta.`,
+    });
+  }
 });
 
 // ---------------------------------------------------------------------------
@@ -114,7 +137,15 @@ When(/^(I |we )*click on "([^"]*)" while holding "([^"]*)"$/, async function (pr
  *
  */
 When(/^(I |we )*drag "([^"]*)" to "([^"]*)"$/, async function (pronoun, source, target) {
-  await this.page.locator(source).first().dragTo(this.page.locator(target).first());
+  try {
+    await this.page.locator(source).first().dragTo(this.page.locator(target).first());
+  } catch (e) {
+    throw friendly({
+      action: `drag "${source}" to "${target}"`,
+      cause: e,
+      hint: `both items must exist on the page; the target must accept drops.`,
+    });
+  }
 });
 
 // ---------------------------------------------------------------------------
@@ -132,7 +163,15 @@ When(/^(I |we )*drag "([^"]*)" to "([^"]*)"$/, async function (pronoun, source, 
  *
  */
 When(/^(I |we )*set the viewport size to (\d+)x(\d+)$/, async function (pronoun, w, h) {
-  await this.page.setViewportSize({ width: parseInt(w, 10), height: parseInt(h, 10) });
+  try {
+    await this.page.setViewportSize({ width: parseInt(w, 10), height: parseInt(h, 10) });
+  } catch (e) {
+    throw friendly({
+      action: `set viewport size to ${w}x${h}`,
+      cause: e,
+      hint: `the browser was opened in fluid-viewport mode; set a fixed viewport in playwright.config.ts contextOptions.viewport.`,
+    });
+  }
 });
 
 // ---------------------------------------------------------------------------

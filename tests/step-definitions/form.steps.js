@@ -5,7 +5,7 @@
 // check / uncheck, radio buttons.
 
 const { When } = require('@cucumber/cucumber');
-const { buildSelector, fillField } = require('./webship');
+const { buildSelector, fillField, friendly } = require('./webship');
 
 // ---------------------------------------------------------------------------
 // Fill — by label, attribute, table, reverse syntax
@@ -177,7 +177,7 @@ When(/^(I |we )*select "([^"]*)?" from "([^"]*)?"$/, async function (pronounCase
   try {
     await loc.selectOption(option);
   } catch (e) {
-    throw new Error(
+    throw friendly(
       `Could not select "${option}" from "${selectList}".\n` +
       `  ${(e.message || '').split('\n')[0]}\n` +
       `  Hints:\n` +
@@ -231,7 +231,7 @@ When(/^(I |we )*additionally select "([^"]*)" from "([^"]*)"$/, async function (
   }, option);
 
   if (nextValueForLabel === null) {
-    throw new Error(`Option "${option}" not found in select "${select}".`);
+    throw friendly(`Option "${option}" not found in select "${select}".`);
   }
 
   const combined = Array.from(new Set([...currentValues, nextValueForLabel]));
@@ -264,7 +264,7 @@ When(/^(I |we )*check "([^"]*)?"$/, async function (pronounCase, item) {
       }
     }
   } catch (e) {
-    throw new Error(
+    throw friendly(
       `Could not check "${item}".\n` +
       `  ${(e.message || '').split('\n')[0]}\n` +
       `  Hints: confirm the label / id / class matches; ensure the input is visible and not disabled.`
@@ -294,7 +294,7 @@ When(/^(I |we )*uncheck "([^"]*)?"$/, async function (pronounCase, item) {
       }
     }
   } catch (e) {
-    throw new Error(
+    throw friendly(
       `Could not uncheck "${item}".\n` +
       `  ${(e.message || '').split('\n')[0]}\n` +
       `  Hints: confirm the label / id / class matches; ensure the input is visible and not disabled.`
@@ -324,7 +324,7 @@ When(/^(I |we )*select radio button "([^"]*)?"$/, async function (pronounCase, i
       }
     }
   } catch (e) {
-    throw new Error(
+    throw friendly(
       `Could not select radio button "${item}".\n` +
       `  ${(e.message || '').split('\n')[0]}\n` +
       `  Hints: try matching by [value=...], by label text, or by #id / .class.`

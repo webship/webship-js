@@ -1,43 +1,37 @@
 'use strict';
 
+const { friendly } = require('./webship');
+
 // Clock / time-mocking steps backed by Playwright's `page.clock` API.
-//
-// Useful for testing relative-time UIs ("5 minutes ago"), debounced inputs,
-// throttled re-renders, scheduled UI changes (toast auto-dismiss, session
-// timeout), and any flow gated on `Date.now()` or `setTimeout`.
-//
-// Once the fake clock is installed, page-level `Date.now()` and `new Date()`
-// return the fake time, and pending timers stay paused until explicitly
-// advanced.
 
 const { Given, When } = require('@cucumber/cucumber');
+
+const ISO_HINT = 'install the fake clock first via "Given the system time is \\"YYYY-MM-DDTHH:MM:SSZ\\"".';
 
 /**
  * Install a fake clock anchored at an ISO 8601 instant.
  *
- * After this step, `Date.now()` inside the page returns the fake time and
- * `setTimeout` / `setInterval` callbacks queue but do not fire until you
- * advance the clock.
- *
  * Example #1: Given the system time is "2026-05-08T10:00:00Z"
  * Example #2: Given the system time is "2026-01-01T00:00:00Z"
- *               And I am on "/feed"
  * Example #3: Given the system time is "2026-12-31T23:59:55Z"
- *               And I am on "/countdown"
  * Example #4: Given the system time is "2026-05-08T10:00:00Z"
- *               And I am on "/feed"
- *               And "<.timestamp>" should have text "just now"
  * Example #5: Given the system time is "2026-07-04T12:00:00-04:00"
- *               And I am on "/holiday-banner"
  *
  */
 Given(/^the system time is "([^"]*)"$/, async function (iso) {
-  await this.page.clock.install({ time: new Date(iso) });
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) {
+    throw friendly({
+      action: `set the system time to "${iso}"`,
+      hint: 'use an ISO 8601 date like "2026-05-08T10:00:00Z".',
+    });
+  }
+  try { await this.page.clock.install({ time: d }); }
+  catch (e) { throw friendly({ action: `install a fake clock at "${iso}"`, cause: e, hint: 'open a page first via "Given I am on \\"/path\\"".' }); }
 });
 
 /**
- * Advance the fake clock forward by N milliseconds, firing every queued
- * `setTimeout` / `setInterval` callback scheduled within that interval.
+ * Advance the fake clock forward by N milliseconds.
  *
  * Example #1: When I advance the clock by 500 ms
  * Example #2: When I advance the clock by 1500 ms
@@ -47,7 +41,8 @@ Given(/^the system time is "([^"]*)"$/, async function (iso) {
  *
  */
 When(/^(I |we )*advance the clock by (\d+) ?ms$/, async function (pronoun, ms) {
-  await this.page.clock.runFor(parseInt(ms, 10));
+  try { await this.page.clock.runFor(parseInt(ms, 10)); }
+  catch (e) { throw friendly({ action: `advance the clock by ${ms} ms`, cause: e, hint: ISO_HINT }); }
 });
 
 /**
@@ -61,7 +56,8 @@ When(/^(I |we )*advance the clock by (\d+) ?ms$/, async function (pronoun, ms) {
  *
  */
 When(/^(I |we )*advance the clock by (\d+) seconds?$/, async function (pronoun, seconds) {
-  await this.page.clock.runFor(parseInt(seconds, 10) * 1000);
+  try { await this.page.clock.runFor(parseInt(seconds, 10) * 1000); }
+  catch (e) { throw friendly({ action: `advance the clock by ${seconds} second(s)`, cause: e, hint: ISO_HINT }); }
 });
 
 /**
@@ -75,46 +71,42 @@ When(/^(I |we )*advance the clock by (\d+) seconds?$/, async function (pronoun, 
  *
  */
 When(/^(I |we )*advance the clock by (\d+) minutes?$/, async function (pronoun, minutes) {
-  await this.page.clock.runFor(parseInt(minutes, 10) * 60 * 1000);
+  try { await this.page.clock.runFor(parseInt(minutes, 10) * 60 * 1000); }
+  catch (e) { throw friendly({ action: `advance the clock by ${minutes} minute(s)`, cause: e, hint: ISO_HINT }); }
 });
 
 /**
- * Pause the fake clock — no further timer callbacks fire until resumed or
- * explicitly advanced. Useful between actions when you do not want a long
- * tick to fire mid-step.
+ * Pause the fake clock.
  *
  * Example #1: When I pause the clock
- * Example #2: Given the system time is "2026-05-08T10:00:00Z"
- *               When I pause the clock
+ * Example #2: When I pause the clock
  * Example #3: When we pause the clock
  * Example #4: And I pause the clock
  * Example #5: When I pause the clock
- *               Then "<.timer>" should have text "00:00"
  *
  */
 When(/^(I |we )*pause the clock$/, async function () {
-  await this.page.clock.pauseAt(await this.page.evaluate(() => Date.now()));
+  try { await this.page.clock.pauseAt(await this.page.evaluate(() => Date.now())); }
+  catch (e) { throw friendly({ action: 'pause the clock', cause: e, hint: ISO_HINT }); }
 });
 
 /**
- * Resume the fake clock from the current paused time.
+ * Resume the fake clock.
  *
  * Example #1: When I resume the clock
- * Example #2: When I pause the clock
- *               And I resume the clock
+ * Example #2: When I resume the clock
  * Example #3: When we resume the clock
  * Example #4: And I resume the clock
  * Example #5: When I resume the clock
- *               And I advance the clock by 5 seconds
  *
  */
 When(/^(I |we )*resume the clock$/, async function () {
-  await this.page.clock.resume();
+  try { await this.page.clock.resume(); }
+  catch (e) { throw friendly({ action: 'resume the clock', cause: e, hint: 'pause the clock first via "When I pause the clock".' }); }
 });
 
 /**
- * Set the fake clock to a specific time WITHOUT advancing through it. Use
- * `advance` if you want pending timers in the gap to fire.
+ * Set the fake clock to a specific time.
  *
  * Example #1: When I set the system time to "2026-05-08T12:30:00Z"
  * Example #2: When I set the system time to "2026-12-31T23:59:55Z"
@@ -124,5 +116,13 @@ When(/^(I |we )*resume the clock$/, async function () {
  *
  */
 When(/^(I |we )*set the system time to "([^"]*)"$/, async function (pronoun, iso) {
-  await this.page.clock.setSystemTime(new Date(iso));
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) {
+    throw friendly({
+      action: `set the system time to "${iso}"`,
+      hint: 'use an ISO 8601 date like "2026-05-08T12:30:00Z".',
+    });
+  }
+  try { await this.page.clock.setSystemTime(d); }
+  catch (e) { throw friendly({ action: `set the system time to "${iso}"`, cause: e, hint: ISO_HINT }); }
 });

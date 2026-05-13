@@ -1,15 +1,17 @@
 module.exports = {
   default: {
-    timeout: 30000,
+    // Cucumber step timeout must exceed Playwright's default 30s so the
+    // try/catch wrappers in step files always see the Playwright error
+    // first (and emit a friendly message) rather than cucumber's raw
+    // "function timed out" stack.
+    timeout: 45000,
     // tsx/cjs registers a require() hook so cucumber-js can load both
     // `.js` and `.ts` step files with zero build step. If you ship only
     // JavaScript, drop `requireModule` and the `.ts` half of the glob.
     requireModule: ['tsx/cjs'],
     require: [
       'tests/step-definitions/**/*.js',
-      'tests/step-definitions/**/*.ts',
       'tests/step-definitions-diffy/**/*.js',
-      'tests/step-definitions-diffy/**/*.ts',
     ],
     paths: ['tests/features/**/*.feature'],
     format: [

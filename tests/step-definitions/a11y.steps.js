@@ -1,5 +1,7 @@
 'use strict';
 
+const { friendly } = require('./webship');
+
 // Accessibility (a11y) step definitions.
 //
 // Two layers:
@@ -51,7 +53,7 @@ function summariseViolations(violations) {
 
 async function runAxe(world, opts = {}) {
   if (!AxeBuilder) {
-    throw new Error('axe-core a11y steps require @axe-core/playwright. Install: npm i @axe-core/playwright axe-core');
+    throw friendly('axe-core a11y steps require @axe-core/playwright. Install: npm i @axe-core/playwright axe-core');
   }
   let builder = new AxeBuilder({ page: world.page });
   if (opts.tags) builder = builder.withTags(opts.tags);

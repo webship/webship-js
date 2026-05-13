@@ -1,5 +1,7 @@
 'use strict';
 
+const { friendly } = require('./webship');
+
 // Authentication-state helpers built on Playwright's `storageState` API.
 //
 // Save the cookies + localStorage of an authenticated context to a JSON file
@@ -73,7 +75,7 @@ When(/^(I |we )*save the auth state to "([^"]*)"$/, async function (pronoun, tar
 Given(/^(I |we )*restore the auth state from "([^"]*)"$/, async function (pronoun, source) {
   const file = resolveStoragePath(source);
   if (!fs.existsSync(file)) {
-    throw new Error(`Auth state file not found: ${file}`);
+    throw friendly(`Auth state file not found: ${file}`);
   }
   const playwrightConfig = require(path.join(process.cwd(), 'playwright.config'));
   const newContext = await this.playwrightBrowser.newContext({

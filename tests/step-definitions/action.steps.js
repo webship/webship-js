@@ -5,7 +5,7 @@
 
 const { When } = require('@cucumber/cucumber');
 const path = require('path');
-const { buildSelector } = require('./webship');
+const { buildSelector, friendly } = require('./webship');
 
 // Wrap a Playwright action with a friendlier error pointing at the
 // failing locator + Gherkin step. Pass `label` describing the step
@@ -15,7 +15,7 @@ async function actOrExplain(label, target, fn) {
     await fn();
   } catch (e) {
     const msg = (e.message || '').split('\n')[0];
-    throw new Error(
+    throw friendly(
       `Failed to ${label} "${target}".\n` +
       `  ${msg}\n` +
       `  Hints:\n` +

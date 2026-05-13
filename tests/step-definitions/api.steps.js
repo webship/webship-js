@@ -1,6 +1,7 @@
 const { Given, When, Then, Before } = require('@cucumber/cucumber');
 const axios = require('axios');
 const assert = require('assert');
+const { friendly } = require('./webship');
 
 // Global variables to store API response and request data
 let apiResponse = null;
@@ -163,7 +164,7 @@ Given(/^(?:I set the request body to|we set the request body to|the request body
     const processedData = replacePlaceHolder(jsonData);
     apiRequestData = JSON.parse(processedData);
   } catch (error) {
-    throw new Error(`Invalid JSON in request body: ${error.message}`);
+    throw friendly(`Invalid JSON in request body: ${error.message}`);
   }
 });
 
@@ -232,7 +233,7 @@ When(/^(?:I |we )?send a ([A-Z]+) request to "([^"]+)"$/, async function (method
       }
     });
   } catch (error) {
-    throw new Error(`${method} request failed: ${error.message}`);
+    throw friendly(`${method} request failed: ${error.message}`);
   }
 });
 
@@ -278,7 +279,7 @@ When(/^(?:I |we )?send a ([A-Z]+) request to "([^"]+)" with values:$/, async fun
       }
     });
   } catch (error) {
-    throw new Error(`${method} request with values failed: ${error.message}`);
+    throw friendly(`${method} request with values failed: ${error.message}`);
   }
 });
 
@@ -351,7 +352,7 @@ When(/^(?:I |we )?send a ([A-Z]+) request to "([^"]+)" with body:$/, async funct
       }
     });
   } catch (error) {
-    throw new Error(`${method} request with body failed: ${error.message}`);
+    throw friendly(`${method} request with body failed: ${error.message}`);
   }
 });
 
@@ -416,7 +417,7 @@ When(/^(?:I |we )?send a ([A-Z]+) request to "([^"]+)" with form data:$/, async 
       }
     });
   } catch (error) {
-    throw new Error(`${method} request with form data failed: ${error.message}`);
+    throw friendly(`${method} request with form data failed: ${error.message}`);
   }
 });
 
@@ -436,7 +437,7 @@ When(/^(?:I |we )?send a ([A-Z]+) request to "([^"]+)" with form data:$/, async 
  */
 Then(/^(?:the )?API response code should be (\d+)$/, function (expectedCode) {
   if (!apiResponse) {
-    throw new Error('No API response available. Make sure to send a request first.');
+    throw friendly('No API response available. Make sure to send a request first.');
   }
   
   const expected = parseInt(expectedCode);
@@ -459,7 +460,7 @@ Then(/^(?:the )?API response code should be (\d+)$/, function (expectedCode) {
  */
 Then(/^(?:the )?API response should contain "([^"]*)"$/, function (expectedText) {
   if (!apiResponse) {
-    throw new Error('No API response available. Make sure to send a request first.');
+    throw friendly('No API response available. Make sure to send a request first.');
   }
   
   const responseBody = typeof apiResponse.data === 'string' ? 
@@ -484,7 +485,7 @@ Then(/^(?:the )?API response should contain "([^"]*)"$/, function (expectedText)
  */
 Then(/^(?:the )?API response should not contain "([^"]*)"$/, function (unexpectedText) {
   if (!apiResponse) {
-    throw new Error('No API response available. Make sure to send a request first.');
+    throw friendly('No API response available. Make sure to send a request first.');
   }
   
   const responseBody = typeof apiResponse.data === 'string' ? 
@@ -531,7 +532,7 @@ Then(/^(?:the )?API response should not contain "([^"]*)"$/, function (unexpecte
  */
 Then(/^(?:the )?API response should contain json:$/, function (docString) {
   if (!apiResponse) {
-    throw new Error('No API response available. Make sure to send a request first.');
+    throw friendly('No API response available. Make sure to send a request first.');
   }
   
   let expectedJson;
@@ -540,14 +541,14 @@ Then(/^(?:the )?API response should contain json:$/, function (docString) {
   try {
     expectedJson = JSON.parse(replacePlaceHolder(docString.trim()));
   } catch (error) {
-    throw new Error(`Cannot convert expected JSON: ${docString}`);
+    throw friendly(`Cannot convert expected JSON: ${docString}`);
   }
   
   try {
     actualJson = typeof apiResponse.data === 'string' ? 
       JSON.parse(apiResponse.data) : apiResponse.data;
   } catch (error) {
-    throw new Error(`Cannot convert actual response to JSON: ${apiResponse.data}`);
+    throw friendly(`Cannot convert actual response to JSON: ${apiResponse.data}`);
   }
   
   // Check that expected properties exist in actual response and match values
@@ -573,7 +574,7 @@ Then(/^(?:the )?API response should contain json:$/, function (docString) {
  */
 Then(/^(?:the JSON response should have|the API response should have|the JSON property) "([^"]*)" (?:equal to|should be) (.+)$/, function (propertyPath, expectedValue) {
   if (!apiResponse) {
-    throw new Error('No API response available. Make sure to send a request first.');
+    throw friendly('No API response available. Make sure to send a request first.');
   }
   
   // Replace placeholders in expected value first
@@ -612,7 +613,7 @@ Then(/^(?:the JSON response should have|the API response should have|the JSON pr
  */
 Then(/^(?:the JSON response should have property|the API response should contain property) "([^"]*)"$/, function (propertyPath) {
   if (!apiResponse) {
-    throw new Error('No API response available. Make sure to send a request first.');
+    throw friendly('No API response available. Make sure to send a request first.');
   }
   
   const actualValue = getNestedProperty(apiResponse.data, propertyPath);
@@ -635,7 +636,7 @@ Then(/^(?:the JSON response should have property|the API response should contain
  */
 Then(/^(?:the JSON response should not have property|the API response should not contain property) "([^"]*)"$/, function (propertyPath) {
   if (!apiResponse) {
-    throw new Error('No API response available. Make sure to send a request first.');
+    throw friendly('No API response available. Make sure to send a request first.');
   }
   
   const actualValue = getNestedProperty(apiResponse.data, propertyPath);
@@ -659,7 +660,7 @@ Then(/^(?:the JSON response should not have property|the API response should not
  */
 Then(/^(?:the response should be valid JSON|the API response should be valid JSON)$/, function () {
   if (!apiResponse) {
-    throw new Error('No API response available. Make sure to send a request first.');
+    throw friendly('No API response available. Make sure to send a request first.');
   }
   
   assert(typeof apiResponse.data === 'object' && apiResponse.data !== null,
@@ -680,7 +681,7 @@ Then(/^(?:the response should be valid JSON|the API response should be valid JSO
  */
 Then(/^(?:the response header|the header) "([^"]*)" should (?:be|contain) "([^"]*)"$/, function (headerName, expectedValue) {
   if (!apiResponse) {
-    throw new Error('No API response available. Make sure to send a request first.');
+    throw friendly('No API response available. Make sure to send a request first.');
   }
   
   const actualValue = apiResponse.headers[headerName.toLowerCase()];

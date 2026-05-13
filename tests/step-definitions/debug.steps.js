@@ -13,8 +13,12 @@ const { Then } = require('@cucumber/cucumber');
  * Example #3: And print current URL
  */
 Then(/^print current URL$/, function () {
-  console.log('\n--- Current URL ---');
-  console.log(`  ${this.page.url()}`);
+  try {
+    console.log('\n--- Current URL ---');
+    console.log(`  ${this.page.url()}`);
+  } catch (e) {
+    console.log(`\n--- Current URL unavailable: ${e.message} ---`);
+  }
 });
 
 /**
@@ -25,7 +29,11 @@ Then(/^print current URL$/, function () {
  * Example #3: And print last response
  */
 Then(/^print last response$/, async function () {
-  const html = await this.page.content();
-  console.log('\n--- Last Response (HTML) ---');
-  console.log(html);
+  try {
+    const html = await this.page.content();
+    console.log('\n--- Last Response (HTML) ---');
+    console.log(html);
+  } catch (e) {
+    console.log(`\n--- Last response unavailable: ${e.message} ---`);
+  }
 });

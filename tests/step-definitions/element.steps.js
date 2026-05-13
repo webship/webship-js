@@ -1,5 +1,7 @@
 'use strict';
 
+const { friendly } = require('./webship');
+
 // Element interactions and visual / positional assertions using Playwright.
 
 const { Given, When, Then } = require('@cucumber/cucumber');
@@ -153,7 +155,15 @@ Then('the element {string} should be centered in the viewport', async function (
  *
  */
 When(/^(I |we )*click on the element "([^"]*)"$/, async function (pronoun, sel) {
-  await this.page.locator(sel).first().click();
+  try {
+    await this.page.locator(sel).first().click();
+  } catch (e) {
+    throw friendly({
+      action: `click on the element "${sel}"`,
+      cause: e,
+      hint: `check that the element exists on the page, is visible, and is clickable.`,
+    });
+  }
 });
 
 /**
@@ -170,7 +180,15 @@ When(/^(I |we )*click on the element "([^"]*)"$/, async function (pronoun, sel) 
  *
  */
 When(/^(I |we )*trigger the JS event "([^"]*)" on the element "([^"]*)"$/, async function (pronoun, event, sel) {
-  await this.page.locator(sel).first().dispatchEvent(event);
+  try {
+    await this.page.locator(sel).first().dispatchEvent(event);
+  } catch (e) {
+    throw friendly({
+      action: `trigger the "${event}" event on "${sel}"`,
+      cause: e,
+      hint: `use a standard event name like click, change, input, focus, or blur.`,
+    });
+  }
 });
 
 /**
@@ -184,7 +202,15 @@ When(/^(I |we )*trigger the JS event "([^"]*)" on the element "([^"]*)"$/, async
  *
  */
 When(/^(I |we )*scroll to the element "([^"]*)"$/, async function (pronoun, sel) {
-  await this.page.locator(sel).first().scrollIntoViewIfNeeded();
+  try {
+    await this.page.locator(sel).first().scrollIntoViewIfNeeded();
+  } catch (e) {
+    throw friendly({
+      action: `scroll to "${sel}"`,
+      cause: e,
+      hint: `check the element exists on the page and was not removed before scrolling.`,
+    });
+  }
 });
 
 /**
@@ -198,7 +224,15 @@ When(/^(I |we )*scroll to the element "([^"]*)"$/, async function (pronoun, sel)
  *
  */
 When(/^(I |we )*hover over the element "([^"]*)"$/, async function (pronoun, sel) {
-  await this.page.locator(sel).first().hover();
+  try {
+    await this.page.locator(sel).first().hover();
+  } catch (e) {
+    throw friendly({
+      action: `hover over "${sel}"`,
+      cause: e,
+      hint: `check the element exists, is visible, and is not covered by another element.`,
+    });
+  }
 });
 
 /**
@@ -212,7 +246,15 @@ When(/^(I |we )*hover over the element "([^"]*)"$/, async function (pronoun, sel
  *
  */
 When(/^(I |we )*focus on the element "([^"]*)"$/, async function (pronoun, sel) {
-  await this.page.locator(sel).first().focus();
+  try {
+    await this.page.locator(sel).first().focus();
+  } catch (e) {
+    throw friendly({
+      action: `focus on "${sel}"`,
+      cause: e,
+      hint: `the element must be focusable — an input, button, link, or have a tabindex.`,
+    });
+  }
 });
 
 /**

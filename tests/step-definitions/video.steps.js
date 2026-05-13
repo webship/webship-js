@@ -1,5 +1,7 @@
 'use strict';
 
+const { friendly } = require('./webship');
+
 // Video recording steps — start / stop / save mid-scenario.
 //
 // Playwright records video only at browser-context creation. Mid-scenario
@@ -51,11 +53,11 @@ When(/^(I |we )*start video recording$/, async function (pronoun) {
   try {
     await rebuildContext(this, true);
   } catch (e) {
-    throw new Error(
-      `Could not start video recording.\n` +
-      `  ${e.message}\n` +
-      `  Hint: check that ${(this.parameters && this.parameters.video && this.parameters.video.dir) || './videos'} is writable.`
-    );
+    throw friendly({
+      action: 'start video recording',
+      cause: e,
+      hint: `the videos directory (${(this.parameters && this.parameters.video && this.parameters.video.dir) || './videos'}) must be writable.`,
+    });
   }
 });
 
@@ -101,11 +103,11 @@ When(/^(I |we )*stop video recording$/, async function (pronoun) {
     this._videoRequested = false;
     await this.openBrowser();
   } catch (e) {
-    throw new Error(
-      `Could not stop video recording.\n` +
-      `  ${e.message}\n` +
-      `  Hint: scenario will continue with a fresh, non-recording browser.`
-    );
+    throw friendly({
+      action: 'stop video recording',
+      cause: e,
+      hint: 'the scenario will continue with a fresh, non-recording browser.',
+    });
   }
 });
 
@@ -133,11 +135,11 @@ When(/^(I |we )*save the current video as "([^"]*)"$/, function (pronoun, name) 
     }
     this._videoSaveAsName = name;
   } catch (e) {
-    throw new Error(
-      `Could not reserve video filename "${name}".\n` +
-      `  ${e.message}\n` +
-      `  Hint: call "When I start video recording" first, or set worldParameters.video.mode = 'on'.`
-    );
+    throw friendly({
+      action: `save the current video as "${name}"`,
+      cause: e,
+      hint: 'call "When I start video recording" first, or set worldParameters.video.mode to "on".',
+    });
   }
 });
 

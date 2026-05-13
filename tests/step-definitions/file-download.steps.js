@@ -1,5 +1,7 @@
 'use strict';
 
+const { friendly } = require('./webship');
+
 // Validate file downloads triggered via URL or link click.
 
 const { When, Then } = require('@cucumber/cucumber');
@@ -30,15 +32,23 @@ function tmpDownloadDir() {
  */
 When(/^(I |we )*download the file from the URL "([^"]*)"$/, async function (pronoun, url) {
   const target = url.startsWith('http') ? url : (this.launchUrl || '') + url;
-  const resp = await this.page.request.get(target);
-  assert.strictEqual(resp.status(), 200, `Download failed with status ${resp.status()}.`);
-  const buffer = await resp.body();
-  const cd = resp.headers()['content-disposition'] || '';
-  const m = /filename="?([^"]+)"?/.exec(cd);
-  const filename = m ? m[1] : path.basename(new URL(target).pathname) || 'download';
-  const filePath = path.join(tmpDownloadDir(), filename);
-  fs.writeFileSync(filePath, buffer);
-  this._lastDownload = { path: filePath, filename, content: buffer };
+  try {
+    const resp = await this.page.request.get(target);
+    assert.strictEqual(resp.status(), 200, `Download failed with status ${resp.status()}.`);
+    const buffer = await resp.body();
+    const cd = resp.headers()['content-disposition'] || '';
+    const m = /filename="?([^"]+)"?/.exec(cd);
+    const filename = m ? m[1] : path.basename(new URL(target).pathname) || 'download';
+    const filePath = path.join(tmpDownloadDir(), filename);
+    fs.writeFileSync(filePath, buffer);
+    this._lastDownload = { path: filePath, filename, content: buffer };
+  } catch (e) {
+    throw friendly({
+      action: `download "${target}"`,
+      cause: e,
+      hint: `check the URL is reachable and returns a successful response.`,
+    });
+  }
 });
 
 /**
@@ -52,17 +62,25 @@ When(/^(I |we )*download the file from the URL "([^"]*)"$/, async function (pron
  *
  */
 When(/^(I |we )*download the file from the link "([^"]*)"$/, async function (pronoun, linkText) {
-  const [download] = await Promise.all([
-    this.page.waitForEvent('download'),
-    this.page.getByRole('link', { name: linkText }).first().click().catch(() =>
-      this.page.locator(`a:has-text("${linkText}")`).first().click()
-    ),
-  ]);
-  const filename = download.suggestedFilename();
-  const filePath = path.join(tmpDownloadDir(), filename);
-  await download.saveAs(filePath);
-  const content = fs.readFileSync(filePath);
-  this._lastDownload = { path: filePath, filename, content };
+  try {
+    const [download] = await Promise.all([
+      this.page.waitForEvent('download'),
+      this.page.getByRole('link', { name: linkText }).first().click().catch(() =>
+        this.page.locator(`a:has-text("${linkText}")`).first().click()
+      ),
+    ]);
+    const filename = download.suggestedFilename();
+    const filePath = path.join(tmpDownloadDir(), filename);
+    await download.saveAs(filePath);
+    const content = fs.readFileSync(filePath);
+    this._lastDownload = { path: filePath, filename, content };
+  } catch (e) {
+    throw friendly({
+      action: `download from link "${linkText}"`,
+      cause: e,
+      hint: `the link must offer a downloadable file (not open in a new tab). If the link only navigates, use "When I download the file from the URL ..." instead.`,
+    });
+  }
 });
 
 /**

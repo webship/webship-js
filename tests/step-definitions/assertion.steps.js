@@ -11,7 +11,7 @@
 const { Then } = require('@cucumber/cucumber');
 const assert = require('assert');
 const axios = require('axios');
-const { buildSelector, getLocatorText } = require('./webship');
+const { buildSelector, getLocatorText, friendly } = require('./webship');
 
 // ---------------------------------------------------------------------------
 // Plain page-text
@@ -257,7 +257,7 @@ Then(/^(I |we )*should see (\d+) "([^"]*)" elements?$/, async function (pronounC
   const expected = parseInt(num, 10);
   const actual = await this.page.locator(selector).count();
   if (actual !== expected) {
-    throw new Error(`Expected ${expected} "${selector}" element(s), got ${actual}.`);
+    throw friendly(`Expected ${expected} "${selector}" element(s), got ${actual}.`);
   }
 });
 

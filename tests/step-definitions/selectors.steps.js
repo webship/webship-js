@@ -1,5 +1,7 @@
 'use strict';
 
+const { friendly } = require('./webship');
+
 // ---------------------------------------------------------------------------
 // Webship-JS — Selectors step definitions
 //
@@ -62,7 +64,7 @@ const path = require('path');
 function parseFile(filePath) {
   const ext = path.extname(filePath).toLowerCase();
   if (ext !== '.json') {
-    throw new Error(`Selector files must be JSON (got "${ext}" for "${filePath}").`);
+    throw friendly(`Selector files must be JSON (got "${ext}" for "${filePath}").`);
   }
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
@@ -120,7 +122,7 @@ Before(function () {
       if (parsed && parsed.css)   Object.assign(this.__selectorsCss,   parsed.css);
       if (parsed && parsed.xpath) Object.assign(this.__selectorsXpath, parsed.xpath);
     } catch (e) {
-      throw new Error(`Selectors: failed to load selector file "${filePath}": ${e.message}`);
+      throw friendly(`Selectors: failed to load selector file "${filePath}": ${e.message}`);
     }
   }
 });
@@ -173,7 +175,7 @@ function resolveSelector(world, name) {
     ? `\n  Registered names: ${known.slice(0, 8).join(', ')}${known.length > 8 ? ', ...' : ''}`
     : '\n  No selectors registered yet.';
 
-  throw new Error(
+  throw friendly(
     `Unknown selector "${trimmed}".${suggestion}${examples}\n` +
     `  Register one with:\n` +
     `    Given I define css selectors:\n` +
@@ -219,9 +221,9 @@ async function getGeometry(page, selector) {
 
 async function assertPosition(page, position, c1Name, c1Sel, c2Name, c2Sel) {
   const g1 = await getGeometry(page, c1Sel);
-  if (!g1) throw new Error(`Cannot get bounding box for "${c1Name}" (${c1Sel}) — element not visible`);
+  if (!g1) throw friendly(`Cannot get bounding box for "${c1Name}" (${c1Sel}) — element not visible`);
   const g2 = await getGeometry(page, c2Sel);
-  if (!g2) throw new Error(`Cannot get bounding box for "${c2Name}" (${c2Sel}) — element not visible`);
+  if (!g2) throw friendly(`Cannot get bounding box for "${c2Name}" (${c2Sel}) — element not visible`);
 
   let pass = false;
   switch (position) {
@@ -262,7 +264,7 @@ async function dispatcher(world, position, subjectText, othersText, negate = fal
       } catch (e) { errors.push(e.message); }
     }
   }
-  if (errors.length > 0) throw new Error(errors.join('\n'));
+  if (errors.length > 0) throw friendly(errors.join('\n'));
 }
 
 // ===========================================================================
@@ -296,7 +298,7 @@ async function dispatcher(world, position, subjectText, othersText, negate = fal
  *   And  I add "cta link" selector for "//a[contains(@class,'cta')]" xpath selector
  */
 When(/^(I |we )*add "([^"]*)" selector for "([^"]*)" css selector$/, function (pronounCase, selectorName, cssSelector) {
-  if (!selectorName || !cssSelector) throw new Error('Selectors: selector name and CSS selector must not be empty.');
+  if (!selectorName || !cssSelector) throw friendly('Selectors: selector name and CSS selector must not be empty.');
   this.__selectorsCss[selectorName.trim()] = cssSelector.trim();
 });
 
@@ -323,7 +325,7 @@ When(/^(I |we )*add "([^"]*)" selector for "([^"]*)" css selector$/, function (p
  *   When I add "last nav item" selector for "//nav[@role='navigation']//a[last()]" xpath selector
  */
 When(/^(I |we )*add "([^"]*)" selector for "([^"]*)" xpath selector$/, function (pronounCase, selectorName, xpathSelector) {
-  if (!selectorName || !xpathSelector) throw new Error('Selectors: selector name and XPath selector must not be empty.');
+  if (!selectorName || !xpathSelector) throw friendly('Selectors: selector name and XPath selector must not be empty.');
   this.__selectorsXpath[selectorName.trim()] = xpathSelector.trim();
 });
 
@@ -357,12 +359,12 @@ When(/^(I |we )*add "([^"]*)" selector for "([^"]*)" xpath selector$/, function 
  */
 When(/^(I |we )*add selectors from "([^"]*)" file$/, function (pronounCase, fileName) {
   const cfg = this.__selectorsConfig;
-  if (!fileName) throw new Error('Selectors: file name must not be empty.');
-  if (!cfg.filesPath) throw new Error('Selectors: worldParameters.selectors.filesPath must be set to load selector files.');
+  if (!fileName) throw friendly('Selectors: file name must not be empty.');
+  if (!cfg.filesPath) throw friendly('Selectors: worldParameters.selectors.filesPath must be set to load selector files.');
   const filePath = path.join(cfg.filesPath, fileName);
   let parsed;
   try { parsed = parseFile(filePath); } catch (e) {
-    throw new Error(`Selectors: failed to load selector file "${filePath}": ${e.message}`);
+    throw friendly(`Selectors: failed to load selector file "${filePath}": ${e.message}`);
   }
   if (parsed && parsed.css)   Object.assign(this.__selectorsCss,   parsed.css);
   if (parsed && parsed.xpath) Object.assign(this.__selectorsXpath, parsed.xpath);
@@ -569,7 +571,7 @@ Given(/^(I |we )*define xpath selectors:$/, function (pronounCase, dataTable) {
 Given(/^(I am |we are )?viewing the site on a (?:"([^"]+)"|([a-zA-Z0-9 _,]+)) (?:screen|device)$/, async function (pronounCase, quoted, bare) {
   const name = (quoted || bare || '').trim();
   const cfg = this.__selectorsConfig;
-  if (!cfg.breakpoints[name]) throw new Error(`Selectors: breakpoint "${name}" not defined in worldParameters.selectors.breakpoints.`);
+  if (!cfg.breakpoints[name]) throw friendly(`Selectors: breakpoint "${name}" not defined in worldParameters.selectors.breakpoints.`);
   const { width, height } = cfg.breakpoints[name];
   await this.page.setViewportSize({ width, height });
 });
@@ -772,7 +774,7 @@ Then(/^(I |we )*see visible ([a-zA-Z0-9 ,\-]+)$/, async function (pronounCase, s
     try { await this.page.locator(sel).first().waitFor({ state: 'visible', timeout: 5000 }); }
     catch { errors.push(`"${name}" (${sel}) is not visible`); }
   }
-  if (errors.length > 0) throw new Error(errors.join('\n'));
+  if (errors.length > 0) throw friendly(errors.join('\n'));
 });
 
 /**
@@ -798,7 +800,7 @@ Then(/^(I |we )*(don't|do not) see ([a-zA-Z0-9 ,\-]+)$/, async function (pronoun
     try { await this.page.locator(sel).first().waitFor({ state: 'hidden', timeout: 5000 }); }
     catch { errors.push(`"${name}" (${sel}) is visible (expected hidden)`); }
   }
-  if (errors.length > 0) throw new Error(errors.join('\n'));
+  if (errors.length > 0) throw friendly(errors.join('\n'));
 });
 
 /**
@@ -825,7 +827,7 @@ Then(/^(I |we )*see ([a-zA-Z0-9 ,\-]+) has focus$/, async function (pronounCase,
     const handle = await loc.elementHandle();
     await this.page.waitForFunction((el) => el === document.activeElement, handle, { timeout: 5000 });
   } catch {
-    throw new Error(`"${name}" (${sel}) does not have focus`);
+    throw friendly(`"${name}" (${sel}) does not have focus`);
   }
 });
 
@@ -944,7 +946,7 @@ When(/^(I |we )*select "([^"]*)" text in "([^"]*)" field$/, async function (pron
 
   const value = await loc.inputValue();
   const start = value.indexOf(selectedText);
-  if (start === -1) throw new Error(`Text "${selectedText}" not found in field "${fieldLabel}"`);
+  if (start === -1) throw friendly(`Text "${selectedText}" not found in field "${fieldLabel}"`);
   const end = start + selectedText.length;
 
   await loc.focus();
@@ -992,5 +994,5 @@ When(/^(I |we )*click (?:on |a )?([a-zA-Z0-9 ,\-]+)$/, async function (pronounCa
     try { await this.page.locator(sel).first().click(); }
     catch (e) { errors.push(`Cannot click "${name}" (${sel}): ${e.message}`); }
   }
-  if (errors.length > 0) throw new Error(errors.join('\n'));
+  if (errors.length > 0) throw friendly(errors.join('\n'));
 });

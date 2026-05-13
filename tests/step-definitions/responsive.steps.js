@@ -1,5 +1,7 @@
 'use strict';
 
+const { friendly } = require('./webship');
+
 // Set viewport dimensions and named breakpoints.
 
 const { Given, When } = require('@cucumber/cucumber');
@@ -71,7 +73,7 @@ Given('the following responsive breakpoints:', async function (table) {
 When(/^(I |we )*set the viewport to the "([^"]*)" breakpoint$/, async function (pronoun, name) {
   const bps = getBreakpoints(this);
   const bp = bps[name];
-  if (!bp) throw new Error(`Unknown breakpoint "${name}".`);
+  if (!bp) throw friendly(`Unknown breakpoint "${name}".`);
   await this.page.setViewportSize({ width: bp.width, height: bp.height });
 });
 

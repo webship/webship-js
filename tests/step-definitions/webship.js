@@ -5,6 +5,31 @@ const playwright = require('playwright');
 const playwrightConfig = require(require('path').join(process.cwd(), 'playwright.config'));
 const path = require('path');
 
+// ---------------------------------------------------------------------------
+// Output filter — strip noisy `✔ Before # ...` / `✔ After # ...` hook lines
+// from cucumber-js's failure dump so tester-facing output stays focused on
+// the failing step + hint. Disable with WEBSHIP_FILTER_HOOK_LINES=off.
+// ---------------------------------------------------------------------------
+if (process.env.WEBSHIP_FILTER_HOOK_LINES !== 'off') {
+  const HOOK_LINE = /^\s*[✔✖✗⚠?-]\s+(?:Before|After|BeforeStep|AfterStep)\b.*$/;
+  const wrap = (stream) => {
+    const orig = stream.write.bind(stream);
+    stream.write = (chunk, encoding, cb) => {
+      if (typeof chunk === 'string' || Buffer.isBuffer(chunk)) {
+        const text = typeof chunk === 'string' ? chunk : chunk.toString('utf8');
+        const filtered = text
+          .split('\n')
+          .filter((line) => !HOOK_LINE.test(line.replace(/\x1b\[[0-9;]*m/g, '')))
+          .join('\n');
+        return orig(filtered, encoding, cb);
+      }
+      return orig(chunk, encoding, cb);
+    };
+  };
+  wrap(process.stdout);
+  wrap(process.stderr);
+}
+
 // ===========================================================================
 // Internal helpers (BBR smart settle, modal probes, selector + text utilities).
 // Imported by every *.steps.js file via require('./webship'). Defined here
@@ -166,7 +191,7 @@ async function findVisibleModal(page, world) {
     if (await all.nth(i).isVisible()) return all.nth(i);
   }
   const sel = getModalSelector(world);
-  throw new Error(
+  throw friendly(
     `No visible modal found.\n` +
     `  Selector tried: ${sel}\n` +
     `  Hint: did you "wait for the modal to appear" first?\n` +
@@ -257,7 +282,7 @@ async function gotoUrl(page, url) {
     if (/NS_ERROR_NET_EMPTY_RESPONSE|net::ERR_EMPTY_RESPONSE/.test(msg)) return;
     // Connection refused: server probably not running.
     if (/ECONNREFUSED|net::ERR_CONNECTION_REFUSED/.test(msg)) {
-      throw new Error(
+      throw friendly(
         `Could not reach "${url}".\n` +
         `  ${msg.split('\n')[0]}\n` +
         `  Hint: is your dev server running? Check LAUNCH_URL env var.`
@@ -265,15 +290,14 @@ async function gotoUrl(page, url) {
     }
     // DNS failure.
     if (/ERR_NAME_NOT_RESOLVED|NS_ERROR_UNKNOWN_HOST/.test(msg)) {
-      throw new Error(
+      throw friendly(
         `Could not resolve host for "${url}".\n` +
         `  ${msg.split('\n')[0]}\n` +
         `  Hint: double-check the hostname in LAUNCH_URL or your "Given I am on" path.`
       );
     }
-    // Anything else — preserve original stack but prepend context.
-    e.message = `Failed to navigate to "${url}":\n  ${e.message}`;
-    throw e;
+    // Anything else — strip the stack trace too.
+    throw friendly(`Failed to navigate to "${url}":\n  ${e.message}`);
   }
 }
 
@@ -303,7 +327,7 @@ async function fillField(page, field, value) {
     await byName.fill(value);
     return;
   }
-  throw new Error(
+  throw friendly(
     `Could not find a field for "${field}".\n` +
     `  Tried: getByLabel(exact), getByPlaceholder(exact), [name="${field}"].\n` +
     `  Hints: check the label/placeholder text matches exactly (case-sensitive),\n` +
@@ -470,6 +494,86 @@ BeforeStep(function (scope) {
   }
 });
 
+/**
+ * Translate a raw Playwright / Node / HTTP error message into one short,
+ * plain-English sentence aimed at non-coder testers. Falls back to a
+ * cleaned-up first line of the original when no pattern matches.
+ *
+ * @param {Error|string} err
+ * @returns {string}
+ */
+function humanize(err) {
+  const msg = typeof err === 'string' ? err : (err && err.message) || '';
+  const first = msg.split('\n')[0].trim();
+  // Common Playwright / Node patterns → plain English.
+  const map = [
+    [/Timeout\s+\d+ms\s+exceeded/i,                       'the page took too long to respond'],
+    [/locator\.(click|press|fill|hover|dblclick|tap|focus|dispatchEvent|scrollIntoViewIfNeeded)/i,
+                                                          'the element could not be reached'],
+    [/strict mode violation/i,                            'the locator matched more than one element'],
+    [/element is not visible/i,                           'the element is hidden or off-screen'],
+    [/element is not attached/i,                          'the element was removed from the page'],
+    [/element is not enabled/i,                           'the element is disabled'],
+    [/element is outside of the viewport/i,               'the element is outside the visible area'],
+    [/intercepts pointer events/i,                        'another element is on top of the target'],
+    [/ECONNREFUSED|net::ERR_CONNECTION_REFUSED/i,         'the server is not running or refused the connection'],
+    [/ERR_NAME_NOT_RESOLVED|NS_ERROR_UNKNOWN_HOST/i,      'the hostname could not be resolved'],
+    [/ERR_HTTP_RESPONSE_CODE_FAILURE/i,                   'the page returned an HTTP error status'],
+    [/ENOENT/i,                                           'the file could not be found'],
+    [/EACCES|EPERM/i,                                     'the file is not readable or writable'],
+    [/Invalid (regular expression|regex)/i,               'the regular expression is invalid'],
+    [/Unexpected token|Unexpected end of JSON input/i,    'the JSON could not be parsed'],
+    [/Target page, context or browser has been closed/i,  'the browser closed before the step finished'],
+    [/page\.goto:/i,                                      'the page could not be opened'],
+    [/frameLocator|content frame/i,                       'the iframe content was not ready'],
+    [/Cookies? not found|Cookie .* not (set|found)/i,     'the cookie does not exist on this page'],
+    [/setViewportSize/i,                                  'the viewport cannot be resized for this browser context'],
+  ];
+  for (const [re, plain] of map) {
+    if (re.test(msg)) return plain;
+  }
+  // Strip noisy "Call log:" suffix common in Playwright errors.
+  return first.replace(/^\w+\.\w+:\s*/, '').replace(/\s+Call log:.*$/i, '');
+}
+
+/**
+ * Build a tester-friendly error.
+ *
+ * Three forms:
+ *   1. `friendly(message)`                       — message becomes the stack.
+ *   2. `friendly(message, err)`                  — appends "Why: <humanized>" + cleaned cause.
+ *   3. `friendly({ action, target, hint, cause })` — builds a structured message.
+ *
+ * The Error's `.stack` is set to the rendered message, so cucumber-js does
+ * not print a JS stack trace — only the lines we authored.
+ *
+ * @param {string|Object} input
+ * @param {Error} [cause]
+ * @returns {Error}
+ */
+function friendly(input, cause) {
+  let body;
+  if (typeof input === 'string') {
+    body = input;
+    if (cause) {
+      body += `\n  Why: ${humanize(cause)}`;
+    }
+  } else if (input && typeof input === 'object') {
+    const lines = [];
+    if (input.action && input.target) lines.push(`Could not ${input.action} "${input.target}".`);
+    else if (input.action)            lines.push(`Could not ${input.action}.`);
+    else if (input.message)           lines.push(input.message);
+    if (input.cause)                  lines.push(`  Why: ${humanize(input.cause)}`);
+    if (input.hint)                   lines.push(`  Hint: ${input.hint}`);
+    body = lines.join('\n');
+  } else {
+    body = String(input);
+  }
+  const e = new Error(body);
+  e.stack = body;
+  return e;
+}
+
 module.exports = {
   smartSettle,
   waitForPageLoad,
@@ -486,6 +590,8 @@ module.exports = {
   resolveRelativeDate,
   parseRelativeOffset,
   formatRelativeDate,
+  friendly,
+  humanize,
 };
 
 // ---------------------------------------------------------------------------
@@ -510,7 +616,11 @@ if (!global.__WEBSHIP_AUTO_REPORT__) {
 // ---------------------------------------------------------------------------
 // World
 // ---------------------------------------------------------------------------
-setDefaultTimeout(30 * 1000);
+// Step timeout must exceed Playwright's 30s default so that locator timeouts
+// (e.g. click() with no match) reach our try/catch wrappers BEFORE cucumber
+// trips its own timeout — otherwise testers see "function timed out" instead
+// of the friendly Why/Hint message.
+setDefaultTimeout(45 * 1000);
 
 class PlaywrightWorld extends World {
   constructor(options) {

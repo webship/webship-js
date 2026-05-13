@@ -1,5 +1,7 @@
 'use strict';
 
+const { friendly } = require('./webship');
+
 // Iframe / frame steps backed by Playwright's `frameLocator` API.
 //
 // Frames are addressed by CSS selector. Once switched, frame-scoped
@@ -13,6 +15,14 @@ function frameRoot(world) {
   return world.frame || world.page;
 }
 
+function explain(action, detail, e) {
+  return friendly({
+    action,
+    cause: e,
+    hint: `wait for the iframe to load first ("When I wait for \\"iframe\\" to appear"). Detail: ${detail}.`,
+  });
+}
+
 /**
  * Switch the active scope to an iframe addressed by CSS selector.
  *
@@ -24,8 +34,12 @@ function frameRoot(world) {
  *
  */
 When(/^(I |we )*switch to (the )?iframe "([^"]*)"$/, async function (pronoun, theCase, sel) {
-  if (!this._rootPage) this._rootPage = this.page;
-  this.frame = this.page.frameLocator(sel);
+  try {
+    if (!this._rootPage) this._rootPage = this.page;
+    this.frame = this.page.frameLocator(sel);
+  } catch (e) {
+    throw explain(`switch to iframe "${sel}"`, `selector tried: ${sel}`, e);
+  }
 });
 
 /**
@@ -39,8 +53,12 @@ When(/^(I |we )*switch to (the )?iframe "([^"]*)"$/, async function (pronoun, th
  *
  */
 When(/^(I |we )*switch to iframe with locator "([^"]*)"$/, async function (pronoun, sel) {
-  if (!this._rootPage) this._rootPage = this.page;
-  this.frame = this.page.frameLocator(sel);
+  try {
+    if (!this._rootPage) this._rootPage = this.page;
+    this.frame = this.page.frameLocator(sel);
+  } catch (e) {
+    throw explain(`switch to iframe with locator "${sel}"`, `locator: ${sel}`, e);
+  }
 });
 
 /**
@@ -74,8 +92,12 @@ When(/^(I |we )*switch to the root document$/, async function () {
  *
  */
 When(/^(I |we )*switch to the iframe with title "([^"]*)"$/, async function (pronoun, title) {
-  if (!this._rootPage) this._rootPage = this.page;
-  this.frame = this.page.frameLocator(`iframe[title="${title}"]`);
+  try {
+    if (!this._rootPage) this._rootPage = this.page;
+    this.frame = this.page.frameLocator(`iframe[title="${title}"]`);
+  } catch (e) {
+    throw explain(`switch to iframe by title "${title}"`, `selector: iframe[title="${title}"]`, e);
+  }
 });
 
 /**
@@ -89,8 +111,12 @@ When(/^(I |we )*switch to the iframe with title "([^"]*)"$/, async function (pro
  *
  */
 When(/^(I |we )*switch to the iframe with name "([^"]*)"$/, async function (pronoun, name) {
-  if (!this._rootPage) this._rootPage = this.page;
-  this.frame = this.page.frameLocator(`iframe[name="${name}"]`);
+  try {
+    if (!this._rootPage) this._rootPage = this.page;
+    this.frame = this.page.frameLocator(`iframe[name="${name}"]`);
+  } catch (e) {
+    throw explain(`switch to iframe by name "${name}"`, `selector: iframe[name="${name}"]`, e);
+  }
 });
 
 // ---------------------------------------------------------------------------
@@ -108,9 +134,17 @@ When(/^(I |we )*switch to the iframe with name "([^"]*)"$/, async function (pron
  *
  */
 When(/^(I |we )*click "([^"]*)" inside the iframe$/, async function (pronoun, text) {
-  const root = frameRoot(this);
-  if (!root.locator) throw new Error('No active iframe. Switch first.');
-  await root.locator(`text="${text}"`).first().click();
+  try {
+    const root = frameRoot(this);
+    if (!root.locator) throw friendly('No active iframe. Switch first.');
+    await root.locator(`text="${text}"`).first().click();
+  } catch (e) {
+    throw friendly({
+      action: `click "${text}" inside the iframe`,
+      cause: e,
+      hint: `switch to the iframe first ("When I switch to iframe '<selector>'"), then check the visible text matches exactly.`,
+    });
+  }
 });
 
 /**
@@ -126,8 +160,16 @@ When(/^(I |we )*click "([^"]*)" inside the iframe$/, async function (pronoun, te
  *
  */
 When(/^(I |we )*click "([^"]*)" by attr inside the iframe$/, async function (pronoun, attrValue) {
-  const root = frameRoot(this);
-  await root.locator(`#${attrValue}, .${attrValue}, [name="${attrValue}"], [data-testid="${attrValue}"]`).first().click();
+  try {
+    const root = frameRoot(this);
+    await root.locator(`#${attrValue}, .${attrValue}, [name="${attrValue}"], [data-testid="${attrValue}"]`).first().click();
+  } catch (e) {
+    throw friendly({
+      action: `click "${attrValue}" by attribute inside the iframe`,
+      cause: e,
+      hint: `switch to the iframe first; checked id, class, [name], [data-testid] — none matched.`,
+    });
+  }
 });
 
 /**
@@ -141,8 +183,16 @@ When(/^(I |we )*click "([^"]*)" by attr inside the iframe$/, async function (pro
  *
  */
 When(/^(I |we )*fill in "([^"]*)" with "([^"]*)" inside the iframe$/, async function (pronoun, field, value) {
-  const root = frameRoot(this);
-  await root.locator(`[name="${field}"], #${field}`).first().fill(value);
+  try {
+    const root = frameRoot(this);
+    await root.locator(`[name="${field}"], #${field}`).first().fill(value);
+  } catch (e) {
+    throw friendly({
+      action: `fill "${field}" inside the iframe`,
+      cause: e,
+      hint: `switch to the iframe first; checked [name] and id — neither matched.`,
+    });
+  }
 });
 
 /**

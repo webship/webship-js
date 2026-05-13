@@ -1,5 +1,7 @@
 'use strict';
 
+const { friendly } = require('./webship');
+
 // Parse and assert against an XML response loaded from a file or doc string.
 
 const { Given, Then, When } = require('@cucumber/cucumber');
@@ -15,8 +17,8 @@ catch (e) {
 }
 
 function ensureXml(world) {
-  if (!DOMParser) throw new Error('XML steps require an XML DOM parser. Install @xmldom/xmldom.');
-  if (!world._xml) throw new Error('No XML response has been set.');
+  if (!DOMParser) throw friendly('XML steps require an XML DOM parser. Install @xmldom/xmldom.');
+  if (!world._xml) throw friendly('No XML response has been set.');
   return world._xml;
 }
 

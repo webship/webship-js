@@ -1,5 +1,7 @@
 'use strict';
 
+const { friendly } = require('./webship');
+
 // Parse and assert against YAML response bodies.
 //
 // Mirrors xml.steps.js where it makes sense (path-based existence / equality
@@ -23,13 +25,13 @@ try { Ajv = require('ajv'); } catch { /* lazy */ }
 try { addFormats = require('ajv-formats'); } catch { /* lazy */ }
 
 function requireYaml() {
-  if (!YAML) throw new Error('YAML steps require js-yaml. Install with: npm i js-yaml');
+  if (!YAML) throw friendly('YAML steps require js-yaml. Install with: npm i js-yaml');
   return YAML;
 }
 
 function ensureLoaded(world) {
   requireYaml();
-  if (world._yaml === undefined) throw new Error('No YAML response has been set.');
+  if (world._yaml === undefined) throw friendly('No YAML response has been set.');
   return world._yaml;
 }
 
@@ -181,10 +183,10 @@ Given('the YAML response content is the following:', async function (docString) 
  *
  */
 Given('the active YAML document is {int}', function (n) {
-  if (!this._yamlDocs) throw new Error('No YAML response has been set.');
+  if (!this._yamlDocs) throw friendly('No YAML response has been set.');
   const idx = n - 1;
   if (idx < 0 || idx >= this._yamlDocs.length) {
-    throw new Error(`Document ${n} out of range (have ${this._yamlDocs.length}).`);
+    throw friendly(`Document ${n} out of range (have ${this._yamlDocs.length}).`);
   }
   this._yamlDocIndex = idx;
   this._yaml = this._yamlDocs[idx];
@@ -581,10 +583,10 @@ Then('the YAML value at {string} should not be empty', function (p) {
 
 function numAt(doc, p) {
   const nodes = evalPath(doc, p);
-  if (nodes.length === 0) throw new Error(`YAML element "${p}" not found.`);
+  if (nodes.length === 0) throw friendly(`YAML element "${p}" not found.`);
   const v = nodes[0];
   const n = typeof v === 'number' ? v : Number(v);
-  if (!Number.isFinite(n)) throw new Error(`YAML value at "${p}" is not numeric: ${v}`);
+  if (!Number.isFinite(n)) throw friendly(`YAML value at "${p}" is not numeric: ${v}`);
   return n;
 }
 
@@ -670,9 +672,9 @@ Then('the YAML value at {string} should be between {float} and {float}', functio
 
 function arrayAt(doc, p) {
   const nodes = evalPath(doc, p);
-  if (nodes.length === 0) throw new Error(`YAML element "${p}" not found.`);
+  if (nodes.length === 0) throw friendly(`YAML element "${p}" not found.`);
   const v = nodes[0];
-  if (!Array.isArray(v)) throw new Error(`YAML value at "${p}" is not an array.`);
+  if (!Array.isArray(v)) throw friendly(`YAML value at "${p}" is not an array.`);
   return v;
 }
 
@@ -737,10 +739,10 @@ Then('every item in {string} should have key {string}', function (p, key) {
 
 function keysAt(doc, p) {
   const nodes = evalPath(doc, p);
-  if (nodes.length === 0) throw new Error(`YAML element "${p}" not found.`);
+  if (nodes.length === 0) throw friendly(`YAML element "${p}" not found.`);
   const v = nodes[0];
   if (typeof v !== 'object' || Array.isArray(v) || v === null) {
-    throw new Error(`YAML value at "${p}" is not a mapping.`);
+    throw friendly(`YAML value at "${p}" is not a mapping.`);
   }
   return Object.keys(v);
 }
@@ -796,7 +798,7 @@ Then('the YAML at {string} should have keys {string}', function (p, csv) {
  *
  */
 Then('the YAML should match JSON Schema {string}', function (schemaFile) {
-  if (!Ajv) throw new Error('Schema validation requires ajv. Install with: npm i ajv ajv-formats');
+  if (!Ajv) throw friendly('Schema validation requires ajv. Install with: npm i ajv ajv-formats');
   const doc = activeDoc(this); ensureLoaded(this);
   const p = path.isAbsolute(schemaFile) ? schemaFile : path.join(this.assetsFolder || './tests/assets', schemaFile);
   const schema = JSON.parse(fs.readFileSync(p, 'utf-8'));

@@ -18,6 +18,7 @@ const {
   findVisibleModal,
   isAnyModalVisible,
   waitForModalState,
+  friendly,
 } = require('./webship');
 
 // ---------------------------------------------------------------------------
@@ -168,12 +169,20 @@ Then('the modal should not contain {string}', async function (text) {
  *
  */
 When(/^(I |we )*click "([^"]*)?"( button)* in( the)* modal( dialog)*$/, async function (pronounCase, buttonText, buttonCase, theCase, dialogCase) {
-  await waitForModalState(this.page, 'visible', 10000, this);
-  const modal = await findVisibleModal(this.page, this);
-  await modal.locator('button, a, [role="button"], input[type="button"], input[type="submit"], .btn')
-    .filter({ hasText: buttonText })
-    .first()
-    .click();
+  try {
+    await waitForModalState(this.page, 'visible', 10000, this);
+    const modal = await findVisibleModal(this.page, this);
+    await modal.locator('button, a, [role="button"], input[type="button"], input[type="submit"], .btn')
+      .filter({ hasText: buttonText })
+      .first()
+      .click();
+  } catch (e) {
+    throw friendly({
+      action: `click "${buttonText}" in the modal`,
+      cause: e,
+      hint: `make sure the modal is open ("When I wait for the modal to appear") and the button text matches exactly.`,
+    });
+  }
 });
 
 /**
@@ -193,7 +202,15 @@ When(/^(I |we )*click "([^"]*)?"( button)* in( the)* modal( dialog)*$/, async fu
  *
  */
 When(/^(I |we )*click on "([^"]*)" in the modal$/, async function (pronoun, selector) {
-  await getModalLocator(this.page, this).locator(selector).first().click();
+  try {
+    await getModalLocator(this.page, this).locator(selector).first().click();
+  } catch (e) {
+    throw friendly({
+      action: `click on "${selector}" in the modal`,
+      cause: e,
+      hint: `make sure the modal is open and the selector matches something inside it.`,
+    });
+  }
 });
 
 /**
@@ -206,13 +223,21 @@ When(/^(I |we )*click on "([^"]*)" in the modal$/, async function (pronoun, sele
  *
  */
 When(/^(I |we )*(close|dismiss)( the)* modal( dialog)*$/, async function (pronounCase, closeOrDismiss, theCase, dialogCase) {
-  await waitForModalState(this.page, 'visible', 10000, this);
-  const modal = await findVisibleModal(this.page, this);
-  const closeBtn = modal.locator('.close, .modal-close, [data-dismiss="modal"], [aria-label="Close"], .btn-close, button[class*="close"]').first();
-  if (await closeBtn.isVisible()) {
-    await closeBtn.click();
-  } else {
-    await modal.press('Escape');
+  try {
+    await waitForModalState(this.page, 'visible', 10000, this);
+    const modal = await findVisibleModal(this.page, this);
+    const closeBtn = modal.locator('.close, .modal-close, [data-dismiss="modal"], [aria-label="Close"], .btn-close, button[class*="close"]').first();
+    if (await closeBtn.isVisible()) {
+      await closeBtn.click();
+    } else {
+      await modal.press('Escape');
+    }
+  } catch (e) {
+    throw friendly({
+      action: `${closeOrDismiss} the modal`,
+      cause: e,
+      hint: `the modal had no recognised close button; check it is open or register a custom close-button selector.`,
+    });
   }
 });
 

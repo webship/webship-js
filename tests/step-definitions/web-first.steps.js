@@ -1,5 +1,7 @@
 'use strict';
 
+const { friendly } = require('./webship');
+
 // Web-first assertion steps — each matcher polls the live page until the
 // condition holds or the per-step timeout elapses. The assertion IS the
 // wait, so no `wait for AJAX` is required between an action and its check.
@@ -29,7 +31,7 @@ async function poll(fn, predicate, timeout, message) {
     }
     await new Promise((r) => setTimeout(r, 100));
   }
-  throw new Error(`${message} (last seen: ${typeof last === 'object' ? JSON.stringify(last) : String(last)})`);
+  throw friendly(`${message} (last seen: ${typeof last === 'object' ? JSON.stringify(last) : String(last)})`);
 }
 
 async function checkState(locator, state) {
