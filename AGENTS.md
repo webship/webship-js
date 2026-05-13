@@ -74,7 +74,7 @@ Before reporting a task complete:
 * [ ] Ran the affected feature(s) via `LAUNCH_URL=http://localhost:8080 npx cucumber-js <path>`.
 * [ ] Updated `docs/04-step-reference.md` and the topic doc if a step or
       selector preset changed.
-* [ ] Updated `docs/index.md` source layout if a new step file was added.
+* [ ] Updated `docs/README.md` source layout if a new step file was added.
 * [ ] Verified examples match patterns (no audit mismatches).
 * [ ] Bumped version + produced backup zip if user requested it.
 
@@ -103,7 +103,7 @@ shared helpers (`smartSettle`, `getModalLocator`, `buildSelector`,
 `waitForModalState`, `findVisibleModal`, `isAnyModalVisible`,
 `getModalSelector`).
 
-Docs: `docs/` — see `docs/index.md` for the reading order.
+Docs: `docs/` — see `docs/README.md` for the reading order.
 
 Selector presets: `tests/selectors/*.json`. Canonical key list:
 `tests/selectors/_canonical-keys.json`.

@@ -612,8 +612,6 @@ This index lists every public step grouped by source file, with one Gherkin exam
 - *^(I |we )*add selectors from "([^"]*)" file$*  ·  Example: `When I add selectors from "selectors.json" file`
 - *^(I |we )*print css selectors$*  ·  Example: `Then I print css selectors`
 - *^(I |we )*print xpath selectors$*  ·  Example: `Then I print xpath selectors`
-- *^(I |we )*define css selectors:$*  ·  Example: `Given I define css selectors:`
-- *^(I |we )*define xpath selectors:$*  ·  Example: `Given I define xpath selectors:`
 - *^(I am |we are )?viewing the site on a (?:"([^"]+)"|([a-zA-Z0-9 _,]+)) (?:screen|device)$*  ·  Example: `Given I am viewing the site on a xl screen`
 - *^(I |we )*see ([a-zA-Z0-9 ,\-]+) above ([a-zA-Z0-9 ,\-]+)$*  ·  Example: `Then I see header above footer`
 - *^(I |we )*see ([a-zA-Z0-9 ,\-]+) below ([a-zA-Z0-9 ,\-]+)$*  ·  Example: `Then I see footer below header`

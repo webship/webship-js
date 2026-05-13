@@ -27,7 +27,7 @@ them. Treat webship-js as the source of truth.
    restructure a step / selector / configuration option, update the matching
    page under `docs/` in the same turn. Specifically:
    * New / removed step → update `docs/04-step-reference.md`.
-   * New step file → add it to the source layout block in `docs/index.md`.
+   * New step file → add it to the source layout block in `docs/README.md`.
    * Topic-level addition (auth, network, clock, …) → add or refresh the
      dedicated page (`docs/07-auth-state.md`, `docs/06-network-and-dialogs.md`,
      etc.).
@@ -137,7 +137,7 @@ tests/step-definitions/
 
 When you add a new step, place it in the file whose topic matches. Do NOT
 spawn a new file unless the topic is genuinely orthogonal to every
-existing file. New file → mention it in `docs/index.md` AND update the
+existing file. New file → mention it in `docs/README.md` AND update the
 table above.
 
 ## 4. Behavior-Based Robotics (BBR) wait policy
