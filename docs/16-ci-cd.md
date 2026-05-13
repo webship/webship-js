@@ -30,6 +30,261 @@ Each provider's setup notes live in its own section below.
 
 ---
 
+## GitHub Actions
+
+**File**: `.github/workflows/github-actions.yml`.
+
+GitHub's native CI/CD. #1 by adoption (~33% of all open-source repos according to JetBrains' 2024 Dev Ecosystem Survey). Free tier: 2,000 minutes per month for private repos, **unlimited** for public repos. Linux minutes count 1:1, macOS 10:1, Windows 2:1.
+
+### Setup steps — open account + connect repo
+
+1. **Sign up for GitHub** at <https://github.com/signup>. Free.
+2. **Fork or push the repo**. Workflows under `.github/workflows/` are picked up automatically — no UI step needed.
+3. **Enable Actions** if you forked: `repo → Settings → Actions → General → Allow all actions`. New repos have Actions enabled by default.
+4. **Add secrets** (optional, only if a step needs them): `Settings → Secrets and variables → Actions → New repository secret`. None are required for the shipped workflow.
+
+### Workflow contents
+
+Single job `build` on `ubuntu-latest`:
+
+1. `actions/checkout@v3` — pulls the repo.
+2. `actions/setup-node@v3` — Node 20.x.
+3. `npm install`.
+4. `npx playwright install --with-deps chromium`.
+5. `npm start &` — backgrounds the fixture server.
+6. `sleep 3`.
+7. `npm test`.
+
+`FORCE_COLOR=1` is set on the job so cucumber-js v10 emits ANSI colours.
+
+### Badge
+
+Already shipped in `README.md`:
+
+```markdown
+[![Github Actions](https://github.com/webship/webship-js/actions/workflows/github-actions.yml/badge.svg?branch=2.0.x)](https://github.com/webship/webship-js/actions)
+```
+
+The badge follows the workflow file name and branch — no extra setup.
+
+### Reports
+
+The current workflow does not upload artefacts. To add them, append:
+
+```yaml
+- uses: actions/upload-artifact@v4
+  if: always()
+  with:
+    name: cucumber-report
+    path: |
+      tests/reports/cucumber_report.html
+      tests/reports/cucumber_report.pdf
+      tests/reports/cucumber_report.json
+      screenshots/
+```
+
+### Notes
+
+- A deprecation warning fires on every run: `actions/checkout@v3` and `actions/setup-node@v3` use Node 20 internally; GitHub will force Node 24 on 2026-06-02. Bump to `@v4` (which targets Node 24) before then. We left them at `@v3` for now so existing forks do not need to rewrite YAML.
+- The fixture server is a tiny `http-server` static site on port 8080 — no Docker daemon required on the runner.
+- For per-browser matrix: add `strategy.matrix.browser: [chromium, firefox, webkit]` + `BROWSER: ${{ matrix.browser }}` to the env block, and replace `chromium` in the playwright install line with `${{ matrix.browser }}`.
+
+---
+
+## GitLab CI
+
+**File**: `.gitlab-ci.yml`.
+
+GitLab's first-party CI/CD. #3 by adoption (~19%). Free tier on GitLab.com: 400 compute-minutes per month on shared runners. Self-hosted GitLab gives unlimited minutes on your own runners.
+
+### Setup steps — open account + connect repo
+
+1. **Sign up for GitLab.com**: <https://gitlab.com/users/sign_up> (free) or stand up a self-hosted GitLab.
+2. **Push the repo** (or mirror it from GitHub via `Settings → Repository → Mirroring repositories`).
+3. **Enable CI/CD**: `repo → Settings → CI/CD → General pipelines`. On by default for new projects.
+4. **Shared runners**: enabled by default on GitLab.com. Self-hosted? Register a runner via `gitlab-runner register` against the controller URL.
+5. **Set CI/CD variables** (optional): `Settings → CI/CD → Variables`. None required for the shipped pipeline.
+
+### Pipeline contents
+
+Single job `test` running on the `node:20` image:
+
+1. `npm install`.
+2. `npx playwright install --with-deps chromium`.
+3. `npm start &` + `sleep 3`.
+4. `npm test`.
+
+`FORCE_COLOR: "1"` is set in the job's `variables:` block.
+
+### Badge
+
+Already shipped in `README.md`:
+
+```markdown
+[![Gitlab CI](https://gitlab.com/webship/webship-js/badges/2.0.x/pipeline.svg?job=karma&key_text=Gitlab+CI&key_width=60)](https://gitlab.com/webship/webship-js/-/pipelines)
+```
+
+The `job=` query param targets a specific job's status; drop it to show the whole pipeline.
+
+### Reports
+
+Add artefacts to any job:
+
+```yaml
+test:
+  artifacts:
+    when: always
+    expire_in: 30 days
+    paths:
+      - tests/reports/cucumber_report.html
+      - tests/reports/cucumber_report.pdf
+      - tests/reports/cucumber_report.json
+      - screenshots/
+    reports:
+      junit: tests/reports/junit.xml      # if you add --format junit:
+```
+
+GitLab renders JUnit XML inline on the merge-request page.
+
+### Notes
+
+- The `node:20` Docker image is slim — installing chromium via `--with-deps` adds ~120 MB on the first run. Use `cache:` keyed on `package-lock.json` to skip on reruns.
+- Merge-request pipelines (`workflow.rules`) trigger by default; add `rules:` to scope to specific branches.
+- For self-hosted runners on macOS / Windows, set `tags:` on the job and on the runner registration so the right runner picks up the work.
+- Per-browser matrix: use `parallel.matrix` with `BROWSER: [chromium, firefox, webkit]`.
+
+---
+
+## Bitbucket Pipelines
+
+**File**: `bitbucket-pipelines.yml`.
+
+Atlassian Bitbucket's native CI/CD. Free tier: 50 build-minutes per month for private repos, **unlimited** for public repos. Linked tightly to Jira / Confluence / Trello so handy in Atlassian-stack shops.
+
+### Setup steps — open account + connect repo
+
+1. **Sign up for Bitbucket**: <https://bitbucket.org/account/signup> → email or Google / Apple / Microsoft SSO.
+2. **Create a workspace** (e.g. `webshipco`). Required — every repo lives inside a workspace.
+3. **Create or import the repo**. Bitbucket can import from GitHub directly.
+4. **Enable Pipelines**: `repo → Repository settings → Pipelines → Settings → Enable Pipelines`. Toggle is off by default until you read & accept the runner terms.
+5. **(Optional) Self-hosted runners**: `Repository settings → Pipelines → Runners → Add runner`. Skips the free-tier minute cap.
+
+### Pipeline contents
+
+`bitbucket-pipelines.yml` defines a single default pipeline:
+
+```yaml
+image: node:20
+pipelines:
+  branches:
+    2.0.x:
+      - step:
+          script:
+            - npm install
+            - npx playwright install --with-deps chromium
+            - npm start &
+            - sleep 3
+            - npm test
+```
+
+`FORCE_COLOR=1` is set in the job's `variables:` block.
+
+### Badge
+
+Already shipped in `README.md`:
+
+```markdown
+[![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/webshipco/webship-js/2.0.x)](https://bitbucket.org/webshipco/webship-js/pipelines)
+```
+
+Uses shields.io as a proxy because Bitbucket does not expose a native SVG endpoint. Replace `webshipco/webship-js` with your workspace + repo slug.
+
+### Reports
+
+Add `artifacts:` to a step:
+
+```yaml
+- step:
+    name: test
+    script: [ npm test ]
+    artifacts:
+      - tests/reports/cucumber_report.html
+      - tests/reports/cucumber_report.pdf
+      - tests/reports/cucumber_report.json
+      - screenshots/**
+```
+
+Artefacts live for 14 days on the free tier, 30 days on paid plans. Download from the build page.
+
+### Notes
+
+- Each step gets ~4 GB RAM and 2 vCPU by default — fine for the 9-minute suite. `size: 2x` bumps to 8 GB / 4 vCPU at 2× the minutes.
+- `pipelines.branches.2.0.x` scopes the pipeline to that branch only; add `pull-requests:` for PR builds.
+- Atlassian's Pipes (`pipe:`) catalogue covers Slack notifications, AWS deploys, Jira issue transitions, etc. — drop them into the `script:` section as named steps.
+- Per-browser matrix: define three steps under `parallel:` with `BROWSER` env variations.
+
+---
+
+## CircleCI
+
+**File**: `.circleci/config.yml`.
+
+CircleCI ships with a free tier of 6,000 build-minutes per month on Linux x86 medium (4 GB / 2 vCPU). Fits ~666 runs of the 9-minute suite. Active badge on `webship.co`.
+
+### Setup steps — open account + connect repo
+
+1. **Sign up**: <https://circleci.com/signup/> → "Sign Up with GitHub" → authorise the CircleCI GitHub App on `webship/webship-js`.
+2. **Choose an organisation** (your GitHub org / user). CircleCI mirrors the GitHub permissions model.
+3. **Set up the project**: dashboard → `Projects → Set up project` → pick `webship-js` → "Use the .circleci/config.yml in my repo" → branch `2.0.x`.
+4. **Pick a plan**: the **Free** plan covers OSS comfortably. The **Performance** plan adds Docker layer caching and more concurrency.
+
+### Pipeline contents
+
+`.circleci/config.yml` uses the `cimg/node:20.20` Docker executor (Node + npm preinstalled). Steps:
+
+1. `checkout`.
+2. `npm install`.
+3. `npx playwright install --with-deps chromium`.
+4. `npm start &` + `sleep 3`.
+5. `npm test`.
+
+`FORCE_COLOR: "1"` is exported in the job environment. Filter `branches.only: /^2.0.x/` keeps feature-branch pushes off the queue.
+
+### Badge
+
+Already shipped in `README.md`:
+
+```markdown
+[![CircleCI](https://circleci.com/gh/webship/webship-js/tree/2.0.x.svg?style=svg)](https://circleci.com/gh/webship/webship-js/tree/2.0.x)
+```
+
+`/gh/` is the legacy VCS path (still works); `/circleci/<org-slug>` is the newer form.
+
+### Reports + screenshots
+
+Add `store_artifacts` to the test step:
+
+```yaml
+- store_artifacts:
+    path: tests/reports
+    destination: cucumber-report
+- store_artifacts:
+    path: screenshots
+    destination: failure-screenshots
+    when: on_fail
+```
+
+Artefacts are retained for 30 days and rendered as downloadable links on the build page.
+
+### Notes
+
+- `cimg/node:20.20` is CircleCI's "convenience image" — much smaller cold-start than `node:20` from Docker Hub.
+- The earlier config used `cimg/base:stable-20.04` with manual `apt upgrade` and a NodeSource curl-pipe. That path hit 200-package apt upgrades and PPA 503s (issue #280) and was replaced with the slim form documented above.
+- Docker layer caching is gated behind the Performance plan — toggle in the executor block with `docker_layer_caching: true` when you upgrade.
+- Per-browser matrix: use a `matrix` block under `jobs:` or duplicate the job per browser.
+
+---
+
 ## Jenkins
 
 **File**: `Jenkinsfile` (declarative pipeline, at repo root).
