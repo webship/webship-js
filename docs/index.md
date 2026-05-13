@@ -24,6 +24,7 @@ Webship-js is a BDD-first browser-automation harness built on Playwright + Cucum
 | [13 FAQ](13-faq.md) | Common questions for newcomers |
 | [14 Recipes cookbook](14-recipes-cookbook.md) | 20 paste-and-go scenarios |
 | [15 Tag conventions](15-tag-conventions.md) | Standard tags + CI lane patterns |
+| [16 CI / CD setup](16-ci-cd.md) | Per-provider setup steps and config notes |
 
 ### Reference (mirrored from webship.co/docs/webship-js/2.0.x)
 
