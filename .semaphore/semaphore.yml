@@ -1,0 +1,58 @@
+# Semaphore CI for webship-js.
+#
+# Free tier: 1,300 build-minutes per month on `e1-standard-2` (2 vCPU, 4 GB).
+# Open-source projects qualify for additional minutes via the Startup plan.
+#
+# Setup (full walkthrough in docs/16-ci-cd.md → "Semaphore"):
+#   1. semaphoreci.com → sign up with GitHub.
+#   2. "Create new project" → pick webship/webship-js → branch 2.0.x.
+#   3. Choose "Customize" → "I have a pipeline file in my repo".
+
+version: v1.0
+name: webship-js
+
+agent:
+  machine:
+    type: e1-standard-2
+    os_image: ubuntu2204
+
+global_job_config:
+  env_vars:
+    - { name: FORCE_COLOR, value: "1" }
+    - { name: LAUNCH_URL,  value: "http://localhost:8080" }
+  prologue:
+    commands:
+      - sem-version node 20
+      - checkout
+      - cache restore node-modules-$(checksum package.json)
+      - cache restore ms-playwright
+
+blocks:
+  - name: Install
+    task:
+      jobs:
+        - name: npm install
+          commands:
+            - npm install
+            - npx playwright install --with-deps chromium
+            - cache store node-modules-$(checksum package.json) node_modules
+            - cache store ms-playwright ~/.cache/ms-playwright
+
+  - name: Test
+    task:
+      jobs:
+        - name: cucumber
+          commands:
+            - nohup npm start > /tmp/srv.log 2>&1 &
+            - sleep 3
+            - curl -sf http://localhost:8080/ > /dev/null
+            - npm test
+      epilogue:
+        always:
+          commands:
+            - artifact push job tests/reports/cucumber_report.html  --expire-in 30d || true
+            - artifact push job tests/reports/cucumber_report.pdf   --expire-in 30d || true
+            - artifact push job tests/reports/cucumber_report.json  --expire-in 30d || true
+        on_failure:
+          commands:
+            - artifact push job screenshots --expire-in 30d || true

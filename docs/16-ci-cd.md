@@ -16,6 +16,7 @@ Webship-js ships ready-to-use config files for every major CI/CD provider. The p
 | AWS CodeBuild | `buildspec.yml` | aws.amazon.com | indirect (via CloudWatch) |
 | Google Cloud Build | `cloudbuild.yaml` | console.cloud.google.com | indirect (via shields.io endpoint) |
 | TeamCity | `.teamcity/settings.kts` (+ `pom.xml`) | jetbrains.com/teamcity | yes (shields.io endpoint) |
+| Semaphore | `.semaphore/semaphore.yml` | semaphoreci.com | yes |
 
 Each provider's setup notes live in its own section below.
 
@@ -262,3 +263,52 @@ TeamCity has no native public badge. Common patterns:
 - `pom.xml` exists only so IntelliJ can resolve `configs-dsl-kotlin` types and give completion / inspections in the IDE. TeamCity Cloud ignores it at build time.
 - Kotlin DSL version `2024.03` matches TeamCity Cloud at time of writing — TeamCity warns and offers an auto-upgrade when the server version moves past it.
 - For per-browser matrix, wrap the `script` step in a `buildType.dependencies` chain or define three `BuildType` objects sharing a common parent — Kotlin DSL favours composition over YAML-style matrix.
+
+---
+
+## Semaphore
+
+**File**: `.semaphore/semaphore.yml`.
+
+Hosted CI with a developer-friendly UI and one of the fastest cold-build queues. Free tier: 1,300 build-minutes / month on `e1-standard-2` (2 vCPU, 4 GB). The 9-minute suite fits ~144 free runs / month. Open-source maintainers can request the Startup plan for additional minutes.
+
+### Setup steps — open account + connect repo
+
+1. **Sign up**: <https://semaphoreci.com/> → "Sign up with GitHub" → authorise the Semaphore GitHub App on `webship/webship-js`.
+2. **Pick a plan**: the default "Free" plan is fine. Public OSS repos qualify for the Startup tier (more minutes + parallel jobs) — apply via `Account → Billing → Open source program`.
+3. **Create project**: dashboard → "Create new project" → pick `webship-js` → branch `2.0.x` (Semaphore can auto-detect other branches later).
+4. **Choose pipeline source**: select "Customise the workflow" → "I have a configuration file in my repository" → point at `.semaphore/semaphore.yml`. Semaphore validates the YAML and shows a graph preview.
+5. **Add the project** → Semaphore queues the first run on a fresh worker. The `--with-deps` step pulls chromium apt deps; the cache stores `node_modules` + `~/.cache/ms-playwright` so reruns are fast.
+
+### Badge
+
+Open the project → `Settings → Badge`. Semaphore emits the markdown directly:
+
+```markdown
+[![Build Status](https://<org>.semaphoreci.com/badges/webship-js/branches/2.0.x.svg)](https://<org>.semaphoreci.com/projects/webship-js)
+```
+
+Replace `<org>` with the organisation slug you picked at signup. Paste in `README.md`.
+
+### Reports
+
+`epilogue.always` uploads `cucumber_report.{html,pdf,json}` to the per-job artefact store (`Artifacts` tab in the UI). `epilogue.on_failure` adds the `screenshots/` capture. `--expire-in 30d` keeps storage costs down by purging after a month — bump to `90d` or `--retain` for longer retention.
+
+### Caching
+
+Two cache slots are populated in the `Install` block and restored in `prologue` for every job:
+
+| Key | Path |
+| --- | --- |
+| `node-modules-$(checksum package.json)` | `node_modules` |
+| `ms-playwright` | `~/.cache/ms-playwright` |
+
+`checksum` busts the cache automatically when `package.json` changes.
+
+### Notes
+
+- `sem-version node 20` is Semaphore's runtime switcher — preinstalled on every `os_image: ubuntu2204` agent.
+- `agent.machine.type: e1-standard-2` is the free-tier default; bumping to `e2-standard-4` halves wall time but costs more minutes.
+- `nohup npm start > /tmp/srv.log 2>&1 &` keeps the fixture server alive after the `commands` block exits; `curl -sf` is the same ready-probe as the other lanes.
+- Add a `promotions` block (e.g. tag release, deploy to staging) once the test pipeline is stable — see Semaphore docs for the `auto_promote` shape.
+- For per-browser matrix, add three jobs under the `Test` task and parameterise via env (`BROWSER=chromium` etc.) — Semaphore runs them in parallel within the free-tier concurrency limit.
