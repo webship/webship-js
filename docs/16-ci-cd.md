@@ -23,6 +23,8 @@ Webship-js ships ready-to-use config files for every major CI/CD provider. The p
 | Harness CI | `.harness/webship-js-pipeline.yml` | app.harness.io | yes |
 | Bamboo Data Center | `bamboo-specs/bamboo.yml` | self-hosted (Atlassian) | yes |
 | Codefresh | `codefresh.yml` | codefresh.io | yes |
+| Octopus Deploy | (no test runner — CD only, see notes) | octopus.com | n/a |
+| ~~Codeship~~ | retired 2023 — do not use | — | — |
 
 Each provider's setup notes live in its own section below.
 
@@ -572,3 +574,51 @@ The `upload_reports` step copies `cucumber_report.{html,pdf,json}` + `screenshot
 - `successOnly` / `failureToo` inside `when.condition.any` is Codefresh's way of saying "always" — keeps the upload step running even when tests fail so artefacts are still collected.
 - For per-browser matrix, replace `test_suite` with a parallel `steps` block (Codefresh 1.0 spec supports `mode: parallel`) and parameterise `BROWSER`.
 - Codefresh's GitOps platform (Argo Workflows / Argo CD) reads a different format (`csdp` workflow definitions). This file is for the Classic pipeline runtime — the more common path.
+
+---
+
+## Octopus Deploy
+
+**Files**: none — Octopus is **Continuous Deployment only**.
+
+Octopus Deploy is a release-orchestration tool. It does not run unit / integration test suites — its job starts after a build artefact exists. Webship-js therefore does not ship an Octopus config file, but you can wire any of the CI lanes above to call Octopus once tests pass.
+
+### When you might use Octopus alongside webship-js
+
+- The webship-js test suite is part of a larger product release flow.
+- You already use Octopus for production deployments and want a single pane of glass for release tracking.
+- You need release approvals, audit logs, or environment-promotion gates that the CI tools above do not provide.
+
+### Setup steps — open account
+
+1. **Octopus Cloud** (SaaS): <https://octopus.com/start> → sign in with email or Google → free for 10 deployment targets. Trial covers everything; the always-free tier covers small teams.
+2. **Octopus Server** (self-hosted): download the Windows / Linux installer from <https://octopus.com/downloads>. Free up to 10 deployment targets.
+
+### Wire any CI lane into Octopus
+
+After a webship-js CI build passes:
+
+1. Package the report bundle (or the entire repo) as a NuGet / zip artefact.
+2. Push it to Octopus's built-in repository or to an S3 / Azure Blob / Artifactory feed Octopus polls.
+3. Trigger a release via the Octopus REST API or CLI:
+   ```bash
+   octo create-release \
+     --project webship-js \
+     --packageVersion $CI_BUILD_NUMBER \
+     --server https://octopus.example.com \
+     --apiKey API-XXXXXXXXXXXX \
+     --deployTo Production
+   ```
+
+Plug that snippet into any of the YAML files we ship — Octopus does not care which CI triggered it.
+
+### Why webship-js does not ship `.octopus/` configs
+
+- The test-runner phase is done by the time Octopus picks up. Octopus reads its own `OctopusProjectFile` / `process.ocl` configs from a different repo (the "Octopus Project") in most installations — it is not driven by a YAML in the application repo.
+- Even when Octopus Config-as-Code is enabled, the OCL files live in a project-scoped repo, not the application repo.
+
+---
+
+## Codeship
+
+**Service retired by CloudBees on 2023-09-30.** Do not add a Codeship config. Existing `codeship-steps.yml` / `codeship-services.yml` files on the internet are dead. If a tutorial references Codeship, treat it as Tier-1 advice for **Travis** or **CircleCI** instead — both ship the same `npm test` pattern.
