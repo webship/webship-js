@@ -21,6 +21,7 @@ Webship-js ships ready-to-use config files for every major CI/CD provider. The p
 | Woodpecker CI | reuses `.drone.yml` | self-hosted | yes |
 | Forgejo Actions | reuses `.github/workflows/*` | Forgejo/Codeberg | yes |
 | Harness CI | `.harness/webship-js-pipeline.yml` | app.harness.io | yes |
+| Bamboo Data Center | `bamboo-specs/bamboo.yml` | self-hosted (Atlassian) | yes |
 
 Each provider's setup notes live in its own section below.
 
@@ -478,3 +479,51 @@ The shipped pipeline includes an optional `Upload report artefacts` step that us
 - Placeholders to fill before first run: `<ORG_ID>`, `<PROJECT_ID>`, `<GITHUB_CONNECTOR_ID>`, `<DOCKER_CONNECTOR_ID>`. Harness's UI does the substitution if you start from "Import from Git".
 - `step.type: Background` is the Harness equivalent of `nohup ... &` — keeps `npm start` alive across following steps.
 - The `reports.type: JUnit` block expects a junit XML; cucumber-js can emit one with `--format junit:tests/reports/junit.xml`. Add to a CI-only `WEBSHIP_REPORT_ARGS` env if you want it.
+
+---
+
+## Bamboo Data Center
+
+**File**: `bamboo-specs/bamboo.yml`.
+
+Atlassian's on-prem CI/CD. **Atlassian retired Bamboo Cloud on 2024-02-15** — only the self-hosted **Bamboo Data Center 9.x** remains. The shipped YAML targets the official YAML Specs format introduced in Bamboo 7+.
+
+### Setup steps — open account + connect repo
+
+There is no Atlassian-hosted Bamboo any more. You bring your own server.
+
+1. **Buy a Bamboo Data Center licence** at <https://www.atlassian.com/software/bamboo/pricing>, or use the 30-day evaluation. Free starter tier was discontinued.
+2. **Install Bamboo Data Center**:
+   - Recommended path: official Docker image `atlassian/bamboo` on a host with at least 4 GB RAM and a persistent volume.
+   - Database: PostgreSQL 13+ or MySQL 8+ is supported; SQLite for tiny installs.
+   - Follow the Atlassian "Installing Bamboo" guide for your platform.
+3. **Sign in as admin** at `https://bamboo.example.com` → run the setup wizard → activate the licence.
+4. **Link the GitHub repository**: `Bamboo administration → Linked repositories → Add → Git`. Use HTTPS + a Personal Access Token, or SSH with a deploy key. Name the linked repo `webship-js`.
+5. **Enable Bamboo Specs scanning** on that repo: `Bamboo administration → Specs → Repositories → Add`. Bamboo reads `bamboo-specs/bamboo.yml` on every push, recreating plan + permissions from the file.
+6. **Build agent**: at least one Docker-capable agent must be online. The plan runs inside `mcr.microsoft.com/playwright:v1.58.2-jammy`, so the host needs Docker installed and the Bamboo agent needs the Docker plugin enabled.
+
+### Badge
+
+Bamboo emits chat-style status webhooks (Slack, MS Teams) but no native badge image. Two options:
+
+1. **GitHub commit status** — install the *Bamboo for GitHub* add-on: `<https://marketplace.atlassian.com/apps/1214095/bamboo-for-github>`. Posts pass/fail on every build.
+2. **shields.io endpoint** — wrap Bamboo's `/rest/api/latest/result/<key>-latest` REST call in a tiny proxy and embed `https://img.shields.io/endpoint?url=...`.
+
+### Reports
+
+`Cucumber.artifacts` declares four shared artefacts:
+
+- `cucumber-report-html`  → `tests/reports/cucumber_report.html`
+- `cucumber-report-pdf`   → `tests/reports/cucumber_report.pdf`
+- `cucumber-report-json`  → `tests/reports/cucumber_report.json`
+- `screenshots`           → `screenshots/**` (failure captures)
+
+Browse per build under `Plan Result → Artifacts`. The `shared: true` flag makes them available to downstream plans and to the Bamboo REST API.
+
+### Notes
+
+- The YAML uses Bamboo's *two-document* format: the first document is the plan, the second is the plan permissions. Both are required by the Specs scanner.
+- `docker.image` + `docker-run-arguments` runs every script task inside the Playwright image — no need to install Node or chromium on the agent itself.
+- `triggers.polling` is used instead of webhook triggers; webhooks are also supported but need network access from GitHub to the Bamboo server.
+- `branches.create: manually` and `delete: never` keep branch hygiene strict — flip if you want feature-branch builds.
+- For per-browser matrix, duplicate the `Cucumber` job under `stages.Test.jobs` and override `BROWSER` per copy.

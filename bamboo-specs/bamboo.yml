@@ -1,0 +1,131 @@
+# Atlassian Bamboo YAML Specs for webship-js.
+#
+# Runs the full BDD suite on a Bamboo Data Center self-hosted instance.
+# (Bamboo Cloud was retired by Atlassian on 2024-02-15; the YAML below
+# targets Bamboo Data Center 9.x — which is the only flavour still
+# supported.)
+#
+# Setup (full walkthrough in docs/16-ci-cd.md → "Bamboo Data Center"):
+#   1. Bamboo admin → Linked repositories → add the GitHub repo.
+#   2. Bamboo admin → Specs → Repositories → enable specs scanning on
+#      that repo so this file is read on every push.
+#
+# References:
+#   - https://confluence.atlassian.com/bamboo/bamboo-yaml-specs-1054778761.html
+
+---
+version: 2
+
+plan:
+  project-key: WEB                          # 3+ uppercase chars (project key)
+  key: JS                                   # plan key — final id WEB-JS
+  name: webship-js
+  description: Webship-js BDD test suite (Playwright + Cucumber-js)
+
+stages:
+  - Test:
+      jobs:
+        - Cucumber
+
+Cucumber:
+  key: CUC
+  docker:
+    image: mcr.microsoft.com/playwright:v1.58.2-jammy
+    docker-run-arguments:
+      - --user=root:root
+      - --network=host
+  tasks:
+    - checkout:
+        force-clean-build: true
+    - script:
+        description: Show toolchain versions
+        scripts:
+          - node --version
+          - npm --version
+    - script:
+        description: Install npm dependencies
+        scripts:
+          - npm install
+    - script:
+        description: Install Playwright browsers
+        scripts:
+          - npx playwright install --with-deps chromium
+    - script:
+        description: Start fixture server
+        scripts:
+          - nohup npm start > /tmp/srv.log 2>&1 &
+          - sleep 3
+          - curl -sf http://localhost:8080/ > /dev/null
+    - script:
+        description: Run cucumber suite
+        scripts:
+          - npm test
+  artifacts:
+    - name: cucumber-report-html
+      pattern: tests/reports/cucumber_report.html
+      shared: true
+      required: false
+    - name: cucumber-report-pdf
+      pattern: tests/reports/cucumber_report.pdf
+      shared: true
+      required: false
+    - name: cucumber-report-json
+      pattern: tests/reports/cucumber_report.json
+      shared: true
+      required: false
+    - name: screenshots
+      pattern: screenshots/**
+      shared: true
+      required: false
+  requirements:
+    - os: Linux
+
+triggers:
+  - polling:
+      period: 60                            # poll every 60s
+      condition:
+        any-branch: '^2\.0\.x$'
+
+branches:
+  create: manually
+  delete: never
+
+variables:
+  FORCE_COLOR: "1"
+  LAUNCH_URL: "http://localhost:8080"
+
+repositories:
+  - webship-js:
+      scope: global                         # already linked at admin level
+
+notifications: []
+
+labels:
+  - webship-js
+  - bdd
+  - playwright
+  - cucumber-js
+
+other:
+  concurrent-build-plugin: system-default
+
+---
+version: 2
+plan-permissions:
+  project-key: WEB
+  plan-key: JS
+  permissions:
+    - users:
+        - admin
+      permissions:
+        - view
+        - edit
+        - build
+        - admin
+    - groups:
+        - bamboo-admin
+      permissions:
+        - admin
+        - view
+        - build
+        - edit
