@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  TeamCity Kotlin DSL Maven descriptor.
+
+  Lets IntelliJ resolve the kotlin-dsl artefacts so settings.kts has
+  full IDE completion. TeamCity Cloud and Server ignore this file at
+  build time — only the IDE uses it.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>webship.js</groupId>
+    <artifactId>webship-js-teamcity-config</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <properties>
+        <kotlin.version>1.9.0</kotlin.version>
+        <teamcity.dsl.version>2024.03</teamcity.dsl.version>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>jetbrains-all</id>
+            <url>https://download.jetbrains.com/teamcity-repository</url>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>jetbrains-all</id>
+            <url>https://download.jetbrains.com/teamcity-repository</url>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.jetbrains.teamcity</groupId>
+            <artifactId>configs-dsl-kotlin</artifactId>
+            <version>${teamcity.dsl.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.teamcity</groupId>
+            <artifactId>configs-dsl-kotlin-plugins</artifactId>
+            <version>${teamcity.dsl.version}</version>
+            <type>pom</type>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
+</project>

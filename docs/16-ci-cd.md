@@ -15,6 +15,7 @@ Webship-js ships ready-to-use config files for every major CI/CD provider. The p
 | Azure Pipelines | `azure-pipelines.yml` | dev.azure.com | yes |
 | AWS CodeBuild | `buildspec.yml` | aws.amazon.com | indirect (via CloudWatch) |
 | Google Cloud Build | `cloudbuild.yaml` | console.cloud.google.com | indirect (via shields.io endpoint) |
+| TeamCity | `.teamcity/settings.kts` (+ `pom.xml`) | jetbrains.com/teamcity | yes (shields.io endpoint) |
 
 Each provider's setup notes live in its own section below.
 
@@ -224,3 +225,40 @@ Cloud Build does not have a first-class cache step. Common patterns:
 - `timeout: 1800s` matches the 30-minute cap from other lanes; the suite finishes in ~9 min headless.
 - `_BRANCH_NAME` and `_ARTIFACT_BUCKET` are substitution variables — override per-trigger to point at a different bucket without forking the YAML.
 - For per-browser parallelism, replace the single `step` with three steps, each setting `BROWSER=chromium/firefox/webkit` — `--with-deps` will fetch the matching browser deps inside the container.
+
+---
+
+## TeamCity Cloud
+
+**Files**: `.teamcity/settings.kts` + `.teamcity/pom.xml` at repo root.
+
+JetBrains' CI server, available as Cloud (SaaS, no install) or self-hosted. Cloud free tier: 600 build-minutes / month + 1 build agent + 100 build configs forever. The 9-minute suite fits ~66 runs / month.
+
+### Setup steps — open account + connect repo
+
+1. **JetBrains account**: <https://account.jetbrains.com/> → sign up (free, OAuth via GitHub / Google / Microsoft also works).
+2. **Start TeamCity Cloud trial**: <https://www.jetbrains.com/teamcity/cloud/> → "Start free trial" → confirm the JetBrains-issued instance URL (e.g. `https://webship.teamcity.com`). The trial collapses into the free tier when it ends.
+3. **Create a Project**: top bar `Administration → Projects → Create project`. Pick "From a repository URL" → paste the GitHub HTTPS URL → "Proceed". TeamCity creates a VCS root.
+4. **Authorise GitHub OAuth**: TeamCity asks for GitHub credentials the first time it touches the repo. Use a Personal Access Token with `repo` scope or the OAuth flow.
+5. **Enable Versioned Settings**: open the project → `Versioned Settings → Synchronization enabled → Kotlin DSL`. TeamCity will offer to scan the repo for `.teamcity/settings.kts` — point it at the file we shipped. Commit any generated config UUIDs back to the repo so the next clone is identical.
+6. **Add the GitHub token credential**: `Project → Connections → Add → GitHub.com` (used by the `commitStatusPublisher` feature). Name the credential `webship-js-github-token` to match the DSL reference.
+7. **First build**: open the **Test** build configuration → **Run**. TeamCity pulls the Playwright Docker image (~1 GB once) and runs the script step.
+
+### Badge
+
+TeamCity has no native public badge. Common patterns:
+
+1. **shields.io endpoint** wrapping `app/rest/builds/buildType:WebshipJsTest/status.json`.
+2. **GitHub commit status** (already wired by the `commitStatusPublisher` feature in the DSL) — the GitHub UI shows pass / fail next to each commit.
+
+### Reports
+
+`artifactRules` archives `tests/reports/cucumber_report.{html,pdf,json}` plus any `screenshots/**` capture. Browse per build under `Artifacts` in the TeamCity UI.
+
+### Notes
+
+- `dockerImage = "mcr.microsoft.com/playwright:v1.58.2-jammy"` runs the script inside the official Playwright image — chromium and every apt dep are already there.
+- `dockerRunParameters = "--user root:root --network host"` keeps the steps simple (no `sudo`, the local fixture server on `localhost:8080` is reachable without port mapping).
+- `pom.xml` exists only so IntelliJ can resolve `configs-dsl-kotlin` types and give completion / inspections in the IDE. TeamCity Cloud ignores it at build time.
+- Kotlin DSL version `2024.03` matches TeamCity Cloud at time of writing — TeamCity warns and offers an auto-upgrade when the server version moves past it.
+- For per-browser matrix, wrap the `script` step in a `buildType.dependencies` chain or define three `BuildType` objects sharing a common parent — Kotlin DSL favours composition over YAML-style matrix.
