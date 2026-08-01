@@ -1,9 +1,12 @@
-# CLAUDE.md — webship-js project rules for AI agents
+# CLAUDE.md
 
-This file is the durable contract between human maintainers of webship-js and
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+It is also the durable contract between human maintainers of webship-js and
 any AI coding assistant working on the repository. Read it in full before
 making changes. Follow it to the letter — these rules emerged from real
-sessions and reflect strong preferences.
+sessions and reflect strong preferences. `AGENTS.md` is the short,
+machine-readable extract of the same rules; keep the two in sync.
 
 ## 0. Identity
 
@@ -13,7 +16,158 @@ DrevOps, Drupal, or PHP. Code, file names, comments, and step phrasings
 must never reference those tools or imply that webship-js was ported from
 them. Treat webship-js as the source of truth.
 
-## 1. Communication & change rules
+Current line: **2.0.x** (branch `2.0.x`; `1.0.x` is the older main branch).
+Node **≥ 20**.
+
+## 1. Commands
+
+```bash
+npm install                       # required first — node_modules is not committed
+npx playwright install --with-deps chromium   # browser binaries (CI does this too)
+npm start                         # http-server over examples/ on :8080 (the fixture site)
+npm test                          # full suite, pretty output, slowMo 300ms
+```
+
+`npm start` must be running (or `LAUNCH_URL` pointed elsewhere) before the
+suite — nearly every bundled feature loads a static fixture from `examples/`.
+
+| Command | Effect |
+| --- | --- |
+| `npm test` | Default — pretty output, slow-mo 300 ms, headless chromium. |
+| `npm run test:headed` | `HEADLESS=false`, slow-mo auto-bumps to 800 ms. |
+| `npm run test:fast` | `SLOW_MO=0`. |
+| `npm run test:chromium` / `:firefox` / `:webkit` | Pick the browser (same as `BROWSER=…`). |
+| `npx cucumber-js --dry-run` | Ambiguity / undefined-step check. Run this before declaring done. |
+| `npm run generate-reports` | HTML (+ optional PDF) report from `tests/reports/cucumber_report.json`. |
+
+Targeting a subset:
+
+```bash
+npx cucumber-js tests/features/modal.feature            # one feature file
+npx cucumber-js tests/features/modal.feature:12         # one scenario, by line
+npx cucumber-js --name "Dashboard renders"              # by scenario name
+npx cucumber-js --tags "@critical and not @wip"         # by tag
+npx cucumber-js --parallel 4 --retry 1 --retry-tag-filter @flaky
+LAUNCH_URL=http://localhost:8080 npx cucumber-js        # point at another target
+HEADLESS=false SLOW_MO=800 npx cucumber-js tests/features/x.feature   # watch a flake
+```
+
+Env vars: `LAUNCH_URL`, `BROWSER`, `HEADLESS`, `SLOW_MO`, `FORCE_COLOR`,
+`WEBSHIP_AUTO_SETTLE`, `WEBSHIP_REPORT_DISABLE`, `WEBSHIP_REPORT_ARGS`,
+`WEBSHIP_FILTER_HOOK_LINES`, `WEBSHIP_SCREENSHOT_*`, `WEBSHIP_VIDEO*`,
+`WEBSHIP_JS_ERROR_*`, `WEBSHIP_SELECTORS_OFFSET`,
+`WEBSHIP_SELECTORS_BREAKPOINTS`, `DIFFY_*`. Every one of them mirrors a
+`worldParameters` key in `cucumber.js` — that file is the annotated
+reference; read it before inventing a new knob.
+
+## 2. Architecture
+
+### 2.1 This repo is a library **and** its own test suite
+
+`tests/` serves double duty: it is the step-definition library shipped to
+consumers on npm *and* the self-test suite proving those steps work
+against the static fixtures in `examples/`. A change to a step must keep
+both roles green.
+
+Consumer projects install the package and get scaffolded by
+`bin/postinstall.js` → `bin/init-webship.js`, which writes a `cucumber.js`
+whose `require` array points at
+`node_modules/webship-js/tests/step-definitions/**/*.js` plus the
+project's own `tests/step-definitions/`. Postinstall is a no-op when a
+`cucumber.js` already exists, so re-installs never clobber user config.
+**If you change the shape of `cucumber.js` `worldParameters`, update the
+`CUCUMBER_JS` template inside `bin/init-webship.js` in the same change** —
+otherwise new projects get scaffolded with a stale config.
+
+### 2.2 `tests/step-definitions/webship.js` — the single canonical entry point
+
+Everything shared lives here; every `*.steps.js` does
+`require('./webship')`. It owns, in one file:
+
+* **The World** (`PlaywrightWorld extends World`) — `page`, `context`,
+  `playwrightBrowser`, `frame` (iframe scope), `launchUrl`, `minWaitTime`,
+  `assetsFolder`, and the named-selector registries `__selectorsCss` /
+  `__selectorsXpath`. `setDefaultTimeout(45s)` — deliberately above
+  Playwright's 30 s default so locator timeouts reach our try/catch
+  wrappers and testers see a friendly message, not "function timed out".
+  The 45 s in `cucumber.js` exists for the same reason; keep them aligned.
+* **The init script** installed via `context.addInitScript()` in
+  `openBrowser()` — monkey-patches `fetch`, `XMLHttpRequest.send`,
+  `setTimeout`/`clearTimeout` and attaches a `MutationObserver` to
+  maintain `window.__webshipAjaxCount`, `__webshipPendingTimers`,
+  `__webshipLastMutation`. This is the substrate the whole wait policy
+  stands on. **Never strip it.**
+* **Hooks** — `Before({order:5})` opens the browser (merging
+  `recordVideo` context options when video is on); `After({order:5})`
+  captures the video path *before* closing the context, saves/deletes per
+  mode, then closes the browser; `BeforeStep` resolves `[relative:…]` date
+  tokens in step text, doc strings, and data-table cells; `AfterStep`
+  runs the auto-settle.
+* **Shared helpers** (exported): `smartSettle`, `waitForPageLoad`,
+  `buildSelector`, `gotoUrl`, `fillField`, `getLocatorText`, `pad`,
+  the modal probes (`getModalSelector`, `getModalLocator`,
+  `waitForModalState`, `findVisibleModal`, `isAnyModalVisible`), the date
+  helpers (`resolveRelativeDate`, `parseRelativeOffset`,
+  `formatRelativeDate`), and the error builders (`friendly`, `humanize`).
+* **Two process-level side effects**: a stdout/stderr filter that strips
+  noisy `✔ Before # …` hook lines from cucumber's failure dump
+  (`WEBSHIP_FILTER_HOOK_LINES=off` to disable), and a `process.on('exit')`
+  hook that auto-generates the HTML report via `bin/generate-reports`
+  (`WEBSHIP_REPORT_DISABLE=1` to disable, `WEBSHIP_REPORT_ARGS` to pass
+  flags).
+
+### 2.3 Config layering
+
+`playwright.config.ts` (browser choice, launch args, context options) is
+loaded by `webship.js` from `process.cwd()` — so a consumer project's own
+copy wins. `cucumber.js` supplies `worldParameters` (launch URL, wait
+padding, selector registry + files + breakpoints, screenshot, video,
+javascript-error, diffy settings). Resolution order everywhere is
+**env var → `worldParameters` → built-in default**; follow that order in
+any new option.
+
+### 2.4 Error contract — tester-facing, not developer-facing
+
+Risky locator work is wrapped and re-thrown through `friendly()`, which
+renders `Could not <action> "<target>". / Why: <humanize(cause)> /
+Hint: …` and sets `err.stack` to that body so cucumber prints no JS stack.
+`humanize()` maps ~20 Playwright/Node/HTTP patterns to plain English.
+`action.steps.js`'s `actOrExplain(label, target, fn)` is the reference
+wrapper — copy that shape for new interaction steps. Never let a raw
+Playwright error reach the tester.
+
+### 2.5 Named selector registry
+
+`selectors.steps.js` owns the registry. Selectors resolve **css first,
+then xpath** (auto-prefixed `xpath=`). Three registration paths: inline
+step, bulk data table, or JSON files listed in
+`worldParameters.selectors.files` (loaded from `filesPath`). 26 presets
+ship in `tests/selectors/` (14 CMS admin skins, 9 CSS frameworks, generic
+front/back-end/homepage), normalised against `_canonical-keys.json`. Registry keys
+are also what the human-language steps read — `Then I see main nav above
+breadcrumb`, `When I click primary button` — which is why canonical key
+names matter more than they look.
+
+### 2.6 Optional Diffy layer
+
+`tests/step-definitions-diffy/` (visual regression against the Diffy REST
+API) is a **separate, opt-in** require path — commented out in the
+scaffolded `cucumber.js`, enabled in this repo's own `cucumber.js` so the
+mock-server suite runs. `webship-diffy-mock.js` boots
+`mock-diffy-api/server.js` in `BeforeAll` so `tests/features/diffy/` runs
+with no credentials. Keep the mock in step with the real client.
+
+### 2.7 CI
+
+Fifteen provider configs at the repo root (`.github/workflows/`,
+`.gitlab-ci.yml`, `.circleci/`, `azure-pipelines.yml`,
+`bitbucket-pipelines.yml`, `buildspec.yml`, `cloudbuild.yaml`,
+`codefresh.yml`, `.drone.yml`, `Jenkinsfile`, `.semaphore/`, `.teamcity/`,
+`bamboo-specs/`, `.harness/`, `.travis.yml`). They all run the same shape: install →
+`npx playwright install` → `npm start &` → `npm test`. Change one, change
+them all, and update `docs/16-ci-cd.md`.
+
+## 3. Communication & change rules
 
 1. **Never commit on the user's behalf.** The user always invokes git
    commits manually. AI work stays uncommitted unless asked.
@@ -27,20 +181,23 @@ them. Treat webship-js as the source of truth.
    restructure a step / selector / configuration option, update the matching
    page under `docs/` in the same turn. Specifically:
    * New / removed step → update `docs/04-step-reference.md`.
-   * New step file → add it to the source layout block in `docs/README.md`.
+   * New step file → add it to the source layout block in `docs/README.md`
+     (which carries per-file step counts — keep them accurate).
    * Topic-level addition (auth, network, clock, …) → add or refresh the
      dedicated page (`docs/07-auth-state.md`, `docs/06-network-and-dialogs.md`,
      etc.).
    * Selector preset added under `tests/selectors/` → add to the table in
      `docs/03-selector-registry.md`.
+   * New config key → `cucumber.js` comment, `bin/init-webship.js`
+     template, and `docs/global-settings.md`.
 5. **Backups.** When the user says "backup" or asks for a versioned zip,
    bump the patch version in `package.json` and produce
-   `/var/www/html/products/webship-js-<version>.zip`. Excludes:
+   `~/workspace/products/webship-js-<version>.zip`. Excludes:
    `node_modules/`, `tests/reports/`, `screenshots/`, `.git/`.
 
-## 2. Step definition rules
+## 4. Step definition rules
 
-### 2.1 Phrasing
+### 4.1 Phrasing
 
 * Every step MUST support the pronoun prefix `(I |we )*`. Use a regex
   pattern, not a Cucumber Expression with `'I ...'`, for any step where the
@@ -54,7 +211,7 @@ them. Treat webship-js as the source of truth.
   product names in step phrasings or examples. Use neutral placeholders
   (`example`, `Sample title`, `test-runner`).
 
-### 2.2 JSDoc block — required for every step
+### 4.2 JSDoc block — required for every step
 
 Every step definition MUST be preceded by a JSDoc block with:
 
@@ -69,10 +226,12 @@ Every step definition MUST be preceded by a JSDoc block with:
   strings unless the step accepts a doc string. Avoid quotes-within-quotes
   Gherkin in examples.
 
-There is an audit script (`/tmp/audit-examples.js`) used during sessions to
-verify every example matches its step pattern. Keep mismatches at zero.
+Audit the examples by walking every JSDoc `Example #N:` line, stripping the
+Gherkin keyword, and confirming the remainder matches the step regex. Keep
+mismatches at zero. (Past sessions used a throwaway `audit-examples.js`
+for this; write it into the scratchpad, not the repo.)
 
-### 2.3 No duplicate logic
+### 4.3 No duplicate logic
 
 Before adding a step, search existing files. Identical Playwright calls
 under different phrasings ARE allowed when the phrasings target different
@@ -80,59 +239,71 @@ audiences (e.g. `I hover over "X"` versus `I hover over the element "X"`).
 True duplicate logic — same code, same conceptual scope — must be merged
 or deleted.
 
-### 2.4 Do NOT merge
+### 4.4 Do NOT merge
 
 Some pairs look similar but cover different domains. NEVER merge:
 
-| File | Domain |
+| Pair | Domain boundary |
 | --- | --- |
-| `modal.steps.js` | HTML modal overlays (`role="dialog"`, `.modal`) |
-| `dialog.steps.js` | Native browser dialogs (alert / confirm / prompt) |
-| `field.steps.js` | Input field interactions (CSS selector based) |
-| `form.steps.js` | Form-level fills via label / placeholder / name |
-| `assertion.steps.js` | Page-level text + element assertions |
-| `web-first.steps.js` | Auto-retrying matchers (Playwright web-first style) |
+| `modal.steps.js` vs `dialog.steps.js` | HTML modal overlay (`role="dialog"`, `.modal`) vs native browser alert / confirm / prompt. |
+| `field.steps.js` vs `form.steps.js` | CSS-selector field control vs label / placeholder / name form fills. |
+| `assertion.steps.js` vs `web-first.steps.js` | Single-snapshot page assertions vs auto-retrying matchers (`within N seconds`). |
+| `xml.steps.js` vs `yaml.steps.js` | Different parsers, different path conventions. |
+| `api.steps.js` vs `rest.steps.js` | Long form (header + body table) vs short-form REST. |
+| `element.steps.js` vs `input.steps.js` | Element-scoped (`the element "X"`) vs short pointer (`"X"`). |
 
-## 3. File organisation
+## 5. File organisation
+
+413 built-in steps across 36 step files. Cucumber auto-loads every
+`*.steps.js` in `tests/step-definitions/`.
 
 ```
 tests/step-definitions/
-├── webship.js              # World, hooks, init script, shared helpers (smartSettle, modal probes, buildSelector, …). Exports → require('./webship') from any *.steps.js.
-├── navigation.steps.js     # Anonymous user, homepage, paths, history, URL/path assertions.
-├── action.steps.js         # press / click / follow / attach file.
-├── form.steps.js           # fill / select / additionally select / check / uncheck / radio.
-├── assertion.steps.js      # see / not see, in row, in element, response, count.
-├── field.steps.js          # field / checkbox / radio / select state assertions.
-├── modal.steps.js          # HTML modal visibility / content / interactions.
-├── wait.steps.js           # ALL wait phrasings (BBR — see §4).
-├── scroll.steps.js         # ALL scroll phrasings (page + scoped element).
-├── element.steps.js        # Element interactions (focus / scroll-to / click-on-the-element / event dispatch / position).
-├── input.steps.js          # Pointer input (hover / drag / dbl-click / right-click / viewport size / tap).
-├── selectors.steps.js      # Named selector registry (CSS + XPath).
-├── screenshot.steps.js     # Screenshot capture + auto-on-failure hook.
-├── api.steps.js            # REST API steps (long form).
-├── rest.steps.js           # REST API steps (short form).
-├── xml.steps.js            # XML response assertions.
-├── yaml.steps.js           # YAML response assertions.
-├── network.steps.js        # Route stubs / blocks / delays / offline.
-├── dialog.steps.js         # Native browser dialog handlers.
-├── auth.steps.js           # storageState save / restore / clear.
-├── clock.steps.js          # page.clock — install / advance / pause / set.
-├── storage.steps.js        # Cookie + local storage + session storage.
-├── a11y.steps.js           # POUR smoke checks (alt, label, landmarks, focus, lang).
-├── javascript.steps.js     # JS error tracking + assertion.
-├── web-first.steps.js      # Auto-retrying state matchers.
-├── cookie.steps.js         # Cookie existence / value assertions.
-├── keyboard.steps.js       # Single key + key combo presses.
-├── link.steps.js           # Link href + title assertions.
-├── path.steps.js           # JSON Pointer path / query parameter assertions.
-├── response.steps.js       # Response header inspection.
-├── responsive.steps.js     # Named breakpoint + explicit viewport sizing.
-├── table.steps.js          # Data-table assertions.
-├── metatag.steps.js        # <meta> tag assertions.
-├── iframe.steps.js         # Frame switching + frame-scoped interactions.
-├── file-download.steps.js  # Download capture + assertions.
-└── debug.steps.js          # print URL / last response.
+├── webship.js              # World, hooks, init script, shared helpers — see §2.2. Not a steps file.
+├── a11y.steps.js           (26)  # axe-core WCAG audits + POUR hygiene probes (axe loaded lazily)
+├── action.steps.js          (7)  # press / click / follow / attach file (actOrExplain lives here)
+├── api.steps.js            (22)  # REST long form — base URL, headers, query, body, JSON Pointer
+├── assertion.steps.js      (14)  # see / not see, in row, in element, response, count
+├── auth.steps.js            (3)  # storageState save / restore / clear
+├── clock.steps.js           (7)  # page.clock — install / advance / pause / set
+├── cookie.steps.js         (12)  # cookie exists / equals / contains
+├── debug.steps.js           (2)  # print URL / last response
+├── dialog.steps.js          (8)  # native alert / confirm / prompt handlers
+├── element.steps.js        (19)  # focus / scroll-to / dispatch / count / position
+├── field.steps.js          (27)  # field, checkbox, radio, select-list state assertions
+├── file-download.steps.js   (8)  # download capture + filename / mime / path assertions
+├── form.steps.js           (13)  # fill / select / additionally select / check / uncheck / radio
+├── iframe.steps.js         (10)  # frameLocator switch + frame-scoped interactions
+├── input.steps.js           (9)  # hover / drag / dbl-click / right-click / tap / viewport size
+├── javascript.steps.js      (4)  # JS error tracking + assertion (warn / fail / off)
+├── keyboard.steps.js        (4)  # single key + combos with alias normalisation
+├── link.steps.js            (9)  # href / title / target / rel assertions
+├── metatag.steps.js         (3)  # <meta> description / keywords / OG / Twitter
+├── modal.steps.js           (9)  # HTML modal visibility / content / interactions
+├── navigation.steps.js     (11)  # anonymous user, homepage, paths, history, URL assertions
+├── network.steps.js        (10)  # route stubs / blocks / delays / offline
+├── path.steps.js            (8)  # URL path / query parameter / fragment
+├── response.steps.js        (4)  # response header inspection
+├── responsive.steps.js      (5)  # named breakpoints + explicit viewport
+├── rest.steps.js            (5)  # REST short form
+├── screenshot.steps.js      (6)  # manual + auto-on-failure + per-step capture
+├── scroll.steps.js         (12)  # ALL scroll phrasings (page + scoped element)
+├── selectors.steps.js      (24)  # named CSS / XPath registry + position + human-language steps
+├── storage.steps.js         (9)  # local storage + session storage
+├── table.steps.js           (8)  # data-table row / column assertions
+├── video.steps.js           (4)  # start / stop / save webm recording
+├── wait.steps.js           (21)  # ALL wait phrasings (BBR — see §6)
+├── web-first.steps.js      (12)  # auto-retrying state matchers
+├── xml.steps.js            (20)  # XPath equals / contains / count / attr
+└── yaml.steps.js           (38)  # multi-doc, types, numerics, JSON Schema, diff
+
+tests/step-definitions-diffy/   # opt-in visual regression + its mock API server
+tests/features/                 # 71 top-level .feature files + features/diffy/
+tests/selectors/                # 26 JSON presets + _canonical-keys.json
+tests/assets/                   # upload fixtures (pdf, png)
+examples/                       # static HTML fixtures served by `npm start`
+bin/                            # init-webship / postinstall / generate-reports
+docs/                           # 17 numbered guides + mirrored reference pages
 ```
 
 When you add a new step, place it in the file whose topic matches. Do NOT
@@ -140,7 +311,7 @@ spawn a new file unless the topic is genuinely orthogonal to every
 existing file. New file → mention it in `docs/README.md` AND update the
 table above.
 
-## 4. Behavior-Based Robotics (BBR) wait policy
+## 6. Behavior-Based Robotics (BBR) wait policy
 
 Static `sleep` is forbidden in step bodies. Every wait step uses
 `smartSettle(page, budget)` from `webship.js`, which composites:
@@ -152,15 +323,17 @@ Static `sleep` is forbidden in step bodies. Every wait step uses
 5. `window.__webshipPendingTimers === 0` (custom `setTimeout` counter)
 6. `Date.now() - window.__webshipLastMutation >= 250 ms` (DOM-quiet)
 
-The init script that installs counters 4 / 5 / 6 lives in `webship.js`'s
-`openBrowser()` via `context.addInitScript()`. Never strip it.
+Conditions 4/5/6 are evaluated atomically in one `waitForFunction`, so a
+late-firing `setTimeout` that mutates the DOM re-arms the wait.
 
 Auto-settle hook: `AfterStep` runs `smartSettle(page, 1500)` after every
-step whose text matches `STATE_MUTATING_STEP` (click / press / fill / …).
-This is what makes `When I click "X" Then I should see "Y"` work without
-an explicit wait. Disable per-run with `WEBSHIP_AUTO_SETTLE=off`.
+step whose text matches `STATE_MUTATING_STEP` (click / press / fill /
+select / check / attach / reload / navigate / …). This is what makes
+`When I click "X" Then I should see "Y"` work without an explicit wait.
+Disable per-run with `WEBSHIP_AUTO_SETTLE=off`. If a wait is flaky only in
+CI, raise the budget — never add a static sleep.
 
-## 5. Selector registry
+## 7. Selector registry
 
 * Selectors live in `tests/selectors/*.json`, two top-level keys: `css`,
   `xpath`.
@@ -175,35 +348,23 @@ an explicit wait. Disable per-run with `WEBSHIP_AUTO_SETTLE=off`.
 * Custom modal selector: every preset SHOULD expose a `modal` key. The
   modal helpers in `webship.js` use it before falling back to
   `[role="dialog"], dialog`.
+* When a UI change breaks tests, fix the selector in the JSON preset —
+  not the feature files.
 
-## 6. Run modes
-
-| Script | Effect |
-| --- | --- |
-| `npm test` | Default — pretty output, slow-mo 300 ms. |
-| `npm run test:headed` | Headed browser, `SLOW_MO=800`. |
-| `npm run test:fast` | `SLOW_MO=0`, single-process, full feature set. |
-| `BROWSER={chromium\|firefox\|webkit} npm test` | Pick browser. |
-
-For parallel + retry pass CLI flags directly:
-`npx cucumber-js --parallel 4 --retry 1 --retry-tag-filter @flaky`.
-
-Env vars: `LAUNCH_URL`, `BROWSER`, `HEADLESS`, `SLOW_MO`,
-`WEBSHIP_AUTO_SETTLE`, `WEBSHIP_REPORT_DISABLE`, `WEBSHIP_REPORT_ARGS`,
-`WEBSHIP_SCREENSHOT_*`.
-
-## 7. Tests must stay green
+## 8. Tests must stay green
 
 Before declaring a task done:
 
-1. Run `npx cucumber-js --dry-run` — no ambiguity, no undefined steps.
-2. Run the full suite via `LAUNCH_URL=http://localhost:8080 npx cucumber-js`.
+1. `npm install` if `node_modules/` is absent (it is not committed).
+2. Run `npx cucumber-js --dry-run` — no ambiguity, no undefined steps.
+3. Run the full suite with the fixture server up:
+   `npm start &` then `LAUNCH_URL=http://localhost:8080 npx cucumber-js`.
    All scenarios must pass.
-3. If there are mismatches between examples and step patterns, fix them.
-   Use the audit pattern: walk every JSDoc Example, strip the Gherkin
-   keyword, and confirm the remainder matches the step regex.
+4. Fix any mismatch between JSDoc examples and step patterns (§4.2).
+5. Report honestly: if you could not run the suite, say so rather than
+   implying green.
 
-## 8. AI agent wisdom — see [docs/12-ai-agent-guide.md](docs/12-ai-agent-guide.md)
+## 9. AI agent wisdom — see [docs/12-ai-agent-guide.md](docs/12-ai-agent-guide.md)
 
 That page distils the canonical guidance from *Webship-js-Recipes v1.0.30*
 into one reference. Internalise these:
@@ -223,14 +384,19 @@ into one reference. Internalise these:
   answered in `Feature:` description before any `Scenario:` lines.
 * **DAMP / KISS / YAGNI / MMF.** Self-contained scenarios, simplest
   test that fails, no speculative features, smallest piece of value.
-* **Golden rules** — see §AI Agent Guide for the full ten. Top three:
-  test behaviour not implementation, wait for events not time, one
-  behaviour per scenario.
+* **Golden rules** — top three: test behaviour not implementation, wait
+  for events not time, one behaviour per scenario.
 * **AI pitfalls.** Over-trusting output, implementation tests, missing
   edge cases, false confidence. Mitigation: AI generates, humans
   validate against business requirements.
 
-## 9. AI prompts — concrete templates
+Tag conventions live in `docs/15-tag-conventions.md` — `@critical`,
+`@smoke`, `@auth`, `@security`, `@a11y`, `@i18n`, `@perf`, `@flaky`,
+`@wip`, `@desktop`/`@mobile`, `@external`, `@auth-setup`, plus the
+recording tags `@video` / `@no-video` and the JS-error tags `@js-fail` /
+`@js-warn` / `@js-off`.
+
+## 10. AI prompts — concrete templates
 
 When asked to do common tasks, use these templates. They are battle-tested.
 
@@ -244,7 +410,7 @@ Generate one Scenario per Operations item.
 Tag each scenario with the relevant Norm / Safeguard category
   (@critical, @auth, @a11y, @security, @i18n).
 Use built-in steps. Only write a custom step when no preset matches —
-  and place it in the file whose topic matches (see CLAUDE.md §3).
+  and place it in the file whose topic matches (see CLAUDE.md §5).
 Run npx cucumber-js tests/features/<name>.feature when done.
 ```
 
@@ -278,6 +444,7 @@ Re-run. Iterate until green. Commit prompt + code + selector changes together.
 ```
 Re-run with HEADLESS=false SLOW_MO=800 to watch what really happens.
 Look at screenshots/failed_*.png for the moment of failure.
+Record it: WEBSHIP_VIDEO=on npx cucumber-js <path>  (or tag the scenario @video).
 Replace any wait Ns with an edge wait:
   wait until the URL contains "..."
   wait for "selector" to appear
@@ -287,27 +454,79 @@ If the bug is timing only in CI, bump the budget on the smart wait,
   do NOT add static sleeps.
 ```
 
-### Run the project locally
-
-```
-npm install
-npm start                # dev server on localhost:8080 (or set LAUNCH_URL)
-npm test                 # full suite
-npx cucumber-js --dry-run  # confirm no ambiguity, no undefined
-```
-
 ### Rules of engagement (for the prompt itself)
 
 When the user gives an ambiguous task, ASK before guessing. Specifically:
 
-- "Where should this step live?" — pick the file whose topic matches §3.
+- "Where should this step live?" — pick the file whose topic matches §5.
 - "Should this be a custom step or compose existing ones?" — prefer
   composing existing steps inside a feature scenario.
 - "Should I commit?" — never. The user always commits manually.
-- "Should I update docs?" — yes, in the same change. See §1.4.
+- "Should I update docs?" — yes, in the same change. See §3.4.
 - "Should I bump the version + zip?" — only when the user says "backup".
 
-## 10. Avoid
+## 11. Local AI agents & skills that drive webship-js
+
+Seven local Claude Code definitions target webship-js. They are **not**
+part of this repo (`.gitignore` excludes `.claude`) — they are authored in
+the workspace repos and installed into `~/.claude/`:
+
+| Source of truth | Installed to | Sync |
+| --- | --- | --- |
+| `~/workspace/agents/*.md` | `~/.claude/agents/` | `agents/cmd-tool-sync-agents.sh --install` (also mirrors the shared `webship/ai-agents` repo) |
+| `~/workspace/skills/<name>/SKILL.md` | `~/.claude/skills/` | `skills/cmd-tool-sync-skills.sh` |
+
+### Agents
+
+| Agent | Model | Scope |
+| --- | --- | --- |
+| `agent-webship-js` | opus | The full specialist. Scaffold (Node.js or DDEV) → author `.feature` files → write custom steps → run → debug → HTML/PDF report. Carries a distilled copy of the whole step catalog, the BBR/selector/tag sections, the 20-recipe cookbook, Varbase learnings, and recipes AI-1…AI-5. Use for anything non-trivial. |
+| `webship-ai-agent` | sonnet | The loop-until-green worker for a consumer project: read available steps → write/fix scenarios → run → fix root cause → iterate to zero failures. Lighter, autonomous, Drupal/DDEV-flavoured (`NN-NN-NN-name.feature`, `https://<project>.ddev.site`). |
+
+### Skills (slash commands)
+
+| Skill | Does |
+| --- | --- |
+| `/webship-js-init` | Scaffold a test project for a URL, or `--ddev` for the `ddev-webship-js` add-on. Idempotent; never clobbers `cucumber.js` without `--force`. |
+| `/webship-js-create` | Author `tests/features/<page>--<category>.feature` for a page or flow — desktop + mobile, web-first assertions, named selectors, tags. |
+| `/webship-js-run` | Run the suite (tag expression or feature path), generate HTML/PDF, and return a root-cause summary per failure. |
+| `/webship-js-audit` | Lint features + custom steps against the documented anti-patterns — sleep-driven waits, god scenarios, brittle selectors, implementation testing, premature custom steps, leaked module state. Output is `file:line — severity — pattern — fix`. |
+| `/webship-js-steps` | Step catalog reference, filterable by category. |
+
+`barmoog-webship-js-{init,create,run,audit,steps}` are the same five skills
+hard-targeted at a Barmoog Odoo 18.0 instance. Don't edit them for
+webship-js changes — fix the `webship-js-*` originals and let the Barmoog
+copies be re-derived.
+
+### What this means when working *inside* this repo
+
+1. **Every one of them reads `node_modules/webship-js/…` as the source of
+   truth.** That path does not exist here — this *is* the package. Translate:
+   `node_modules/webship-js/tests/step-definitions/` → `tests/step-definitions/`,
+   `node_modules/webship-js/docs/` → `docs/`,
+   `node_modules/webship-js/bin/` → `bin/`.
+   Running one of these skills unmodified in this repo will find nothing and
+   fall back to fetching from GitHub — i.e. it will read the *published*
+   step regex, not your uncommitted change. Read the local files directly
+   instead.
+2. **Step regex, JSDoc examples, and `docs/` are their API.** The agents are
+   explicitly instructed to verify phrasing against the installed
+   `<category>.steps.js` and its JSDoc before recommending a step. A
+   rename here silently changes what every agent tells every user — which
+   is the real reason for the docs rule in §3.4 and the ≥5-examples rule
+   in §4.2.
+3. **Known drift to be aware of, not to "fix" here:** the agents and the
+   `/webship-js-run` skill reference a `worldParameters.users` registry and
+   an auth helper built on it. There is no `users` key in this repo's
+   `cucumber.js` or in `bin/init-webship.js` — it is a Varbase-project
+   convention layered on top. If a user asks about `users`, say so rather
+   than adding the key on the agents' say-so.
+4. **Guardrails they already carry** (so don't re-litigate them): never
+   commit; never overwrite a user's `.feature` or `cucumber.js` without
+   explicit consent; verify a step exists before recommending it; when
+   reality diverges from the prompt, fix the prompt first.
+
+## 12. Avoid
 
 * Comments that describe WHAT the code does — names already do that.
 * Backwards-compatibility shims for unused code paths — delete unused code.
@@ -315,3 +534,5 @@ When the user gives an ambiguous task, ASK before guessing. Specifically:
 * Adding feature flags for hypothetical future requirements.
 * `// removed` comments — git history is the record, not the file.
 * Replacing existing selectors with synonyms when canonical keys exist.
+* Raw Playwright errors surfacing to testers — always go through
+  `friendly()` / `humanize()`.
