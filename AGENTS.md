@@ -5,8 +5,11 @@ machine-readable rules for any AI agent (Claude, Codex, Cursor, Copilot,
 etc.) working on the repository.
 
 For full project context, read `CLAUDE.md` in the same directory — it is
-the canonical, longer policy. This file extracts the critical rules that
-every agent must respect.
+the canonical, longer policy (commands §1, architecture §2, file
+organisation §5, BBR waits §6, local agents and skills §11). This file
+extracts the critical rules that every agent must respect. When the two
+disagree, `CLAUDE.md` wins — and the disagreement is a bug to fix in the
+same change.
 
 ## Identity
 
@@ -20,11 +23,15 @@ Drupal, or PHP in code, file names, comments, or step phrasings.
    `git commit`, `git push`, `npm publish`, or anything that mutates a
    shared repository / registry without explicit per-action consent.
 2. **Update docs in the same change.** Step / selector / config changes
-   must update the matching page in `docs/`.
+   must update the matching page in `docs/`. A `worldParameters` change
+   must also update the scaffold template in `bin/init-webship.js`.
 3. **Stay green.** Every change must keep `npx cucumber-js --dry-run`
-   ambiguity-free and `npx cucumber-js` passing.
+   ambiguity-free and `npx cucumber-js` passing. `node_modules/` is not
+   committed — run `npm install` first, and `npm start` (the `examples/`
+   fixture server on :8080) before the suite. If you could not run it,
+   say so; never imply green.
 4. **Backups.** When asked, bump `package.json` `version` and emit
-   `/var/www/html/products/webship-js-<version>.zip` excluding
+   `~/workspace/products/webship-js-<version>.zip` excluding
    `node_modules/`, `tests/reports/`, `screenshots/`, `.git/`.
 
 ## Step definition rules
@@ -38,6 +45,9 @@ Drupal, or PHP in code, file names, comments, or step phrasings.
   Gherkin keyword is stripped.
 * No static `sleep` calls. Wait steps go through `smartSettle()` in
   `webship.js`.
+* Never let a raw Playwright error reach the tester. Wrap risky locator
+  work and re-throw through `friendly()` / `humanize()` — see
+  `actOrExplain()` in `action.steps.js` for the reference shape.
 * Place new steps in the file whose topic matches. Don't create a new
   file unless the topic is genuinely orthogonal to every existing one.
 
@@ -71,10 +81,13 @@ sleeps with edge waits.
 
 Before reporting a task complete:
 
+* [ ] Ran `npx cucumber-js --dry-run` — no ambiguity, no undefined steps.
 * [ ] Ran the affected feature(s) via `LAUNCH_URL=http://localhost:8080 npx cucumber-js <path>`.
 * [ ] Updated `docs/04-step-reference.md` and the topic doc if a step or
       selector preset changed.
-* [ ] Updated `docs/README.md` source layout if a new step file was added.
+* [ ] Updated `docs/README.md` source layout + step counts if a step file
+      was added or steps were added / removed.
+* [ ] Updated `bin/init-webship.js` if `worldParameters` changed.
 * [ ] Verified examples match patterns (no audit mismatches).
 * [ ] Bumped version + produced backup zip if user requested it.
 
@@ -96,14 +109,37 @@ step definitions. Critical takeaways:
 
 ## Source map
 
-Step definitions: `tests/step-definitions/`. The `webship.js` file there
-is the single canonical entry point — World, hooks, init script, and
-shared helpers (`smartSettle`, `getModalLocator`, `buildSelector`,
-`gotoUrl`, `fillField`, `getLocatorText`, `pad`, `waitForPageLoad`,
-`waitForModalState`, `findVisibleModal`, `isAnyModalVisible`,
-`getModalSelector`).
+Step definitions: `tests/step-definitions/` — 413 steps across 36
+`*.steps.js` files, all auto-loaded. The `webship.js` file there is the
+single canonical entry point — World, hooks, init script, and shared
+helpers (`smartSettle`, `waitForPageLoad`, `buildSelector`, `gotoUrl`,
+`fillField`, `getLocatorText`, `pad`, the modal probes
+`getModalSelector` / `getModalLocator` / `waitForModalState` /
+`findVisibleModal` / `isAnyModalVisible`, the date helpers
+`resolveRelativeDate` / `parseRelativeOffset` / `formatRelativeDate`, and
+the error builders `friendly` / `humanize`). It also owns two
+process-level side effects: the stdout hook-line filter and the auto HTML
+report on exit.
 
 Docs: `docs/` — see `docs/README.md` for the reading order.
 
-Selector presets: `tests/selectors/*.json`. Canonical key list:
-`tests/selectors/_canonical-keys.json`.
+Selector presets: `tests/selectors/*.json` — 26 presets. Canonical key
+list: `tests/selectors/_canonical-keys.json`.
+
+Config: `cucumber.js` (`worldParameters`, annotated) and
+`playwright.config.ts` (browser launch + context), plus the scaffold
+template in `bin/init-webship.js` that must mirror them.
+
+Visual regression: `tests/step-definitions-diffy/` is opt-in and loaded
+via a separate `require` path.
+
+## This repo is the package
+
+webship-js ships `tests/` to consumers on npm, so `tests/` is both the
+step library and its own test suite. The local agents and skills that
+drive this project (`agent-webship-js`, `webship-ai-agent`, and the
+`/webship-js-*` skills) all read `node_modules/webship-js/...` as their
+source of truth. That path does not exist here — translate it to
+`tests/step-definitions/`, `docs/`, `bin/`. Running one of them
+unmodified inside this repository reads the published copy from GitHub,
+not the working tree. See `CLAUDE.md` §11.
