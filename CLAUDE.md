@@ -122,7 +122,7 @@ Everything shared lives here; every `*.steps.js` does
 loaded by `webship.js` from `process.cwd()` — so a consumer project's own
 copy wins. `cucumber.js` supplies `worldParameters` (launch URL, wait
 padding, selector registry + files + breakpoints, screenshot, video,
-javascript-error, diffy settings). Resolution order everywhere is
+and javascript-error settings). Resolution order everywhere is
 **env var → `worldParameters` → built-in default**; follow that order in
 any new option.
 
@@ -148,14 +148,16 @@ are also what the human-language steps read — `Then I see main nav above
 breadcrumb`, `When I click primary button` — which is why canonical key
 names matter more than they look.
 
-### 2.6 Optional Diffy layer
+### 2.6 Visual regression lives outside this repo
 
-`tests/step-definitions-diffy/` (visual regression against the Diffy REST
-API) is a **separate, opt-in** require path — commented out in the
-scaffolded `cucumber.js`, enabled in this repo's own `cucumber.js` so the
-mock-server suite runs. `webship-diffy-mock.js` boots
-`mock-diffy-api/server.js` in `BeforeAll` so `tests/features/diffy/` runs
-with no credentials. Keep the mock in step with the real client.
+The Diffy step-pack was extracted to its own plugin,
+[`diffy-steps`](https://github.com/webship/diffy-steps). webship-js no
+longer ships `tests/step-definitions-diffy/`, the `diffy`
+`worldParameters` block, or the mock Diffy API. Consumers install the
+plugin and add `node_modules/diffy-steps/tests/step-definitions/**/*.js`
+to their own `require:` list. Nothing in this repo depends on it — the
+steps only ever used `@cucumber/cucumber`, `axios`, and Node built-ins.
+Treat any `diffy` question as a `diffy-steps` question.
 
 ### 2.7 CI
 
@@ -297,8 +299,7 @@ tests/step-definitions/
 ├── xml.steps.js            (20)  # XPath equals / contains / count / attr
 └── yaml.steps.js           (38)  # multi-doc, types, numerics, JSON Schema, diff
 
-tests/step-definitions-diffy/   # opt-in visual regression + its mock API server
-tests/features/                 # 71 top-level .feature files + features/diffy/
+tests/features/                 # 71 .feature files
 tests/selectors/                # 26 JSON presets + _canonical-keys.json
 tests/assets/                   # upload fixtures (pdf, png)
 examples/                       # static HTML fixtures served by `npm start`

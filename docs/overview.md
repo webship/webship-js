@@ -36,6 +36,5 @@ Webship-js offers "increased testing efficiency, reduced human error, improved t
 - [API Step Definitions](/docs/webship-js/2.0.x/api-step-definitions)
 - [Advanced Screenshots](/docs/webship-js/2.0.x/advanced-screenshots)
 - [Advanced Selectors](/docs/webship-js/2.0.x/advanced-selectors)
-- [Diffy Step Definitions](/docs/webship-js/2.0.x/diffy-step-definitions)
 - [Assertions](/docs/webship-js/2.0.x/assertions)
 - [Commands](/docs/webship-js/2.0.x/commands)

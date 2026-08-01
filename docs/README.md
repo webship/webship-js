@@ -42,7 +42,10 @@ Webship-js is a BDD-first browser-automation harness built on Playwright + Cucum
 | [API step definitions](api-step-definitions.md) | REST step definitions |
 | [Advanced screenshots](advanced-screenshots.md) | Per-size, full-page, named (3 sub-pages under `advanced-screenshots/`) |
 | [Advanced selectors](advanced-selectors.md) | Named selector registry, position assertions |
-| [Diffy step definitions](diffy-step-definitions.md) | Visual-diff workflow (10 sub-pages under `diffy-step-definitions/`) |
+
+> **Visual regression moved out.** The Diffy step-pack now ships as its own
+> plugin, [`diffy-steps`](https://github.com/webship/diffy-steps) — install it
+> alongside webship-js and add its step-definition path to `cucumber.js`.
 
 ## At a glance
 

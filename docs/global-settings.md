@@ -187,34 +187,6 @@ Tags override `mode` per scenario:
 
 The explicit step `Then there should be no JavaScript errors` always asserts (independent of mode).
 
-### `diffy` — visual-diff integration (optional)
-
-```js
-diffy: {
-  apiKey: 'mock-key',
-  projectId: 1,
-  breakpoints: '640,1200',
-  windowHeight: 2000,
-  screenshotsDir: '',
-  baseUrl: 'http://127.0.0.1:3099/',
-  maxWait: 30,
-  env1Url: '',
-  env2Url: '',
-}
-```
-
-| Key | Default | Env override |
-| --- | --- | --- |
-| `apiKey` | `mock-key` | `DIFFY_API_KEY` |
-| `projectId` | `1` | `DIFFY_PROJECT_ID` |
-| `breakpoints` | `640,1200` | `DIFFY_BREAKPOINTS` |
-| `windowHeight` | `2000` | `DIFFY_WINDOW_HEIGHT` |
-| `screenshotsDir` | `''` | `DIFFY_SCREENSHOTS_DIR` |
-| `baseUrl` | mock server | `DIFFY_API_BASE_URL` |
-| `maxWait` | `30` (seconds) | `DIFFY_MAX_WAIT` |
-| `env1Url` | `''` | `DIFFY_ENV1_URL` |
-| `env2Url` | `''` | `DIFFY_ENV2_URL` |
-
 ---
 
 ## `playwright.config.ts` — browser launch

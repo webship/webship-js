@@ -130,8 +130,8 @@ Config: `cucumber.js` (`worldParameters`, annotated) and
 `playwright.config.ts` (browser launch + context), plus the scaffold
 template in `bin/init-webship.js` that must mirror them.
 
-Visual regression: `tests/step-definitions-diffy/` is opt-in and loaded
-via a separate `require` path.
+Visual regression: extracted to the [`diffy-steps`](https://github.com/webship/diffy-steps)
+plugin — not in this repository.
 
 ## This repo is the package
 
