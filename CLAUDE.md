@@ -154,7 +154,7 @@ The Diffy step-pack was extracted to its own plugin,
 [`diffy-steps`](https://github.com/webship/diffy-steps). webship-js no
 longer ships `tests/step-definitions-diffy/`, the `diffy`
 `worldParameters` block, or the mock Diffy API. Consumers install the
-plugin and add `node_modules/diffy-steps/tests/step-definitions/**/*.js`
+plugin and add `node_modules/@webship/diffy-steps/tests/step-definitions/**/*.js`
 to their own `require:` list. Nothing in this repo depends on it — the
 steps only ever used `@cucumber/cucumber`, `axios`, and Node built-ins.
 Treat any `diffy` question as a `diffy-steps` question.
