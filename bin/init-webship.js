@@ -14,7 +14,6 @@ const CUCUMBER_JS = `module.exports = {
     requireModule: ['ts-node/register'],
     require: [
       'node_modules/webship-js/tests/step-definitions/**/*.js',          // Webship-js core step definitions (auto HTML report on exit; disable: WEBSHIP_REPORT_DISABLE=1).
-      // 'node_modules/webship-js/tests/step-definitions-diffy/**/*.js', // Diffy step definitions (optional).
       'tests/step-definitions/**/*.js',                                  // Your custom step definitions.
     ],
     paths: ['tests/features/**/*.feature'],
@@ -70,18 +69,6 @@ const CUCUMBER_JS = `module.exports = {
         filenamePatternFailed: '{failed_prefix}{datetime}.{feature_file}.feature_{step_line}.{ext}',
         infoTypes: '',
       },
-      // Diffy visual-regression (optional). Uncomment and set apiKey / projectId to enable.
-      // diffy: {
-      //   apiKey: '',                                 // DIFFY_API_KEY
-      //   projectId: 0,                               // DIFFY_PROJECT_ID
-      //   breakpoints: '640,1200',                    // DIFFY_BREAKPOINTS
-      //   windowHeight: 2000,                         // DIFFY_WINDOW_HEIGHT
-      //   screenshotsDir: '',                         // DIFFY_SCREENSHOTS_DIR
-      //   baseUrl: 'https://app.diffy.website/api/',  // DIFFY_API_BASE_URL
-      //   maxWait: 30,                                // DIFFY_MAX_WAIT (seconds)
-      //   env1Url: '',                                // DIFFY_ENV1_URL
-      //   env2Url: '',                                // DIFFY_ENV2_URL
-      // },
     },
   },
 };

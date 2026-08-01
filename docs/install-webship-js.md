@@ -28,7 +28,6 @@ The page is part of the Webship JS 2.0.x documentation section, which includes:
 - API Step Definitions
 - Advanced Screenshots
 - Advanced Selectors
-- Diffy Step Definitions
 - Assertions
 - Commands
 

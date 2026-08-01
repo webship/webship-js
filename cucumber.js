@@ -11,7 +11,6 @@ module.exports = {
     requireModule: ['tsx/cjs'],
     require: [
       'tests/step-definitions/**/*.js',
-      'tests/step-definitions-diffy/**/*.js',
     ],
     paths: ['tests/features/**/*.feature'],
     format: [
@@ -120,17 +119,6 @@ module.exports = {
         beforeScenario: false,                       // WEBSHIP_JS_ERROR_BEFORE
         // Report collected errors at scenario end (default true).
         afterScenario: true,                         // WEBSHIP_JS_ERROR_AFTER
-      },
-      diffy: {
-        apiKey: 'mock-key',                          // DIFFY_API_KEY
-        projectId: 1,                                // DIFFY_PROJECT_ID
-        breakpoints: '640,1200',                     // DIFFY_BREAKPOINTS
-        windowHeight: 2000,                          // DIFFY_WINDOW_HEIGHT
-        screenshotsDir: '',                          // DIFFY_SCREENSHOTS_DIR
-        baseUrl: 'http://127.0.0.1:3099/',           // DIFFY_API_BASE_URL (mock server)
-        maxWait: 30,                                 // DIFFY_MAX_WAIT (seconds)
-        env1Url: '',                                 // DIFFY_ENV1_URL (custom env)
-        env2Url: '',                                 // DIFFY_ENV2_URL (custom env)
       },
     },
   },
