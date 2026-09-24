@@ -3,7 +3,9 @@ module.exports = {
     // Cucumber step timeout must exceed Playwright's default 30s so the
     // try/catch wrappers in step files always see the Playwright error
     // first (and emit a friendly message) rather than cucumber's raw
-    // "function timed out" stack.
+    // "function timed out" stack. The step definitions call
+    // setDefaultTimeout() on load, which wins over this value — raise it
+    // with WEBSHIP_STEP_TIMEOUT instead.
     timeout: 45000,
     // tsx/cjs registers a require() hook so cucumber-js can load both
     // `.js` and `.ts` step files with zero build step. If you ship only

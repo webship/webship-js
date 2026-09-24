@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Never Settles</title>
+</head>
+<body>
+  <h1 id="page-title">Never Settles</h1>
+
+  <p id="intro">
+    This fixture never reaches network idle and never drains its timers, the way a
+    production page with analytics, a chat widget or a carousel behaves.
+  </p>
+
+  <p>Beat: <span id="beat">0</span></p>
+
+  <script>
+    // A request every 120ms: Playwright's "networkidle" needs 500ms with no
+    // in-flight network, so this page never reaches it.
+    // A self-rescheduling setTimeout: window.__webshipPendingTimers can
+    // therefore never fall back to 0 either.
+    var beat = 0;
+    function tick() {
+      beat++;
+      document.getElementById('beat').textContent = String(beat);
+      fetch('example-api.json?beat=' + beat, { cache: 'no-store' }).catch(function () {});
+      setTimeout(tick, 120);
+    }
+    setTimeout(tick, 120);
+  </script>
+</body>
+</html>
