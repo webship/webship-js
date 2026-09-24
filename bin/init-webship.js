@@ -10,7 +10,7 @@ const packagePath = path.join(__dirname, '..');
 
 const CUCUMBER_JS = `module.exports = {
   default: {
-    timeout: 30000,
+    timeout: 30000,                                                     // Overridden by webship-js's setDefaultTimeout (45s); raise it with WEBSHIP_STEP_TIMEOUT.
     requireModule: ['ts-node/register'],
     require: [
       'node_modules/webship-js/tests/step-definitions/**/*.js',          // Webship-js core step definitions (auto HTML report on exit; disable: WEBSHIP_REPORT_DISABLE=1).

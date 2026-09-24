@@ -53,7 +53,7 @@ HEADLESS=false SLOW_MO=800 npx cucumber-js tests/features/x.feature   # watch a 
 ```
 
 Env vars: `LAUNCH_URL`, `BROWSER`, `HEADLESS`, `SLOW_MO`, `FORCE_COLOR`,
-`WEBSHIP_AUTO_SETTLE`, `WEBSHIP_REPORT_DISABLE`, `WEBSHIP_REPORT_ARGS`,
+`WEBSHIP_AUTO_SETTLE`, `WEBSHIP_STEP_TIMEOUT`, `WEBSHIP_REPORT_DISABLE`, `WEBSHIP_REPORT_ARGS`,
 `WEBSHIP_FILTER_HOOK_LINES`, `WEBSHIP_SCREENSHOT_*`, `WEBSHIP_VIDEO*`,
 `WEBSHIP_JS_ERROR_*`, `WEBSHIP_SELECTORS_OFFSET`,
 `WEBSHIP_SELECTORS_BREAKPOINTS`, `DIFFY_*`. Every one of them mirrors a
@@ -87,7 +87,7 @@ Everything shared lives here; every `*.steps.js` does
 * **The World** (`PlaywrightWorld extends World`) — `page`, `context`,
   `playwrightBrowser`, `frame` (iframe scope), `launchUrl`, `minWaitTime`,
   `assetsFolder`, and the named-selector registries `__selectorsCss` /
-  `__selectorsXpath`. `setDefaultTimeout(45s)` — deliberately above
+  `__selectorsXpath`. `setDefaultTimeout(45s)` (`WEBSHIP_STEP_TIMEOUT` overrides) — deliberately above
   Playwright's 30 s default so locator timeouts reach our try/catch
   wrappers and testers see a friendly message, not "function timed out".
   The 45 s in `cucumber.js` exists for the same reason; keep them aligned.
@@ -299,7 +299,7 @@ tests/step-definitions/
 ├── xml.steps.js            (20)  # XPath equals / contains / count / attr
 └── yaml.steps.js           (38)  # multi-doc, types, numerics, JSON Schema, diff
 
-tests/features/                 # 71 .feature files
+tests/features/                 # 72 .feature files
 tests/selectors/                # 26 JSON presets + _canonical-keys.json
 tests/assets/                   # upload fixtures (pdf, png)
 examples/                       # static HTML fixtures served by `npm start`

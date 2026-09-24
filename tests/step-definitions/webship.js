@@ -70,8 +70,25 @@ if (process.env.WEBSHIP_FILTER_HOOK_LINES !== 'off') {
 // ---------------------------------------------------------------------------
 
 /**
+ * Smallest timeout worth handing to Playwright. Playwright reads `timeout: 0`
+ * as "no timeout at all", so a spent budget must never reach it as a zero —
+ * that is how a settle could wait forever instead of giving up.
+ *
+ * @type {number}
+ */
+const SETTLE_MIN_MS = 25;
+
+/**
  * Wait for the page to reach an "edge" of activity — DOM ready, network
  * idle, no pending AJAX or timers, and no DOM mutations for ≥250 ms.
+ *
+ * Each stage gets a share of the budget rather than "whatever is left", so a
+ * stage that can never resolve cannot starve the ones after it. On a page with
+ * analytics, a chat widget or a self-rescheduling timer, `networkidle` never
+ * arrives; capping it at half the budget keeps the AJAX / pending-timer /
+ * DOM-quiet probe — the useful one — running.
+ *
+ * Returns within `timeout` ms even when nothing on the page ever settles.
  *
  * @param {import('playwright').Page} page    - Page being probed.
  * @param {number} [timeout=10000]            - Total budget in ms.
@@ -80,26 +97,38 @@ if (process.env.WEBSHIP_FILTER_HOOK_LINES !== 'off') {
 async function smartSettle(page, timeout) {
   const total = typeof timeout === 'number' && timeout > 0 ? timeout : 10000;
   const deadline = Date.now() + total;
-  const remaining = () => Math.max(0, deadline - Date.now());
 
-  try { await page.waitForSelector('body', { state: 'attached', timeout: remaining() }); } catch { /* keep going */ }
-  try { await page.waitForLoadState('domcontentloaded', { timeout: remaining() }); } catch { /* keep going */ }
-  try { await page.waitForLoadState('networkidle', { timeout: remaining() }); } catch { /* keep going */ }
-  try {
-    await page.waitForFunction(
-      (quietMs) => {
-        const ajax = window.__webshipAjaxCount;
-        const timers = window.__webshipPendingTimers;
-        const last = window.__webshipLastMutation;
-        if (typeof ajax === 'number' && ajax > 0) return false;
-        if (typeof timers === 'number' && timers > 0) return false;
-        if (typeof last === 'number' && Date.now() - last < quietMs) return false;
-        return true;
-      },
-      250,
-      { timeout: remaining(), polling: 50 }
-    );
-  } catch { /* keep going */ }
+  // Milliseconds left in the budget. Never handed to Playwright directly: a
+  // zero there means "no timeout", not "return immediately".
+  const left = () => deadline - Date.now();
+
+  // Run one stage with at most `share` of the original budget, and never more
+  // than what is actually left. Returns false once the budget is spent, so the
+  // caller stops instead of calling Playwright with a useless timeout.
+  const stage = async (share, fn) => {
+    const remaining = left();
+    if (remaining < SETTLE_MIN_MS) return false;
+    const budget = Math.max(SETTLE_MIN_MS, Math.min(remaining, Math.round(total * share)));
+    try { await fn(budget); } catch { /* a stage timing out is not a failure */ }
+    return left() >= SETTLE_MIN_MS;
+  };
+
+  if (!await stage(0.25, (t) => page.waitForSelector('body', { state: 'attached', timeout: t }))) return;
+  if (!await stage(0.25, (t) => page.waitForLoadState('domcontentloaded', { timeout: t }))) return;
+  if (!await stage(0.5, (t) => page.waitForLoadState('networkidle', { timeout: t }))) return;
+  await stage(0.5, (t) => page.waitForFunction(
+    (quietMs) => {
+      const ajax = window.__webshipAjaxCount;
+      const timers = window.__webshipPendingTimers;
+      const last = window.__webshipLastMutation;
+      if (typeof ajax === 'number' && ajax > 0) return false;
+      if (typeof timers === 'number' && timers > 0) return false;
+      if (typeof last === 'number' && Date.now() - last < quietMs) return false;
+      return true;
+    },
+    250,
+    { timeout: t, polling: 50 }
+  ));
 }
 
 /**
@@ -620,7 +649,15 @@ if (!global.__WEBSHIP_AUTO_REPORT__) {
 // (e.g. click() with no match) reach our try/catch wrappers BEFORE cucumber
 // trips its own timeout — otherwise testers see "function timed out" instead
 // of the friendly Why/Hint message.
-setDefaultTimeout(45 * 1000);
+//
+// setDefaultTimeout() runs at load time and overrides whatever `timeout` a
+// consumer set in their own cucumber.js, so WEBSHIP_STEP_TIMEOUT is the
+// way to raise (or lower) it from outside. 45s stays the default.
+const STEP_TIMEOUT = (() => {
+  const raw = parseInt(process.env.WEBSHIP_STEP_TIMEOUT, 10);
+  return Number.isFinite(raw) && raw > 0 ? raw : 45 * 1000;
+})();
+setDefaultTimeout(STEP_TIMEOUT);
 
 class PlaywrightWorld extends World {
   constructor(options) {
