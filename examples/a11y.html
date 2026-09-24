@@ -26,6 +26,14 @@
       <button type="submit">Submit</button>
     </form>
   </main>
+  <!-- Hidden from assistive technology: a closed overlay. Nothing in here is
+       reachable, so no accessibility probe should report it. -->
+  <div class="scrim" aria-hidden="true" style="display:none">
+    <button type="button" tabindex="-1"></button>
+    <a href="/closed"></a>
+    <img src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==">
+    <input type="text" name="scrim-field">
+  </div>
   <footer><small>&copy; 2026</small></footer>
 </body>
 </html>

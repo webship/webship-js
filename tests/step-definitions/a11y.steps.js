@@ -42,6 +42,23 @@ const WCAG_TAGS = {
   'AAA': ['wcag2a', 'wcag2aa', 'wcag2aaa', 'wcag21a', 'wcag21aa', 'wcag21aaa', 'wcag22aaa'],
 };
 
+// Impact is a severity ladder, not a set of unrelated labels. A gate named
+// for one level covers that level and everything worse than it, so a page
+// asked for no serious violations can never pass while a critical one stands.
+const IMPACT_ORDER = ['minor', 'moderate', 'serious', 'critical'];
+
+// axe leaves `impact` null on a few rules. Rank those at the bottom of the
+// ladder so they are still reported by the widest gate instead of vanishing.
+function impactRank(violation) {
+  const i = IMPACT_ORDER.indexOf(violation.impact);
+  return i === -1 ? 0 : i;
+}
+
+function atOrAbove(violations, impact) {
+  const floor = IMPACT_ORDER.indexOf(impact);
+  return violations.filter((v) => impactRank(v) >= floor);
+}
+
 function summariseViolations(violations) {
   if (violations.length === 0) return 'no violations';
   const head = violations.slice(0, 5).map((v) =>
@@ -63,16 +80,164 @@ async function runAxe(world, opts = {}) {
 }
 
 // ---------------------------------------------------------------------------
+// The structural audit
+// ---------------------------------------------------------------------------
+//
+// One page-side pass gathers every structural finding at once, and every
+// structural step below reads its own slice out of it. One implementation,
+// many gates, so a probe and the whole-page check can never disagree.
+//
+// Anything hidden from assistive technology is out of scope. A control behind
+// `aria-hidden`, `inert`, `hidden`, `display: none` or `visibility: hidden` is
+// not reachable, so a missing name on it is not a barrier. axe takes the same
+// view, and a suite that did not was failing on scrims and closed menus.
+
+const STRUCTURE = {
+  imageAlt: 'image(s) without an alt attribute',
+  buttonName: 'button(s) without an accessible name',
+  linkName: 'link(s) without an accessible name',
+  fieldLabel: 'unlabeled form field(s)',
+  frameTitle: 'iframe(s) without a title',
+  positiveTabindex: 'element(s) with a positive tabindex',
+  ariaReference: 'broken ARIA reference(s)',
+  oneH1: 'not exactly one h1',
+  headingOrder: 'skipped heading level(s)',
+  emptyHeading: 'empty heading(s)',
+  mainLandmark: 'no main landmark',
+  navLandmark: 'no navigation landmark',
+  htmlLang: 'no language on <html>',
+  pageTitle: 'no page title',
+  zoomAllowed: 'zoom blocked',
+  uniqueNavName: 'navigation landmark(s) sharing one name',
+};
+
+async function structuralAudit(page) {
+  return page.evaluate(() => {
+    const atHidden = (el) => {
+      if (el.closest('[aria-hidden="true"], [inert], [hidden]')) return true;
+      const s = getComputedStyle(el);
+      return s.display === 'none' || s.visibility === 'hidden';
+    };
+    const visible = (sel) => Array.from(document.querySelectorAll(sel)).filter((el) => !atHidden(el));
+    const attr = (el, name) => (el.getAttribute(name) || '').trim();
+    // The accessible name an assistive technology would announce, in the order
+    // HTML gives them. Enough for a "has a name at all" gate, which is what
+    // these probes are.
+    const named = (el) => {
+      if (attr(el, 'aria-label')) return true;
+      if (el.hasAttribute('aria-labelledby')) return true;
+      if (attr(el, 'title')) return true;
+      if (el.tagName === 'INPUT') return Boolean((el.value || '').trim());
+      if ((el.textContent || '').trim()) return true;
+      const img = el.querySelector('img[alt]');
+      return Boolean(img && attr(img, 'alt'));
+    };
+    const brief = (el) => el.outerHTML.slice(0, 120);
+    const found = {};
+    const add = (key, items) => { if (items.length) found[key] = items; };
+
+    add('imageAlt', visible('img').filter((img) => {
+      if (img.hasAttribute('alt')) return false;
+      const role = img.getAttribute('role');
+      if (role === 'presentation' || role === 'none') return false;
+      return !(attr(img, 'aria-label') || img.hasAttribute('aria-labelledby') || attr(img, 'title'));
+    }).map(brief));
+
+    add('buttonName', visible('button, [role="button"], input[type="submit"], input[type="button"]')
+      .filter((el) => !named(el)).map(brief));
+
+    add('linkName', visible('a[href]').filter((el) => !named(el)).map(brief));
+
+    add('fieldLabel', visible('input:not([type="hidden"]), select, textarea').filter((el) => {
+      const type = el.getAttribute('type');
+      if (type === 'submit' || type === 'button' || type === 'reset' || type === 'image') return false;
+      if (attr(el, 'aria-label') || el.hasAttribute('aria-labelledby') || attr(el, 'title')) return false;
+      if (el.id && document.querySelector(`label[for="${CSS.escape(el.id)}"]`)) return false;
+      return !el.closest('label');
+    }).map(brief));
+
+    add('frameTitle', visible('iframe')
+      .filter((el) => !attr(el, 'title') && !attr(el, 'aria-label')).map(brief));
+
+    add('positiveTabindex', Array.from(document.querySelectorAll('[tabindex]'))
+      .filter((el) => parseInt(el.getAttribute('tabindex'), 10) > 0).map(brief));
+
+    const refAttrs = ['aria-labelledby', 'aria-describedby', 'aria-controls', 'aria-owns', 'aria-flowto'];
+    const broken = [];
+    for (const name of refAttrs) {
+      for (const el of Array.from(document.querySelectorAll(`[${name}]`))) {
+        for (const id of (el.getAttribute(name) || '').split(/\s+/).filter(Boolean)) {
+          if (!document.getElementById(id)) {
+            broken.push(`<${el.tagName.toLowerCase()} ${name}="${el.getAttribute(name)}"> references a missing id "${id}"`);
+          }
+        }
+      }
+    }
+    add('ariaReference', broken);
+
+    const headings = visible('h1, h2, h3, h4, h5, h6');
+    const h1s = headings.filter((h) => h.tagName === 'H1');
+    if (h1s.length !== 1) add('oneH1', [`found ${h1s.length}`]);
+
+    const skips = [];
+    let previous = 0;
+    for (const h of headings) {
+      const level = parseInt(h.tagName.slice(1), 10);
+      if (previous > 0 && level - previous > 1) {
+        skips.push(`h${previous} to h${level} at "${(h.textContent || '').trim().slice(0, 40)}"`);
+      }
+      previous = level;
+    }
+    add('headingOrder', skips);
+
+    add('emptyHeading', headings.filter((h) => !(h.textContent || '').trim() && !named(h)).map(brief));
+
+    if (!visible('main, [role="main"]').length) add('mainLandmark', ['none on the page']);
+    if (!visible('nav, [role="navigation"]').length) add('navLandmark', ['none on the page']);
+    if (!attr(document.documentElement, 'lang')) add('htmlLang', ['none set']);
+    if (!(document.title || '').trim()) add('pageTitle', ['empty']);
+
+    const meta = document.querySelector('meta[name="viewport"]');
+    if (meta) {
+      const content = (meta.getAttribute('content') || '').toLowerCase();
+      // Read the scale as a number. Any maximum-scale below 2 caps zoom, the
+      // same line axe draws, and a regex written for "1" missed 0.5 and 1.5.
+      const scale = /maximum-scale\s*=\s*([0-9.]+)/.exec(content);
+      const blocked = /user-scalable\s*=\s*(no|0)\b/.test(content)
+        || (scale && parseFloat(scale[1]) < 2);
+      if (blocked) add('zoomAllowed', [`<meta name="viewport" content="${content}">`]);
+    }
+
+    const navNames = visible('nav, [role="navigation"]').map((el) => attr(el, 'aria-label').toLowerCase());
+    const shared = navNames.filter((name, i) => name && navNames.indexOf(name) !== i);
+    add('uniqueNavName', Array.from(new Set(shared)));
+
+    return found;
+  });
+}
+
+// Assert one slice of the structural audit, in the wording that slice's own
+// step has always used.
+async function assertStructure(page, key, message) {
+  const found = await structuralAudit(page);
+  const items = found[key] || [];
+  assert.strictEqual(items.length, 0,
+    `${message(items)}\n  ${items.slice(0, 20).join('\n  ')}`);
+}
+
+// ---------------------------------------------------------------------------
 // Image alt text
 // ---------------------------------------------------------------------------
 
 /**
  * Assert every <img> on the page has an `alt` attribute.
  *
- * Empty `alt=""` is allowed (decorative images per WCAG); `role="presentation"`
- * is also allowed. Only a missing `alt` attribute fails. Iterates every <img>
- * in the document, including those nested in shadow-light DOM that the page
- * has rendered, so it works on infinite-scroll lists and image galleries too.
+ * Empty `alt=""` is allowed (decorative images per WCAG); `role="presentation"`,
+ * `role="none"`, `aria-label`, `aria-labelledby` and `title` are also accepted.
+ * Only a missing `alt` attribute fails. Images hidden from assistive technology
+ * (`aria-hidden`, `inert`, `hidden`, `display: none`, `visibility: hidden`)
+ * are skipped, the same as axe skips them. The same rule applies to the button,
+ * link and form field probes.
  *
  * Example #1: Then every image should have an alt attribute
  * Example #2: And every image should have an alt attribute
@@ -85,13 +250,8 @@ async function runAxe(world, opts = {}) {
  *
  */
 Then(/^every image should have an alt attribute$/, async function () {
-  const missing = await this.page.evaluate(() =>
-    Array.from(document.querySelectorAll('img'))
-      .filter((img) => !img.hasAttribute('alt') && img.getAttribute('role') !== 'presentation')
-      .map((img) => img.outerHTML.slice(0, 120))
-  );
-  assert.strictEqual(missing.length, 0,
-    `Found ${missing.length} <img> without alt:\n  ${missing.join('\n  ')}`);
+  await assertStructure(this.page, 'imageAlt',
+    (items) => `Found ${items.length} <img> without alt:`);
 });
 
 // ---------------------------------------------------------------------------
@@ -121,19 +281,8 @@ Then(/^every image should have an alt attribute$/, async function () {
  *
  */
 Then(/^every form field should have an accessible label$/, async function () {
-  const missing = await this.page.evaluate(() => {
-    const fields = Array.from(document.querySelectorAll('input:not([type="hidden"]), select, textarea'));
-    return fields.filter((el) => {
-      if (el.hasAttribute('aria-label') || el.hasAttribute('aria-labelledby')) return false;
-      if (el.id && document.querySelector(`label[for="${el.id}"]`)) return false;
-      if (el.closest('label')) return false;
-      const t = el.getAttribute('type');
-      if (t === 'submit' || t === 'button' || t === 'reset' || t === 'image') return false;
-      return true;
-    }).map((el) => el.outerHTML.slice(0, 120));
-  });
-  assert.strictEqual(missing.length, 0,
-    `Found ${missing.length} unlabeled form field(s):\n  ${missing.join('\n  ')}`);
+  await assertStructure(this.page, 'fieldLabel',
+    (items) => `Found ${items.length} unlabeled form field(s):`);
 });
 
 // ---------------------------------------------------------------------------
@@ -157,8 +306,8 @@ Then(/^every form field should have an accessible label$/, async function () {
  *
  */
 Then(/^the page should have a main landmark$/, async function () {
-  const count = await this.page.locator('main, [role="main"]').count();
-  assert.ok(count >= 1, 'Page is missing a <main> or [role="main"] landmark.');
+  const found = await structuralAudit(this.page);
+  assert.ok(!found.mainLandmark, 'Page is missing a <main> or [role="main"] landmark.');
 });
 
 /**
@@ -177,8 +326,8 @@ Then(/^the page should have a main landmark$/, async function () {
  *
  */
 Then(/^the page should have a navigation landmark$/, async function () {
-  const count = await this.page.locator('nav, [role="navigation"]').count();
-  assert.ok(count >= 1, 'Page is missing a <nav> or [role="navigation"] landmark.');
+  const found = await structuralAudit(this.page);
+  assert.ok(!found.navLandmark, 'Page is missing a <nav> or [role="navigation"] landmark.');
 });
 
 /**
@@ -199,8 +348,8 @@ Then(/^the page should have a navigation landmark$/, async function () {
  *
  */
 Then(/^the page should have exactly one h1$/, async function () {
-  const count = await this.page.locator('h1').count();
-  assert.strictEqual(count, 1, `Expected 1 <h1>, found ${count}.`);
+  const found = await structuralAudit(this.page);
+  assert.ok(!found.oneH1, `Expected 1 <h1>, ${(found.oneH1 || [''])[0]}.`);
 });
 
 // ---------------------------------------------------------------------------
@@ -292,8 +441,8 @@ Then(/^the focused element should be labeled "([^"]*)"$/, async function (text) 
  *
  */
 Then(/^the page should declare a language$/, async function () {
-  const lang = await this.page.evaluate(() => document.documentElement.getAttribute('lang') || '');
-  assert.ok(lang.length > 0, 'Page <html> is missing a "lang" attribute.');
+  const found = await structuralAudit(this.page);
+  assert.ok(!found.htmlLang, 'Page <html> is missing a "lang" attribute.');
 });
 
 /**
@@ -333,21 +482,8 @@ Then(/^the page language should be "([^"]*)"$/, async function (expected) {
  *
  */
 Then(/^the heading hierarchy should be valid$/, async function () {
-  const skips = await this.page.evaluate(() => {
-    const out = [];
-    const headings = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6'));
-    let prev = 0;
-    for (const h of headings) {
-      const level = parseInt(h.tagName.slice(1), 10);
-      if (prev > 0 && level - prev > 1) {
-        out.push(`<${h.tagName.toLowerCase()}>${(h.textContent || '').slice(0, 60).trim()}</${h.tagName.toLowerCase()}> (skipped from h${prev})`);
-      }
-      prev = level;
-    }
-    return out;
-  });
-  assert.strictEqual(skips.length, 0,
-    `Heading hierarchy skips levels:\n  ${skips.join('\n  ')}`);
+  await assertStructure(this.page, 'headingOrder',
+    (items) => `Heading hierarchy skips ${items.length} level(s):`);
 });
 
 // ---------------------------------------------------------------------------
@@ -406,19 +542,8 @@ Then(/^the page should have a skip link$/, async function () {
  *
  */
 Then(/^every button should have an accessible name$/, async function () {
-  const missing = await this.page.evaluate(() => {
-    const els = Array.from(document.querySelectorAll('button, [role="button"], input[type="submit"], input[type="button"]'));
-    return els.filter((el) => {
-      if (el.hasAttribute('aria-label') && el.getAttribute('aria-label').trim()) return false;
-      if (el.hasAttribute('aria-labelledby')) return false;
-      if (el.tagName === 'INPUT') {
-        return !((el.value || '').trim());
-      }
-      return !(el.textContent || '').trim();
-    }).map((el) => el.outerHTML.slice(0, 120));
-  });
-  assert.strictEqual(missing.length, 0,
-    `Found ${missing.length} button(s) without accessible name:\n  ${missing.join('\n  ')}`);
+  await assertStructure(this.page, 'buttonName',
+    (items) => `Found ${items.length} button(s) without accessible name:`);
 });
 
 /**
@@ -435,20 +560,8 @@ Then(/^every button should have an accessible name$/, async function () {
  *
  */
 Then(/^every link should have an accessible name$/, async function () {
-  const missing = await this.page.evaluate(() => {
-    const links = Array.from(document.querySelectorAll('a[href]'));
-    return links.filter((a) => {
-      if (a.hasAttribute('aria-label') && a.getAttribute('aria-label').trim()) return false;
-      if (a.hasAttribute('aria-labelledby')) return false;
-      if ((a.textContent || '').trim()) return false;
-      // Allow image-link if alt has text.
-      const img = a.querySelector('img[alt]');
-      if (img && (img.getAttribute('alt') || '').trim()) return false;
-      return true;
-    }).map((a) => a.outerHTML.slice(0, 120));
-  });
-  assert.strictEqual(missing.length, 0,
-    `Found ${missing.length} link(s) without accessible name:\n  ${missing.join('\n  ')}`);
+  await assertStructure(this.page, 'linkName',
+    (items) => `Found ${items.length} link(s) without accessible name:`);
 });
 
 // ---------------------------------------------------------------------------
@@ -470,13 +583,8 @@ Then(/^every link should have an accessible name$/, async function () {
  *
  */
 Then(/^no element should have a positive tabindex$/, async function () {
-  const offenders = await this.page.evaluate(() =>
-    Array.from(document.querySelectorAll('[tabindex]'))
-      .filter((el) => parseInt(el.getAttribute('tabindex'), 10) > 0)
-      .map((el) => el.outerHTML.slice(0, 120))
-  );
-  assert.strictEqual(offenders.length, 0,
-    `Found ${offenders.length} element(s) with positive tabindex:\n  ${offenders.join('\n  ')}`);
+  await assertStructure(this.page, 'positiveTabindex',
+    (items) => `Found ${items.length} element(s) with positive tabindex:`);
 });
 
 // ---------------------------------------------------------------------------
@@ -498,24 +606,8 @@ Then(/^no element should have a positive tabindex$/, async function () {
  *
  */
 Then(/^every ARIA reference should resolve$/, async function () {
-  const broken = await this.page.evaluate(() => {
-    const attrs = ['aria-labelledby', 'aria-describedby', 'aria-controls', 'aria-owns', 'aria-flowto'];
-    const out = [];
-    for (const attr of attrs) {
-      const els = Array.from(document.querySelectorAll(`[${attr}]`));
-      for (const el of els) {
-        const ids = (el.getAttribute(attr) || '').split(/\s+/).filter(Boolean);
-        for (const id of ids) {
-          if (!document.getElementById(id)) {
-            out.push(`<${el.tagName.toLowerCase()} ${attr}="${el.getAttribute(attr)}"> — missing id "${id}"`);
-          }
-        }
-      }
-    }
-    return out;
-  });
-  assert.strictEqual(broken.length, 0,
-    `Found ${broken.length} broken ARIA reference(s):\n  ${broken.join('\n  ')}`);
+  await assertStructure(this.page, 'ariaReference',
+    (items) => `Found ${items.length} broken ARIA reference(s):`);
 });
 
 /**
@@ -615,8 +707,8 @@ Then(/^required fields should be consistently marked$/, async function () {
  *
  */
 Then(/^the page should have a title$/, async function () {
-  const title = await this.page.title();
-  assert.ok(title && title.trim().length > 0, 'Page is missing a non-empty <title>.');
+  const found = await structuralAudit(this.page);
+  assert.ok(!found.pageTitle, 'Page is missing a non-empty <title>.');
 });
 
 // ---------------------------------------------------------------------------
@@ -625,7 +717,7 @@ Then(/^the page should have a title$/, async function () {
 
 /**
  * Assert the viewport meta tag does not disable user-scaling
- * (`user-scalable=no` or `maximum-scale=1`). WCAG 1.4.4 / 1.4.10.
+ * (`user-scalable=no`, or a `maximum-scale` below 2). WCAG 1.4.4 / 1.4.10.
  *
  * Example #1: Then user zoom should be allowed
  * Example #2: Given I am on the homepage
@@ -638,13 +730,9 @@ Then(/^the page should have a title$/, async function () {
  *
  */
 Then(/^user zoom should be allowed$/, async function () {
-  const blocked = await this.page.evaluate(() => {
-    const m = document.querySelector('meta[name="viewport"]');
-    if (!m) return false;
-    const c = (m.getAttribute('content') || '').toLowerCase();
-    return /user-scalable\s*=\s*(no|0)/.test(c) || /maximum-scale\s*=\s*1(\.0)?(\b|$)/.test(c);
-  });
-  assert.ok(!blocked, 'Viewport meta tag disables user-scaling — fails WCAG 1.4.4 / 1.4.10.');
+  const found = await structuralAudit(this.page);
+  assert.ok(!found.zoomAllowed,
+    `Viewport meta tag disables user-scaling: ${(found.zoomAllowed || [''])[0]}`);
 });
 
 // ===========================================================================
@@ -671,8 +759,9 @@ Then(/^the page should pass an accessibility audit(?: at level "(A|AA|AAA)")?$/,
 });
 
 /**
- * Assert NO axe violations of the given impact severity.
- * Levels: `minor`, `moderate`, `serious`, `critical`.
+ * Assert NO axe violations at the given impact or worse.
+ * Levels, lowest first: `minor`, `moderate`, `serious`, `critical`.
+ * `serious` also fails on a critical violation, and `minor` on any violation.
  *
  * Use to gate merges on critical/serious issues while triaging minor regressions.
  *
@@ -687,9 +776,48 @@ Then(/^the page should pass an accessibility audit(?: at level "(A|AA|AAA)")?$/,
  */
 Then(/^the page should have no (critical|serious|moderate|minor) accessibility violations$/, async function (impact) {
   const result = await runAxe(this);
-  const filtered = result.violations.filter((v) => v.impact === impact);
+  const filtered = atOrAbove(result.violations, impact);
   assert.strictEqual(filtered.length, 0,
-    `Expected no ${impact} violations, got ${filtered.length}:\n${summariseViolations(filtered)}`);
+    `Expected no ${impact} or worse violations, got ${filtered.length}:\n${summariseViolations(filtered)}`);
+});
+
+/**
+ * Assert axe finds no violations at all, whatever their impact.
+ *
+ * Example #1: Then the page should have no accessibility violations
+ * Example #2: Given I am on the homepage
+ *               Then the page should have no accessibility violations
+ * Example #3: When I follow "Pricing"
+ *               Then the page should have no accessibility violations
+ * Example #4: And the page should have no accessibility violations
+ * Example #5: Then the page should have no accessibility violations
+ *               And the heading hierarchy should be valid
+ *
+ */
+Then(/^the page should have no accessibility violations$/, async function () {
+  const result = await runAxe(this);
+  assert.strictEqual(result.violations.length, 0,
+    `Expected no violations, got ${result.violations.length}:\n${summariseViolations(result.violations)}`);
+});
+
+/**
+ * Assert a specific axe rule does not fire inside one subtree. Use when a
+ * rule is clean in your own component but not yet across the whole page.
+ *
+ * Example #1: Then the element "main" should not violate the accessibility rule "color-contrast"
+ * Example #2: Then the element "#checkout" should not violate the accessibility rule "label"
+ * Example #3: And the element ".card" should not violate the accessibility rule "heading-order"
+ * Example #4: Then the element "footer" should not violate the accessibility rule "link-name"
+ * Example #5: Then the element "[data-testid=nav]" should not violate the accessibility rule "landmark-unique"
+ *
+ */
+Then(/^the element "([^"]*)" should not violate the accessibility rule "([^"]*)"$/, async function (selector, ruleId) {
+  const result = await runAxe(this, { include: selector });
+  const hit = result.violations.find((v) => v.id === ruleId);
+  if (hit) {
+    assert.fail(`Rule "${ruleId}" violated inside "${selector}" by ${hit.nodes.length} node(s):\n  `
+      + hit.nodes.slice(0, 5).map((n) => n.target.join(' ')).join('\n  '));
+  }
 });
 
 /**
@@ -797,4 +925,102 @@ Then(/^the page should pass the accessibility rules "([^"]*)"$/, async function 
   const hits = result.violations.filter((v) => ids.includes(v.id));
   assert.strictEqual(hits.length, 0,
     `Required rule(s) violated:\n${summariseViolations(hits)}`);
+});
+
+// ---------------------------------------------------------------------------
+// The full check
+// ---------------------------------------------------------------------------
+
+// axe already reports these, so the structural pass keeps quiet about anything
+// axe has just named. One finding, one line, whichever engine found it.
+const AXE_COVERS = {
+  'image-alt': 'imageAlt',
+  'button-name': 'buttonName',
+  'input-button-name': 'buttonName',
+  'link-name': 'linkName',
+  'label': 'fieldLabel',
+  'select-name': 'fieldLabel',
+  'form-field-multiple-labels': 'fieldLabel',
+  'frame-title': 'frameTitle',
+  'tabindex': 'positiveTabindex',
+  'aria-valid-attr-value': 'ariaReference',
+  'page-has-heading-one': 'oneH1',
+  'heading-order': 'headingOrder',
+  'empty-heading': 'emptyHeading',
+  'landmark-one-main': 'mainLandmark',
+  'html-has-lang': 'htmlLang',
+  'document-title': 'pageTitle',
+  'meta-viewport': 'zoomAllowed',
+  'meta-viewport-large': 'zoomAllowed',
+  'landmark-unique': 'uniqueNavName',
+};
+
+// Facts about the page as a whole, reported as one line rather than a count.
+const PAGE_FACTS = new Set(['oneH1', 'mainLandmark', 'navLandmark', 'htmlLang', 'pageTitle', 'zoomAllowed']);
+
+function fullCheckReport(violations, found) {
+  const covered = new Set(violations.map((v) => AXE_COVERS[v.id]).filter(Boolean));
+  const lines = [];
+  if (violations.length) {
+    lines.push(`axe found ${violations.length} violation(s):\n${summariseViolations(violations)}`);
+  }
+  for (const [key, label] of Object.entries(STRUCTURE)) {
+    const items = found[key];
+    if (!items || covered.has(key)) continue;
+    if (PAGE_FACTS.has(key)) {
+      lines.push(`${label}: ${items[0]}`);
+      continue;
+    }
+    const head = `${items.length} ${label}`;
+    const shown = items.slice(0, 5);
+    const more = items.length > shown.length ? `\n  ... and ${items.length - shown.length} more` : '';
+    lines.push(`${head}:\n  ${shown.join('\n  ')}${more}`);
+  }
+  return lines;
+}
+
+/**
+ * Run the whole accessibility check on the current page in one step: an axe
+ * audit at the given level (AA by default), plus every structural check in
+ * this file. A finding axe already named is not repeated. Reports every
+ * failure at once rather than stopping at the first.
+ *
+ * Example #1: Then the page should pass the full accessibility check
+ * Example #2: Then the page should pass the full accessibility check at level "AA"
+ * Example #3: And the page should pass the full accessibility check at level "A"
+ * Example #4: When I go to "/news"
+ *               Then the page should pass the full accessibility check
+ * Example #5: Given I am an anonymous user
+ *               When I am on the homepage
+ *               Then the page should pass the full accessibility check at level "AA"
+ *
+ */
+Then(/^the page should pass the full accessibility check(?: at level "(A|AA|AAA)")?$/, async function (level) {
+  const result = await runAxe(this, { tags: WCAG_TAGS[level || 'AA'] });
+  const found = await structuralAudit(this.page);
+  const lines = fullCheckReport(result.violations, found);
+  assert.strictEqual(lines.length, 0,
+    `The page failed ${lines.length} accessibility check(s):\n\n${lines.join('\n\n')}`);
+});
+
+/**
+ * The same whole-page check, reported rather than asserted. Use it to see
+ * where a page stands before deciding what to gate on.
+ *
+ * Example #1: Then I print the full accessibility check
+ * Example #2: When I go to "/about-us"
+ *               Then I print the full accessibility check
+ * Example #3: And we print the full accessibility check
+ * Example #4: Given I am an anonymous user
+ *               Then I print the full accessibility check
+ * Example #5: Then I print the full accessibility check
+ *               And the page should have no critical accessibility violations
+ *
+ */
+Then(/^(?:I |we )*print the full accessibility check$/, async function () {
+  const result = await runAxe(this, { tags: WCAG_TAGS.AA });
+  const found = await structuralAudit(this.page);
+  const lines = fullCheckReport(result.violations, found);
+  console.log(`\n--- Full accessibility check: ${this.page.url()} ---`);
+  console.log(lines.length ? lines.join('\n\n') : '  nothing to report');
 });

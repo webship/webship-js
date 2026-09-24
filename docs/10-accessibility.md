@@ -38,7 +38,9 @@ Then every image should have an alt attribute
  And every form field should have an accessible label
 ```
 
-`every image` allows empty `alt=""` (decorative) and `role="presentation"`. Missing alt fails.
+`every image` allows empty `alt=""` (decorative), `role="presentation"` or `role="none"`, and an `aria-label`, `aria-labelledby` or `title`. Missing alt fails.
+
+Every probe skips what assistive technology cannot reach: anything under `aria-hidden="true"`, `inert` or `hidden`, and anything with `display: none` or `visibility: hidden`. axe does the same, so a closed menu or an overlay scrim no longer fails a probe that axe passes.
 
 `every form field` counts as labelled when **any** of the following is true:
 - An `aria-label` attribute is present
@@ -119,6 +121,20 @@ Then the page should have a title
 | `user zoom should be allowed` | 1.4.4, 1.4.10 |
 | `required fields should be consistently marked` | 3.3.2 |
 
+## The full check, in one step
+
+```gherkin
+Then the page should pass the full accessibility check
+ And the page should pass the full accessibility check at level "A"
+Then I print the full accessibility check
+```
+
+One step runs axe at the level (AA by default) and every structural probe in this file in a single pass: image alt, button and link names, field labels, iframe titles, positive tabindex, unresolved ARIA references, one h1, skipped heading levels, empty headings, main and navigation landmarks, page language, page title, zoom, and navigation landmarks sharing one name.
+
+It reports every failure at once, not the first. A finding axe already named is not repeated by the probe that covers the same thing. The print form reports without failing, which is the way to see where a page stands before choosing a gate.
+
+The skip link, focus, ARIA role and required-field steps are not part of it. Add them beside it when you need them.
+
 ## axe-core full audit
 
 ```gherkin
@@ -127,12 +143,16 @@ Then the page should pass an accessibility audit
  And the page should pass an accessibility audit at level "AAA"
  And the page should have no critical accessibility violations
  And the page should have no serious accessibility violations
+ And the page should have no accessibility violations
  And the element "main" should pass an accessibility audit
+ And the element "main" should not violate the accessibility rule "color-contrast"
  And the page should pass an accessibility audit excluding "iframe.payment"
  And the page should not violate the accessibility rule "color-contrast"
  And the page should pass the accessibility rules "image-alt, label, button-name"
  Then I print accessibility violations
 ```
+
+The impact gate is a ladder. `no serious accessibility violations` fails on a serious **or** a critical violation, and `no minor` fails on any. Earlier releases matched each gate to its own level only, so a page with a critical violation passed the serious gate. A suite that gated on serious alone gets stricter on upgrade. `no accessibility violations` fails on any impact.
 
 Default audit level is **AA** — required by EU Web Accessibility
 Directive, US Section 508, UK PSBAR. Use `at level "AAA"` for stricter
@@ -159,9 +179,10 @@ For an admin / authenticated UI where some third-party widgets are
 known-bad, gate on the impact-based step instead:
 
 ```gherkin
-Then the page should have no critical accessibility violations
- And the page should have no serious accessibility violations
+Then the page should have no serious accessibility violations
 ```
+
+One serious gate now covers critical too.
 
 Tag scenarios `@a11y` so CI can run the accessibility suite in
 isolation: `npx cucumber-js --tags "@a11y"`.
