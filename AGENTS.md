@@ -109,7 +109,7 @@ step definitions. Critical takeaways:
 
 ## Source map
 
-Step definitions: `tests/step-definitions/` — 413 steps across 36
+Step definitions: `tests/step-definitions/` — 417 steps across 36
 `*.steps.js` files, all auto-loaded. The `webship.js` file there is the
 single canonical entry point — World, hooks, init script, and shared
 helpers (`smartSettle`, `waitForPageLoad`, `buildSelector`, `gotoUrl`,
