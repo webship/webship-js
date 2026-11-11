@@ -36,7 +36,7 @@
   "homepage": "https://github.com/webship/webship-js",
   "dependencies": {
     "@axe-core/playwright": "^4.11.3",
-    "@cucumber/cucumber": "*",
+    "@cucumber/cucumber": "^12",
     "@cucumber/pretty-formatter": "~1",
     "@types/node": "~20",
     "ajv": "^8.20.0",
