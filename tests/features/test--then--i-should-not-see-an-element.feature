@@ -6,3 +6,13 @@ Feature: An example to ensure that a specific element is not visible on the curr
     Given I am on "/test--then--i-should--see-text-in-element.html"
      Then I should not see an "Eamil" element
       And I should not see a "Country" element
+
+  Scenario: An element that is hidden is not seen
+    Given I am on "/element-visibility.html"
+     Then I should not see a "Hidden note" element
+      And I should not see a "Promo banner" element
+
+  Scenario: A label stands for the control it labels
+    Given I am on "/element-visibility.html"
+     Then I should see an "Email" element
+      And I should not see a "Ghost label" element

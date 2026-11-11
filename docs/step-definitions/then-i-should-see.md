@@ -22,6 +22,12 @@ The following step variations are available:
 - Then I should see "value" in the "text" element by attr
 - Then I should not see "value" in the "text" element by attr
 
+## Seeing an element
+
+`I should see (a/an) "text" element` and `I should not see (a/an) "text" element` name the element by its exact visible text, as it reads on the page. A `<label for="...">` stands for the control it labels. "Should not see" is the opposite of "should see": it passes when no element named that way is visible, so an element that is hidden does not fail it.
+
+The text is not a CSS selector. For a selector use `"<selector>" should be visible` or `"<selector>" should not be visible`.
+
 ## Purpose
 
 "This step is useful for verifying that certain elements or messages are displayed correctly on a webpage or application, ensuring that the expected content is visible to the user or the automated tests."

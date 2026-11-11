@@ -86,17 +86,32 @@ Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* "([^"]*)?" row$/, async f
 // ---------------------------------------------------------------------------
 
 /**
- * Assert that an element with a given label exists (or does not) on the page.
+ * Assert that an element is, or is not, visible on the page. The element is
+ * named by its exact visible text; a `<label for="...">` stands for the
+ * control it labels. The text is not a CSS selector: for a selector use
+ * `"<selector>" should be visible` or `"<selector>" should not be visible`.
+ *
+ * "should not see" is the opposite of "should see": it passes when no element
+ * named that way is visible, so an element that is hidden does not fail it.
  *
  * Example #1: Then I should see a "Username" element
  * Example #2: Then I should not see a "Username" element
  * Example #3: And we should see an "Email" element
+ * Example #4: Then I should not see an "Email" element
+ * Example #5: And we should not see a "Promo banner" element
  *
  */
 Then(/^(I |we )*should( not)* see (a|an) "([^"]*)?" element$/, async function (pronounCase, notCase, aAnCase, element) {
   if (notCase) {
-    const text = await this.page.locator('body').textContent() || '';
-    assert.ok(!text.includes(element), `Page should NOT contain element text "${element}" but it does.`);
+    // Same lookup as the positive branch, over every match, without waiting.
+    const named = this.page.getByText(element, { exact: true });
+    const forIds = await named.evaluateAll((nodes) => nodes.map((node) => node.getAttribute('for')));
+    for (let i = 0; i < forIds.length; i++) {
+      const target = forIds[i]
+        ? this.page.locator(`[id="${forIds[i].replace(/["\\]/g, '\\$&')}"]`).first()
+        : named.nth(i);
+      assert.ok(!(await target.isVisible()), `Element "${element}" should NOT be visible but it is.`);
+    }
   } else {
     const loc = this.page.getByText(element, { exact: true }).first();
     const forAttr = await loc.getAttribute('for').catch(() => null);
