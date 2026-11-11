@@ -17,6 +17,13 @@ function parseTimeout(secondsStr) {
   return n > 0 ? n * 1000 : 5000;
 }
 
+// Collapse every run of whitespace (line breaks, tabs, non-breaking spaces) to
+// one space and trim, so markup that wraps a line does not change the text a
+// visitor reads.
+function normalizeText(value) {
+  return String(value || '').replace(/\s+/g, ' ').trim();
+}
+
 // Poll fn() until it returns truthy, or timeout. fn() returns a value;
 // `predicate` decides pass/fail. Returns the last value seen.
 async function poll(fn, predicate, timeout, message) {
@@ -184,7 +191,10 @@ Then(/^"([^"]*)" should have text "([^"]*)"(?: within (\d+) seconds?)?$/, async 
 });
 
 /**
- * Assert an element's textContent contains an expected substring.
+ * Assert an element's textContent contains an expected substring. Runs of
+ * whitespace are collapsed to one space and trimmed on both sides first, so
+ * markup that wraps a line still matches. Use `should have text` for the
+ * exact match.
  *
  * Example #1: Then "h1" should contain text "Welcome"
  * Example #2: Then ".badge" should contain text "unread" within 3 seconds
@@ -195,9 +205,10 @@ Then(/^"([^"]*)" should have text "([^"]*)"(?: within (\d+) seconds?)?$/, async 
  */
 Then(/^"([^"]*)" should contain text "([^"]*)"(?: within (\d+) seconds?)?$/, async function (selector, text, sec) {
   const loc = this.page.locator(selector).first();
+  const expected = normalizeText(text);
   await poll(
-    () => loc.textContent(),
-    (v) => (v || '').includes(text),
+    async () => normalizeText(await loc.textContent()),
+    (v) => v.includes(expected),
     parseTimeout(sec),
     `Expected "${selector}" to contain text "${text}"`
   );

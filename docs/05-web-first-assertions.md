@@ -52,6 +52,8 @@ Then "<sel>" should contain text "$99"
 Then "<sel>" should have value "alice@example.com"
 ```
 
+`should have text` is the exact match: the element's text, trimmed. `should contain text` collapses every run of whitespace to one space, on the element's text and on the expected text, before it looks for the substring, so a line the markup wraps still matches.
+
 ## Attributes / classes
 
 ```gherkin
