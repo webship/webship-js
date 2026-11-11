@@ -15,9 +15,9 @@ This page documents every supported setting plus its env-var override.
 | Key | Type | Default | Notes |
 | --- | --- | --- | --- |
 | `timeout` | int (ms) | `30000` | Per-step timeout enforced by `setDefaultTimeout`. |
-| `requireModule` | array | `['ts-node/register']` | TypeScript runtime support. |
+| `requireModule` | array | `['tsx/cjs']` | TypeScript runtime support. |
 | `require` | array | step-definition globs | Files Cucumber-js loads at startup. |
-| `paths` | array | `['tests/features/**/*.feature']` | Where to find feature files. |
+| `paths` | array | `['tests/features/**/*.feature']` | Where to find feature files. The scaffolded `cucumber.js` also reads `FEATURES`, comma-separated: `FEATURES=tests/features/a.feature,tests/features/b.feature`. |
 | `format` | array | pretty + JSON report | Output formatters. |
 | `formatOptions` | object | colour theme | Pretty-formatter colours. |
 | `worldParameters` | object | (sections below) | Everything passed to the Playwright World. |
@@ -131,6 +131,8 @@ screenshot: {
 | `filenamePattern` | `{datetime}...` | `WEBSHIP_SCREENSHOT_PATTERN` |
 | `filenamePatternFailed` | `{failed_prefix}...` | `WEBSHIP_SCREENSHOT_PATTERN_FAIL` |
 | `infoTypes` | `''` | `WEBSHIP_SCREENSHOT_INFO_TYPES` (e.g. `"url,feature,step,datetime"`) |
+
+`init-webship-js` writes `dir: './tests/screenshots'` in the scaffolded `cucumber.js`, beside `tests/reports/`.
 
 Filename pattern tokens: `{datetime}`, `{date}`, `{time}`, `{feature_file}`,
 `{feature}`, `{scenario}`, `{step_line}`, `{ext}`, `{failed_prefix}`,
