@@ -216,7 +216,7 @@ Given(/^the network is online$/, async function () {
  *               Then a GET request to "**\/api/feed/page=2" should have been made
  *
  */
-Given(/^(I |we )*start recording network requests$/, function () {
+Given(/^(I |we )*start recording network requests$/, function (pronounCase) {
   ensureRequestLog(this);
 });
 

@@ -299,7 +299,7 @@ tests/step-definitions/
 ├── xml.steps.js            (20)  # XPath equals / contains / count / attr
 └── yaml.steps.js           (38)  # multi-doc, types, numerics, JSON Schema, diff
 
-tests/features/                 # 72 .feature files
+tests/features/                 # 73 .feature files
 tests/selectors/                # 26 JSON presets + _canonical-keys.json
 tests/assets/                   # upload fixtures (pdf, png)
 examples/                       # static HTML fixtures served by `npm start`

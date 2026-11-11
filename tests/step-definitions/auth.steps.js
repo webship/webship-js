@@ -115,7 +115,7 @@ Given(/^(I |we )*restore the auth state from "([^"]*)"$/, async function (pronou
  *               Then I should see "Login"
  *
  */
-Given(/^(I |we )*clear the auth state$/, async function () {
+Given(/^(I |we )*clear the auth state$/, async function (pronoun) {
   await this.context.clearCookies();
   try {
     await this.page.evaluate(() => {
