@@ -889,7 +889,7 @@ Then(/^the page should not violate the accessibility rule "([^"]*)"$/, async fun
  *               Then I print accessibility violations
  *
  */
-Then(/^(I |we )*print accessibility violations$/, async function () {
+Then(/^(I |we )*print accessibility violations$/, async function (pronounCase) {
   const result = await runAxe(this);
   if (result.violations.length === 0) {
     console.log('\n--- Accessibility violations: none ---');

@@ -908,6 +908,6 @@ Then('the YAML should not use the namespace {string}', function (ns) {
  *               And we print last YAML response
  *
  */
-When(/^(I |we )*print last YAML response$/, async function () {
+When(/^(I |we )*print last YAML response$/, async function (pronounCase) {
   console.log(this._rawYamlResponse || '(no response)');
 });

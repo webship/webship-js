@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Native dialogs</title>
+</head>
+<body>
+  <h1>Native dialogs</h1>
+
+  <p><button id="delete" type="button">Delete item</button></p>
+  <p id="result">Waiting</p>
+
+  <script>
+    var clicks = 0;
+    document.getElementById('delete').addEventListener('click', function () {
+      clicks += 1;
+      var answer = window.confirm('Delete this item?') ? 'Item deleted' : 'Deletion cancelled';
+      document.getElementById('result').textContent = answer + ' #' + clicks;
+    });
+  </script>
+</body>
+</html>

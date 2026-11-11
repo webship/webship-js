@@ -77,7 +77,7 @@ When(/^(I |we )*switch to iframe with locator "([^"]*)"$/, async function (prono
  *               And I press "Refresh"
  *
  */
-When(/^(I |we )*switch to the root document$/, async function () {
+When(/^(I |we )*switch to the root document$/, async function (pronoun) {
   this.frame = null;
 });
 

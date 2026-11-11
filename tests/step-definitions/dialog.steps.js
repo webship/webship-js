@@ -59,7 +59,7 @@ function attach(world, action, promptInput, once) {
  *               Then the last dialog type should be "confirm"
  *
  */
-Given(/^(I |we )*will accept the next dialog$/, function () {
+Given(/^(I |we )*will accept the next dialog$/, function (pronoun) {
   attach(this, 'accept', undefined, true);
 });
 
@@ -80,7 +80,7 @@ Given(/^(I |we )*will accept the next dialog$/, function () {
  *               When I close the tab
  *
  */
-Given(/^(I |we )*will dismiss the next dialog$/, function () {
+Given(/^(I |we )*will dismiss the next dialog$/, function (pronoun) {
   attach(this, 'dismiss', undefined, true);
 });
 
@@ -171,7 +171,7 @@ Then(/^the last dialog type should be "([^"]*)"$/, function (type) {
  *               When I follow "Discard changes"
  *
  */
-Given(/^(I |we )*accept all confirmation dialogs$/, function () {
+Given(/^(I |we )*accept all confirmation dialogs$/, function (pronoun) {
   attach(this, 'accept', undefined, false);
 });
 
@@ -188,6 +188,6 @@ Given(/^(I |we )*accept all confirmation dialogs$/, function () {
  *               When I follow "Leave page"
  *
  */
-Given(/^(I |we )*do not accept any confirmation dialogs$/, function () {
+Given(/^(I |we )*do not accept any confirmation dialogs$/, function (pronoun) {
   attach(this, 'dismiss', undefined, false);
 });

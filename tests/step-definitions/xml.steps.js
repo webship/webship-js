@@ -406,6 +406,6 @@ Then('the XML should not use the namespace {string}', async function (ns) {
  * Example #5: When I print last XML response
  *
  */
-When(/^(I |we )*print last XML response$/, async function () {
+When(/^(I |we )*print last XML response$/, async function (pronounCase) {
   console.log(this._rawResponse || '(no response)');
 });

@@ -85,7 +85,7 @@ When(/^(I |we )*advance the clock by (\d+) minutes?$/, async function (pronoun, 
  * Example #5: When I pause the clock
  *
  */
-When(/^(I |we )*pause the clock$/, async function () {
+When(/^(I |we )*pause the clock$/, async function (pronoun) {
   try { await this.page.clock.pauseAt(await this.page.evaluate(() => Date.now())); }
   catch (e) { throw friendly({ action: 'pause the clock', cause: e, hint: ISO_HINT }); }
 });
@@ -100,7 +100,7 @@ When(/^(I |we )*pause the clock$/, async function () {
  * Example #5: When I resume the clock
  *
  */
-When(/^(I |we )*resume the clock$/, async function () {
+When(/^(I |we )*resume the clock$/, async function (pronoun) {
   try { await this.page.clock.resume(); }
   catch (e) { throw friendly({ action: 'resume the clock', cause: e, hint: 'pause the clock first via "When I pause the clock".' }); }
 });

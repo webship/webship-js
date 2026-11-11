@@ -324,7 +324,7 @@ When(/^(I |we )*wait until at least (\d+) elements? match(?:es)? "([^"]*)"$/, as
  *               And I wait until requests are complete
  *
  */
-When(/^(I |we )*wait until (the network is idle|requests are complete|network goes quiet)$/, async function () {
+When(/^(I |we )*wait until (the network is idle|requests are complete|network goes quiet)$/, async function (pronounCase, phrasing) {
   await smartSettle(this.page, 10000);
 });
 
@@ -344,7 +344,7 @@ When(/^(I |we )*wait until (the network is idle|requests are complete|network go
  *               Then "<#root>" should be attached
  *
  */
-When(/^(I |we )*wait until( the)* page is interactive$/, async function () {
+When(/^(I |we )*wait until( the)* page is interactive$/, async function (pronounCase, theCase) {
   await this.page.waitForSelector('body', { state: 'attached', timeout: 10000 });
   await this.page.waitForLoadState('domcontentloaded', { timeout: 10000 });
 });
@@ -368,7 +368,7 @@ When(/^(I |we )*wait until( the)* page is interactive$/, async function () {
  *               Then I should not see "Saved"
  *
  */
-When(/^(I |we )*wait until pending timers settle$/, async function () {
+When(/^(I |we )*wait until pending timers settle$/, async function (pronounCase) {
   await this.page.waitForFunction(
     () => {
       const t = window.__webshipPendingTimers;
