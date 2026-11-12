@@ -10,8 +10,8 @@
 
 const { Then } = require('@cucumber/cucumber');
 const assert = require('assert');
-const axios = require('axios');
 const { buildSelector, getLocatorText, friendly } = require('./webship');
+const { getLastResponse } = require('./response.steps');
 
 // ---------------------------------------------------------------------------
 // Plain page-text
@@ -341,27 +341,23 @@ Then(/^(the )*response should( not)* contain "([^"]*)?"$/, async function (theCa
 /**
  * Assert that the current page's response status is or is not a given code.
  *
+ * The status is the one the browser received for the page it is showing
+ * (after any redirect), read from the browser session itself.
+ *
  * Example #1: Then the response status code should be 200
  * Example #2: And the response status code should not be 404
- * Example #3: Then the response status code should be 301
+ * Example #3: Then the response status code should be 404
+ * Example #4: Then the response status code should not be 500
+ * Example #5: When I am on "/admin"
+ *               Then the response status code should be 403
  *
  */
 Then(/^(the )*response status code should( not)* be (\d+)$/, async function (theCase, notCase, expectedStatusCode) {
-  const currentURL = this.page.url();
-  try {
-    const response = await axios.get(currentURL);
-    const status = response.status;
-    if (notCase) {
-      assert.notStrictEqual(status, parseInt(expectedStatusCode), `Status code should NOT be ${expectedStatusCode}`);
-    } else {
-      assert.strictEqual(status, parseInt(expectedStatusCode), `Expected status ${expectedStatusCode} but got ${status}`);
-    }
-  } catch (error) {
-    const status = error.response ? error.response.status : null;
-    if (notCase) {
-      if (status !== null) assert.notStrictEqual(status, parseInt(expectedStatusCode));
-    } else {
-      assert.strictEqual(status, parseInt(expectedStatusCode), `Expected status ${expectedStatusCode} but got ${status}`);
-    }
+  const expected = parseInt(expectedStatusCode, 10);
+  const { status } = await getLastResponse(this);
+  if (notCase) {
+    assert.notStrictEqual(status, expected, `Status code should NOT be ${expected}`);
+  } else {
+    assert.strictEqual(status, expected, `Expected status ${expected} but got ${status}`);
   }
 });

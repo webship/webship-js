@@ -1,36 +1,83 @@
 'use strict';
 
-// Inspect HTTP response headers using Playwright's request API on the current page URL.
+// Inspect the HTTP response of the page the browser is showing: its status
+// code and its headers. Both are read from the response the browser itself
+// received for the main document, so they follow the browser session — its
+// cookies, its HTTPS settings, any stubbed route — and never a second request
+// sent from outside the browser.
 
 const { Then, Before } = require('@cucumber/cucumber');
 const assert = require('assert');
+const { friendly } = require('./webship');
 
-// Capture response headers from navigation events, with page.request fallback.
-Before({ order: 100 }, async function () {
-  if (!this.page) return;
-  this._lastResponseHeaders = null;
-  this._lastResponseStatus = null;
-  this.page.on('response', (resp) => {
+const trackedPages = new WeakSet();
+
+// A URL without its fragment: "#section" never loads a new document.
+function withoutHash(url) {
+  return String(url || '').split('#')[0];
+}
+
+// Record the response of every main-document navigation on the current page.
+// Steps that swap the page (auth state, basic authentication, a new session)
+// get the listener on their first use of the response steps.
+function trackResponses(world) {
+  const page = world.page;
+  if (!page || trackedPages.has(page)) return;
+  trackedPages.add(page);
+  page.on('response', (resp) => {
     try {
-      if (resp.request().isNavigationRequest() && resp.frame() === this.page.mainFrame()) {
-        this._lastResponseHeaders = resp.headers();
-        this._lastResponseStatus = resp.status();
+      if (resp.request().isNavigationRequest() && resp.frame() === page.mainFrame()) {
+        world._lastResponse = { page, url: resp.url(), status: resp.status(), headers: resp.headers() };
+        world._lastResponseHeaders = world._lastResponse.headers;
+        world._lastResponseStatus = world._lastResponse.status;
       }
     } catch (e) { /* ignore */ }
   });
+}
+
+Before({ order: 100 }, async function () {
+  this._lastResponse = null;
+  this._lastResponseHeaders = null;
+  this._lastResponseStatus = null;
+  trackResponses(this);
 });
 
-async function getHeaders(world) {
-  if (world._lastResponseHeaders) return world._lastResponseHeaders;
-  // Fallback: fetch current URL via Playwright request context to get headers.
-  const url = world.page.url();
-  if (!url || url === 'about:blank') return {};
-  try {
-    const resp = await world.page.request.get(url);
-    return resp.headers();
-  } catch (e) {
-    return {};
+/**
+ * The response of the document the page is showing: { status, headers }.
+ *
+ * The recorded navigation response answers when it belongs to the current
+ * page and URL. Anything else — a page opened before the listener was there,
+ * a history move served from the browser cache, a URL changed by the History
+ * API — is asked for again through the browser context, which shares the
+ * session cookies and the HTTPS settings of the page.
+ */
+async function getLastResponse(world) {
+  const page = world.page;
+  if (!page) throw friendly('No page is open, so there is no response to read.');
+  trackResponses(world);
+  const url = page.url();
+  const last = world._lastResponse;
+  // 304 Not Modified only says the cached copy is still good: ask again for
+  // the status of the document itself.
+  if (last && last.page === page && last.status !== 304 && withoutHash(last.url) === withoutHash(url)) {
+    return last;
   }
+  if (!url || url === 'about:blank') {
+    throw friendly({
+      message: 'No page has been opened yet, so there is no response to read.',
+      hint: 'open a page first, for example: Given I am on "/".',
+    });
+  }
+  try {
+    const resp = await page.request.get(url);
+    return { page, url, status: resp.status(), headers: resp.headers() };
+  } catch (e) {
+    throw friendly(`Could not read the response of "${url}".`, e);
+  }
+}
+
+async function getHeaders(world) {
+  return (await getLastResponse(world)).headers || {};
 }
 
 /**
@@ -96,3 +143,5 @@ Then('the response header {string} should not contain the value {string}', async
   if (!key) return;
   assert.ok(String(h[key]).indexOf(value) === -1, `Header "${name}" should not contain "${value}".`);
 });
+
+module.exports = { getLastResponse };
