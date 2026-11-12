@@ -294,6 +294,21 @@ function buildSelector(attrValue, attr) {
 // not crash the suite. All other failures rethrow with extra context
 // (URL + likely cause).
 /**
+ * Resolve the value a step was given into the URL to request: an absolute
+ * `http://` or `https://` URL is returned as written, anything else is a
+ * path and is appended to the launch URL.
+ *
+ * @param {string} launchUrl
+ * @param {string} url
+ * @returns {string}
+ */
+function resolveUrl(launchUrl, url) {
+  const value = url === undefined || url === null ? '' : String(url);
+  if (/^https?:\/\//i.test(value)) return value;
+  return (launchUrl || '') + value;
+}
+
+/**
  * Navigate to a URL with friendly error messages for common failures
  * (server down, DNS, empty response). All other errors rethrow with
  * preserved stack + extra context.
@@ -613,6 +628,7 @@ module.exports = {
   isAnyModalVisible,
   buildSelector,
   gotoUrl,
+  resolveUrl,
   fillField,
   getLocatorText,
   pad,

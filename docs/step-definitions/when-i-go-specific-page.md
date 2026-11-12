@@ -27,7 +27,11 @@ When navigating to "/products"
 When we go to "/products"
 
 When we navigate to "/terms"
+
+When I go to "https://un.org"
 ```
+
+A path is opened under the `launchUrl`; an absolute `http://` or `https://` URL is opened as written.
 
 ## Key Details
 

@@ -25,7 +25,11 @@ Given we are on the "/about-us" page
 Given on "/about-us"
 
 Given on the "/about-us" page
+
+Given I am on "https://un.org"
 ```
+
+A path is opened under the `launchUrl`; an absolute `http://` or `https://` URL is opened as written.
 
 ## Key Information
 

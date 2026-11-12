@@ -6,7 +6,7 @@
 
 const { Given, When, Then } = require('@cucumber/cucumber');
 const assert = require('assert');
-const { gotoUrl, waitForPageLoad, smartSettle } = require('./webship');
+const { gotoUrl, resolveUrl, waitForPageLoad, smartSettle } = require('./webship');
 
 // ---------------------------------------------------------------------------
 // Sessions / visits
@@ -49,7 +49,8 @@ Given(/^(I am |we are )?on( the)* (homepage|frontpage)$/, async function (pronou
 });
 
 /**
- * Open a specific page under the launch URL.
+ * Open a specific page: a path is opened under the launch URL, an absolute
+ * `http://` or `https://` URL is opened as written.
  *
  * Example #1: Given I am on "/about-us.html"
  * Example #2: Given I am on the "/about-us.html" page
@@ -61,7 +62,7 @@ Given(/^(I am |we are )?on( the)* (homepage|frontpage)$/, async function (pronou
  *
  */
 Given(/^(I am |we are )*on( the)* "([^"]*)?"( page)*$/, async function (pronounCase, theCase, url, pageCase) {
-  await gotoUrl(this.page, this.launchUrl + url);
+  await gotoUrl(this.page, resolveUrl(this.launchUrl, url));
   await this.page.waitForSelector('body', { state: 'attached', timeout: 10000 });
   await waitForPageLoad(this.page);
 });
@@ -87,7 +88,8 @@ When(/^(I go |I navigate |we go |we navigate |navigating )?to( the)* (homepage|f
 });
 
 /**
- * Navigate to a specific page.
+ * Navigate to a specific page: a path is opened under the launch URL, an
+ * absolute `http://` or `https://` URL is opened as written.
  *
  * Example #1: When I go to "/contact-us.html"
  * Example #2: When I go to "/user/login"
@@ -95,11 +97,12 @@ When(/^(I go |I navigate |we go |we navigate |navigating )?to( the)* (homepage|f
  * Example #4: When navigating to "/products"
  * Example #5: When we go to "/products"
  * Example #6: When we navigate to "/terms"
+ * Example #7: When I go to "https://un.org"
  *
  */
 When(/^(I go |I navigate |we go |we navigate |navigating )?to "([^"]*)?"$/, async function (pronounCase, url) {
   const defaultTime = this.minWaitTime.page || 3000;
-  await gotoUrl(this.page, this.launchUrl + url);
+  await gotoUrl(this.page, resolveUrl(this.launchUrl, url));
   await this.page.waitForSelector('body', { state: 'attached', timeout: defaultTime });
   await waitForPageLoad(this.page, defaultTime);
 });
