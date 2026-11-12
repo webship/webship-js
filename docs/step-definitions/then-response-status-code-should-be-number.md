@@ -5,6 +5,8 @@
 
 "This step definition is used after making a request to the web service under test. Once the response is received, this step definition asserts HTTP status code returned by the server matches the expected code."
 
+The status is the one the browser received for the page it is showing, after any redirect. It is read from the browser session itself, so it follows the session cookies, the HTTPS settings of the browser context (a self-signed or locally issued certificate is fine) and any stubbed URL. A redirect is followed, so the step sees the status of the page the redirect ends on, never the 301 or 302 of the redirect itself.
+
 ## Gherkin Syntax
 
 ```
@@ -45,13 +47,13 @@ Then the response status code should be 200
 ### Example 2
 
 ```gherkin
-Then the response status code should be 404
+And the response status code should not be 404
 ```
 
 ### Example 3
 
 ```gherkin
-And the response status code should be 301
+Then the response status code should be 404
 ```
 
 ### Example 4
