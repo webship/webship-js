@@ -1,6 +1,6 @@
 'use strict';
 
-const { friendly } = require('./webship');
+const { friendly, resolveUrl } = require('./webship');
 
 // Validate file downloads triggered via URL or link click.
 
@@ -31,7 +31,7 @@ function tmpDownloadDir() {
  *
  */
 When(/^(I |we )*download the file from the URL "([^"]*)"$/, async function (pronoun, url) {
-  const target = url.startsWith('http') ? url : (this.launchUrl || '') + url;
+  const target = resolveUrl(this.launchUrl, url);
   try {
     const resp = await this.page.request.get(target);
     assert.strictEqual(resp.status(), 200, `Download failed with status ${resp.status()}.`);

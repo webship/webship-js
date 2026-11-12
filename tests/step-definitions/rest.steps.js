@@ -6,6 +6,7 @@
 const { Given, When, Then } = require('@cucumber/cucumber');
 const assert = require('assert');
 const axios = require('axios');
+const { resolveUrl } = require('./webship');
 
 function ensureState(world) {
   if (!world._rest) world._rest = { headers: {}, response: null };
@@ -38,7 +39,7 @@ Given('a REST header {string} with value {string}', async function (name, value)
  */
 When(/^(I |we )*send a REST "([^"]*)" request to "([^"]*)"$/, async function (pronoun, method, url) {
   const s = ensureState(this);
-  const target = url.startsWith('http') ? url : (this.launchUrl || '') + url;
+  const target = resolveUrl(this.launchUrl, url);
   s.response = await axios.request({
     method, url: target, headers: s.headers, validateStatus: () => true,
   });
@@ -71,7 +72,7 @@ When(/^(I |we )*send a REST "([^"]*)" request to "([^"]*)"$/, async function (pr
  */
 When(/^(I |we )*send a REST "([^"]*)" request to "([^"]*)" with body:$/, async function (pronoun, method, url, body) {
   const s = ensureState(this);
-  const target = url.startsWith('http') ? url : (this.launchUrl || '') + url;
+  const target = resolveUrl(this.launchUrl, url);
   s.response = await axios.request({
     method, url: target, headers: s.headers, data: body, validateStatus: () => true,
   });

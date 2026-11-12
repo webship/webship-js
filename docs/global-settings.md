@@ -42,7 +42,7 @@ on the command line).
 | --- | --- | --- |
 | string | `http://localhost:8080` | `LAUNCH_URL` |
 
-Base URL prepended to every relative path in `Given I am on "/path"`.
+Base URL prepended to every relative path in `Given I am on "/path"`. An absolute `http://` or `https://` URL is opened as written.
 
 ### `assetsFolder`
 
