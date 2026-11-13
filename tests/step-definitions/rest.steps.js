@@ -2,15 +2,34 @@
 
 // Lightweight REST testing — distinct from the existing api.steps.js steps
 // Preserves exact step phrasing for compatibility.
+//
+// A REST request is sent through the browser context, so it follows the
+// browser session: its cookies, its credentials and its HTTPS setting (a
+// self-signed or locally issued certificate is accepted like in the page).
 
 const { Given, When, Then } = require('@cucumber/cucumber');
 const assert = require('assert');
-const axios = require('axios');
-const { resolveUrl } = require('./webship');
+const { resolveUrl, sendRequest, friendly } = require('./webship');
 
 function ensureState(world) {
   if (!world._rest) world._rest = { headers: {}, response: null };
   return world._rest;
+}
+
+async function sendRest(world, method, url, body) {
+  const s = ensureState(world);
+  const target = resolveUrl(world.launchUrl, url);
+  try {
+    s.response = await sendRequest(world, {
+      method, url: target, headers: s.headers, data: body, session: true,
+    });
+  } catch (e) {
+    throw friendly({
+      action: `send the REST ${method} request to "${target}"`,
+      cause: e,
+      hint: 'check the URL is reachable from the machine that runs the tests.',
+    });
+  }
 }
 
 /**
@@ -38,11 +57,7 @@ Given('a REST header {string} with value {string}', async function (name, value)
  *
  */
 When(/^(I |we )*send a REST "([^"]*)" request to "([^"]*)"$/, async function (pronoun, method, url) {
-  const s = ensureState(this);
-  const target = resolveUrl(this.launchUrl, url);
-  s.response = await axios.request({
-    method, url: target, headers: s.headers, validateStatus: () => true,
-  });
+  await sendRest(this, method, url);
 });
 
 /**
@@ -71,11 +86,7 @@ When(/^(I |we )*send a REST "([^"]*)" request to "([^"]*)"$/, async function (pr
  *
  */
 When(/^(I |we )*send a REST "([^"]*)" request to "([^"]*)" with body:$/, async function (pronoun, method, url, body) {
-  const s = ensureState(this);
-  const target = resolveUrl(this.launchUrl, url);
-  s.response = await axios.request({
-    method, url: target, headers: s.headers, data: body, validateStatus: () => true,
-  });
+  await sendRest(this, method, url, body);
 });
 
 /**

@@ -308,6 +308,72 @@ function resolveUrl(launchUrl, url) {
   return (launchUrl || '') + value;
 }
 
+// Transport settings of the browser context that a request sent outside the
+// browser session still has to follow: the HTTPS setting, the proxy and the
+// client certificates. Nothing of the session itself (cookies, storage,
+// credentials, extra headers) is in this list.
+function transportOptions() {
+  const from = playwrightConfig.contextOptions || {};
+  const options = {};
+  for (const key of ['ignoreHTTPSErrors', 'proxy', 'clientCertificates']) {
+    if (from[key] !== undefined) options[key] = from[key];
+  }
+  return options;
+}
+
+function hasHeader(headers, name) {
+  const wanted = name.toLowerCase();
+  return Object.keys(headers).some((key) => key.toLowerCase() === wanted);
+}
+
+/**
+ * Send an HTTP request with Playwright's request API and return the answer
+ * as `{ status, statusText, headers, data, config }`: header names are in
+ * lower case and `data` is the parsed JSON when the body is JSON, the body
+ * text otherwise. No status code throws.
+ *
+ * `session: true` sends the request through the browser context, so it
+ * shares the cookies, the credentials and the extra headers of the page.
+ * `session: false` sends it from a request context of its own: no cookie of
+ * the browser goes with it and none comes back into the browser. Both follow
+ * the HTTPS setting of the browser context, so a self-signed or locally
+ * issued certificate is accepted whenever the browser accepts it.
+ *
+ * @param {Object} world
+ * @param {{method: string, url: string, headers?: Object, data?: *, session?: boolean}} request
+ * @returns {Promise<{status: number, statusText: string, headers: Object, data: *, config: Object}>}
+ */
+async function sendRequest(world, { method, url, headers, data, session }) {
+  const verb = String(method || 'GET').toUpperCase();
+  const sent = Object.assign({}, headers || {});
+  if (!hasHeader(sent, 'accept')) sent.Accept = 'application/json, text/plain, */*';
+  const options = { method: verb, headers: sent, failOnStatusCode: false };
+  if (data !== undefined && data !== null) {
+    options.data = data;
+    // A raw text body with no declared type goes out as a form body.
+    if (typeof data === 'string' && !hasHeader(sent, 'content-type') && /^(POST|PUT|PATCH)$/.test(verb)) {
+      sent['Content-Type'] = 'application/x-www-form-urlencoded';
+    }
+  }
+  const shared = session && world && world.context ? world.context.request : null;
+  const own = shared ? null : await playwright.request.newContext(transportOptions());
+  try {
+    const response = await (shared || own).fetch(url, options);
+    const text = await response.text();
+    let body = text;
+    try { body = JSON.parse(text); } catch (e) { /* not JSON: keep the text */ }
+    return {
+      status: response.status(),
+      statusText: response.statusText(),
+      headers: response.headers(),
+      data: body,
+      config: { method: verb.toLowerCase(), url },
+    };
+  } finally {
+    if (own) await own.dispose();
+  }
+}
+
 /**
  * Navigate to a URL with friendly error messages for common failures
  * (server down, DNS, empty response). All other errors rethrow with
@@ -629,6 +695,7 @@ module.exports = {
   buildSelector,
   gotoUrl,
   resolveUrl,
+  sendRequest,
   fillField,
   getLocatorText,
   pad,

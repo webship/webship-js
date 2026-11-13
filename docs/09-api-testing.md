@@ -1,6 +1,13 @@
 # API Testing
 
-Webship-js scenarios can talk to an HTTP API directly without leaving the cucumber-js runtime. The browser context's cookie jar is shared, so a UI login can be followed by REST-level assertions in the same scenario.
+Webship-js scenarios can talk to an HTTP API directly without leaving the cucumber-js runtime. Every request is sent with Playwright's request API and follows the HTTPS setting of the browser context (`ignoreHTTPSErrors` in `playwright.config.ts`), so a site served with a self-signed or locally issued certificate answers these steps the same way it answers the browser.
+
+There are two families of steps, and they differ in one point:
+
+| Steps | Sent | Cookies of the browser |
+| --- | --- | --- |
+| `I send a REST "<method>" request to "<url>"` (`rest.steps.js`) | through the browser context | shared: a UI login can be followed by REST-level assertions in the same scenario |
+| `I send a <METHOD> request to "<endpoint>"` (`api.steps.js`) | outside the browser session | not sent, and none comes back into the browser: the request carries only the base URL, the authentication and the headers the scenario set |
 
 ## Setting headers and base URL
 
@@ -96,7 +103,7 @@ Given the basic authentication with the username "admin" and the password "secre
 
 ## Short-form REST steps
 
-A parallel short-form lives in `rest.steps.js` for quick smoke tests:
+A parallel short-form lives in `rest.steps.js` for quick smoke tests. A path is joined to the launch URL, an absolute URL is requested as written, and the request goes through the browser context: it shares the session cookies and the HTTPS setting of the page.
 
 ```gherkin
 Given a REST header "Authorization" with value "Bearer abc123"

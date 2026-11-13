@@ -1,7 +1,15 @@
 const { Given, When, Then, Before } = require('@cucumber/cucumber');
-const axios = require('axios');
 const assert = require('assert');
-const { friendly } = require('./webship');
+const { friendly, sendRequest } = require('./webship');
+
+// The API steps talk to an API on its own terms: its own base URL, its own
+// authentication and headers. A request is sent outside the browser session
+// (no cookie of the browser goes with it), and it follows the HTTPS setting
+// of the browser context, so a self-signed or locally issued certificate is
+// accepted whenever the browser accepts it.
+function sendApiRequest(world, method, url, headers, data) {
+  return sendRequest(world, { method, url, headers, data, session: false });
+}
 
 // Global variables to store API response and request data
 let apiResponse = null;
@@ -223,17 +231,9 @@ When(/^(?:I |we )?send a ([A-Z]+) request to "([^"]+)"$/, async function (method
   const url = baseURL + '/' + prepareUrl(endpoint);
   
   try {
-    apiResponse = await axios({
-      method: method,
-      url: url,
-      headers: apiHeaders,
-      data: apiRequestData,
-      validateStatus: function (status) {
-        return true; // Don't throw on any status code
-      }
-    });
+    apiResponse = await sendApiRequest(this, method, url, apiHeaders, apiRequestData);
   } catch (error) {
-    throw friendly(`${method} request failed: ${error.message}`);
+    throw friendly(`${method} request to "${url}" failed.`, error);
   }
 });
 
@@ -269,17 +269,9 @@ When(/^(?:I |we )?send a ([A-Z]+) request to "([^"]+)" with values:$/, async fun
   });
   
   try {
-    apiResponse = await axios({
-      method: method,
-      url: url,
-      headers: { ...apiHeaders, 'Content-Type': 'application/json' },
-      data: JSON.stringify(fields),
-      validateStatus: function (status) {
-        return true; // Don't throw on any status code
-      }
-    });
+    apiResponse = await sendApiRequest(this, method, url, { ...apiHeaders, 'Content-Type': 'application/json' }, JSON.stringify(fields));
   } catch (error) {
-    throw friendly(`${method} request with values failed: ${error.message}`);
+    throw friendly(`${method} request with values to "${url}" failed.`, error);
   }
 });
 
@@ -342,17 +334,9 @@ When(/^(?:I |we )?send a ([A-Z]+) request to "([^"]+)" with body:$/, async funct
   }
 
   try {
-    apiResponse = await axios({
-      method: method,
-      url: url,
-      headers: headers,
-      data: requestData,
-      validateStatus: function (status) {
-        return true; // Don't throw on any status code
-      }
-    });
+    apiResponse = await sendApiRequest(this, method, url, headers, requestData);
   } catch (error) {
-    throw friendly(`${method} request with body failed: ${error.message}`);
+    throw friendly(`${method} request with body to "${url}" failed.`, error);
   }
 });
 
@@ -404,20 +388,9 @@ When(/^(?:I |we )?send a ([A-Z]+) request to "([^"]+)" with form data:$/, async 
     .join('&');
   
   try {
-    apiResponse = await axios({
-      method: method,
-      url: url,
-      headers: {
-        ...apiHeaders,
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      data: formData,
-      validateStatus: function (status) {
-        return true; // Don't throw on any status code
-      }
-    });
+    apiResponse = await sendApiRequest(this, method, url, { ...apiHeaders, 'Content-Type': 'application/x-www-form-urlencoded' }, formData);
   } catch (error) {
-    throw friendly(`${method} request with form data failed: ${error.message}`);
+    throw friendly(`${method} request with form data to "${url}" failed.`, error);
   }
 });
 
