@@ -4,9 +4,20 @@
 ## Overview
 
 webship-js ships native HTTP / REST API step definitions powered by
-Playwright's request fixture and `axios`. They share the browser
-context's cookie jar so the same scenario can mix UI actions and
+Playwright's request API, so the same scenario can mix UI actions and
 direct API calls.
+
+The API steps on this page send their requests outside the browser
+session: a request carries the base URL, the authentication and the
+headers the scenario set, and no cookie of the browser. They follow the
+HTTPS setting of the browser context (`ignoreHTTPSErrors` in
+`playwright.config.ts`), so an API served with a self-signed or locally
+issued certificate answers them the same way it answers the browser.
+
+To send a request with the cookies of the browser session, after a UI
+login for example, use the short-form REST steps
+(`When I send a REST "GET" request to "/api/me"`), which go through the
+browser context.
 
 ## Available API Step Definitions
 
