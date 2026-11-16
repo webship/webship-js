@@ -967,12 +967,38 @@ function buildVideoFilename(template, scope, status) {
     .replace('{ext}', 'webm');
 }
 
+// ---------------------------------------------------------------------------
+// Viewport tags: a scenario tagged @mobile or @desktop opens at the size of
+// the `mobile` or `desktop` breakpoint of worldParameters.selectors.breakpoints,
+// else at the built-in size (the xs and the default xl sizes). Without either
+// tag the viewport stays fluid (contextOptions.viewport). A step can still
+// change the viewport inside the scenario.
+// ---------------------------------------------------------------------------
+
+const TAG_VIEWPORTS = [
+  ['@mobile', 'mobile', { width: 375, height: 667 }],
+  ['@desktop', 'desktop', { width: 1200, height: 900 }],
+];
+
+function tagViewport(world, scope) {
+  const tags = new Set(((scope && scope.pickle && scope.pickle.tags) || []).map((t) => t.name));
+  const entry = TAG_VIEWPORTS.find(([tag]) => tags.has(tag));
+  if (!entry) return null;
+  const [, name, size] = entry;
+  const named = ((world.parameters && world.parameters.selectors && world.parameters.selectors.breakpoints) || {})[name];
+  const width = parseInt(named && named.width, 10);
+  const height = parseInt(named && named.height, 10);
+  return width > 0 && height > 0 ? { width, height } : Object.assign({}, size);
+}
+
 Before({ order: 5 }, async function (scope) {
   this._videoSettings = videoSettings(this, scope);
   this._videoRequested = shouldRecordAtStart(this._videoSettings, scope);
   this._videoForcedByTag = videoHasTag(scope, '@video');
 
   const extra = {};
+  const viewport = tagViewport(this, scope);
+  if (viewport) extra.viewport = viewport;
   if (this._videoRequested) {
     require('fs').mkdirSync(this._videoSettings.dir, { recursive: true });
     extra.recordVideo = {

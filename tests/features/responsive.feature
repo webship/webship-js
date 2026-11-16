@@ -23,3 +23,15 @@ Feature: Responsive step definitions
      Then "#viewport-size" should have text "Viewport is 400 by 700"
      When I set the viewport to the "tablet" breakpoint
      Then "#viewport-size" should have text "Viewport is 768 by 1024"
+
+  @mobile
+  Scenario: A scenario tagged @mobile opens at the mobile breakpoint
+    Given I am on "/viewport-size.html"
+     Then "#viewport-size" should have text "Viewport is 375 by 667"
+     When I set the viewport to the "tablet" breakpoint
+     Then "#viewport-size" should have text "Viewport is 768 by 1024"
+
+  @desktop
+  Scenario: A scenario tagged @desktop opens at the desktop breakpoint
+    Given I am on "/viewport-size.html"
+     Then "#viewport-size" should have text "Viewport is 1200 by 900"
