@@ -45,7 +45,7 @@ GitHub's native CI/CD. #1 by adoption (~33% of all open-source repos according t
 
 ### Workflow contents
 
-Runs on a push to `2.0.x`, on a pull request to `2.0.x` and by hand (`Actions → Github Actions → Run workflow`). The token is read-only (`permissions: contents: read`). A newer push to the same pull request cancels the run in progress; a run on `2.0.x` is never cancelled.
+Runs on a push to `2.0.x`, on a pull request to `2.0.x` and by hand (`Actions → Github Actions → Run workflow`). The token is read-only (`permissions: contents: read`). A newer push to the same pull request cancels the run in progress. A run on `2.0.x` and a run started by hand have a concurrency group of their own: they are never queued behind another run and never cancelled.
 
 Single job `build` on `ubuntu-latest`, 45-minute limit:
 
