@@ -20,9 +20,9 @@ Override paths with env vars:
 | `WEBSHIP_REPORT_DISABLE` | _unset_ | `1` to skip HTML generation |
 | `WEBSHIP_REPORT_THEME` | `bootstrap` | `bootstrap` / `hierarchy` / `foundation` / `simple` |
 | `WEBSHIP_REPORT_TITLE` | `Test Report` | Brand title in the HTML header |
-| `WEBSHIP_REPORT_APP_VERSION` | `2.0.0` | Metadata field |
+| `WEBSHIP_REPORT_APP_VERSION` | the `version` of the project's `package.json` | Metadata field |
 | `WEBSHIP_REPORT_ENV` | `development` | Test-environment metadata |
-| `WEBSHIP_REPORT_EXECUTED` | `Remote` | Execution location metadata |
+| `WEBSHIP_REPORT_EXECUTED` | `Remote` when `CI` is set, else `Local` | Execution location metadata |
 
 ## Regenerate manually
 
