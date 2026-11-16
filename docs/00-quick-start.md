@@ -45,6 +45,16 @@ reports that the browser was not installed, run:
 npx playwright install chromium
 ```
 
+When npm skips install scripts (it warns that webship-js has "install
+scripts not yet covered by allowScripts", or `--ignore-scripts` is set),
+nothing is copied and `npm test` answers `Error: no test specified`. Run
+the same scaffold by hand, then let the script run on the next installs:
+
+```bash
+npx init-webship-js
+npm install-scripts approve webship-js
+```
+
 Firefox and WebKit are optional: `npx playwright install firefox webkit`.
 
 ## 60-second first test
