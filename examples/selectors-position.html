@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Selector positions</title>
+  <style>
+    body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
+    #toolbar { display: flex; gap: 20px; align-items: center; }
+    #logo, #menu, #search { width: 160px; padding: 12px; border: 2px solid #333; text-align: center; }
+    #stage { position: relative; width: 600px; height: 260px; margin-top: 30px; }
+    #article { position: absolute; top: 0; left: 0; width: 500px; height: 200px; padding: 10px; background: #f0f4f8; border: 2px solid #333; z-index: 1; }
+    #popup { position: absolute; top: 60px; left: 120px; width: 260px; padding: 16px; background: #fff3cd; border: 2px solid #b58900; z-index: 10; }
+  </style>
+</head>
+<body>
+  <h1>Selector positions</h1>
+
+  <div id="toolbar">
+    <div id="logo">Logo</div>
+    <div id="menu">Menu</div>
+    <div id="search">Search</div>
+  </div>
+
+  <div id="stage">
+    <div id="article">Article text under the popup</div>
+    <div id="popup">Popup shown over the article</div>
+  </div>
+</body>
+</html>

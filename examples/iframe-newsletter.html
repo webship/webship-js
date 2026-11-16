@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Newsletter form</title>
+  <style>
+    body { margin: 0; padding: 12px; font-family: Arial, sans-serif; }
+    input { padding: 6px; margin: 4px 0; }
+  </style>
+</head>
+<body>
+  <p>Newsletter form inside the iframe</p>
+  <label for="subscriber">Your name</label>
+  <input type="text" id="subscriber" name="subscriber_name">
+  <br>
+  <label for="city">Your city</label>
+  <input type="text" id="city" name="subscriber_city">
+  <p id="greeting"></p>
+  <p id="city-note"></p>
+  <script>
+    document.getElementById('subscriber').addEventListener('input', function () {
+      document.getElementById('greeting').textContent = this.value ? 'Hello ' + this.value : '';
+    });
+    document.getElementById('city').addEventListener('input', function () {
+      document.getElementById('city-note').textContent = this.value ? 'City set to ' + this.value : '';
+    });
+  </script>
+</body>
+</html>

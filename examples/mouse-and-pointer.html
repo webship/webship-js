@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Mouse and pointer</title>
+  <style>
+    body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
+    .targets { display: flex; flex-wrap: wrap; gap: 12px; }
+    .target { width: 170px; padding: 16px 8px; border: 2px solid #333; background: #f0f4f8; text-align: center; user-select: none; }
+    #drop-zone { width: 360px; min-height: 60px; padding: 16px 8px; border: 2px dashed #007bff; margin-top: 12px; text-align: center; }
+    #result { font-size: 20px; font-weight: bold; color: #007bff; min-height: 28px; }
+  </style>
+</head>
+<body>
+  <h1>Mouse and pointer</h1>
+  <p id="result">Nothing happened yet</p>
+
+  <div class="targets">
+    <div class="target" id="hover-card">Hover card</div>
+    <div class="target" id="pointer-card">Pointer card</div>
+    <div class="target" id="double-click-card">Double-click card</div>
+    <div class="target" id="right-click-card">Right-click card</div>
+    <div class="target" id="middle-click-card">Middle-click card</div>
+    <div class="target" id="modifier-card">Modifier card</div>
+    <div class="target" id="tap-card">Tap card</div>
+    <div class="target" id="drag-card" draggable="true">Drag card</div>
+  </div>
+
+  <div id="drop-zone">Drop zone</div>
+
+  <script>
+    var result = document.getElementById('result');
+    function show(text) { result.textContent = text; }
+
+    document.getElementById('hover-card').addEventListener('mouseenter', function () {
+      show('Hovered over the hover card');
+    });
+    document.getElementById('pointer-card').addEventListener('mouseenter', function () {
+      show('Pointer moved to the pointer card');
+    });
+    document.getElementById('double-click-card').addEventListener('dblclick', function () {
+      show('Double-clicked the card');
+    });
+    document.getElementById('right-click-card').addEventListener('contextmenu', function (event) {
+      event.preventDefault();
+      show('Right-clicked the card');
+    });
+    document.getElementById('middle-click-card').addEventListener('auxclick', function (event) {
+      if (event.button === 1) {
+        event.preventDefault();
+        show('Middle-clicked the card');
+      }
+    });
+    document.getElementById('modifier-card').addEventListener('click', function (event) {
+      var keys = [];
+      if (event.shiftKey) keys.push('Shift');
+      if (event.ctrlKey) keys.push('Control');
+      if (event.altKey) keys.push('Alt');
+      if (event.metaKey) keys.push('Meta');
+      show(keys.length ? 'Clicked while holding ' + keys.join(' and ') : 'Clicked with no key held');
+    });
+    document.getElementById('tap-card').addEventListener('click', function () {
+      show('Tapped the card');
+    });
+
+    var dragCard = document.getElementById('drag-card');
+    var dropZone = document.getElementById('drop-zone');
+    dragCard.addEventListener('dragstart', function (event) {
+      event.dataTransfer.setData('text/plain', 'drag-card');
+    });
+    dropZone.addEventListener('dragover', function (event) {
+      event.preventDefault();
+    });
+    dropZone.addEventListener('drop', function (event) {
+      event.preventDefault();
+      if (event.dataTransfer.getData('text/plain') === 'drag-card') {
+        dropZone.appendChild(dragCard);
+        show('Dropped the drag card in the drop zone');
+      }
+    });
+  </script>
+</body>
+</html>
