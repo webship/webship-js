@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <title>Webship-js releases</title>
+  <atom:link href="https://example.com/feed.xml" rel="self"/>
+  <entry>
+    <title>First release</title>
+    <dc:creator>Webship</dc:creator>
+  </entry>
+  <entry>
+    <title>Second release</title>
+    <dc:creator>Webship</dc:creator>
+  </entry>
+</feed>
