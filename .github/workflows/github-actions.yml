@@ -62,6 +62,9 @@ jobs:
           echo "The server did not answer on $TEST_BASE_URL in 30 seconds" >&2
           exit 1
 
+      - name: Check the failures that must fail and their messages
+        run: npm run test:must-fail
+
       - name: Run tests
         run: npm test
 

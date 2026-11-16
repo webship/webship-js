@@ -747,6 +747,53 @@ function friendly(input, cause) {
   return e;
 }
 
+/**
+ * Shorten a text for a failure message: white space collapsed, cut at
+ * `max` characters.
+ *
+ * @param {string} text
+ * @param {number} [max=200]
+ * @returns {string}
+ */
+function excerpt(text, max) {
+  const limit = typeof max === 'number' && max > 0 ? max : 200;
+  const clean = String(text === null || text === undefined ? '' : text).replace(/\s+/g, ' ').trim();
+  return clean.length > limit ? clean.slice(0, limit) + '…' : clean;
+}
+
+/**
+ * True when an error is Playwright giving up after its timeout, which in an
+ * assertion means "what was looked for is not there".
+ *
+ * @param {Error} error
+ * @returns {boolean}
+ */
+function isTimeout(error) {
+  return !!error && (error.name === 'TimeoutError' || /Timeout \d+ms exceeded/.test(String(error.message || '')));
+}
+
+/**
+ * Build the failure of an assertion for a tester: what was looked for, what
+ * was found, the address of the page and a hint. No call log, no stack.
+ *
+ * @param {import('playwright').Page} page - Page the assertion ran on.
+ * @param {string} message                 - What was expected and did not hold.
+ * @param {Object} [details]
+ * @param {string} [details.found]         - What was there instead.
+ * @param {string} [details.hint]          - What to check or try next.
+ * @returns {Error}
+ */
+function failure(page, message, details) {
+  const lines = [message];
+  const info = details || {};
+  if (info.found !== undefined && info.found !== null) lines.push(`  Found: ${info.found}`);
+  let url = '';
+  try { url = page.url(); } catch { /* the page is gone */ }
+  if (url) lines.push(`  Page: ${url}`);
+  if (info.hint) lines.push(`  Hint: ${info.hint}`);
+  return friendly(lines.join('\n'));
+}
+
 module.exports = {
   smartSettle,
   pollPage,
@@ -769,6 +816,9 @@ module.exports = {
   formatRelativeDate,
   friendly,
   humanize,
+  failure,
+  excerpt,
+  isTimeout,
 };
 
 // ---------------------------------------------------------------------------

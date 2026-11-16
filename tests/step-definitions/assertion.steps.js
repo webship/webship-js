@@ -9,8 +9,7 @@
 // Modal assertions live in modal.steps.js.
 
 const { Then } = require('@cucumber/cucumber');
-const assert = require('assert');
-const { buildSelector, getLocatorText, locateByLabelOrSelector, friendly } = require('./webship');
+const { buildSelector, getLocatorText, locateByLabelOrSelector, failure, excerpt, isTimeout } = require('./webship');
 const { getLastResponse } = require('./response.steps');
 
 // ---------------------------------------------------------------------------
@@ -29,9 +28,20 @@ const { getLastResponse } = require('./response.steps');
 Then(/^(I |we )*should( not)* see "([^"]*)?"$/, async function (pronounCase, notCase, expectedText) {
   if (notCase) {
     const text = await this.page.locator('body').textContent() || '';
-    assert.ok(!text.includes(expectedText), `Page should NOT contain "${expectedText}" but it does.`);
+    if (text.includes(expectedText)) {
+      throw failure(this.page, `The text "${expectedText}" is on the page, but it should not be.`, {
+        hint: 'this step reads all the text of the page, the text that is hidden included.',
+      });
+    }
   } else {
-    await this.page.locator('body').filter({ hasText: expectedText }).waitFor({ timeout: 5000 });
+    try {
+      await this.page.locator('body').filter({ hasText: expectedText }).waitFor({ timeout: 5000 });
+    } catch (e) {
+      if (!isTimeout(e)) throw e;
+      throw failure(this.page, `The text "${expectedText}" was not found on the page after 5 seconds.`, {
+        hint: `check the spelling and the letter case. The value of a field, an image and the content of an iframe are not page text. For text that arrives late, use: I wait for the text "${expectedText}" to appear`,
+      });
+    }
   }
 });
 
@@ -45,11 +55,25 @@ Then(/^(I |we )*should( not)* see "([^"]*)?"$/, async function (pronounCase, not
  */
 Then(/^(I |we )*should( not)* see text matching "([^"]*)?"$/, async function (pronounCase, notCase, textPattern) {
   const bodyText = await this.page.evaluate(() => document.body.innerText || '');
-  const regex = new RegExp(textPattern);
-  if (notCase) {
-    assert.ok(!regex.test(bodyText), `Page text should NOT match "${textPattern}" but it does.`);
-  } else {
-    assert.ok(regex.test(bodyText), `Page text should match "${textPattern}" but it does not.`);
+  let regex;
+  try {
+    regex = new RegExp(textPattern);
+  } catch (e) {
+    throw failure(this.page, `"${textPattern}" is not a valid regular expression: ${e.message}`, {
+      hint: 'escape the characters that have a meaning in a regular expression, such as ( ) [ ] ? + * and .',
+    });
+  }
+  const match = regex.exec(bodyText);
+  if (notCase && match) {
+    throw failure(this.page, `The text of the page matches "${textPattern}", but it should not.`, {
+      found: `"${excerpt(match[0])}"`,
+      hint: 'the pattern is a regular expression tried against the visible text of the whole page.',
+    });
+  }
+  if (!notCase && !match) {
+    throw failure(this.page, `No text of the page matches "${textPattern}".`, {
+      hint: 'the pattern is a regular expression tried against the visible text of the whole page; ^ and $ stand for the start and the end of that whole text.',
+    });
   }
 });
 
@@ -74,10 +98,19 @@ Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* "([^"]*)?" row$/, async f
     const rows = Array.from(document.querySelectorAll('tr'));
     return rows.filter(r => r.textContent.includes(id)).some(r => r.textContent.includes(text));
   }, { id: rowIdentifier, text: expectedText });
-  if (notCase) {
-    assert.ok(!found, `Found "${expectedText}" in the "${rowIdentifier}" row, but it should not be there.`);
-  } else {
-    assert.ok(found, `Could not find "${expectedText}" in the "${rowIdentifier}" row.`);
+  if (notCase && found) {
+    throw failure(this.page, `The "${rowIdentifier}" row contains "${expectedText}", but it should not.`, {
+      hint: `the row is every table row whose text contains "${rowIdentifier}".`,
+    });
+  }
+  if (!notCase && !found) {
+    const rows = await this.page.locator('tr').filter({ hasText: rowIdentifier }).count();
+    throw failure(this.page, rows
+      ? `The "${rowIdentifier}" row does not contain "${expectedText}".`
+      : `No table row contains "${rowIdentifier}", so "${expectedText}" could not be looked for in it.`, {
+      found: rows ? `"${excerpt(await this.page.locator('tr').filter({ hasText: rowIdentifier }).first().textContent())}"` : undefined,
+      hint: 'check the spelling and the letter case of both texts; the step reads the table rows that are on the page now.',
+    });
   }
 });
 
@@ -110,15 +143,33 @@ Then(/^(I |we )*should( not)* see (a|an) "([^"]*)?" element$/, async function (p
       const target = forIds[i]
         ? this.page.locator(`[id="${forIds[i].replace(/["\\]/g, '\\$&')}"]`).first()
         : named.nth(i);
-      assert.ok(!(await target.isVisible()), `Element "${element}" should NOT be visible but it is.`);
+      if (await target.isVisible()) {
+        throw failure(this.page, `The element "${element}" is visible, but it should not be.`, {
+          hint: 'this step finds an element by its exact visible text or by its label.',
+        });
+      }
     }
   } else {
+    const hint = `this step finds an element by its exact visible text or by its label. To find it by its id, class, name or another attribute, use: I should see a "${element}" element by attr`;
     const loc = this.page.getByText(element, { exact: true }).first();
+    try {
+      await loc.waitFor({ state: 'attached', timeout: 3000 });
+    } catch (e) {
+      if (!isTimeout(e)) throw e;
+      throw failure(this.page, `No element with the text or the label "${element}" was found after 3 seconds.`, { hint });
+    }
     const forAttr = await loc.getAttribute('for').catch(() => null);
-    if (forAttr) {
-      await this.page.locator('#' + forAttr).waitFor({ state: 'visible', timeout: 3000 });
-    } else {
-      await loc.waitFor({ state: 'visible', timeout: 3000 });
+    try {
+      if (forAttr) {
+        await this.page.locator('#' + forAttr).waitFor({ state: 'visible', timeout: 3000 });
+      } else {
+        await loc.waitFor({ state: 'visible', timeout: 3000 });
+      }
+    } catch (e) {
+      if (!isTimeout(e)) throw e;
+      throw failure(this.page, forAttr
+        ? `The field of the label "${element}" (#${forAttr}) is not visible after 3 seconds.`
+        : `The element "${element}" is on the page but not visible after 3 seconds.`, { hint });
     }
   }
 });
@@ -133,11 +184,32 @@ Then(/^(I |we )*should( not)* see (a|an) "([^"]*)?" element$/, async function (p
  *
  */
 Then(/^(I |we )*should( not)* see (a|an) "([^"]*)?" element by( its)*(?: "([^"]*)?")* (attribute|attr)$/, async function (pronounCase, notCase, aAnCase, attrValue, itsCase, attr, attrWord) {
-  const loc = this.page.locator(buildSelector(attrValue, attr));
+  const selector = buildSelector(attrValue, attr);
+  const loc = this.page.locator(selector);
   if (notCase) {
-    assert.strictEqual(await loc.count(), 0, `Element should NOT be present but it is.`);
+    const count = await loc.count();
+    if (count > 0) {
+      throw failure(this.page, `An element with "${attrValue}" is on the page, but it should not be.`, {
+        found: `${count} element(s)`,
+        hint: attr
+          ? `the step looked for an element whose "${attr}" attribute is "${attrValue}"; a hidden element counts too.`
+          : `without a named attribute the step tries "${attrValue}" as an id, a class, a name, a test id, an aria-label, a value, a placeholder and a title; a hidden element counts too.`,
+      });
+    }
   } else {
-    await loc.first().waitFor({ state: 'visible', timeout: 3000 });
+    try {
+      await loc.first().waitFor({ state: 'visible', timeout: 3000 });
+    } catch (e) {
+      if (!isTimeout(e)) throw e;
+      const count = await loc.count().catch(() => 0);
+      throw failure(this.page, count
+        ? `The element with "${attrValue}" is on the page but not visible after 3 seconds.`
+        : `No element with "${attrValue}" was found after 3 seconds.`, {
+        hint: attr
+          ? `the step looked for an element whose "${attr}" attribute is "${attrValue}".`
+          : `without a named attribute the step tries "${attrValue}" as an id, a class, a name, a test id, an aria-label, a value, a placeholder and a title.`,
+      });
+    }
   }
 });
 
@@ -155,16 +227,21 @@ Then(/^(I |we )*should( not)* see (a|an) "([^"]*)?" element by( its)*(?: "([^"]*
 Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* "([^"]*)?" element$/, async function (pronounCase, notCase, expectedText, theCase, element) {
   const loc = await locateByLabelOrSelector(this.page, element, 5000);
   if (!loc) {
-    throw friendly({
-      message: `The element "${element}" was not found on the page after 5 seconds.`,
+    throw failure(this.page, `The element "${element}" was not found on the page after 5 seconds.`, {
       hint: `"${element}" is read as the exact text of a label, else as a CSS selector. To find an element by its id, class, name or another attribute, add "by attr" to the step.`,
     });
   }
   const content = await getLocatorText(loc);
-  if (notCase) {
-    assert.ok(!content.includes(expectedText), `Element should NOT contain "${expectedText}" but it does.`);
-  } else {
-    assert.ok(content.includes(expectedText), `Element should contain "${expectedText}" but it does not.`);
+  if (notCase && content.includes(expectedText)) {
+    throw failure(this.page, `The element "${element}" contains "${expectedText}", but it should not.`, {
+      found: `"${excerpt(content)}"`,
+    });
+  }
+  if (!notCase && !content.includes(expectedText)) {
+    throw failure(this.page, `The element "${element}" does not contain "${expectedText}".`, {
+      found: `"${excerpt(content)}"`,
+      hint: 'check the spelling and the letter case; for a field the step reads its value.',
+    });
   }
 });
 
@@ -179,12 +256,27 @@ Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* "([^"]*)?" element$/, asy
  */
 Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* "([^"]*)?" element by( its)*(?: "([^"]*)?")* (attribute|attr)$/, async function (pronounCase, notCase, expectedText, theCase, attrValue, itsCase, attr, attrWord) {
   const loc = this.page.locator(buildSelector(attrValue, attr)).first();
-  await loc.waitFor({ timeout: 10000 });
+  try {
+    await loc.waitFor({ timeout: 10000 });
+  } catch (e) {
+    if (!isTimeout(e)) throw e;
+    throw failure(this.page, `No visible element with "${attrValue}" was found after 10 seconds, so "${expectedText}" could not be looked for in it.`, {
+      hint: attr
+        ? `the step looked for an element whose "${attr}" attribute is "${attrValue}".`
+        : `without a named attribute the step tries "${attrValue}" as an id, a class, a name, a test id, an aria-label, a value, a placeholder and a title.`,
+    });
+  }
   const content = await getLocatorText(loc);
-  if (notCase) {
-    assert.ok(!content.includes(expectedText), `Element should NOT contain "${expectedText}" but it does.`);
-  } else {
-    assert.ok(content.includes(expectedText), `Element should contain "${expectedText}" but it does not.`);
+  if (notCase && content.includes(expectedText)) {
+    throw failure(this.page, `The element with "${attrValue}" contains "${expectedText}", but it should not.`, {
+      found: `"${excerpt(content)}"`,
+    });
+  }
+  if (!notCase && !content.includes(expectedText)) {
+    throw failure(this.page, `The element with "${attrValue}" does not contain "${expectedText}".`, {
+      found: `"${excerpt(content)}"`,
+      hint: 'check the spelling and the letter case; for a field the step reads its value.',
+    });
   }
 });
 
@@ -199,14 +291,34 @@ Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* "([^"]*)?" element by( it
  *
  */
 Then(/^(I |we )*should( not)* see text matching "([^"]*)?" in( the)* "([^"]*)?" element$/, async function (pronounCase, notCase, textPattern, theCase, element) {
+  let regex;
+  try {
+    regex = new RegExp(textPattern);
+  } catch (e) {
+    throw failure(this.page, `"${textPattern}" is not a valid regular expression: ${e.message}`, {
+      hint: 'escape the characters that have a meaning in a regular expression, such as ( ) [ ] ? + * and .',
+    });
+  }
   const loc = this.page.locator(element).first();
-  await loc.waitFor({ timeout: 5000 });
+  try {
+    await loc.waitFor({ timeout: 5000 });
+  } catch (e) {
+    if (!isTimeout(e)) throw e;
+    throw failure(this.page, `No visible element matches "${element}" after 5 seconds, so its text could not be read.`, {
+      hint: `"${element}" is a CSS selector here.`,
+    });
+  }
   const text = await getLocatorText(loc);
-  const regex = new RegExp(textPattern);
-  if (notCase) {
-    assert.ok(!regex.test(text), `Element "${element}" text should NOT match "${textPattern}" but it does.`);
-  } else {
-    assert.ok(regex.test(text), `Element "${element}" text should match "${textPattern}" but it does not.`);
+  if (notCase && regex.test(text)) {
+    throw failure(this.page, `The text of the element "${element}" matches "${textPattern}", but it should not.`, {
+      found: `"${excerpt(text)}"`,
+    });
+  }
+  if (!notCase && !regex.test(text)) {
+    throw failure(this.page, `The text of the element "${element}" does not match "${textPattern}".`, {
+      found: `"${excerpt(text)}"`,
+      hint: 'the pattern is a regular expression; for a field the step reads its value.',
+    });
   }
 });
 
@@ -226,8 +338,15 @@ Then(/^(the )*"([^"]*)?" element should( not)* contain "([^"]*)?"$/, async funct
   const expectedValue = cssClean.substring(colonIdx + 1).trim();
 
   const loc = this.page.locator(buildSelector(selectorRaw)).first();
-  await loc.waitFor({ timeout: 10000 });
-  const matches = await loc.evaluate((el, { prop, expectedVal }) => {
+  try {
+    await loc.waitFor({ timeout: 10000 });
+  } catch (e) {
+    if (!isTimeout(e)) throw e;
+    throw failure(this.page, `No visible element with "${selectorRaw}" was found after 10 seconds, so its CSS could not be read.`, {
+      hint: `the step tries "${selectorRaw}" as an id, a class, a name, a test id, an aria-label, a value, a placeholder and a title.`,
+    });
+  }
+  const { matches, computed } = await loc.evaluate((el, { prop, expectedVal }) => {
     function colorToRgb(color) {
       const canvas = document.createElement('canvas');
       canvas.width = canvas.height = 1;
@@ -250,14 +369,23 @@ Then(/^(the )*"([^"]*)?" element should( not)* contain "([^"]*)?"$/, async funct
       return tokens;
     }
     const computed = window.getComputedStyle(el).getPropertyValue(prop).trim();
-    return tokenize(normalizeColorTokens(expectedVal.toLowerCase()))
-      .every(token => normalizeColorTokens(computed.toLowerCase()).includes(token));
+    return {
+      computed,
+      matches: tokenize(normalizeColorTokens(expectedVal.toLowerCase()))
+        .every(token => normalizeColorTokens(computed.toLowerCase()).includes(token)),
+    };
   }, { prop: cssProperty, expectedVal: expectedValue });
 
-  if (notCase) {
-    assert.ok(!matches, `Element should NOT have CSS "${cssProperty}: ${expectedValue}" but it does.`);
-  } else {
-    assert.ok(matches, `Element should have CSS "${cssProperty}: ${expectedValue}".`);
+  if (notCase && matches) {
+    throw failure(this.page, `The element "${selectorRaw}" has the CSS "${cssProperty}: ${expectedValue}", but it should not.`, {
+      found: `${cssProperty}: ${computed}`,
+    });
+  }
+  if (!notCase && !matches) {
+    throw failure(this.page, `The element "${selectorRaw}" does not have the CSS "${cssProperty}: ${expectedValue}".`, {
+      found: `${cssProperty}: ${computed || '(no value)'}`,
+      hint: 'the step compares with the computed style, where a colour is written as rgb(…) and a length in pixels.',
+    });
   }
 });
 
@@ -279,7 +407,9 @@ Then(/^(I |we )*should see (\d+) "([^"]*)" elements?$/, async function (pronounC
   const expected = parseInt(num, 10);
   const actual = await this.page.locator(selector).count();
   if (actual !== expected) {
-    throw friendly(`Expected ${expected} "${selector}" element(s), got ${actual}.`);
+    throw failure(this.page, `Expected ${expected} "${selector}" element(s), got ${actual}.`, {
+      hint: `"${selector}" is a CSS selector; hidden elements count too.`,
+    });
   }
 });
 
@@ -297,9 +427,21 @@ Then(/^(I |we )*should see (\d+) "([^"]*)" elements?$/, async function (pronounC
  */
 Then(/^(the )*"([^"]*)?" link should contain "([^"]*)?"$/, async function (theCase, element, url) {
   const loc = this.page.getByText(element, { exact: true }).first();
-  await loc.waitFor({ timeout: 5000 });
+  try {
+    await loc.waitFor({ timeout: 5000 });
+  } catch (e) {
+    if (!isTimeout(e)) throw e;
+    throw failure(this.page, `No visible link with the text "${element}" was found after 5 seconds.`, {
+      hint: `the step finds the link by its exact text. To find it by its id, class, title or another attribute, add "by attr" to the step.`,
+    });
+  }
   const href = await loc.evaluate(el => el.href || el.getAttribute('href') || '');
-  assert.ok(href.includes(url), `Expected link "${element}" href to contain "${url}" but got "${href}"`);
+  if (!href.includes(url)) {
+    throw failure(this.page, `The address of the link "${element}" does not contain "${url}".`, {
+      found: href ? `"${href}"` : 'the element has no address (no href)',
+      hint: 'the step reads the full address the link leads to, with the domain.',
+    });
+  }
 });
 
 /**
@@ -312,9 +454,23 @@ Then(/^(the )*"([^"]*)?" link should contain "([^"]*)?"$/, async function (theCa
  */
 Then(/^(the )*"([^"]*)?" link should contain "([^"]*)?" by( its)*(?: "([^"]*)?")* (attribute|attr)$/, async function (theCase, attrValue, url, itsCase, attr, attrWord) {
   const loc = this.page.locator(buildSelector(attrValue, attr)).first();
-  await loc.waitFor({ timeout: 5000 });
+  try {
+    await loc.waitFor({ timeout: 5000 });
+  } catch (e) {
+    if (!isTimeout(e)) throw e;
+    throw failure(this.page, `No visible link with "${attrValue}" was found after 5 seconds.`, {
+      hint: attr
+        ? `the step looked for an element whose "${attr}" attribute is "${attrValue}".`
+        : `without a named attribute the step tries "${attrValue}" as an id, a class, a name, a test id, an aria-label, a value, a placeholder and a title.`,
+    });
+  }
   const href = await loc.evaluate(el => el.href || el.getAttribute('href') || '');
-  assert.ok(href.includes(url), `Expected element href to contain "${url}" but got "${href}"`);
+  if (!href.includes(url)) {
+    throw failure(this.page, `The address of the link with "${attrValue}" does not contain "${url}".`, {
+      found: href ? `"${href}"` : 'the element has no address (no href)',
+      hint: 'the step reads the full address the link leads to, with the domain.',
+    });
+  }
 });
 
 // ---------------------------------------------------------------------------
@@ -338,10 +494,16 @@ Then(/^(the )*"([^"]*)?" link should contain "([^"]*)?" by( its)*(?: "([^"]*)?")
  */
 Then(/^(the )*response should( not)* contain "([^"]*)?"$/, async function (theCase, notCase, expectedText) {
   const text = await this.page.locator('html').textContent() || '';
-  if (notCase) {
-    assert.ok(!text.includes(expectedText), `Response should NOT contain "${expectedText}" but it does.`);
-  } else {
-    assert.ok(text.includes(expectedText), `Response should contain "${expectedText}" but it does not.`);
+  if (notCase && text.includes(expectedText)) {
+    throw failure(this.page, `The response contains "${expectedText}", but it should not.`, {
+      hint: 'this step reads all the text of the document, the text that is hidden included.',
+    });
+  }
+  if (!notCase && !text.includes(expectedText)) {
+    throw failure(this.page, `The response does not contain "${expectedText}".`, {
+      found: `"${excerpt(text)}"`,
+      hint: 'this step reads the text of the document the browser shows, not its HTML source.',
+    });
   }
 });
 
@@ -362,9 +524,14 @@ Then(/^(the )*response should( not)* contain "([^"]*)?"$/, async function (theCa
 Then(/^(the )*response status code should( not)* be (\d+)$/, async function (theCase, notCase, expectedStatusCode) {
   const expected = parseInt(expectedStatusCode, 10);
   const { status } = await getLastResponse(this);
-  if (notCase) {
-    assert.notStrictEqual(status, expected, `Status code should NOT be ${expected}`);
-  } else {
-    assert.strictEqual(status, expected, `Expected status ${expected} but got ${status}`);
+  if (notCase && status === expected) {
+    throw failure(this.page, `The response status code is ${expected}, but it should not be.`, {
+      hint: 'the step reads the status of the document the browser shows now.',
+    });
+  }
+  if (!notCase && status !== expected) {
+    throw failure(this.page, `Expected the response status code ${expected}, got ${status}.`, {
+      hint: 'the step reads the status of the document the browser shows now.',
+    });
   }
 });

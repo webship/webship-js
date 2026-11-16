@@ -21,6 +21,7 @@
     "test:webkit": "BROWSER=webkit cucumber-js --config cucumber.js",
     "test:report": "node tests/check-report.js",
     "test:headed": "HEADLESS=false cucumber-js --config cucumber.js",
+    "test:must-fail": "node tests/check-must-fail.js",
     "test:fast": "SLOW_MO=0 cucumber-js --config cucumber.js",
     "test:examples": "node tests/check-examples.js",
     "generate-reports": "node ./bin/generate-reports.js",

@@ -11,7 +11,7 @@
 // so this file never duplicates BBR plumbing.
 
 const { When } = require('@cucumber/cucumber');
-const { smartSettle, pollPage, waitForModalState, friendly } = require('./webship');
+const { smartSettle, pollPage, waitForModalState, friendly, failure, excerpt, isTimeout } = require('./webship');
 
 /**
  * Wait UP TO N seconds for the page to settle. Returns early on idle.
@@ -173,7 +173,17 @@ When(/^(I |we )*wait for( the)* modal( dialog)* to (appear|disappear)$/, async f
  *
  */
 When(/^(I |we )*wait for "([^"]*)" to appear$/, async function (pronounCase, selector) {
-  await this.page.waitForSelector(selector, { state: 'visible', timeout: 10000 });
+  try {
+    await this.page.waitForSelector(selector, { state: 'visible', timeout: 10000 });
+  } catch (e) {
+    if (!isTimeout(e)) throw e;
+    const present = await this.page.locator(selector).count().catch(() => 0);
+    throw failure(this.page, present
+      ? `The element "${selector}" is on the page but did not become visible within 10 seconds.`
+      : `The element "${selector}" did not appear within 10 seconds.`, {
+      hint: `"${selector}" is a CSS selector. For a text, use: I wait for the text "..." to appear`,
+    });
+  }
 });
 
 /**
@@ -190,7 +200,14 @@ When(/^(I |we )*wait for "([^"]*)" to appear$/, async function (pronounCase, sel
  *
  */
 When(/^(I |we )*wait for "([^"]*)" to disappear$/, async function (pronounCase, selector) {
-  await this.page.waitForSelector(selector, { state: 'hidden', timeout: 10000 });
+  try {
+    await this.page.waitForSelector(selector, { state: 'hidden', timeout: 10000 });
+  } catch (e) {
+    if (!isTimeout(e)) throw e;
+    throw failure(this.page, `The element "${selector}" is still visible after 10 seconds.`, {
+      hint: `"${selector}" is a CSS selector; the step passes when the first element it matches is hidden or gone.`,
+    });
+  }
 });
 
 /**
@@ -208,10 +225,17 @@ When(/^(I |we )*wait for "([^"]*)" to disappear$/, async function (pronounCase, 
  *
  */
 When(/^(I |we )*wait for( the)* text "([^"]*)" to appear$/, async function (pronounCase, theCase, text) {
-  await this.page.waitForFunction(
-    (t) => document.body && document.body.innerText.includes(t),
-    text, { timeout: 10000, polling: 100 }
-  );
+  try {
+    await this.page.waitForFunction(
+      (t) => document.body && document.body.innerText.includes(t),
+      text, { timeout: 10000, polling: 100 }
+    );
+  } catch (e) {
+    if (!isTimeout(e)) throw e;
+    throw failure(this.page, `The text "${text}" did not appear within 10 seconds.`, {
+      hint: 'check the spelling and the letter case; the step reads the visible text of the page.',
+    });
+  }
 });
 
 /**
@@ -227,10 +251,17 @@ When(/^(I |we )*wait for( the)* text "([^"]*)" to appear$/, async function (pron
  *
  */
 When(/^(I |we )*wait for( the)* text "([^"]*)" to disappear$/, async function (pronounCase, theCase, text) {
-  await this.page.waitForFunction(
-    (t) => !document.body || !document.body.innerText.includes(t),
-    text, { timeout: 10000, polling: 100 }
-  );
+  try {
+    await this.page.waitForFunction(
+      (t) => !document.body || !document.body.innerText.includes(t),
+      text, { timeout: 10000, polling: 100 }
+    );
+  } catch (e) {
+    if (!isTimeout(e)) throw e;
+    throw failure(this.page, `The text "${text}" is still on the page after 10 seconds.`, {
+      hint: 'the step reads the visible text of the page.',
+    });
+  }
 });
 
 /**
@@ -247,10 +278,17 @@ When(/^(I |we )*wait for( the)* text "([^"]*)" to disappear$/, async function (p
  *
  */
 When(/^(I |we )*wait until( the)* URL contains "([^"]*)"$/, async function (pronounCase, theCase, fragment) {
-  await this.page.waitForFunction(
-    (frag) => window.location.href.includes(frag),
-    fragment, { timeout: 10000, polling: 100 }
-  );
+  try {
+    await this.page.waitForFunction(
+      (frag) => window.location.href.includes(frag),
+      fragment, { timeout: 10000, polling: 100 }
+    );
+  } catch (e) {
+    if (!isTimeout(e)) throw e;
+    throw failure(this.page, `The URL does not contain "${fragment}" after 10 seconds.`, {
+      hint: 'the step looks for the text in the whole address, with the domain, the query and the hash.',
+    });
+  }
 });
 
 /**
@@ -265,10 +303,21 @@ When(/^(I |we )*wait until( the)* URL contains "([^"]*)"$/, async function (pron
  *
  */
 When(/^(I |we )*wait until( the)* page title (is|contains) "([^"]*)"$/, async function (pronounCase, theCase, op, value) {
-  await this.page.waitForFunction(
-    ({ op, value }) => op === 'is' ? document.title === value : document.title.includes(value),
-    { op, value }, { timeout: 10000, polling: 100 }
-  );
+  try {
+    await this.page.waitForFunction(
+      ({ op, value }) => op === 'is' ? document.title === value : document.title.includes(value),
+      { op, value }, { timeout: 10000, polling: 100 }
+    );
+  } catch (e) {
+    if (!isTimeout(e)) throw e;
+    const title = await this.page.title().catch(() => '');
+    throw failure(this.page, op === 'is'
+      ? `The page title is not "${value}" after 10 seconds.`
+      : `The page title does not contain "${value}" after 10 seconds.`, {
+      found: `"${excerpt(title)}"`,
+      hint: 'the page title is the text of the browser tab, not the main heading of the page.',
+    });
+  }
 });
 
 /**
@@ -287,10 +336,19 @@ When(/^(I |we )*wait until( the)* page title (is|contains) "([^"]*)"$/, async fu
  */
 When(/^(I |we )*wait until (\d+) elements? match(?:es)? "([^"]*)"$/, async function (pronounCase, count, selector) {
   const expected = parseInt(count, 10);
-  await this.page.waitForFunction(
-    ({ sel, n }) => document.querySelectorAll(sel).length === n,
-    { sel: selector, n: expected }, { timeout: 10000, polling: 100 }
-  );
+  try {
+    await this.page.waitForFunction(
+      ({ sel, n }) => document.querySelectorAll(sel).length === n,
+      { sel: selector, n: expected }, { timeout: 10000, polling: 100 }
+    );
+  } catch (e) {
+    if (!isTimeout(e)) throw e;
+    const actual = await this.page.locator(selector).count().catch(() => 0);
+    throw failure(this.page, `Expected ${expected} element(s) matching "${selector}" within 10 seconds.`, {
+      found: `${actual} element(s)`,
+      hint: `"${selector}" is a CSS selector; hidden elements count too. For a minimum, use: I wait until at least ${expected} elements match "${selector}"`,
+    });
+  }
 });
 
 /**
@@ -309,10 +367,19 @@ When(/^(I |we )*wait until (\d+) elements? match(?:es)? "([^"]*)"$/, async funct
  */
 When(/^(I |we )*wait until at least (\d+) elements? match(?:es)? "([^"]*)"$/, async function (pronounCase, count, selector) {
   const expected = parseInt(count, 10);
-  await this.page.waitForFunction(
-    ({ sel, n }) => document.querySelectorAll(sel).length >= n,
-    { sel: selector, n: expected }, { timeout: 10000, polling: 100 }
-  );
+  try {
+    await this.page.waitForFunction(
+      ({ sel, n }) => document.querySelectorAll(sel).length >= n,
+      { sel: selector, n: expected }, { timeout: 10000, polling: 100 }
+    );
+  } catch (e) {
+    if (!isTimeout(e)) throw e;
+    const actual = await this.page.locator(selector).count().catch(() => 0);
+    throw failure(this.page, `Expected at least ${expected} element(s) matching "${selector}" within 10 seconds.`, {
+      found: `${actual} element(s)`,
+      hint: `"${selector}" is a CSS selector; hidden elements count too.`,
+    });
+  }
 });
 
 /**
@@ -409,8 +476,15 @@ When(/^(I |we )*wait until pending timers settle$/, async function (pronounCase)
  */
 When(/^eventually (I |we )*should see "([^"]*)"(?: within (\d+) seconds?)?$/, async function (pronoun, text, seconds) {
   const total = (seconds ? parseInt(seconds, 10) : 10) * 1000;
-  await this.page.waitForFunction(
-    (t) => document.body && document.body.innerText.includes(t),
-    text, { timeout: total, polling: 100 }
-  );
+  try {
+    await this.page.waitForFunction(
+      (t) => document.body && document.body.innerText.includes(t),
+      text, { timeout: total, polling: 100 }
+    );
+  } catch (e) {
+    if (!isTimeout(e)) throw e;
+    throw failure(this.page, `The text "${text}" did not appear within ${total / 1000} seconds.`, {
+      hint: 'check the spelling and the letter case; the step reads the visible text of the page. For a longer wait, add "within N seconds" to the step.',
+    });
+  }
 });

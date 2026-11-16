@@ -118,6 +118,27 @@ contextOptions: {
 }
 ```
 
+## Reading a failure
+
+The text, element, link, CSS and response assertions and the targeted waits fail with one shape: what was looked for and for how long, what was found where that helps, the address of the page, and a hint.
+
+```
+✖ Then I should see "Completely different words" in the "h1" element
+    The element "h1" does not contain "Completely different words".
+      Found: "About Us"
+      Page: http://localhost:8080/about-us.html
+      Hint: check the spelling and the letter case; for a field the step reads its value.
+```
+
+```
+✖ When I wait for the text "Never arrives" to appear
+    The text "Never arrives" did not appear within 10 seconds.
+      Page: http://localhost:8080/about-us.html
+      Hint: check the spelling and the letter case; the step reads the visible text of the page.
+```
+
+`tests/must-fail/` holds scenarios that must fail, each with the message it must fail with (`Fails with: …` in its description). `npm run test:must-fail` runs them against the `examples/` pages and checks the message, the page and the hint; CI runs it before the suite. A step whose failure message changes gets its must-fail scenario updated in the same change.
+
 ## Common diagnoses
 
 | Symptom | Likely cause | Fix |
