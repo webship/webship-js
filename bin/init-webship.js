@@ -23,7 +23,6 @@ const CUCUMBER_JS = `module.exports = {
       'json:tests/reports/cucumber_report.json',
     ],
     formatOptions: {
-      colorsEnabled: true,
       theme: {
         'feature keyword': ['bold', 'blue'],
         'feature name': ['blue', 'underline'],
@@ -125,14 +124,17 @@ const TSCONFIG_JSON = {
   },
 };
 
+// The starter feature passes on any site that answers on the launch URL
+// (LAUNCH_URL, default http://localhost:8080): it asserts nothing about the
+// content of a site the scaffold cannot know.
 const FEATURE_SAMPLE = `Feature: Check the home page
-  As a nonymouse user
+  As an anonymous user
   I want to be able to visit the home page
   So that I know that the site is working
 
   Scenario: Check homepage
     Given I am on the homepage
-    Then I should see "Love to help in speeding up the work of having Automated Functional Acceptance Testing for products to ship websites in a swift way."
+    Then I should be on the homepage
 `;
 
 const CUSTOM_STEP_JS = `const { Given, When, Then } = require('@cucumber/cucumber');
@@ -156,8 +158,14 @@ const TEST_SCRIPTS = {
   'test:chromium': 'BROWSER=chromium cucumber-js --config cucumber.js',
   'test:firefox': 'BROWSER=firefox cucumber-js --config cucumber.js',
   'test:webkit': 'BROWSER=webkit cucumber-js --config cucumber.js',
+  'test:headed': 'HEADLESS=false cucumber-js --config cucumber.js',
+  'test:fast': 'SLOW_MO=0 cucumber-js --config cucumber.js',
   'generate-reports': 'generate-reports',
 };
+
+// The `test` script `npm init` writes. It is a placeholder, not a choice of
+// the project, so the scaffold replaces it.
+const NPM_PLACEHOLDER_TEST = /^echo "Error: no test specified" && exit 1$/;
 
 const DEFAULT_PKG = {
   name: 'project-name',
@@ -195,7 +203,7 @@ function printHelp() {
       '',
       'Options:',
       '  -f, --force          Overwrite existing files',
-      '      --skip-browsers  Skip `playwright install chromium`',
+      '      --skip-browsers  Skip `npx playwright install chromium`',
       '      --cwd <dir>      Target directory (default: $INIT_CWD or cwd)',
       '  -h, --help           Show this help',
       '',
@@ -256,7 +264,8 @@ function ensurePackageJson(projectPath, opts) {
 
   pkg.scripts = pkg.scripts || {};
   for (const [name, cmd] of Object.entries(TEST_SCRIPTS)) {
-    if (opts.force || !pkg.scripts[name]) {
+    const placeholder = name === 'test' && NPM_PLACEHOLDER_TEST.test(String(pkg.scripts[name] || '').trim());
+    if (opts.force || !pkg.scripts[name] || placeholder) {
       pkg.scripts[name] = cmd;
     }
   }
@@ -270,13 +279,21 @@ function ensurePackageJson(projectPath, opts) {
   return { created: !existed };
 }
 
+// The browser itself goes into the Playwright cache of the user: no special
+// rights are needed. The system libraries it runs on need root, so they are
+// installed with it only when the scaffold already runs as root (a container,
+// a CI job); otherwise the user is told how to add them.
+function isRoot() {
+  return typeof process.getuid === 'function' && process.getuid() === 0;
+}
+
 function installBrowsers(projectPath) {
-  console.log('\n  [webship-js] Installing Playwright browsers...\n');
-  const res = spawnSync(
-    'npx',
-    ['playwright', 'install', '--with-deps', 'chromium'],
-    { cwd: projectPath, stdio: 'inherit', shell: true }
-  );
+  console.log('\n  [webship-js] Installing the Playwright browser (Chromium)...\n');
+  const win = process.platform === 'win32';
+  const args = ['playwright', 'install'].concat(isRoot() ? ['--with-deps'] : [], ['chromium']);
+  const res = win
+    ? spawnSync(`npx ${args.join(' ')}`, { cwd: projectPath, stdio: 'inherit', shell: true })
+    : spawnSync('npx', args, { cwd: projectPath, stdio: 'inherit' });
   return res.status === 0;
 }
 
@@ -317,9 +334,35 @@ function run(argv) {
     `  [${pkgResult.created ? 'wrote ' : 'merged'}] package.json`
   );
 
-  if (!opts.skipBrowsers) installBrowsers(projectPath);
+  const browsersInstalled = opts.skipBrowsers || installBrowsers(projectPath);
 
-  console.log('\n  [webship-js] Setup complete!\n');
+  if (!browsersInstalled) {
+    console.log(
+      [
+        '',
+        '  [webship-js] The project files are in place, but the browser was NOT installed.',
+        '  Install it before the first run:',
+        '',
+        '    npx playwright install chromium',
+        '',
+      ].join('\n')
+    );
+  } else {
+    console.log('\n  [webship-js] Setup complete!');
+  }
+  console.log(
+    [
+      '',
+      '  Run the starter feature against your site:',
+      '',
+      '    LAUNCH_URL=https://your-site.example npm test',
+      '',
+      '  If the browser does not start for a missing system library (Linux):',
+      '',
+      '    sudo npx playwright install-deps chromium',
+      '',
+    ].join('\n')
+  );
 }
 
 if (require.main === module) {

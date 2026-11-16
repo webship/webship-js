@@ -58,6 +58,9 @@ jobs:
       - name: Run tests
         run: npm test
 
+      - name: Check the scaffold of a new project
+        run: npm run test:scaffold
+
       - name: Upload the report, screenshots and videos
         if: always()
         uses: actions/upload-artifact@v7
