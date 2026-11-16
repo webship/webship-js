@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>JavaScript errors</title>
+</head>
+<body>
+  <h1>JavaScript errors</h1>
+  <p>This page is quiet until one of the buttons is pressed.</p>
+
+  <p>
+    <button id="throw-error" type="button">Throw an error</button>
+    <button id="log-error" type="button">Log an error</button>
+    <button id="log-warning" type="button">Log a warning</button>
+  </p>
+  <p id="log">Nothing has happened yet</p>
+
+  <script>
+    function note(text) { document.getElementById('log').textContent = text; }
+
+    document.getElementById('throw-error').addEventListener('click', function () {
+      note('An error was thrown');
+      throw new Error('Demo failure: the save handler broke');
+    });
+    document.getElementById('log-error').addEventListener('click', function () {
+      note('An error was logged');
+      console.error('Demo console error: the request was refused');
+    });
+    document.getElementById('log-warning').addEventListener('click', function () {
+      note('A warning was logged');
+      console.warn('Demo console warning: this option is deprecated');
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Field types</title>
+  <style>
+    .editor { border: 1px solid #999; min-height: 40px; padding: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Field types</h1>
+
+  <form id="field-types">
+    <h2>Field state</h2>
+    <p>
+      <label for="account-id">Account ID</label>
+      <input id="account-id" name="account_id" type="text" value="A-100" disabled>
+    </p>
+    <p>
+      <label for="display-name">Display name</label>
+      <input id="display-name" name="display_name" type="text">
+    </p>
+
+    <h2>Multi-value fields</h2>
+    <p>
+      <input id="tags-1" name="tags[]" type="text" aria-label="Tag 1">
+      <input id="tags-2" name="tags[]" type="text" aria-label="Tag 2">
+      <input id="tags-3" name="tags[]" type="text" aria-label="Tag 3">
+    </p>
+    <p>
+      <input id="phones-1" name="phones[0]" type="text" aria-label="Phone 1">
+      <input id="phones-2" name="phones[1]" type="text" aria-label="Phone 2">
+    </p>
+
+    <h2>Rich text</h2>
+    <textarea id="body" name="body" hidden></textarea>
+    <div id="body-editor" class="editor" contenteditable="true" role="textbox" aria-multiline="true" aria-label="Body"></div>
+
+    <h2>Select with several values</h2>
+    <p>
+      <label for="colors">Colors</label>
+      <select id="colors" name="colors" multiple size="3">
+        <option value="red" selected>Red</option>
+        <option value="green">Green</option>
+        <option value="blue" selected>Blue</option>
+      </select>
+    </p>
+    <p id="colors-summary">Selected: Red, Blue</p>
+
+    <h2>Checkboxes</h2>
+    <p><label><input type="checkbox" id="newsletter" name="newsletter" checked> Newsletter</label></p>
+    <p><label><input type="checkbox" id="terms" name="terms"> Terms</label></p>
+
+    <h2>Date and time</h2>
+    <div class="form-item">
+      <label for="reminder-date">Reminder</label>
+      <div class="datetime">
+        <input type="date" id="reminder-date" name="reminder_date" aria-label="Reminder date">
+        <input type="time" id="reminder-time" name="reminder_time" aria-label="Reminder time">
+      </div>
+    </div>
+    <div class="form-item">
+      <label for="pickup-date">Pickup</label>
+      <div class="datetime">
+        <input type="date" id="pickup-date" name="pickup_date" aria-label="Pickup date">
+        <input type="time" id="pickup-time" name="pickup_time" aria-label="Pickup time">
+      </div>
+    </div>
+
+    <h2>Date range</h2>
+    <fieldset>
+      <legend>Event</legend>
+      <input type="date" id="event-start-date" name="event_start_date" aria-label="Event start date">
+      <input type="time" id="event-start-time" name="event_start_time" aria-label="Event start time">
+      <input type="date" id="event-end-date" name="event_end_date" aria-label="Event end date">
+      <input type="time" id="event-end-time" name="event_end_time" aria-label="Event end time">
+    </fieldset>
+  </form>
+
+  <script>
+    // Show which colors are selected, so a change is visible on the page.
+    var colors = document.getElementById('colors');
+    colors.addEventListener('change', function () {
+      var names = Array.prototype.map.call(colors.selectedOptions, function (o) { return o.text; });
+      document.getElementById('colors-summary').textContent = 'Selected: ' + (names.length ? names.join(', ') : 'none');
+    });
+  </script>
+</body>
+</html>
