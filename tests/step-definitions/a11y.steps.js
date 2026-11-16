@@ -273,7 +273,7 @@ Then(/^every image should have an alt attribute$/, async function () {
  * Example #1: Then every form field should have an accessible label
  * Example #2: Given I am on "/register"
  *               Then every form field should have an accessible label
- * Example #3: When I open the settings modal
+ * Example #3: When I press "Open settings"
  *               Then every form field should have an accessible label
  * Example #4: And every form field should have an accessible label
  * Example #5: Then the page should have a main landmark
@@ -362,9 +362,10 @@ Then(/^the page should have exactly one h1$/, async function () {
  * Useful for tab-order and skip-link tests.
  *
  * Example #1: Then the focused element should match "#email"
- * Example #2: When I press the "Tab" key
+ * Example #2: When I press the key "Tab"
  *               Then the focused element should match "#email"
- * Example #3: When I press the "Tab" key 2 times
+ * Example #3: When I press the key "Tab"
+ *               And I press the key "Tab"
  *               Then the focused element should match "#password"
  * Example #4: When I focus on the element "#search"
  *               Then the focused element should match "input[type=search]"
@@ -387,11 +388,14 @@ Then(/^the focused element should match "([^"]*)"$/, async function (selector) {
  * <label> → value/placeholder/title/textContent.
  *
  * Example #1: Then the focused element should be labeled "Email"
- * Example #2: When I press the "Tab" key
+ * Example #2: When I press the key "Tab"
  *               Then the focused element should be labeled "Email"
- * Example #3: When I press the "Tab" key 2 times
+ * Example #3: When I press the key "Tab"
+ *               And I press the key "Tab"
  *               Then the focused element should be labeled "Password"
- * Example #4: When I press the "Tab" key 3 times
+ * Example #4: When I press the key "Tab"
+ *               And I press the key "Tab"
+ *               And I press the key "Tab"
  *               Then the focused element should be labeled "Sign in"
  * Example #5: When I focus on the element "#agree"
  *               Then the focused element should be labeled "I agree"
@@ -451,9 +455,9 @@ Then(/^the page should declare a language$/, async function () {
  * Example #1: Then the page language should be "en"
  * Example #2: Given I am on the homepage
  *               Then the page language should be "en"
- * Example #3: When I switch to the French version
+ * Example #3: When I follow "Français"
  *               Then the page language should be "fr"
- * Example #4: When I switch to the Arabic version
+ * Example #4: When I follow "العربية"
  *               Then the page language should be "ar"
  * Example #5: And the page language should be "en-US"
  *

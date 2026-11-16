@@ -53,10 +53,11 @@ Single job `build` on `ubuntu-latest`, 45-minute limit:
 2. `actions/setup-node@v7` — Node 20.x, with the npm cache keyed on `package.json`.
 3. `npm install`.
 4. `npx playwright install --with-deps chromium`.
-5. `npm start &` — backgrounds the fixture server.
-6. Waits until the server answers on port 8080 (30 seconds at most).
-7. `npm test`.
-8. `actions/upload-artifact@v7` — uploads the report, screenshots and videos, on success and on failure.
+5. `npm run test:examples` — no browser: every step definition is documented, every example step and every feature step resolves to exactly one definition.
+6. `npm start &` — backgrounds the fixture server.
+7. Waits until the server answers on port 8080 (30 seconds at most).
+8. `npm test`.
+9. `actions/upload-artifact@v7` — uploads the report, screenshots and videos, on success and on failure.
 
 `FORCE_COLOR=1` is set on the job so cucumber-js v10 emits ANSI colours.
 

@@ -209,7 +209,9 @@ When asked to add a custom step:
 4. Add a JSDoc block with at least 5 `Example #N:` Gherkin lines that
    match the step pattern.
 5. Use plain English in the step text. No camelCase identifiers.
-6. Run the audit: every example must match its step pattern.
+6. Run the audit: `npm run test:examples`. It fails when a definition has
+   no JSDoc description or no example, when a step line of an example
+   matches no definition or more than one, and when a feature step does.
 
 ### Recipe AI-3: Maintain tests after a UI change
 

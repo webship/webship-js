@@ -40,6 +40,9 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
+      - name: Check the step examples and the feature steps
+        run: npm run test:examples
+
       - name: Start virtual server
         run: npm start &
 

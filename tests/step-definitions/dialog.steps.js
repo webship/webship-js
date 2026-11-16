@@ -75,9 +75,9 @@ Given(/^(I |we )*will accept the next dialog$/, function (pronoun) {
  *               Then I should be on the homepage
  * Example #4: Given I will dismiss the next dialog
  *               When I press "Delete"
- *               Then "<.row>" should still be visible
+ *               Then ".row" should be visible
  * Example #5: Given I will dismiss the next dialog
- *               When I close the tab
+ *               When I reload the page
  *
  */
 Given(/^(I |we )*will dismiss the next dialog$/, function (pronoun) {

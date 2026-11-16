@@ -288,7 +288,7 @@ AfterStep(async function (step) {
  * Example #5: When I go to homepage
  *             Then I save screenshot
  * Example #6: Given I am on "/news"
- *             When I scroll to "#latest"
+ *             When I scroll to the element "#latest"
  *             Then I save screenshot
  * Example #7: Given I am on "/contact"
  *             When I fill in "email" with "info@webship.co"
