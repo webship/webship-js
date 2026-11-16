@@ -482,7 +482,7 @@ the workspace repos and installed into `~/.claude/`:
 
 | Agent | Model | Scope |
 | --- | --- | --- |
-| `agent-webship-js` | opus | The full specialist. Scaffold (Node.js or DDEV) → author `.feature` files → write custom steps → run → debug → HTML/PDF report. Carries a distilled copy of the whole step catalog, the BBR/selector/tag sections, the 20-recipe cookbook, Varbase learnings, and recipes AI-1…AI-5. Use for anything non-trivial. |
+| `agent-webship-js` | opus | The full specialist. Scaffold (Node.js or DDEV) → author `.feature` files → write custom steps → run → debug → HTML/PDF report. Carries a distilled copy of the whole step catalog, the BBR/selector/tag sections, the 20-recipe cookbook, project learnings, and recipes AI-1…AI-5. Use for anything non-trivial. |
 | `webship-ai-agent` | sonnet | The loop-until-green worker for a consumer project: read available steps → write/fix scenarios → run → fix root cause → iterate to zero failures. Lighter, autonomous, Drupal/DDEV-flavoured (`NN-NN-NN-name.feature`, `https://<project>.ddev.site`). |
 
 ### Skills (slash commands)
@@ -520,7 +520,7 @@ copies be re-derived.
 3. **Known drift to be aware of, not to "fix" here:** the agents and the
    `/webship-js-run` skill reference a `worldParameters.users` registry and
    an auth helper built on it. There is no `users` key in this repo's
-   `cucumber.js` or in `bin/init-webship.js` — it is a Varbase-project
+   `cucumber.js` or in `bin/init-webship.js` — it is a project-level
    convention layered on top. If a user asks about `users`, say so rather
    than adding the key on the agents' say-so.
 4. **Guardrails they already carry** (so don't re-litigate them): never
