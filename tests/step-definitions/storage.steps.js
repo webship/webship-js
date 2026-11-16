@@ -70,8 +70,8 @@ Given(/^the cookie "([^"]*)" is removed$/, async function (name) {
  * Example #3: Given all cookies are cleared
  *               And I am an anonymous user
  * Example #4: Given all cookies are cleared
- *               And localStorage is cleared
- *               And sessionStorage is cleared
+ *               And local storage is cleared
+ *               And session storage is cleared
  * Example #5: Given all cookies are cleared
  *               When I follow "Login"
  *
@@ -112,7 +112,7 @@ Given(/^(?:the )?local storage "([^"]*)" is set to "([^"]*)"$/, async function (
  * Example #1: Given the local storage "user" is removed
  * Example #2: Given local storage "theme" is removed
  *               When I reload the page
- *               Then "<body>" should not have class "theme-dark"
+ *               Then the element "body" with the attribute "class" and the value containing "theme-dark" should not exist
  * Example #3: Given the local storage "onboarding_complete" is removed
  * Example #4: Given the local storage "cart" is removed
  *               And I am on "/cart"
