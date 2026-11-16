@@ -52,3 +52,26 @@ Feature: XML response assertions
       And the XML should not use the namespace "http://www.w3.org/1999/xhtml"
       And the XML element "/feed/entry" should have 2 elements
       And the XML element "/feed/entry[2]/title" should be equal to "Second release"
+
+  Scenario: Content that is not XML
+    Given the response content is the following:
+      """
+      {"hello": "world"}
+      """
+     Then the response should not be in XML format
+    Given the response content is the following:
+      """
+      plain text
+      """
+     Then the response should not be in XML format
+    Given the response content is the following:
+      """
+      <order><status>shipped</order>
+      """
+     Then the response should not be in XML format
+    Given the response content is the following:
+      """
+      <order><status>shipped</status></order>
+      """
+     Then the response should be in XML format
+      And the XML element "/order/status" should be equal to "shipped"
