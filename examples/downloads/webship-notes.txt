@@ -1,0 +1,4 @@
+Webship-js release notes
+
+- Added: steps for file downloads.
+- Fixed: nothing to see here.

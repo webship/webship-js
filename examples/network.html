@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Network requests - Webship Testing</title>
+</head>
+<body>
+  <h1>Network requests</h1>
+  <p>The buttons below send a request from the page and show what came back, or that nothing came back.</p>
+
+  <h2>Article</h2>
+  <button type="button" id="load-article">Load article</button>
+  <p id="article-status">Not loaded yet</p>
+  <p id="article-title"></p>
+  <p id="article-author"></p>
+  <p id="article-timing"></p>
+
+  <h2>Feedback</h2>
+  <button type="button" id="send-feedback">Send feedback</button>
+  <p id="feedback-status">Not sent yet</p>
+
+  <h2>Connection</h2>
+  <p id="connection"></p>
+
+  <script>
+    function show(id, text) {
+      document.getElementById(id).textContent = text;
+    }
+
+    function showConnection() {
+      show('connection', window.navigator.onLine ? 'The browser is online' : 'The browser is offline');
+    }
+
+    document.getElementById('load-article').addEventListener('click', function () {
+      var started = Date.now();
+      show('article-status', 'Loading the article');
+      show('article-title', '');
+      show('article-author', '');
+      show('article-timing', '');
+      showConnection();
+      window.fetch('example-api.json', { cache: 'no-store' })
+        .then(function (response) {
+          if (!response.ok) throw new Error('HTTP ' + response.status);
+          return response.json();
+        })
+        .then(function (json) {
+          show('article-title', json.data[0].attributes.title);
+          show('article-author', 'Written by ' + json.included[0].attributes.name);
+          show('article-timing', (Date.now() - started) < 2000
+            ? 'Answered in under 2 seconds'
+            : 'Answered after 2 seconds or more');
+          show('article-status', 'Article loaded');
+        })
+        .catch(function () {
+          show('article-status', 'The article request failed');
+        });
+    });
+
+    document.getElementById('send-feedback').addEventListener('click', function () {
+      show('feedback-status', 'Sending the feedback');
+      window.fetch('api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: 'Webship-js is great' })
+      })
+        .then(function (response) {
+          if (!response.ok) throw new Error('HTTP ' + response.status);
+          return response.json();
+        })
+        .then(function (json) {
+          show('feedback-status', 'Feedback answer: ' + json.message);
+        })
+        .catch(function () {
+          show('feedback-status', 'The feedback request failed');
+        });
+    });
+
+    window.addEventListener('online', showConnection);
+    window.addEventListener('offline', showConnection);
+    showConnection();
+  </script>
+</body>
+</html>

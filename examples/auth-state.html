@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Auth state - Webship Testing</title>
+</head>
+<body>
+  <h1>Auth state</h1>
+  <p>A visitor is signed in when the browser holds the "webship_session" cookie and the "webship_user" local storage entry.</p>
+
+  <p id="auth-status"></p>
+  <button type="button" id="sign-in">Sign in</button>
+  <button type="button" id="sign-out">Sign out</button>
+
+  <script>
+    function hasSessionCookie() {
+      return document.cookie.split('; ').indexOf('webship_session=signed-in') !== -1;
+    }
+
+    function render() {
+      var user = window.localStorage.getItem('webship_user');
+      document.getElementById('auth-status').textContent = (hasSessionCookie() && user)
+        ? 'Signed in as ' + user
+        : 'You are not signed in';
+    }
+
+    document.getElementById('sign-in').addEventListener('click', function () {
+      document.cookie = 'webship_session=signed-in; path=/';
+      window.localStorage.setItem('webship_user', 'Webship Tester');
+      render();
+    });
+
+    document.getElementById('sign-out').addEventListener('click', function () {
+      document.cookie = 'webship_session=; path=/; max-age=0';
+      window.localStorage.removeItem('webship_user');
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>

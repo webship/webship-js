@@ -1,0 +1,4 @@
+name,role,status
+Webship Tester,editor,active
+Webship Admin,administrator,active
+Webship Guest,visitor,blocked

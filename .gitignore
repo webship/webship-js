@@ -14,3 +14,5 @@ screenshots
 videos/*.webm
 videos/page@*
 !videos/README.md
+# Auth state snapshots written by "I save the auth state to ..." hold cookies.
+tests/auth/*.json

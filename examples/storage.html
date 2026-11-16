@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Browser storage - Webship Testing</title>
+</head>
+<body>
+  <h1>Browser storage</h1>
+  <p>This page lists what the browser holds for this site when it loads. It sets nothing itself.</p>
+
+  <h2>Cookies</h2>
+  <ul id="cookies"></ul>
+
+  <h2>Local storage</h2>
+  <ul id="local-storage"></ul>
+
+  <h2>Session storage</h2>
+  <ul id="session-storage"></ul>
+
+  <script>
+    function fill(id, entries, emptyText) {
+      var list = document.getElementById(id);
+      list.textContent = '';
+      if (!entries.length) {
+        var none = document.createElement('li');
+        none.className = 'empty';
+        none.textContent = emptyText;
+        list.appendChild(none);
+        return;
+      }
+      entries.sort().forEach(function (entry) {
+        var item = document.createElement('li');
+        item.textContent = entry;
+        list.appendChild(item);
+      });
+    }
+
+    function storageEntries(storage) {
+      var entries = [];
+      for (var i = 0; i < storage.length; i++) {
+        var key = storage.key(i);
+        entries.push(key + ' = ' + storage.getItem(key));
+      }
+      return entries;
+    }
+
+    var cookies = document.cookie ? document.cookie.split('; ').map(function (pair) {
+      var at = pair.indexOf('=');
+      return pair.slice(0, at) + ' = ' + pair.slice(at + 1);
+    }) : [];
+
+    fill('cookies', cookies, 'No cookies');
+    fill('local-storage', storageEntries(window.localStorage), 'Local storage is empty');
+    fill('session-storage', storageEntries(window.sessionStorage), 'Session storage is empty');
+  </script>
+</body>
+</html>
