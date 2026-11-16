@@ -274,6 +274,19 @@ Feature: Relative element positioning assertions and advanced selector system.
     And I see body outside of heading, list
 
   # ---------------------------------------------------------------------------
+  # Advanced — selector names that contain the letters "and".
+  # ---------------------------------------------------------------------------
+  Scenario: A selector name may contain the letters "and".
+    Given I define css selectors:
+      | brand heading   | h1 |
+      | landing subline | h3 |
+      | standard list   | ul |
+    Then I see brand heading above landing subline
+    And I see brand heading above landing subline and standard list
+    And I see brand heading, landing subline above standard list
+    And I see standard list below brand heading, and landing subline
+
+  # ---------------------------------------------------------------------------
   # Advanced — "not over" negation (non-overlap).
   # ---------------------------------------------------------------------------
   Scenario: Block-level neighbours do not overlap.

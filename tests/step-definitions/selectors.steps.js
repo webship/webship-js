@@ -185,8 +185,10 @@ function resolveSelector(world, name) {
   );
 }
 
+// Names are separated by a comma or by the whole word "and" ("a, b and c",
+// "a, b, and c"), never by the letters "and" inside a name ("brand logo").
 function parseNames(text) {
-  return text.split(/\s*(?:,|and)\s*/).map(s => s.trim()).filter(Boolean);
+  return text.split(/\s*,\s*(?:and\s+)?|\s+and\s+/).map(s => s.trim()).filter(Boolean);
 }
 
 // ---------------------------------------------------------------------------
