@@ -461,6 +461,33 @@ async function getLocatorText(locator) {
 }
 
 /**
+ * Find the element a step names either by the text of its label or by a CSS
+ * selector: the field of the label with that exact text and a `for`
+ * attribute when the page has one, else the first element the selector
+ * matches. Both are looked for together, so a selector does not wait for a
+ * label that will never come.
+ *
+ * @param {import('playwright').Page} page - Page being probed.
+ * @param {string} name                    - Label text or CSS selector.
+ * @param {number} [timeout=5000]          - How long to look, in ms.
+ * @returns {Promise<import('playwright').Locator|null>} The element, or null when neither was found in time.
+ */
+async function locateByLabelOrSelector(page, name, timeout) {
+  const deadline = Date.now() + (typeof timeout === 'number' && timeout > 0 ? timeout : 5000);
+  const labels = page.getByText(name, { exact: true });
+  for (;;) {
+    const forIds = await labels.evaluateAll((nodes) => nodes.map((node) => node.getAttribute('for'))).catch(() => []);
+    const forId = forIds.find((id) => id);
+    if (forId) return page.locator(`[id="${forId.replace(/["\\]/g, '\\$&')}"]`).first();
+    // A label text is rarely a valid selector: an invalid one matches nothing.
+    const bySelector = await page.locator(name).count().catch(() => 0);
+    if (bySelector > 0) return page.locator(name).first();
+    if (Date.now() >= deadline) return null;
+    await page.waitForTimeout(100);
+  }
+}
+
+/**
  * Left-pad a number with zeros to the requested width.
  *
  * @param {number} n
@@ -698,6 +725,7 @@ module.exports = {
   sendRequest,
   fillField,
   getLocatorText,
+  locateByLabelOrSelector,
   pad,
   resolveRelativeDate,
   parseRelativeOffset,

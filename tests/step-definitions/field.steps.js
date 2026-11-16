@@ -479,24 +479,28 @@ When(/^(I |we )*fill in the end datetime field "([^"]*)" with date "([^"]*)" and
 
 const { Then: ThenF } = require('@cucumber/cucumber');
 const assertF = require('assert');
-const { getLocatorText: getLocatorTextF } = require('./webship');
+const { getLocatorText: getLocatorTextF, locateByLabelOrSelector: locateByLabelOrSelectorF, friendly: friendlyF } = require('./webship');
 
 /**
  * Assert that a form field contains or does not contain specific text.
  *
+ * The field is named by the exact text of its label, or by a CSS selector.
+ *
  * Example #1: Then the "Username" field should contain "John Smith"
  * Example #2: Then the "#username" field should not contain "John Smith"
  * Example #3: And the "Email" field should contain "jon@example.com"
+ * Example #4: Then the "[name=username]" field should contain "John Smith"
+ * Example #5: And the "input.email" field should not contain "example.org"
  *
  */
 ThenF(/^(the )*"([^"]*)?" field should( not)* contain "([^"]*)?"$/, async function (theCase, field, notCase, expectedText) {
-  let selector = field;
-  if (!field.startsWith('#') && !field.startsWith('.')) {
-    const forAttr = await this.page.getByText(field, { exact: true }).getAttribute('for').catch(() => null);
-    if (forAttr) selector = '#' + forAttr;
+  const loc = await locateByLabelOrSelectorF(this.page, field, 5000);
+  if (!loc) {
+    throw friendlyF({
+      message: `The field "${field}" was not found on the page after 5 seconds.`,
+      hint: `"${field}" is read as the exact text of a label, else as a CSS selector such as "#username" or "[name=username]".`,
+    });
   }
-  const loc = this.page.locator(selector).first();
-  await loc.waitFor({ timeout: 5000 });
   const content = await getLocatorTextF(loc);
   if (notCase) {
     assertF.ok(!content.includes(expectedText), `Field should NOT contain "${expectedText}" but it does.`);

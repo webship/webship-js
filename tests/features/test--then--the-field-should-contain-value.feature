@@ -9,3 +9,11 @@ Feature: An example to verify whether the field contains a specific value identi
      When I press "Reset" by attr
       And I fill in "Username" with "user2"
      Then the "Username" field should contain "user2"
+
+
+  Scenario: Verify that a field named by a CSS selector has a particular value
+    Given I am on "/test--then--i-should--not--see-text-in-element.html"
+      And I fill in "Username" with "user1"
+     Then the "#uname" field should contain "user1"
+      And the "[name=username]" field should contain "user1"
+      And the "input.unamecss" field should not contain "user2"
