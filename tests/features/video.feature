@@ -15,4 +15,5 @@ Feature: 🎬 Video recording
     When I press "🎉 Celebrate"
     Then I should see "Party time"
     When I save the current video as "demo.webm"
+    Then print video path
     When I stop video recording

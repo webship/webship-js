@@ -100,3 +100,46 @@ Feature: YAML response assertions
      Given the active YAML document is 2
      Then the YAML element "/kind" should be equal to "Service"
 
+
+  Scenario: YAML loaded from a file under tests/assets
+    Given the YAML response content from the file "webship-site.yaml"
+     Then the response should be in YAML format
+      And the YAML response should have 1 document
+      And the YAML element "/name" should be equal to "webship-site"
+      And the YAML element "/settings/languages/1" should be equal to "fr"
+      And the YAML element "/pages" should have 2 elements
+      And the YAML array at "/pages" should contain an item where "/title" is "About us"
+
+  Scenario: Elements that do not exist, are not equal and do not contain
+    Given the YAML response content from the file "webship-site.yaml"
+     Then the YAML element "/settings/theme" should not exist
+      And the YAML element "/pages/2" should not exist
+      And the YAML element "/name" should not be equal to "another-site"
+      And the YAML element "/version" should not be equal to "3"
+      And the YAML element "/owner/contact" should not contain "webmaster"
+      And the YAML element "/settings/languages" should not contain "de"
+
+  Scenario: Keys of an element that do not exist, are not equal, contain and do not contain
+    Given the YAML response content from the file "webship-site.yaml"
+     Then the YAML attribute "phone" on element "/owner" should not exist
+      And the YAML attribute "theme" on element "/settings" should not exist
+      And the YAML attribute "team" on element "/owner" should not be equal to "marketing"
+      And the YAML attribute "version" on element "/" should not be equal to "1"
+      And the YAML attribute "contact" on element "/owner" should contain "@example.com"
+      And the YAML attribute "title" on element "/pages/1" should contain "About"
+      And the YAML attribute "contact" on element "/owner" should not contain "webmaster"
+      And the YAML attribute "homepage" on element "/settings" should not contain "http"
+
+  Scenario: The YAML matches a JSON Schema
+    Given the YAML response content from the file "webship-site.yaml"
+     Then the YAML should match JSON Schema "webship-site.schema.json"
+
+  Scenario: The YAML equals an expected file once the changing keys are left out
+    Given the YAML response content from the file "webship-site.yaml"
+     Then the YAML should equal the file "webship-site-expected.yaml" ignoring keys "/status"
+      And the YAML should equal the file "webship-site-expected.yaml" ignoring keys "/status/updated, /status/revision"
+
+  Scenario: The namespace the YAML declares
+    Given the YAML response content from the file "webship-site.yaml"
+     Then the YAML should use the namespace "production"
+      And the YAML should not use the namespace "staging"

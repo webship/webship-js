@@ -1,0 +1,21 @@
+# A small site description for the YAML steps.
+name: webship-site
+namespace: production
+version: 2
+owner:
+  team: platform
+  contact: team@example.com
+settings:
+  cache: true
+  languages:
+    - en
+    - fr
+  homepage: /welcome
+pages:
+  - title: Home
+    path: /
+  - title: About us
+    path: /about-us
+status:
+  updated: "2026-01-15T10:00:00Z"
+  revision: 41
