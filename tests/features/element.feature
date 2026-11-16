@@ -50,3 +50,14 @@ Feature: Element step definitions
   Scenario: Element at the top of the viewport
     Given I am on "/element-viewport.html"
      Then the element "#top-banner" should be at the top of the viewport
+
+  Scenario: Element centered in the viewport
+    Given I am on "/element-viewport.html"
+     Then the element "#centered-box" should be centered in the viewport
+
+  Scenario: Element centered in the viewport after a resize
+    Given I am on "/element-viewport.html"
+     When I set the viewport size to 800x600
+     Then the element "#centered-box" should be centered in the viewport
+     When I scroll to the element "#below-fold"
+     Then the element "#below-fold" should be centered in the viewport

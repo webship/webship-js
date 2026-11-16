@@ -135,7 +135,9 @@ Then('the element {string} should be at the top of the viewport', async function
 Then('the element {string} should be centered in the viewport', async function (sel) {
   const box = await this.page.locator(sel).first().boundingBox();
   assert.ok(box, `Element "${sel}" not found.`);
-  const vw = this.page.viewportSize().width;
+  // Read the width from the page: page.viewportSize() is null when the
+  // browser context is opened with a fluid viewport (`viewport: null`).
+  const vw = await this.page.evaluate(() => document.documentElement.clientWidth);
   const center = box.x + box.width / 2;
   const tolerance = vw * 0.1;
   assert.ok(Math.abs(center - vw / 2) <= tolerance, `Element "${sel}" not centered (center=${center}, vw=${vw}).`);
