@@ -10,9 +10,13 @@ on:
 permissions:
   contents: read
 
+# The runs of a pull request share a group, so a newer push cancels the run
+# it supersedes. Every other run (a push to 2.0.x, a run started by hand)
+# gets a group of its own: it is never queued behind another run, and never
+# cancelled.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
 
 jobs:
   build:
