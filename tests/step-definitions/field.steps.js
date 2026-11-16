@@ -4,6 +4,7 @@
 
 const { Given, When, Then } = require('@cucumber/cucumber');
 const assert = require('assert');
+const { friendly } = require('./webship');
 
 // Resolve a field by label, name, id, or selector.
 function fieldLocator(page, field) {
@@ -207,6 +208,12 @@ Then('the color field {string} should have the value {string}', async function (
 /**
  * Fill a CKEditor / contenteditable rich-text field with HTML.
  *
+ * The field is found by the name or the id of its form control, by the text
+ * of its label, or by the accessible name of its editable area
+ * (`aria-label` / `aria-labelledby`). The editable area that is filled is the
+ * one that belongs to that field, so a page with several editors is filled in
+ * the right place. A page with a single editor is filled whatever the name.
+ *
  * Example #1: When I fill in the WYSIWYG field "body" with the "Hello world"
  * Example #2: When I fill in the WYSIWYG field "Description" with the "<strong>Bold</strong>"
  * Example #3: And we fill in the WYSIWYG field "content" with the "Plain paragraph"
@@ -215,13 +222,77 @@ Then('the color field {string} should have the value {string}', async function (
  *
  */
 When(/^(I |we )*fill in the WYSIWYG field "([^"]*)" with the "([^"]*)"$/, async function (pronoun, field, value) {
-  // CKEditor5/4 fallback: try contenteditable.
-  await this.page.evaluate(({ field, value }) => {
-    const editor = document.querySelector(`[name="${field}"], #${field}`);
-    if (editor && 'value' in editor) editor.value = value;
-    const ce = document.querySelector('.ck-editor__editable, [contenteditable="true"]');
-    if (ce) ce.innerHTML = `<p>${value}</p>`;
+  const filled = await this.page.evaluate(({ field, value }) => {
+    const EDITABLE = '.ck-editor__editable, [contenteditable="true"], [contenteditable=""]';
+    const html = `<p>${value}</p>`;
+    const byId = (id) => (id ? document.getElementById(id) : null);
+    const sameText = (el) => (el.textContent || '').replace(/\s+/g, ' ').trim() === field;
+
+    // 1. What the name points at: a form control by its name or id, a label
+    //    by its text, or an editable area by its accessible name.
+    let source = Array.from(document.getElementsByName(field))[0] || byId(field);
+    if (!source) {
+      const label = Array.from(document.querySelectorAll('label')).find(sameText);
+      if (label) source = label.control || byId(label.getAttribute('for'));
+    }
+    if (!source) {
+      source = Array.from(document.querySelectorAll(EDITABLE)).find((el) => {
+        if (el.getAttribute('aria-label') === field) return true;
+        const ids = (el.getAttribute('aria-labelledby') || '').split(/\s+/).filter(Boolean);
+        return ids.some((id) => { const named = byId(id); return named && sameText(named); });
+      }) || null;
+    }
+
+    // 2. The editable area that belongs to it. An editor renders right after
+    //    the form control it replaces; failing that, it is the only editable
+    //    area of the closest wrapper around the control.
+    let editable = null;
+    if (source && source.matches(EDITABLE)) {
+      editable = source;
+    } else if (source) {
+      for (let el = source.nextElementSibling; el && !editable; el = el.nextElementSibling) {
+        if (el.matches('label, input, textarea, select')) break;
+        editable = el.matches(EDITABLE) ? el : el.querySelector(EDITABLE);
+      }
+      for (let box = source.parentElement; box && box !== document.body && !editable; box = box.parentElement) {
+        const inside = box.querySelectorAll(EDITABLE);
+        if (inside.length === 1) editable = inside[0];
+        if (inside.length > 1) break;
+      }
+    } else {
+      const all = document.querySelectorAll(EDITABLE);
+      if (all.length === 1) editable = all[0];
+    }
+
+    const control = source && source !== editable && 'value' in source ? source : null;
+    if (control) {
+      control.value = value;
+      control.dispatchEvent(new Event('input', { bubbles: true }));
+      control.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+    if (editable) {
+      const ck5 = editable.ckeditorInstance;
+      if (ck5 && typeof ck5.setData === 'function') ck5.setData(html);
+      else {
+        editable.innerHTML = html;
+        editable.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    }
+    // CKEditor 4 edits inside an iframe and keeps its instances by control id or name.
+    const registry = window.CKEDITOR && window.CKEDITOR.instances;
+    const ck4 = registry && control ? (registry[control.id] || registry[control.name]) : null;
+    if (ck4 && typeof ck4.setData === 'function') ck4.setData(html);
+
+    return Boolean(control || editable || ck4);
   }, { field, value });
+  if (!filled) {
+    throw friendly({
+      action: 'fill in the WYSIWYG field',
+      target: field,
+      cause: 'no form control with that name or id, no label with that text and no editable area with that accessible name was found',
+      hint: 'use the name or the id of the textarea behind the editor, the text of its label, or the aria-label of the editable area.',
+    });
+  }
 });
 
 /**
