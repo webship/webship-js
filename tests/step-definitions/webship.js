@@ -65,8 +65,11 @@ if (process.env.WEBSHIP_FILTER_HOOK_LINES !== 'off') {
 //   5. window.__webshipPendingTimers === 0   (custom setTimeout counter)
 //   6. Date.now() - window.__webshipLastMutation >= quietMs (DOM-quiet)
 //
-// Steps 4/5/6 are evaluated atomically via a single waitForFunction, so a
+// Steps 4/5/6 are evaluated atomically in one page-side probe, so a
 // late-firing setTimeout that mutates the DOM re-arms the wait correctly.
+// The probe is polled from Node (see pollPage), never from a timer inside the
+// page: a poll that runs on the page's own setTimeout is counted by step 5 as
+// a pending timer, so the probe would see itself and never pass.
 // ---------------------------------------------------------------------------
 
 /**
@@ -77,6 +80,38 @@ if (process.env.WEBSHIP_FILTER_HOOK_LINES !== 'off') {
  * @type {number}
  */
 const SETTLE_MIN_MS = 25;
+
+/**
+ * Poll a page-side probe from Node until it returns a truthy value or the
+ * budget is spent.
+ *
+ * Use this instead of `page.waitForFunction(..., { polling: <ms> })` for any
+ * probe that reads `window.__webshipPendingTimers`. Interval polling inside
+ * the page runs on the page's `setTimeout`, which the init script wraps to
+ * count pending timers, so such a probe counts its own next poll: it can only
+ * pass on its very first look, and waits out its whole timeout otherwise.
+ *
+ * A probe that throws (the page is navigating, the context was replaced) is
+ * read as "not yet" and looked at again.
+ *
+ * @param {import('playwright').Page} page   - Page being probed.
+ * @param {Function} probe                   - Runs in the page; truthy means done.
+ * @param {*} arg                            - Single argument handed to the probe.
+ * @param {number} timeout                   - Budget in ms.
+ * @param {number} [interval=50]             - Pause between two looks, in ms.
+ * @returns {Promise<boolean>} true when the probe passed inside the budget.
+ */
+async function pollPage(page, probe, arg, timeout, interval) {
+  const pause = typeof interval === 'number' && interval > 0 ? interval : 50;
+  const deadline = Date.now() + (typeof timeout === 'number' && timeout > 0 ? timeout : 0);
+  for (;;) {
+    let done = false;
+    try { done = await page.evaluate(probe, arg); } catch { /* not ready yet */ }
+    if (done) return true;
+    if (Date.now() + pause >= deadline) return false;
+    await new Promise((resolve) => setTimeout(resolve, pause));
+  }
+}
 
 /**
  * Wait for the page to reach an "edge" of activity — DOM ready, network
@@ -116,7 +151,8 @@ async function smartSettle(page, timeout) {
   if (!await stage(0.25, (t) => page.waitForSelector('body', { state: 'attached', timeout: t }))) return;
   if (!await stage(0.25, (t) => page.waitForLoadState('domcontentloaded', { timeout: t }))) return;
   if (!await stage(0.5, (t) => page.waitForLoadState('networkidle', { timeout: t }))) return;
-  await stage(0.5, (t) => page.waitForFunction(
+  await stage(0.5, (t) => pollPage(
+    page,
     (quietMs) => {
       const ajax = window.__webshipAjaxCount;
       const timers = window.__webshipPendingTimers;
@@ -127,7 +163,7 @@ async function smartSettle(page, timeout) {
       return true;
     },
     250,
-    { timeout: t, polling: 50 }
+    t
   ));
 }
 
@@ -713,6 +749,7 @@ function friendly(input, cause) {
 
 module.exports = {
   smartSettle,
+  pollPage,
   waitForPageLoad,
   getModalSelector,
   getModalLocator,

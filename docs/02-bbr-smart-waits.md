@@ -23,6 +23,12 @@ __webshipAjaxCount === 0
 
 …or when `budget` elapses, whichever comes first.
 
+The probe is polled from Node (`page.evaluate` in a loop), never from a timer
+inside the page. A poll that ran on the page's own `setTimeout` would be counted
+in `__webshipPendingTimers` like any other timer, so the wait would see its own
+next poll and never find the page quiet. `When I wait until pending timers settle`
+reads the count the same way.
+
 ### How the budget is shared
 
 Each phase is best-effort — a phase that times out is not a failure — and each

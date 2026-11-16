@@ -11,7 +11,7 @@
 // so this file never duplicates BBR plumbing.
 
 const { When } = require('@cucumber/cucumber');
-const { smartSettle, waitForModalState } = require('./webship');
+const { smartSettle, pollPage, waitForModalState, friendly } = require('./webship');
 
 /**
  * Wait UP TO N seconds for the page to settle. Returns early on idle.
@@ -369,13 +369,23 @@ When(/^(I |we )*wait until( the)* page is interactive$/, async function (pronoun
  *
  */
 When(/^(I |we )*wait until pending timers settle$/, async function (pronounCase) {
-  await this.page.waitForFunction(
+  // Polled from Node: a poll on the page's own setTimeout would be counted as
+  // one more pending timer, and the wait could never see the count reach zero.
+  const settled = await pollPage(
+    this.page,
     () => {
       const t = window.__webshipPendingTimers;
       return typeof t !== 'number' || t <= 0;
     },
-    null, { timeout: 10000, polling: 100 }
+    null, 10000, 100
   );
+  if (!settled) {
+    throw friendly({
+      action: 'wait until pending timers settle',
+      cause: 'the page still had a pending timer after 10 seconds',
+      hint: 'a page that reschedules a timer forever never settles; wait for the element or the text you expect instead.',
+    });
+  }
 });
 
 /**
