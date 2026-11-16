@@ -16,10 +16,41 @@ catch (e) {
   catch (e2) { /* will throw on use */ }
 }
 
-function ensureXml(world) {
+function requireParser() {
   if (!DOMParser) throw friendly('XML steps require an XML DOM parser. Install @xmldom/xmldom.');
+}
+
+function ensureXml(world) {
+  requireParser();
+  if (world._xmlParseError) throw friendly(`The response is not valid XML: ${world._xmlParseError}`);
   if (!world._xml) throw friendly('No XML response has been set.');
   return world._xml;
+}
+
+// Parse without throwing and without printing: returns the document, or the
+// reason the content is not well-formed XML.
+function parseXml(content) {
+  requireParser();
+  const problems = [];
+  let doc = null;
+  try {
+    doc = new DOMParser({
+      onError: (level, message) => { if (level !== 'warning') problems.push(String(message).trim()); },
+    }).parseFromString(String(content), 'text/xml');
+  } catch (e) {
+    if (problems.length === 0) problems.push(e.message);
+  }
+  if (problems.length === 0 && (!doc || !doc.documentElement)) problems.push('missing root element');
+  return problems.length ? { doc: null, error: problems[0] } : { doc, error: null };
+}
+
+// Keep the raw content even when it is not XML, so that the two format steps
+// ("should be" / "should not be in XML format") can judge it.
+function setXmlResponse(world, content) {
+  const { doc, error } = parseXml(content);
+  world._rawResponse = content;
+  world._xml = doc;
+  world._xmlParseError = error;
 }
 
 function evalXPath(doc, xpath) {
@@ -54,9 +85,7 @@ function evalXPath(doc, xpath) {
  */
 Given('the response content from the file {string}', async function (filename) {
   const p = path.isAbsolute(filename) ? filename : path.join(this.assetsFolder || './tests/assets', filename);
-  const content = fs.readFileSync(p, 'utf-8');
-  this._rawResponse = content;
-  this._xml = new DOMParser().parseFromString(content, 'text/xml');
+  setXmlResponse(this, fs.readFileSync(p, 'utf-8'));
 });
 
 /**
@@ -85,8 +114,7 @@ Given('the response content from the file {string}', async function (filename) {
  *
  */
 Given('the response content is the following:', async function (docString) {
-  this._rawResponse = docString;
-  this._xml = new DOMParser().parseFromString(docString, 'text/xml');
+  setXmlResponse(this, docString);
 });
 
 /**
@@ -107,8 +135,8 @@ Given('the response content is the following:', async function (docString) {
  */
 Then('the response should be in XML format', async function () {
   assert.ok(this._rawResponse, 'No response content set.');
-  const doc = new DOMParser().parseFromString(this._rawResponse, 'text/xml');
-  assert.ok(doc && doc.documentElement, 'Response is not valid XML.');
+  const { error } = parseXml(this._rawResponse);
+  assert.ok(!error, `Response is not valid XML: ${error}`);
 });
 
 /**
@@ -131,11 +159,9 @@ Then('the response should be in XML format', async function () {
  *
  */
 Then('the response should not be in XML format', async function () {
-  if (!this._rawResponse) return;
-  try {
-    const doc = new DOMParser().parseFromString(this._rawResponse, 'text/xml');
-    assert.ok(!doc || !doc.documentElement || doc.getElementsByTagName('parsererror').length > 0, 'Response is XML.');
-  } catch (e) { /* good */ }
+  assert.ok(this._rawResponse, 'No response content set.');
+  const { error } = parseXml(this._rawResponse);
+  assert.ok(error, 'Response is valid XML.');
 });
 
 /**
