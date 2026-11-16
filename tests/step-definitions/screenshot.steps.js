@@ -262,9 +262,14 @@ AfterStep(async function (step) {
   }
 
   const cfg = resolveConfig(this.parameters);
-  const passed = step.result && step.result.status === 'PASSED';
+  const status = step.result && step.result.status;
+  const passed = status === 'PASSED';
+  // A failure screenshot is for a step that failed, or that no definition
+  // (or more than one) matched. A step that skips its scenario on purpose
+  // (it returned 'skipped') or is still pending is not a failure.
+  const failed = status === 'FAILED' || status === 'AMBIGUOUS' || status === 'UNDEFINED';
 
-  if (!passed && cfg.onFailed) {
+  if (failed && cfg.onFailed) {
     await captureScreenshot(this, { isFailed: true, fullscreen: cfg.alwaysFullscreen });
     return;
   }
