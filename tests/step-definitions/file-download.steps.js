@@ -148,10 +148,63 @@ Then('the downloaded file name should contain {string}', async function (part) {
   assert.ok(this._lastDownload.filename.indexOf(part) !== -1, `Filename "${this._lastDownload.filename}" does not contain "${part}".`);
 });
 
-// ZIP archive assertions: pending. Install `yauzl` or `adm-zip` to enable.
+// ---------------------------------------------------------------------------
+// ZIP archive assertions
+// ---------------------------------------------------------------------------
+//
+// The names are read from the central directory of the archive, with no
+// dependency: nothing is unpacked. Folder entries are left out, and a file in
+// a folder is known by its path in the archive ("reports/summary.csv").
+
+const ZIP_END_OF_CENTRAL_DIRECTORY = 0x06054b50;
+const ZIP_CENTRAL_DIRECTORY_ENTRY = 0x02014b50;
+
+function zipFileNames(buffer) {
+  const notZip = () => friendly('The downloaded file is not a zip archive.');
+  if (!buffer || buffer.length < 22) throw notZip();
+  // The end record sits at the end of the file, before an optional comment.
+  let end = -1;
+  const lowest = Math.max(0, buffer.length - 22 - 0xffff);
+  for (let i = buffer.length - 22; i >= lowest; i--) {
+    if (buffer.readUInt32LE(i) === ZIP_END_OF_CENTRAL_DIRECTORY) { end = i; break; }
+  }
+  if (end === -1) throw notZip();
+  const total = buffer.readUInt16LE(end + 10);
+  let offset = buffer.readUInt32LE(end + 16);
+  if (total === 0xffff || offset === 0xffffffff) {
+    throw friendly('The downloaded file is a Zip64 archive, which the zip archive steps do not read.');
+  }
+  const names = [];
+  for (let n = 0; n < total; n++) {
+    if (offset + 46 > buffer.length || buffer.readUInt32LE(offset) !== ZIP_CENTRAL_DIRECTORY_ENTRY) throw notZip();
+    const nameLength = buffer.readUInt16LE(offset + 28);
+    const extraLength = buffer.readUInt16LE(offset + 30);
+    const commentLength = buffer.readUInt16LE(offset + 32);
+    const name = buffer.slice(offset + 46, offset + 46 + nameLength).toString('utf-8');
+    if (!name.endsWith('/')) names.push(name);
+    offset += 46 + nameLength + extraLength + commentLength;
+  }
+  return names;
+}
+
+function downloadedZipFileNames(world) {
+  assert.ok(world._lastDownload, 'No download has been performed.');
+  return zipFileNames(world._lastDownload.content);
+}
+
+// One name per row, several names in a row, or both.
+function listedNames(table) {
+  return table.raw().flat().map((v) => v.trim()).filter(Boolean);
+}
+
+function baseName(entry) {
+  return entry.slice(entry.lastIndexOf('/') + 1);
+}
 
 /**
- * (Pending) Assert the downloaded ZIP archive contains the listed filenames exactly.
+ * Assert the downloaded ZIP archive contains every listed file. A name
+ * matches a file by its full path in the archive ("reports/summary.csv")
+ * or by its file name alone ("summary.csv"). Other files may be present.
  *
  * Example #1: Then the downloaded file should be a zip archive containing the following files named:
  *               | report.pdf  |
@@ -166,12 +219,16 @@ Then('the downloaded file name should contain {string}', async function (part) {
  *               | manifest.json |
  *
  */
-Then('the downloaded file should be a zip archive containing the following files named:', async function () {
-  return 'pending';
+Then('the downloaded file should be a zip archive containing the following files named:', async function (table) {
+  const names = downloadedZipFileNames(this);
+  const missing = listedNames(table).filter((want) => !names.some((n) => n === want || baseName(n) === want));
+  assert.strictEqual(missing.length, 0,
+    `The zip archive has no file named: ${missing.join(', ')}. It contains: ${names.join(', ') || '(no files)'}.`);
 });
 
 /**
- * (Pending) Assert the downloaded ZIP contains files whose names contain the listed substrings.
+ * Assert the downloaded ZIP contains, for every listed text, a file whose
+ * path in the archive contains it.
  *
  * Example #1: Then the downloaded file should be a zip archive containing the following files partially named:
  *               | report |
@@ -186,12 +243,16 @@ Then('the downloaded file should be a zip archive containing the following files
  *               | manifest |
  *
  */
-Then('the downloaded file should be a zip archive containing the following files partially named:', async function () {
-  return 'pending';
+Then('the downloaded file should be a zip archive containing the following files partially named:', async function (table) {
+  const names = downloadedZipFileNames(this);
+  const missing = listedNames(table).filter((part) => !names.some((n) => n.indexOf(part) !== -1));
+  assert.strictEqual(missing.length, 0,
+    `The zip archive has no file with a name containing: ${missing.join(', ')}. It contains: ${names.join(', ') || '(no files)'}.`);
 });
 
 /**
- * (Pending) Assert the downloaded ZIP does NOT contain files whose names contain the listed substrings.
+ * Assert the downloaded ZIP has no file whose path in the archive contains
+ * one of the listed texts.
  *
  * Example #1: Then the downloaded file should be a zip archive not containing the following files partially named:
  *               | secret |
@@ -206,6 +267,9 @@ Then('the downloaded file should be a zip archive containing the following files
  *               | __MACOSX |
  *
  */
-Then('the downloaded file should be a zip archive not containing the following files partially named:', async function () {
-  return 'pending';
+Then('the downloaded file should be a zip archive not containing the following files partially named:', async function (table) {
+  const names = downloadedZipFileNames(this);
+  const found = names.filter((n) => listedNames(table).some((part) => n.indexOf(part) !== -1));
+  assert.strictEqual(found.length, 0,
+    `The zip archive should not contain: ${found.join(', ')}.`);
 });
