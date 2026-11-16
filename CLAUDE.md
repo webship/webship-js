@@ -39,6 +39,7 @@ suite — nearly every bundled feature loads a static fixture from `examples/`.
 | `npm run test:chromium` / `:firefox` / `:webkit` | Pick the browser (same as `BROWSER=…`). |
 | `npx cucumber-js --dry-run` | Ambiguity / undefined-step check. Run this before declaring done. |
 | `npm run test:examples` | No browser: every step definition is documented, every `Example #n:` step and every feature step resolves to exactly one definition. |
+| `npm run test:must-fail` | Runs the scenarios of `tests/must-fail/` (they must fail) and checks each failure message: what was looked for, the page, a hint. Needs `npm start`. |
 | `npm run generate-reports` | HTML (+ optional PDF) report from `tests/reports/cucumber_report.json`. |
 
 Targeting a subset:
