@@ -8,7 +8,32 @@ const { spawnSync } = require('child_process');
 
 const packagePath = path.join(__dirname, '..');
 
-const CUCUMBER_JS = `module.exports = {
+const CUCUMBER_JS = `// A feature file, a scenario (file:line), a folder or a rerun file named on
+// the command line of cucumber-js runs alone (cucumber-js 12 would add it to
+// the paths below): \`npx cucumber-js tests/features/login.feature\`.
+const OPTIONS_WITH_A_VALUE = new Set([
+  '-c', '--config', '-f', '--format', '--format-options', '--i18n-keywords',
+  '-i', '--import', '-l', '--loader', '--language', '--name', '--order',
+  '-p', '--profile', '--parallel', '--plugin', '--plugin-options',
+  '-r', '--require', '--require-module', '--retry', '--retry-tag-filter',
+  '--shard', '-t', '--tags', '--world-parameters',
+]);
+
+function commandLinePaths() {
+  if (!/cucumber(-js|\\.js)?$/.test(String(process.argv[1] || ''))) return [];
+  const args = process.argv.slice(2);
+  const paths = [];
+  for (let i = 0; i < args.length; i += 1) {
+    if (args[i].startsWith('-')) {
+      if (OPTIONS_WITH_A_VALUE.has(args[i])) i += 1;
+    } else {
+      paths.push(args[i]);
+    }
+  }
+  return paths;
+}
+
+module.exports = {
   default: {
     timeout: 30000,                                                     // Overridden by webship-js's setDefaultTimeout (45s); raise it with WEBSHIP_STEP_TIMEOUT.
     requireModule: ['tsx/cjs'],
@@ -16,8 +41,8 @@ const CUCUMBER_JS = `module.exports = {
       'node_modules/webship-js/tests/step-definitions/**/*.js',          // Webship-js core step definitions (auto HTML report on exit; disable: WEBSHIP_REPORT_DISABLE=1).
       'tests/step-definitions/**/*.js',                                  // Your custom step definitions.
     ],
-    // FEATURES=tests/features/a.feature,tests/features/b.feature runs a subset.
-    paths: process.env.FEATURES ? process.env.FEATURES.split(',') : ['tests/features/**/*.feature'],
+    // FEATURES=tests/features/a.feature,tests/features/b.feature runs a subset too.
+    paths: process.env.FEATURES ? process.env.FEATURES.split(',') : (commandLinePaths().length ? [] : ['tests/features/**/*.feature']),
     format: [
       '@cucumber/pretty-formatter',
       'json:tests/reports/cucumber_report.json',

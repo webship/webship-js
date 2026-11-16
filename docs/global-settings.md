@@ -17,7 +17,7 @@ This page documents every supported setting plus its env-var override.
 | `timeout` | int (ms) | `30000` | Per-step timeout enforced by `setDefaultTimeout`. |
 | `requireModule` | array | `['tsx/cjs']` | TypeScript runtime support. |
 | `require` | array | step-definition globs | Files Cucumber-js loads at startup. |
-| `paths` | array | `['tests/features/**/*.feature']` | Where to find feature files. The scaffolded `cucumber.js` also reads `FEATURES`, comma-separated: `FEATURES=tests/features/a.feature,tests/features/b.feature`. |
+| `paths` | array | `['tests/features/**/*.feature']` | Where to find feature files. Left empty when the command line names features, scenarios (`file:line`), folders or a rerun file, so that `npx cucumber-js tests/features/a.feature` runs that feature alone (cucumber-js 12 would add it to `paths`). The scaffolded `cucumber.js` also reads `FEATURES`, comma-separated: `FEATURES=tests/features/a.feature,tests/features/b.feature`. |
 | `format` | array | pretty + JSON report | Output formatters. |
 | `formatOptions` | object | colour theme | Pretty-formatter colours. |
 | `worldParameters` | object | (sections below) | Everything passed to the Playwright World. |
