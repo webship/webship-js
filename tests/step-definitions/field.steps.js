@@ -28,6 +28,44 @@ async function getField(page, field) {
   return loc;
 }
 
+// Escape a label for use inside a quoted CSS / Playwright selector string.
+function quoted(text) {
+  return String(text).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+}
+
+// Resolve the date or the time input of a datetime field named by its label.
+// The pair is written in many ways, so every usual one is looked at, and the
+// first input in the page that fits is taken:
+//   - inputs in an element that follows the label, or right after the label;
+//   - inputs inside the label;
+//   - inputs of a fieldset whose legend carries the label;
+//   - inputs whose name or accessible name contains the label, whatever the case.
+// `half` narrows a date range to its "start" or its "end" input.
+async function datetimePart(page, label, type, half) {
+  const l = quoted(label);
+  const input = `input[type="${type}"]${half ? `[name*="${half}" i]` : ''}`;
+  const named = `input[type="${type}"][name*="${l}" i]${half ? `[name*="${half}" i]` : ''}`;
+  const loc = page.locator([
+    `label:has-text("${l}") ~ * ${input}`,
+    `label:has-text("${l}") ~ ${input}`,
+    `label:has-text("${l}") ${input}`,
+    `fieldset:has(legend:has-text("${l}")) ${input}`,
+    named,
+    `${input}[aria-label*="${l}" i]`,
+  ].join(', ')).first();
+  try {
+    await loc.waitFor({ state: 'attached', timeout: 5000 });
+  } catch (e) {
+    throw friendly({
+      action: `find the ${half ? half + ' ' : ''}${type} input of the datetime field`,
+      target: label,
+      cause: `no <input type="${type}"> was found after a label, inside a label or a fieldset, or by a name that contains "${label}"`,
+      hint: 'use the visible label of the field, the legend of its fieldset, or a part of the name of its inputs.',
+    });
+  }
+  return loc;
+}
+
 /**
  * Assert a field's current value is the empty string.
  *
@@ -472,6 +510,11 @@ Given('browser validation for the form {string} is disabled', async function (se
 /**
  * Fill paired `<input type=date>` + `<input type=time>` controls for a label.
  *
+ * The field is named by its visible label or the legend of its fieldset; an
+ * input whose name or aria-label contains that text is found too, whatever
+ * the letter case. When an input is not found within 5 seconds the step
+ * fails and fills nothing.
+ *
  * Example #1: When I fill in the datetime field "Start" with date "2026-05-08" and time "10:00"
  * Example #2: When I fill in the datetime field "Departure" with date "2026-12-31" and time "23:59"
  * Example #3: And we fill in the datetime field "Pickup" with date "2026-07-04" and time "08:30"
@@ -480,9 +523,11 @@ Given('browser validation for the form {string} is disabled', async function (se
  *
  */
 When(/^(I |we )*fill in the datetime field "([^"]*)" with date "([^"]*)" and time "([^"]*)"$/, async function (pronoun, label, date, time) {
-  const root = this.page.locator(`label:has-text("${label}")`).first();
-  await this.page.locator(`input[type="date"][name*="${label}"], label:has-text("${label}") ~ * input[type="date"]`).first().fill(date).catch(() => {});
-  await this.page.locator(`input[type="time"][name*="${label}"], label:has-text("${label}") ~ * input[type="time"]`).first().fill(time).catch(() => {});
+  // Both inputs are found before either is filled: a failure leaves the form as it was.
+  const dateInput = await datetimePart(this.page, label, 'date');
+  const timeInput = await datetimePart(this.page, label, 'time');
+  await dateInput.fill(date);
+  await timeInput.fill(time);
 });
 
 /**
@@ -496,7 +541,7 @@ When(/^(I |we )*fill in the datetime field "([^"]*)" with date "([^"]*)" and tim
  *
  */
 When(/^(I |we )*fill in the date part of the datetime field "([^"]*)" with "([^"]*)"$/, async function (pronoun, label, date) {
-  await this.page.locator(`label:has-text("${label}") ~ * input[type="date"], input[type="date"][name*="${label}"]`).first().fill(date);
+  await (await datetimePart(this.page, label, 'date')).fill(date);
 });
 
 /**
@@ -510,11 +555,14 @@ When(/^(I |we )*fill in the date part of the datetime field "([^"]*)" with "([^"
  *
  */
 When(/^(I |we )*fill in the time part of the datetime field "([^"]*)" with "([^"]*)"$/, async function (pronoun, label, time) {
-  await this.page.locator(`label:has-text("${label}") ~ * input[type="time"], input[type="time"][name*="${label}"]`).first().fill(time);
+  await (await datetimePart(this.page, label, 'time')).fill(time);
 });
 
 /**
  * Fill the `start` half of a date-range pair.
+ *
+ * The range is named by its label or the legend of its fieldset; of its
+ * inputs, the ones whose name contains "start" are filled.
  *
  * Example #1: When I fill in the start datetime field "Event" with date "2026-05-08" and time "10:00"
  * Example #2: When I fill in the start datetime field "Trip" with date "2026-12-31" and time "08:00"
@@ -524,12 +572,17 @@ When(/^(I |we )*fill in the time part of the datetime field "([^"]*)" with "([^"
  *
  */
 When(/^(I |we )*fill in the start datetime field "([^"]*)" with date "([^"]*)" and time "([^"]*)"$/, async function (pronoun, label, date, time) {
-  await this.page.locator(`input[name*="${label}"][name*="start"][type="date"]`).first().fill(date).catch(() => {});
-  await this.page.locator(`input[name*="${label}"][name*="start"][type="time"]`).first().fill(time).catch(() => {});
+  const dateInput = await datetimePart(this.page, label, 'date', 'start');
+  const timeInput = await datetimePart(this.page, label, 'time', 'start');
+  await dateInput.fill(date);
+  await timeInput.fill(time);
 });
 
 /**
  * Fill the `end` half of a date-range pair.
+ *
+ * The range is named by its label or the legend of its fieldset; of its
+ * inputs, the ones whose name contains "end" are filled.
  *
  * Example #1: When I fill in the end datetime field "Event" with date "2026-05-09" and time "18:00"
  * Example #2: When I fill in the end datetime field "Trip" with date "2027-01-07" and time "20:00"
@@ -539,8 +592,10 @@ When(/^(I |we )*fill in the start datetime field "([^"]*)" with date "([^"]*)" a
  *
  */
 When(/^(I |we )*fill in the end datetime field "([^"]*)" with date "([^"]*)" and time "([^"]*)"$/, async function (pronoun, label, date, time) {
-  await this.page.locator(`input[name*="${label}"][name*="end"][type="date"]`).first().fill(date).catch(() => {});
-  await this.page.locator(`input[name*="${label}"][name*="end"][type="time"]`).first().fill(time).catch(() => {});
+  const dateInput = await datetimePart(this.page, label, 'date', 'end');
+  const timeInput = await datetimePart(this.page, label, 'time', 'end');
+  await dateInput.fill(date);
+  await timeInput.fill(time);
 });
 
 // ---------------------------------------------------------------------------
