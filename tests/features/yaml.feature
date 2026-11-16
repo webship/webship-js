@@ -104,6 +104,20 @@ Feature: YAML response assertions
      Then the YAML keys at "/metadata" should be exactly "name, namespace, labels"
       And the YAML at "/metadata" should have keys "name, namespace"
 
+  Scenario: A namespace below the top level is in use, so it is not "not in use"
+    Given the YAML response content is the following:
+      """
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: web
+        namespace: webship-production
+      """
+     Then the YAML should use the namespace "apps/v1"
+      And the YAML should use the namespace "webship-production"
+      And the YAML should not use the namespace "webship-staging"
+      And the YAML should not use the namespace "batch/v1"
+
   Scenario: Multi-document streams
     Given the YAML response content is the following:
       """

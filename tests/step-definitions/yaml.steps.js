@@ -868,6 +868,17 @@ Then('the YAML should equal the file {string} ignoring keys {string}', function 
 // Namespace + debug
 // ---------------------------------------------------------------------------
 
+// One answer for both namespace steps: a top-level value equal to the
+// namespace, or the namespace anywhere in the raw text.
+function usesNamespace(world, ns) {
+  const doc = activeDoc(world);
+  if (doc && typeof doc === 'object') {
+    const values = Object.values(doc).map((v) => (v == null ? '' : String(v)));
+    if (values.includes(ns)) return true;
+  }
+  return (world._rawYamlResponse || '').indexOf(ns) !== -1;
+}
+
 /**
  * Assert the YAML document declares a namespace value (mirrors xml.steps.js).
  * Checks top-level scalar values and falls back to a raw-text scan.
@@ -880,16 +891,14 @@ Then('the YAML should equal the file {string} ignoring keys {string}', function 
  *
  */
 Then('the YAML should use the namespace {string}', function (ns) {
-  const doc = activeDoc(this); ensureLoaded(this);
-  if (doc && typeof doc === 'object') {
-    const values = Object.values(doc).map((v) => (v == null ? '' : String(v)));
-    if (values.includes(ns)) return;
-  }
-  assert.ok((this._rawYamlResponse || '').indexOf(ns) !== -1, `Namespace "${ns}" not declared.`);
+  ensureLoaded(this);
+  assert.ok(usesNamespace(this, ns), `Namespace "${ns}" not declared.`);
 });
 
 /**
- * Assert the YAML document does NOT declare a namespace value.
+ * Assert the YAML document does NOT declare a namespace value: the exact
+ * opposite of the step above (no top-level value equal to it, and the raw
+ * text does not carry it).
  *
  * Example #1: Then the YAML should not use the namespace "v0"
  * Example #2: Then the YAML should not use the namespace "internal/v1"
@@ -899,13 +908,8 @@ Then('the YAML should use the namespace {string}', function (ns) {
  *
  */
 Then('the YAML should not use the namespace {string}', function (ns) {
-  const doc = activeDoc(this); ensureLoaded(this);
-  if (doc && typeof doc === 'object') {
-    const values = Object.values(doc).map((v) => (v == null ? '' : String(v)));
-    assert.ok(!values.includes(ns), `Namespace "${ns}" should not be declared.`);
-    return;
-  }
-  assert.ok((this._rawYamlResponse || '').indexOf(ns) === -1, `Namespace "${ns}" should not be declared.`);
+  ensureLoaded(this);
+  assert.ok(!usesNamespace(this, ns), `Namespace "${ns}" should not be declared.`);
 });
 
 /**
