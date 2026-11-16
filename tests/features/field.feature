@@ -23,3 +23,77 @@ Feature: Field step definitions
   Scenario: Disable browser validation
     Given I am on "/field.html"
       And browser validation for the form "#f" is disabled
+
+  Scenario: Enabled and disabled state of a field
+    Given I am on "/field-types.html"
+     Then the field "Account ID" should have "disabled" state
+      And the field "account_id" should have "disabled" state
+      And the field "Display name" should have "enabled" state
+      And the field "#display-name" should have "enabled" state
+
+  Scenario: Fill a multi-value field
+    Given I am on "/field-types.html"
+     When I fill in the multi-value field "tags" with the following values:
+        | bdd     |
+        | testing |
+        | webship |
+      And we fill in the multi-value field "phones" with the following values:
+        | 0790000000 |
+        | 0791111111 |
+     Then "#tags-1" should have value "bdd"
+      And "#tags-2" should have value "testing"
+      And "#tags-3" should have value "webship"
+      And "#phones-1" should have value "0790000000"
+      And "#phones-2" should have value "0791111111"
+
+  Scenario: Fill a rich-text field
+    Given I am on "/field-types.html"
+     When I fill in the WYSIWYG field "body" with the "Hello from the editor"
+     Then "#body-editor" should contain text "Hello from the editor"
+      And "#body-editor p" should have text "Hello from the editor"
+      And "#body" should have value "Hello from the editor"
+
+  Scenario: Selected options of a select with several values
+    Given I am on "/field-types.html"
+     Then the option "Red" should be selected within the select element "#colors"
+      And the option "Blue" should be selected within the select element "#colors"
+      And the option "Green" should not be selected within the select element "#colors"
+     When I unselect "Red" from "#colors"
+     Then the option "Red" should not be selected within the select element "#colors"
+      And the option "Blue" should be selected within the select element "#colors"
+      And "#colors-summary" should have text "Selected: Blue"
+     When I clear the select "#colors"
+     Then the option "Blue" should not be selected within the select element "#colors"
+      And "#colors-summary" should have text "Selected: none"
+
+  Scenario: Uncheck a checkbox by its selector
+    Given I am on "/field-types.html"
+     Then the "#newsletter" checkbox is checked
+      And "#terms" checkbox is not checked
+     When I uncheck the checkbox "#newsletter"
+     Then the "#newsletter" checkbox is not checked
+
+  Scenario: Fill the date and the time of a datetime field
+    Given I am on "/field-types.html"
+     When I fill in the datetime field "Reminder" with date "2026-09-15" and time "14:00"
+     Then "#reminder-date" should have value "2026-09-15"
+      And "#reminder-time" should have value "14:00"
+      And "#pickup-date" should have value ""
+
+  Scenario: Fill one part of a datetime field
+    Given I am on "/field-types.html"
+     When I fill in the date part of the datetime field "Pickup" with "2026-07-04"
+     Then "#pickup-date" should have value "2026-07-04"
+      And "#pickup-time" should have value ""
+     When I fill in the time part of the datetime field "Pickup" with "08:30"
+     Then "#pickup-time" should have value "08:30"
+      And "#reminder-date" should have value ""
+
+  Scenario: Fill the start and the end of a date range
+    Given I am on "/field-types.html"
+     When I fill in the start datetime field "event" with date "2026-05-08" and time "10:00"
+      And I fill in the end datetime field "event" with date "2026-05-09" and time "18:00"
+     Then "#event-start-date" should have value "2026-05-08"
+      And "#event-start-time" should have value "10:00"
+      And "#event-end-date" should have value "2026-05-09"
+      And "#event-end-time" should have value "18:00"

@@ -10,12 +10,20 @@
   <p><button id="delete" type="button">Delete item</button></p>
   <p id="result">Waiting</p>
 
+  <p><button id="rename" type="button">Rename item</button></p>
+  <p id="name">Name: Untitled</p>
+
   <script>
     var clicks = 0;
     document.getElementById('delete').addEventListener('click', function () {
       clicks += 1;
       var answer = window.confirm('Delete this item?') ? 'Item deleted' : 'Deletion cancelled';
       document.getElementById('result').textContent = answer + ' #' + clicks;
+    });
+
+    document.getElementById('rename').addEventListener('click', function () {
+      var name = window.prompt('Enter the new name of the item', 'Untitled');
+      document.getElementById('name').textContent = name === null ? 'Rename cancelled' : 'Name: ' + name;
     });
   </script>
 </body>

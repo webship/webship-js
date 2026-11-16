@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Clock</title>
+</head>
+<body>
+  <h1>Clock</h1>
+
+  <p>Today is <span id="today"></span></p>
+  <p id="autosave">Draft not saved yet</p>
+  <p id="session">Session active</p>
+
+  <script>
+    // Everything on this page reads the browser clock: the date shown, an
+    // autosave thirty seconds after the page opens and a session that expires
+    // after five minutes.
+    var opened = Date.now();
+    function set(id, text) {
+      var el = document.getElementById(id);
+      if (el.textContent !== text) el.textContent = text;
+    }
+    function render() {
+      var elapsed = Date.now() - opened;
+      set('today', new Date().toISOString().slice(0, 10));
+      if (elapsed >= 30 * 1000) set('autosave', 'Draft saved');
+      if (elapsed >= 5 * 60 * 1000) set('session', 'Session expired');
+    }
+    render();
+    setInterval(render, 100);
+  </script>
+</body>
+</html>

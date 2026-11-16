@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Web-first assertions</title>
+  <style>
+    .is-hidden { display: none; }
+    .tab.is-active { font-weight: bold; }
+    .spacer { height: 3000px; }
+  </style>
+</head>
+<body>
+  <h1>Web-first assertions</h1>
+
+  <p id="status">Ready</p>
+  <p id="banner">Welcome banner</p>
+  <p id="secret" class="is-hidden">Hidden note</p>
+
+  <p>
+    <label for="nickname">Nickname</label>
+    <input id="nickname" name="nickname" type="text" value="webship">
+  </p>
+  <p>
+    <label for="locked">Locked</label>
+    <input id="locked" name="locked" type="text" value="read only" readonly>
+  </p>
+
+  <p>
+    <button id="save" type="button" disabled>Save changes</button>
+    <button id="unlock" type="button">Unlock saving</button>
+  </p>
+
+  <ul id="items">
+    <li class="item">One</li>
+    <li class="item">Two</li>
+    <li class="item">Three</li>
+  </ul>
+  <p><button id="add-item" type="button">Add item</button></p>
+
+  <div role="tablist" aria-label="Sections">
+    <button type="button" role="tab" id="tab-overview" class="tab is-active" aria-selected="true" aria-controls="panel">Overview</button>
+    <button type="button" role="tab" id="tab-details" class="tab" aria-selected="false" aria-controls="panel">Details</button>
+  </div>
+  <div id="panel" role="tabpanel">Overview panel</div>
+
+  <p><a id="about-link" href="about-us.html">About Us</a></p>
+
+  <p><label><input type="checkbox" id="subscribe" name="subscribe"> Subscribe</label></p>
+  <p>
+    <label><input type="radio" id="plan-basic" name="plan" value="basic"> Basic</label>
+    <label><input type="radio" id="plan-premium" name="plan" value="premium"> Premium</label>
+  </p>
+  <p id="choice">Plan: none</p>
+
+  <div class="spacer"></div>
+  <p id="footer-note">Footer note</p>
+
+  <script>
+    var save = document.getElementById('save');
+
+    // The Save button is enabled a moment after "Unlock saving" is pressed.
+    document.getElementById('unlock').addEventListener('click', function () {
+      setTimeout(function () { save.disabled = false; }, 400);
+    });
+    save.addEventListener('click', function () {
+      document.getElementById('status').textContent = 'Saved';
+    });
+
+    // A fourth item is added a moment after "Add item" is pressed.
+    document.getElementById('add-item').addEventListener('click', function () {
+      setTimeout(function () {
+        var li = document.createElement('li');
+        li.className = 'item';
+        li.textContent = 'Four';
+        document.getElementById('items').appendChild(li);
+      }, 400);
+    });
+
+    // Tabs: the pressed tab becomes the selected one.
+    var tabs = document.querySelectorAll('[role="tab"]');
+    tabs.forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        tabs.forEach(function (other) {
+          var active = other === tab;
+          other.classList.toggle('is-active', active);
+          other.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+        document.getElementById('panel').textContent = tab.textContent + ' panel';
+      });
+    });
+
+    document.querySelectorAll('input[name="plan"]').forEach(function (radio) {
+      radio.addEventListener('change', function () {
+        document.getElementById('choice').textContent = 'Plan: ' + radio.value;
+      });
+    });
+  </script>
+</body>
+</html>

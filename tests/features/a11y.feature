@@ -59,3 +59,21 @@ Feature: Accessibility (a11y) smoke checks
       And the page should pass the full accessibility check at level "AA"
       And the element "main" should not violate the accessibility rule "image-alt"
       And I print the full accessibility check
+
+  Scenario: A skip link that leads to the main content
+    Given I am on "/a11y-legacy-widget.html"
+     Then the page should have a skip link
+      And the page should have a main landmark
+
+  Scenario: The whole page passes the WCAG audit
+    Given I am on "/a11y.html"
+     Then the page should pass an accessibility audit
+      And the page should pass an accessibility audit at level "A"
+      And the page should pass an accessibility audit at level "AA"
+      And the page should pass an accessibility audit at level "AAA"
+
+  Scenario: Audit one part of a page, or everything but one part
+    Given I am on "/a11y-legacy-widget.html"
+     Then the element "main" should pass an accessibility audit
+      And the element "#main-content form" should pass an accessibility audit
+      And the page should pass an accessibility audit excluding ".legacy-widget"
