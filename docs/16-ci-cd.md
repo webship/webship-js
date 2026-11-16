@@ -96,6 +96,7 @@ For a PDF next to the HTML report, add `npx generate-reports --format pdf` as a 
 ### Notes
 
 - The fixture server is a tiny `http-server` static site on port 8080 — no Docker daemon required on the runner.
+- After the suite, `npm run test:scaffold` scaffolds a new project in a temporary folder the way the post-install does after `npm init -y`, checks its files and scripts, and runs its first `npm test` against the `examples/` pages.
 - The repository tracks no `package-lock.json`, so the npm cache is keyed on `package.json` (`cache-dependency-path`).
 - For per-browser matrix: add `strategy.matrix.browser: [chromium, firefox, webkit]` + `BROWSER: ${{ matrix.browser }}` to the env block, and replace `chromium` in the playwright install line with `${{ matrix.browser }}`.
 

@@ -27,7 +27,7 @@ code. No selector jargon.
 * **Automatic smart waits** — every action waits for the page to
   settle. No `sleep` / `wait 5s` needed in the happy path.
 * **HTML report** — runs auto-generate `tests/reports/cucumber_report.html`.
-* **Screenshots on failure** — saved to `screenshots/` for instant
+* **Screenshots on failure** — saved to `tests/screenshots/` for instant
   debugging.
 
 ## 30-second install
@@ -37,18 +37,31 @@ npm install webship-js --save-dev
 ```
 
 The post-install script copies a starter `cucumber.js`,
-`playwright.config.ts`, and `tests/` skeleton.
+`playwright.config.ts`, and `tests/` skeleton, adds the `test` scripts to
+`package.json`, and downloads Chromium into the Playwright cache. If it
+reports that the browser was not installed, run:
+
+```bash
+npx playwright install chromium
+```
+
+Firefox and WebKit are optional: `npx playwright install firefox webkit`.
 
 ## 60-second first test
 
-1. Drop your scenario into `tests/features/smoke.feature`.
-2. Make sure your dev server is running on `http://localhost:8080`
-   (or set `LAUNCH_URL` to point elsewhere).
-3. Run:
+The skeleton comes with `tests/features/check-homepage.feature`, which
+opens the home page of your site. Run it first:
 
 ```bash
-npm test
+LAUNCH_URL=https://your-site.example npm test
 ```
+
+Without `LAUNCH_URL` the suite opens `http://localhost:8080`.
+
+Then:
+
+1. Drop your scenario into `tests/features/smoke.feature`.
+2. Run `npm test` again.
 
 If your scenario passes, you're done. If it fails, the Cucumber output
 names the step that failed and the expected vs actual.
