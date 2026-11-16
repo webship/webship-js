@@ -45,15 +45,18 @@ GitHub's native CI/CD. #1 by adoption (~33% of all open-source repos according t
 
 ### Workflow contents
 
-Single job `build` on `ubuntu-latest`:
+Runs on a push to `2.0.x`, on a pull request to `2.0.x` and by hand (`Actions → Github Actions → Run workflow`). The token is read-only (`permissions: contents: read`). A newer push to the same pull request cancels the run in progress; a run on `2.0.x` is never cancelled.
 
-1. `actions/checkout@v3` — pulls the repo.
-2. `actions/setup-node@v3` — Node 20.x.
+Single job `build` on `ubuntu-latest`, 45-minute limit:
+
+1. `actions/checkout@v7` — pulls the repo.
+2. `actions/setup-node@v7` — Node 20.x, with the npm cache keyed on `package.json`.
 3. `npm install`.
 4. `npx playwright install --with-deps chromium`.
 5. `npm start &` — backgrounds the fixture server.
-6. `sleep 3`.
+6. Waits until the server answers on port 8080 (30 seconds at most).
 7. `npm test`.
+8. `actions/upload-artifact@v7` — uploads the report, screenshots and videos, on success and on failure.
 
 `FORCE_COLOR=1` is set on the job so cucumber-js v10 emits ANSI colours.
 
@@ -69,24 +72,31 @@ The badge follows the workflow file name and branch — no extra setup.
 
 ### Reports
 
-The current workflow does not upload artefacts. To add them, append:
+Every run, passed or failed, uploads one artifact named `cucumber-report`, kept 14 days (`run page → Artifacts`):
 
 ```yaml
-- uses: actions/upload-artifact@v4
+- uses: actions/upload-artifact@v7
   if: always()
   with:
     name: cucumber-report
     path: |
-      tests/reports/cucumber_report.html
-      tests/reports/cucumber_report.pdf
-      tests/reports/cucumber_report.json
+      tests/reports/
       screenshots/
+      videos/
+    retention-days: 14
+    if-no-files-found: ignore
 ```
+
+- `tests/reports/` — `cucumber_report.json` and the HTML report `cucumber_report.html`.
+- `screenshots/` — the screenshot of each failed step (`failed_*.png`) and the ones the screenshot steps save.
+- `videos/` — the recordings, when `WEBSHIP_VIDEO` or a `@video` tag turns recording on.
+
+For a PDF next to the HTML report, add `npx generate-reports --format pdf` as a step with `if: always()` before the upload.
 
 ### Notes
 
-- A deprecation warning fires on every run: `actions/checkout@v3` and `actions/setup-node@v3` use Node 20 internally; GitHub will force Node 24 on 2026-06-02. Bump to `@v4` (which targets Node 24) before then. We left them at `@v3` for now so existing forks do not need to rewrite YAML.
 - The fixture server is a tiny `http-server` static site on port 8080 — no Docker daemon required on the runner.
+- The repository tracks no `package-lock.json`, so the npm cache is keyed on `package.json` (`cache-dependency-path`).
 - For per-browser matrix: add `strategy.matrix.browser: [chromium, firefox, webkit]` + `BROWSER: ${{ matrix.browser }}` to the env block, and replace `chromium` in the playwright install line with `${{ matrix.browser }}`.
 
 ---
