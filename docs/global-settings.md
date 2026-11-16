@@ -83,7 +83,7 @@ selectors: {
   filesPath: './tests/selectors/',  // base path for JSON presets
   files: [],                         // JSON files to auto-load per scenario
   offset: 60,                        // px — scroll offset for relative-position assertions
-  breakpoints: {                     // viewport sizes (used by responsive.steps.js)
+  breakpoints: {                     // viewport sizes (the viewing-the-site steps; add `mobile` / `desktop` to size the @mobile / @desktop tags)
     xs:   { width: 375,  height: 667  },
     sm:   { width: 576,  height: 800  },
     md:   { width: 768,  height: 1024 },
