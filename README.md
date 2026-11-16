@@ -18,6 +18,14 @@ All you need to know is at [webship-js Docs](https://webship.co/docs/webship-js/
 npm install webship-js
 ```
 
+The install script of the package scaffolds the test project. When npm skips it (npm warns that webship-js has "install scripts not yet covered by allowScripts", or `--ignore-scripts` is set), scaffold it with:
+
+```
+npx init-webship-js
+```
+
+`npm install-scripts approve webship-js` lets the install script run on the next installs.
+
 ## Automated Functional Acceptance Testing
 
 The install scaffolds the test project (`cucumber.js`, `playwright.config.ts`, `tests/`) with a starter feature that opens the home page of your site:
