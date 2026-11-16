@@ -3,6 +3,11 @@
 const { friendly } = require('./webship');
 
 // Parse and assert against an XML response loaded from a file or doc string.
+//
+// The XPath of a step reads like the XML does: a prefixed name such as
+// //dc:creator resolves against the xmlns:dc="..." declarations of the
+// document, and a name without a prefix such as /urlset/url also matches an
+// element of the default namespace (xmlns="..."), as in a sitemap or a feed.
 
 const { Given, Then, When } = require('@cucumber/cucumber');
 const assert = require('assert');
@@ -53,12 +58,43 @@ function setXmlResponse(world, content) {
   world._xmlParseError = error;
 }
 
+// Every prefix the document declares (xmlns:dc="..."), wherever it is declared.
+function declaredNamespaces(doc) {
+  const map = {};
+  const walk = (el) => {
+    for (const a of Array.from(el.attributes || [])) {
+      if (a.name.indexOf('xmlns:') === 0 && !(a.name.slice(6) in map)) map[a.name.slice(6)] = a.value;
+    }
+    for (const c of Array.from(el.childNodes || [])) if (c.nodeType === 1) walk(c);
+  };
+  if (doc && doc.documentElement) walk(doc.documentElement);
+  return map;
+}
+
 function evalXPath(doc, xpath) {
   // Minimal XPath: support /a/b and /a/b[@attr] and /a/b/text()
   // For richer XPath, users can install xpath module.
   let xpathLib;
   try { xpathLib = require('xpath'); } catch (e) { xpathLib = null; }
-  if (xpathLib) return xpathLib.select(xpath, doc);
+  if (xpathLib) {
+    // The XPath reads like the XML does: a prefixed name (//dc:creator)
+    // resolves against the prefixes the document itself declares, and a name
+    // without a prefix (/urlset/url) also matches an element of the default
+    // namespace (xmlns="..."), which every sitemap and Atom feed declares.
+    try {
+      return xpathLib.parse(xpath).select({
+        node: doc,
+        namespaces: declaredNamespaces(doc),
+        allowAnyNamespaceForNoPrefix: true,
+      });
+    } catch (e) {
+      throw friendly({
+        action: `evaluate the XPath "${xpath}"`,
+        cause: e,
+        hint: 'check the XPath syntax; a prefix (dc:creator) must be declared in the XML with xmlns:dc="...".',
+      });
+    }
+  }
   // Fallback simple traversal
   const parts = xpath.split('/').filter(Boolean);
   let nodes = [doc.documentElement].filter((n) => n && n.nodeName === parts[0]);

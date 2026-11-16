@@ -53,6 +53,25 @@ Feature: XML response assertions
       And the XML element "/feed/entry" should have 2 elements
       And the XML element "/feed/entry[2]/title" should be equal to "Second release"
 
+  Scenario: Elements and attributes with a namespace prefix
+    Given the response content from the file "feed-namespaced.xml"
+     Then the XML element "//dc:creator" should exist
+      And the XML element "/feed/entry/dc:creator" should have 2 elements
+      And the XML element "/feed/entry[1]/dc:creator" should be equal to "Webship"
+      And the XML attribute "rel" on element "/feed/atom:link" should be equal to "self"
+      And the XML attribute "href" on element "/feed/atom:link" should contain "feed.xml"
+      And the XML element "//dc:publisher" should not exist
+
+  Scenario: A sitemap: names without a prefix in the default namespace
+    Given the response content from the file "sitemap.xml"
+     Then the XML should use the namespace "http://www.sitemaps.org/schemas/sitemap/0.9"
+      And the XML element "/urlset/url" should have 2 elements
+      And the XML element "/urlset/url[1]/loc" should be equal to "https://example.com/"
+      And the XML element "/urlset/url[2]/lastmod" should contain "2026-11"
+      And the XML element "//image:image/image:loc" should contain "logo.png"
+      And the XML element "/urlset/url[2]/image:image" should not exist
+      And the XML element "/urlset/url[1]/image" should not exist
+
   Scenario: Content that is not XML
     Given the response content is the following:
       """
