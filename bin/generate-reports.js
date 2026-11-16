@@ -133,12 +133,14 @@ function printHelp() {
       '  --ignore-bad-json         Do not fail on malformed JSON entries',
       '',
       'Metadata:',
-      '  --app-version <s>     App Version         (env WEBSHIP_REPORT_APP_VERSION)',
+      '  --app-version <s>     App Version         (env WEBSHIP_REPORT_APP_VERSION;',
+      '                        default: the version of the project\'s package.json)',
       '  --env <s>             Test Environment    (env WEBSHIP_REPORT_ENV)',
       '  --browser <s>         Browser             (env BROWSER)',
       '  --platform <s>        Platform            (default: process.platform)',
       '  --parallel <s>        Parallel            (default: Scenarios)',
-      '  --executed <s>        Executed            (env WEBSHIP_REPORT_EXECUTED)',
+      '  --executed <s>        Executed            (env WEBSHIP_REPORT_EXECUTED;',
+      '                        default: Remote when CI is set, else Local)',
       '  --metadata key=value  Arbitrary key/value (repeatable)',
       '',
       '  -h, --help            Show this help',
@@ -294,11 +296,15 @@ async function run(argv) {
     process.exit(1);
   }
 
+  // The version of the project under test, not a fixed number: asked for,
+  // else read from the package.json of the project, else left out.
+  const appVersion =
+    args.metadata['App Version'] ||
+    process.env.WEBSHIP_REPORT_APP_VERSION ||
+    projectVersion(cwd);
+
   const metadata = {
-    'App Version':
-      args.metadata['App Version'] ||
-      process.env.WEBSHIP_REPORT_APP_VERSION ||
-      '2.0.0',
+    ...(appVersion ? { 'App Version': appVersion } : {}),
     'Test Environment':
       args.metadata['Test Environment'] ||
       process.env.WEBSHIP_REPORT_ENV ||
@@ -311,7 +317,7 @@ async function run(argv) {
     Executed:
       args.metadata['Executed'] ||
       process.env.WEBSHIP_REPORT_EXECUTED ||
-      'Remote',
+      (process.env.CI ? 'Remote' : 'Local'),
   };
   for (const [k, v] of Object.entries(args.metadata)) {
     metadata[k] = v;
@@ -342,6 +348,7 @@ async function run(argv) {
 
   if (wantHtml || needsHtmlForExport) {
     reporter.generate(options);
+    removeThirdPartyIcon(output);
     console.log(`[webship-js] HTML report → ${output}`);
   }
 
@@ -351,6 +358,43 @@ async function run(argv) {
     console.log(`[webship-js] PDF report  → ${pdfOut}`);
   }
 
+}
+
+/**
+ * The `version` of the package.json of the project the report is made for,
+ * or an empty string when there is none.
+ *
+ * @param {string} cwd - Folder of the project.
+ * @returns {string}
+ */
+function projectVersion(cwd) {
+  try {
+    const pkg = JSON.parse(fs.readFileSync(path.join(cwd, 'package.json'), 'utf8'));
+    return typeof pkg.version === 'string' ? pkg.version : '';
+  } catch {
+    return '';
+  }
+}
+
+/**
+ * The report template links the favicon of a third-party site. A report of
+ * the project must not show another company's icon, nor fetch anything from
+ * its site: the link is replaced by an empty icon.
+ *
+ * @param {string} htmlPath - Generated report.
+ */
+function removeThirdPartyIcon(htmlPath) {
+  let html;
+  try {
+    html = fs.readFileSync(htmlPath, 'utf8');
+  } catch {
+    return;
+  }
+  const cleaned = html.replace(
+    /<link\b[^>]*\brel=["']?(?:shortcut )?icon["']?[^>]*>/gi,
+    '<link rel="icon" href="data:,">'
+  );
+  if (cleaned !== html) fs.writeFileSync(htmlPath, cleaned, 'utf8');
 }
 
 if (require.main === module) {

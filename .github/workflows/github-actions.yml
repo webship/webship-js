@@ -37,6 +37,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Check the HTML report
+        run: npm run test:report
+
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
