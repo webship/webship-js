@@ -85,3 +85,12 @@ Feature: Wait step definitions
      When I press "Load results"
       And I wait max of 1 minute
      Then I should see 3 ".result" elements
+
+  Scenario: A wait with no unit is a wait in seconds
+    Given I am on "/wait-conditions.html"
+     When I press "Show notice"
+      And I wait 5
+     Then I should see 1 "#notice:not([hidden])" element
+     When I press "Load results"
+      And we wait max of 5
+     Then I should see 3 ".result" elements

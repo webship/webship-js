@@ -53,7 +53,8 @@ When(/^(I |we )*wait for (\d+) seconds? for AJAX to finish$/, async function (pr
 });
 
 /**
- * Wait UP TO a number of seconds for the page to settle.
+ * Wait UP TO a number of seconds for the page to settle. A number with no
+ * unit is read as seconds.
  *
  * Example #1: When I wait 1 second
  * Example #2: When I wait 5 seconds
@@ -63,6 +64,7 @@ When(/^(I |we )*wait for (\d+) seconds? for AJAX to finish$/, async function (pr
  * Example #6: When we wait 1 second
  * Example #7: When we wait 5 seconds
  * Example #8: When we wait 4s
+ * Example #9: When I wait 2
  *
  */
 When(/^(I |we )*wait (\d+)( second| seconds|s)?$/, async function (pronounCase, number, withSecondWord) {
@@ -70,7 +72,8 @@ When(/^(I |we )*wait (\d+)( second| seconds|s)?$/, async function (pronounCase, 
 });
 
 /**
- * Wait UP TO a maximum number of seconds for the page to settle.
+ * Wait UP TO a maximum number of seconds for the page to settle. A number with
+ * no unit is read as seconds.
  *
  * Example #1: When I wait max of 1 second
  * Example #2: When I wait max of 5 seconds
@@ -80,6 +83,7 @@ When(/^(I |we )*wait (\d+)( second| seconds|s)?$/, async function (pronounCase, 
  * Example #6: When we wait max of 1 second
  * Example #7: When we wait max of 5 seconds
  * Example #8: When we wait max of 4s
+ * Example #9: When I wait max of 2
  *
  */
 When(/^(I |we )*wait max of (\d+)( second| seconds|s)?$/, async function (pronounCase, number, withSecondWord) {
@@ -87,7 +91,8 @@ When(/^(I |we )*wait max of (\d+)( second| seconds|s)?$/, async function (pronou
 });
 
 /**
- * Wait UP TO a number of minutes for the page to settle.
+ * Wait UP TO a number of minutes for the page to settle. The unit is required:
+ * a number with no unit is read as seconds.
  *
  * Example #1: When I wait 1 minute
  * Example #2: When I wait 10 minutes
@@ -96,12 +101,13 @@ When(/^(I |we )*wait max of (\d+)( second| seconds|s)?$/, async function (pronou
  * Example #5: And wait 2 minutes
  *
  */
-When(/^(I |we )*wait (\d+)( minute| minutes|m)?$/, async function (pronounCase, number, withMinuteWord) {
+When(/^(I |we )*wait (\d+)( minute| minutes|m)$/, async function (pronounCase, number, withMinuteWord) {
   await smartSettle(this.page, parseInt(number, 10) * 1000 * 60);
 });
 
 /**
- * Wait UP TO a maximum number of minutes for the page to settle.
+ * Wait UP TO a maximum number of minutes for the page to settle. The unit is
+ * required: a number with no unit is read as seconds.
  *
  * Example #1: When I wait max of 1 minute
  * Example #2: When I wait max of 10 minutes
@@ -110,7 +116,7 @@ When(/^(I |we )*wait (\d+)( minute| minutes|m)?$/, async function (pronounCase, 
  * Example #5: And wait max of 2 minutes
  *
  */
-When(/^(I |we )*wait max of (\d+)( minute| minutes|m)?$/, async function (pronounCase, number, withMinuteWord) {
+When(/^(I |we )*wait max of (\d+)( minute| minutes|m)$/, async function (pronounCase, number, withMinuteWord) {
   await smartSettle(this.page, parseInt(number, 10) * 1000 * 60);
 });
 
