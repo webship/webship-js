@@ -24,6 +24,7 @@
     "test:must-fail": "node tests/check-must-fail.js",
     "test:fast": "SLOW_MO=0 cucumber-js --config cucumber.js",
     "test:examples": "node tests/check-examples.js",
+    "test:paths": "node tests/check-paths.js",
     "generate-reports": "node ./bin/generate-reports.js",
     "test:scaffold": "node tests/check-scaffold.js",
     "start": "http-server examples -p 8080 -s"

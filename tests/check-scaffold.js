@@ -9,7 +9,8 @@
 //      "no test specified" placeholder,
 //   2. `npm test` in that project is green against a site (the examples/
 //      pages of this repository, served on a free port),
-//   3. a second scaffold run changes nothing, and a `test` script the project
+//   3. a feature named on the command line runs alone,
+//   4. a second scaffold run changes nothing, and a `test` script the project
 //      chose itself is kept.
 //
 // The browser install is skipped (--skip-browsers): Chromium must be in the
@@ -146,6 +147,23 @@ async function main() {
     if (/colorsEnabled/.test((run.stdout || '') + (run.stderr || ''))) {
       problems.push('the scaffolded cucumber.js makes cucumber-js print a deprecation warning (colorsEnabled)');
     }
+
+    // A feature named on the command line runs alone, beside a second one.
+    const extra = path.join(project, 'tests', 'features', 'second.feature');
+    fs.writeFileSync(extra, 'Feature: Second\n\n  Scenario: Second\n    Given I am on the homepage\n');
+    const namedReport = path.join(tmp, 'named.json');
+    const named = spawnSync(process.execPath, [path.join(ROOT, 'node_modules', '@cucumber', 'cucumber', 'bin', 'cucumber.js'), '--dry-run', 'tests/features/second.feature', '--format', `json:${namedReport}`], {
+      cwd: project,
+      encoding: 'utf8',
+      env: Object.assign({}, process.env, { FORCE_COLOR: '0', WEBSHIP_REPORT_DISABLE: '1' }),
+    });
+    const namedScenarios = fs.existsSync(namedReport)
+      ? JSON.parse(fs.readFileSync(namedReport, 'utf8')).reduce((n, feature) => n + (feature.elements || []).length, 0)
+      : -1;
+    if (namedScenarios !== 1) {
+      problems.push(`naming one feature on the command line in the new project selected ${namedScenarios} scenario(s), not 1\n${named.stderr || ''}`);
+    }
+    fs.rmSync(extra, { force: true });
 
     // 3. A second run changes nothing.
     fs.rmSync(path.join(project, 'node_modules'), { recursive: true, force: true });

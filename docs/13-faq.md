@@ -63,6 +63,9 @@ filename embeds the feature, scenario line, and timestamp.
 # One feature.
 npx cucumber-js tests/features/login.feature
 
+# One scenario, by the line of its Scenario: keyword.
+npx cucumber-js tests/features/login.feature:12
+
 # One scenario by name match.
 npx cucumber-js --name "Successful login"
 

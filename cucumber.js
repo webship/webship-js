@@ -1,3 +1,31 @@
+// A feature file, a scenario (file:line), a folder or a rerun file named on
+// the command line of cucumber-js runs alone. cucumber-js 12 adds the paths
+// of the command line to the `paths` of this file instead of using them
+// alone, so `paths` is left empty when the command line names any: what
+// cucumber-js announces for its next major version.
+const OPTIONS_WITH_A_VALUE = new Set([
+  '-c', '--config', '-f', '--format', '--format-options', '--i18n-keywords',
+  '-i', '--import', '-l', '--loader', '--language', '--name', '--order',
+  '-p', '--profile', '--parallel', '--plugin', '--plugin-options',
+  '-r', '--require', '--require-module', '--retry', '--retry-tag-filter',
+  '--shard', '-t', '--tags', '--world-parameters',
+]);
+
+function commandLinePaths() {
+  // Only when cucumber-js itself runs, not when another script reads this file.
+  if (!/cucumber(-js|\.js)?$/.test(String(process.argv[1] || ''))) return [];
+  const args = process.argv.slice(2);
+  const paths = [];
+  for (let i = 0; i < args.length; i += 1) {
+    if (args[i].startsWith('-')) {
+      if (OPTIONS_WITH_A_VALUE.has(args[i])) i += 1;
+    } else {
+      paths.push(args[i]);
+    }
+  }
+  return paths;
+}
+
 module.exports = {
   default: {
     // Cucumber step timeout must exceed Playwright's default 30s so the
@@ -14,7 +42,7 @@ module.exports = {
     require: [
       'tests/step-definitions/**/*.js',
     ],
-    paths: ['tests/features/**/*.feature'],
+    paths: commandLinePaths().length ? [] : ['tests/features/**/*.feature'],
     format: [
       '@cucumber/pretty-formatter',
       'json:tests/reports/cucumber_report.json',

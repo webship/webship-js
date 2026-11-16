@@ -49,4 +49,7 @@ ddev yarn test:webkit           # Run all tests with WebKit
 
 ```
 ddev exec npx cucumber-js --config cucumber.js tests/features/example.feature
+ddev exec npx cucumber-js --config cucumber.js tests/features/example.feature:12
 ```
+
+A feature, or a scenario by the line of its `Scenario:` keyword, named this way runs alone. A `cucumber.js` scaffolded by an earlier release of Webship-js runs the whole suite instead: there, use `ddev exec env FEATURES=tests/features/example.feature npx cucumber-js --config cucumber.js`, or delete `cucumber.js` and write it again with `ddev exec npx init-webship-js --skip-browsers`.
