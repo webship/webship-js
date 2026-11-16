@@ -10,7 +10,7 @@
 
 const { Then } = require('@cucumber/cucumber');
 const assert = require('assert');
-const { buildSelector, getLocatorText, friendly } = require('./webship');
+const { buildSelector, getLocatorText, locateByLabelOrSelector, friendly } = require('./webship');
 const { getLastResponse } = require('./response.steps');
 
 // ---------------------------------------------------------------------------
@@ -142,17 +142,24 @@ Then(/^(I |we )*should( not)* see (a|an) "([^"]*)?" element by( its)*(?: "([^"]*
 });
 
 /**
- * Assert that an element (found by its label) contains or does not contain text.
+ * Assert that an element contains or does not contain text. The element is
+ * named by the exact text of its label, or by a CSS selector.
  *
  * Example #1: Then I should see "John Smith" in the "Username" element
  * Example #2: Then I should not see "Joe Smith" in the "Username" element
  * Example #3: And we should see "1234" in the "Password" element
+ * Example #4: Then I should see "About Us" in the "h1" element
+ * Example #5: Then we should not see "Error" in the "#status" element
  *
  */
 Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* "([^"]*)?" element$/, async function (pronounCase, notCase, expectedText, theCase, element) {
-  const forAttr = await this.page.getByText(element, { exact: true }).getAttribute('for').catch(() => null);
-  const loc = this.page.locator(forAttr ? '#' + forAttr : element).first();
-  await loc.waitFor({ timeout: 5000 });
+  const loc = await locateByLabelOrSelector(this.page, element, 5000);
+  if (!loc) {
+    throw friendly({
+      message: `The element "${element}" was not found on the page after 5 seconds.`,
+      hint: `"${element}" is read as the exact text of a label, else as a CSS selector. To find an element by its id, class, name or another attribute, add "by attr" to the step.`,
+    });
+  }
   const content = await getLocatorText(loc);
   if (notCase) {
     assert.ok(!content.includes(expectedText), `Element should NOT contain "${expectedText}" but it does.`);
