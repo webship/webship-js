@@ -53,6 +53,19 @@ Feature: Field step definitions
       And "#body-editor p" should have text "Hello from the editor"
       And "#body" should have value "Hello from the editor"
 
+  Scenario: Fill one rich-text field of several
+    Given I am on "/field-types.html"
+     When I fill in the WYSIWYG field "summary" with the "Short summary"
+     Then "#summary-editor p" should have text "Short summary"
+      And "#summary" should have value "Short summary"
+      And "#body-editor" should have text ""
+     When I fill in the WYSIWYG field "Body" with the "Long body"
+     Then "#body-editor p" should have text "Long body"
+      And "#summary-editor p" should have text "Short summary"
+     When we fill in the WYSIWYG field "Summary" with the "Found by its label"
+     Then "#summary-editor p" should have text "Found by its label"
+      And "#body-editor p" should have text "Long body"
+
   Scenario: Selected options of a select with several values
     Given I am on "/field-types.html"
      Then the option "Red" should be selected within the select element "#colors"
