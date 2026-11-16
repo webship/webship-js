@@ -21,3 +21,21 @@ Feature: Selector position step definitions, left and right
 
   Scenario: A component is to the right of several others
      Then I see search to right of logo, menu
+
+  Scenario: A component is over another it overlaps and is stacked on
+    Given I define css selectors:
+        | popup   | #popup   |
+        | article | #article |
+     Then I see popup over article
+
+  Scenario: A component is not over another it is stacked under
+    Given I define css selectors:
+        | popup   | #popup   |
+        | article | #article |
+     Then I see article not over popup
+
+  Scenario: A component is not over another it does not overlap
+    Given I define css selectors:
+        | popup | #popup |
+     Then I see popup not over logo
+      And I see logo not over popup
