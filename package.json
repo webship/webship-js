@@ -39,6 +39,7 @@
     "@cucumber/cucumber": "^12",
     "@cucumber/pretty-formatter": "~1",
     "@types/node": "~20",
+    "@xmldom/xmldom": "^0.9.8",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
     "axe-core": "^4.11.4",
@@ -48,6 +49,7 @@
     "js-yaml": "^4.1.1",
     "playwright": "^1.58.2",
     "tsx": "^4.19.2",
-    "typescript": "~5"
+    "typescript": "~5",
+    "xpath": "~0.0.34"
   }
 }

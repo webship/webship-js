@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<catalog version="2.0" updated="2026-01-15">
+  <book id="bk101" lang="en">
+    <title>Testing with Webship-js</title>
+    <author>Webship</author>
+    <price currency="USD">29.90</price>
+  </book>
+  <book id="bk102" lang="en">
+    <title>Behaviour-driven development by example</title>
+    <author>Webship</author>
+    <price currency="EUR">24.50</price>
+  </book>
+  <book id="bk103" lang="fr">
+    <title>Les tests automatiques</title>
+    <author>Webship</author>
+    <price currency="EUR">19.00</price>
+  </book>
+  <status>published</status>
+</catalog>
