@@ -242,7 +242,9 @@ async function assertPosition(page, position, c1Name, c1Sel, c2Name, c2Sel) {
     case 'over': {
       const intersects = !(g1.left >= g2.left + g2.width || g1.left + g1.width <= g2.left ||
                            g1.top  >= g2.top  + g2.height || g1.top  + g1.height <= g2.top);
-      pass = intersects && g1.zIndex <= g2.zIndex;
+      // The subject (g1) is over the other component when they overlap and
+      // the subject is not stacked under it.
+      pass = intersects && g1.zIndex >= g2.zIndex;
       break;
     }
   }
@@ -700,7 +702,9 @@ Then(/^(I |we )*see ([a-zA-Z0-9 ,\-]+) outside of ([a-zA-Z0-9 ,\-]+)$/, async fu
 });
 
 /**
- * Assert a subject locator overlaps another via intersection and z-index.
+ * Assert a subject locator overlaps another via intersection and z-index:
+ * the two bounding boxes intersect and the z-index of the subject is not
+ * lower than the z-index of the other.
  *
  * Example #1: Then I see modal over content
  * Example #2: Then I see dropdown over nav
