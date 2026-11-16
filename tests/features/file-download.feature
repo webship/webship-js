@@ -36,3 +36,29 @@ Feature: File download steps
       """
       Webship Tester,editor,active
       """
+
+  Scenario: The files in a downloaded zip archive, by name
+    Given I am on "/downloads.html"
+    When I download the file from the link "Download archive"
+    Then the downloaded file name should be "webship-archive.zip"
+    And the downloaded file should be a zip archive containing the following files named:
+      | readme.txt             |
+      | reports/summary.csv    |
+      | reports/users-2026.csv |
+    And the downloaded file should be a zip archive containing the following files named:
+      | summary.csv | users-2026.csv |
+
+  Scenario: The files in a downloaded zip archive, by part of their name
+    When I download the file from the URL "/downloads/webship-archive.zip"
+    Then the downloaded file should be a zip archive containing the following files partially named:
+      | readme   |
+      | reports/ |
+      | 2026     |
+    And the downloaded file should be a zip archive containing the following files partially named:
+      | summary | users |
+    And the downloaded file should be a zip archive not containing the following files partially named:
+      | secret   |
+      | .env     |
+      | __MACOSX |
+    And the downloaded file should be a zip archive not containing the following files partially named:
+      | .pdf | invoice |
