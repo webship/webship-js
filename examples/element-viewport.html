@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Elements and the viewport</title>
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; }
+    #top-banner { height: 40px; line-height: 40px; padding: 0 20px; background: #e7f3ff; }
+    #centered-box { width: 300px; margin: 30px auto; padding: 10px; border: 2px solid #333; text-align: center; }
+    #left-box { width: 200px; margin: 20px 0 20px 10px; padding: 10px; border: 2px solid #333; }
+    #spacer { height: 3000px; background: #f0f4f8; }
+    #below-fold { margin: 20px; padding: 10px; border: 2px solid #007bff; }
+    #event-log { margin: 20px; font-weight: bold; color: #007bff; }
+  </style>
+</head>
+<body>
+  <div id="top-banner">Top banner</div>
+  <div id="centered-box">Centered box</div>
+  <div id="left-box">Left box</div>
+  <label for="country" style="margin-left: 10px">Country</label>
+  <select id="country" name="country">
+    <option value="jo">Jordan</option>
+    <option value="ps">Palestine</option>
+  </select>
+  <button type="button" id="hover-button">Hover button</button>
+  <p id="event-log">No event yet</p>
+  <div id="spacer">A tall block that pushes the next box below the fold</div>
+  <div id="below-fold">Box below the fold</div>
+  <script>
+    var eventLog = document.getElementById('event-log');
+    document.getElementById('country').addEventListener('change', function () {
+      eventLog.textContent = 'The change event reached the country field';
+    });
+    document.getElementById('left-box').addEventListener('webship-ping', function () {
+      eventLog.textContent = 'The webship-ping event reached the left box';
+    });
+    document.getElementById('hover-button').addEventListener('mouseenter', function () {
+      eventLog.textContent = 'The pointer is over the hover button';
+    });
+  </script>
+</body>
+</html>

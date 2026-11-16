@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Order form</title>
+  <style>
+    body { margin: 0; padding: 12px; font-family: Arial, sans-serif; }
+    button { margin-right: 8px; padding: 6px 12px; }
+  </style>
+</head>
+<body>
+  <p>Order form inside the iframe</p>
+  <button type="button" id="confirm-btn">Confirm</button>
+  <button type="button" id="cancel-btn" class="cancel" name="cancel" data-testid="cancel-order">Cancel</button>
+  <p id="order-status"></p>
+  <script>
+    var orderStatus = document.getElementById('order-status');
+    document.getElementById('confirm-btn').addEventListener('click', function () {
+      orderStatus.textContent = 'Order confirmed';
+    });
+    document.getElementById('cancel-btn').addEventListener('click', function () {
+      orderStatus.textContent = 'Order cancelled';
+    });
+  </script>
+</body>
+</html>

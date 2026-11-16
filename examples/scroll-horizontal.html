@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Horizontal scrolling</title>
+  <style>
+    body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
+    #status { position: fixed; top: 0; left: 0; margin: 0; padding: 10px 20px; background: #e7f3ff; border: 2px solid #007bff; font-weight: bold; }
+    #status p { margin: 2px 0; }
+    #wide-track { width: 4000px; height: 120px; margin-top: 110px; background: linear-gradient(to right, #ff9999, #99ff99, #9999ff); }
+    #strip { width: 400px; height: 100px; overflow-x: scroll; border: 2px solid #333; margin-top: 20px; }
+    #strip-inner { width: 2000px; height: 60px; background: linear-gradient(to right, #ffe08a, #8ad4ff); }
+  </style>
+</head>
+<body>
+  <div id="status">
+    <p id="page-position">Page scrolled 0 pixels to the right</p>
+    <p id="page-edge">Page is at the start</p>
+    <p id="strip-edge">Strip is at the start</p>
+  </div>
+
+  <div id="wide-track">A track much wider than the window</div>
+
+  <h2>Scrollable strip</h2>
+  <div id="strip">
+    <div id="strip-inner">A strip wider than its box</div>
+  </div>
+
+  <script>
+    function edge(position, maximum) {
+      if (position <= 0) return 'at the start';
+      if (position >= maximum - 1) return 'at the end';
+      return 'in the middle';
+    }
+    function showPage() {
+      var x = Math.round(window.scrollX);
+      var max = document.documentElement.scrollWidth - document.documentElement.clientWidth;
+      document.getElementById('page-position').textContent = 'Page scrolled ' + x + ' pixels to the right';
+      document.getElementById('page-edge').textContent = 'Page is ' + edge(x, max);
+    }
+    function showStrip() {
+      var strip = document.getElementById('strip');
+      document.getElementById('strip-edge').textContent =
+        'Strip is ' + edge(Math.round(strip.scrollLeft), strip.scrollWidth - strip.clientWidth);
+    }
+    window.addEventListener('scroll', showPage);
+    document.getElementById('strip').addEventListener('scroll', showStrip);
+  </script>
+</body>
+</html>
