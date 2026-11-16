@@ -705,8 +705,8 @@ This index lists every public step grouped by source file, with one Gherkin exam
 - *^(I |we )*wait for (\d+) seconds? for AJAX to finish$*  ·  Example: `When I wait for 1 second for AJAX to finish`
 - *^(I |we )*wait (\d+)( second| seconds|s)?$*  ·  Example: `When I wait 1 second`
 - *^(I |we )*wait max of (\d+)( second| seconds|s)?$*  ·  Example: `When I wait max of 1 second`
-- *^(I |we )*wait (\d+)( minute| minutes|m)?$*  ·  Example: `When I wait 1 minute`
-- *^(I |we )*wait max of (\d+)( minute| minutes|m)?$*  ·  Example: `When I wait max of 1 minute`
+- *^(I |we )*wait (\d+)( minute| minutes|m)$*  ·  Example: `When I wait 1 minute`
+- *^(I |we )*wait max of (\d+)( minute| minutes|m)$*  ·  Example: `When I wait max of 1 minute`
 - *^(I |we )*wait until( the)* page( is)* loaded*$*  ·  Example: `When I wait until the page is loaded`
 - *^(I |we )*wait for AJAX to finish$*  ·  Example: `When I wait for AJAX to finish`
 - *^(I |we )*wait for( the)* modal( dialog)* to (appear|disappear)$*  ·  Example: `When I wait for the modal to appear`
