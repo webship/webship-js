@@ -31,8 +31,28 @@ function requireYaml() {
 
 function ensureLoaded(world) {
   requireYaml();
+  if (world._yamlParseError) {
+    throw friendly(`The response is not valid YAML: ${world._yamlParseError.message}`);
+  }
   if (world._yaml === undefined) throw friendly('No YAML response has been set.');
   return world._yaml;
+}
+
+// Keep the raw content even when it does not parse, so that the two format
+// steps ("should be" / "should not be in YAML format") can judge it.
+function setYamlResponse(world, content) {
+  requireYaml();
+  world._rawYamlResponse = content;
+  world._yamlDocIndex = 0;
+  world._yamlParseError = null;
+  try {
+    world._yamlDocs = YAML.loadAll(content);
+    world._yaml = world._yamlDocs[0];
+  } catch (e) {
+    world._yamlDocs = [];
+    world._yaml = undefined;
+    world._yamlParseError = e;
+  }
 }
 
 // Active document index for multi-document streams.
@@ -118,11 +138,7 @@ function typeOfNode(node) {
 Given('the YAML response content from the file {string}', async function (filename) {
   requireYaml();
   const p = path.isAbsolute(filename) ? filename : path.join(this.assetsFolder || './tests/assets', filename);
-  const content = fs.readFileSync(p, 'utf-8');
-  this._rawYamlResponse = content;
-  this._yamlDocs = YAML.loadAll(content);
-  this._yaml = this._yamlDocs[0];
-  this._yamlDocIndex = 0;
+  setYamlResponse(this, fs.readFileSync(p, 'utf-8'));
 });
 
 /**
@@ -162,11 +178,7 @@ Given('the YAML response content from the file {string}', async function (filena
  *
  */
 Given('the YAML response content is the following:', async function (docString) {
-  requireYaml();
-  this._rawYamlResponse = docString;
-  this._yamlDocs = YAML.loadAll(docString);
-  this._yaml = this._yamlDocs[0];
-  this._yamlDocIndex = 0;
+  setYamlResponse(this, docString);
 });
 
 /**
@@ -236,12 +248,13 @@ Then('the response should be in YAML format', async function () {
 });
 
 /**
- * Assert the loaded response is NOT valid YAML.
+ * Assert the loaded response is NOT valid YAML. Fails when the content
+ * parses: a line of plain text or a JSON document is valid YAML too.
  *
  * Example #1: Then the response should not be in YAML format
  * Example #2: Given the YAML response content is the following:
  *               """
- *               <not> yaml </not>
+ *               items: [one, two
  *               """
  *               Then the response should not be in YAML format
  * Example #3: And the response should not be in YAML format
@@ -255,9 +268,11 @@ Then('the response should be in YAML format', async function () {
  *
  */
 Then('the response should not be in YAML format', async function () {
-  if (!this._rawYamlResponse || !YAML) return;
+  requireYaml();
+  assert.ok(this._rawYamlResponse, 'No YAML response content set.');
   try { YAML.loadAll(this._rawYamlResponse); }
   catch (e) { return; /* expected */ }
+  assert.fail('Response is valid YAML.');
 });
 
 /**
