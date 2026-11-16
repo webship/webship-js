@@ -47,6 +47,24 @@ Feature: YAML response assertions
       And the YAML value at "/meta" should be empty
       And the YAML value at "/name" should not be empty
 
+  Scenario: Content that is not YAML
+    Given the YAML response content is the following:
+      """
+      items: [one, two
+      """
+     Then the response should not be in YAML format
+    Given the YAML response content is the following:
+      """
+      key: : :
+      """
+     Then the response should not be in YAML format
+    Given the YAML response content is the following:
+      """
+      items: [one, two]
+      """
+     Then the response should be in YAML format
+      And the YAML element "/items" should have 2 elements
+
   Scenario: Numeric comparisons
     Given the YAML response content is the following:
       """
