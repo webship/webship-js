@@ -215,7 +215,7 @@ const config = {
 | --- | --- | --- |
 | `browser` | `chromium` | `BROWSER` (`chromium` / `firefox` / `webkit`) |
 | `launchOptions.headless` | `true` | `HEADLESS=false` for headed |
-| `launchOptions.slowMo` | `300` headed: `800` | `SLOW_MO` (ms) |
+| `launchOptions.slowMo` | `300` headed: `800`, on a laptop and in CI alike | `SLOW_MO` (ms); `SLOW_MO=0` for full speed |
 | `launchOptions.args` | chromium-only flags | edit file directly |
 | `contextOptions.viewport` | `null` (use browser default) | edit file directly |
 | `contextOptions.ignoreHTTPSErrors` | `true` | edit file directly |
