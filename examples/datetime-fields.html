@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Datetime fields side by side</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    label { margin-right: 6px; }
+    p, div { margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <h1>Datetime fields side by side</h1>
+  <form id="schedule">
+    <p>A label whose text contains the text of the next one:</p>
+    <div class="form-item">
+      <label for="restart-date">Restart date</label>
+      <input type="date" id="restart-date" name="restart_date">
+    </div>
+    <div class="form-item">
+      <label for="start-date">Start</label>
+      <input type="date" id="start-date" name="begin_date">
+      <input type="time" id="start-time" name="begin_time">
+    </div>
+
+    <p>Two fields in one paragraph; the first has a date only:</p>
+    <p class="flat">
+      <label for="opening-date">Opening</label>
+      <input type="date" id="opening-date" name="opening_day">
+      <label for="closing-date">Closing</label>
+      <input type="date" id="closing-date" name="closing_day">
+      <input type="time" id="closing-time" name="closing_hour">
+    </p>
+
+    <p>A label alone in its wrapper, the inputs in the next one:</p>
+    <div class="field">
+      <div class="field-label"><label>Arrival</label></div>
+      <div class="field-inputs">
+        <input type="date" id="arrival-date" name="field_a_date">
+        <input type="time" id="arrival-time" name="field_a_time">
+      </div>
+    </div>
+    <div class="field">
+      <div class="field-label"><label>Leaving</label></div>
+      <div class="field-inputs">
+        <input type="date" id="leaving-date" name="field_l_date">
+        <input type="time" id="leaving-time" name="field_l_time">
+      </div>
+    </div>
+  </form>
+</body>
+</html>

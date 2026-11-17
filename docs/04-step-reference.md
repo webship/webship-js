@@ -472,6 +472,7 @@ This index lists every public step grouped by source file, with one Gherkin exam
 - *^(I |we )*fill in the time part of the datetime field "([^"]*)" with "([^"]*)"$*  ·  Example: `When I fill in the time part of the datetime field "Start" with "10:00"`
 - *^(I |we )*fill in the start datetime field "([^"]*)" with date "([^"]*)" and time "([^"]*)"$*  ·  Example: `When I fill in the start datetime field "Event" with date "2026-05-08" and time "10:00"`
 - *^(I |we )*fill in the end datetime field "([^"]*)" with date "([^"]*)" and time "([^"]*)"$*  ·  Example: `When I fill in the end datetime field "Event" with date "2026-05-09" and time "18:00"`
+- The datetime steps name a field by the exact text of its label or of the legend of its fieldset (white space and letter case aside) and fill only its own inputs: the one inside the label, the one the label is for, or the ones that follow the label before the next field; an input whose name or aria-label contains the text is found last. A field with no such input fails the step and fills nothing.
 
 ### file-download.steps.js
 
