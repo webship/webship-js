@@ -4,8 +4,7 @@
 // press, click (text / attr / row / link follow), and file attach.
 
 const { When } = require('@cucumber/cucumber');
-const path = require('path');
-const { buildSelector, friendly } = require('./webship');
+const { buildSelector, friendly, resolveAssetFile } = require('./webship');
 
 // Wrap a Playwright action with a friendlier error pointing at the
 // failing locator + Gherkin step. Pass `label` describing the step
@@ -149,8 +148,10 @@ When(/^(I |we )*follow "([^"]*)"$/, async function (pronounCase, link) {
 /**
  * Attach a file from tests/assets/ to a file input.
  *
- * The file path is resolved against `this.assetsFolder` (default
- * `tests/assets/`). The target selector must address an `<input type="file">`.
+ * A file name is looked for in the project's `tests/assets/`
+ * (`this.assetsFolder`), then as written from the project root; a file that
+ * is in neither fails with the paths tried. The target selector must address
+ * an `<input type="file">`.
  *
  * Example #1: When I attach the file "profile-icon.jpg" to "#profile-icon-upload"
  * Example #2: When we attach file "resume.pdf" to "#resume"
@@ -163,5 +164,5 @@ When(/^(I |we )*follow "([^"]*)"$/, async function (pronounCase, link) {
  *
  */
 When(/^(I |we )*attach( the)* file "([^"]*)?" to "([^"]*)?"$/, async function (pronounCase, theCase, fileName, element) {
-  await this.page.locator(element).setInputFiles(path.resolve(this.assetsFolder, fileName));
+  await this.page.locator(element).setInputFiles(resolveAssetFile(this, fileName));
 });

@@ -11,6 +11,21 @@
 // page's origin and require a navigated page first.
 
 const { Given } = require('@cucumber/cucumber');
+const { failure } = require('./webship');
+
+// Local storage and session storage belong to the site of the page. On a page
+// that has none (about:blank before the first "I am on", a data: page) the
+// browser refuses them with a SecurityError: say so, and what to do.
+async function inPageStorage(world, what, script, arg) {
+  try {
+    return await world.page.evaluate(script, arg);
+  } catch (e) {
+    if (!/SecurityError|Access is denied|operation is insecure/i.test(String((e && e.message) || ''))) throw e;
+    throw failure(world.page, `Could not ${what}: the page has no site yet.`, {
+      hint: 'local storage and session storage belong to the site of the page: open a page of the site first, for example: Given I am on "/"',
+    });
+  }
+}
 
 // A quoted key or value may hold a double quote written \" (a JSON value, a
 // quoted cookie value), read as {string} reads it in the cookie assertions.
@@ -113,7 +128,7 @@ Given(/^all cookies are cleared$/, async function () {
  *
  */
 Given(/^(?:the )?local storage "((?:[^"\\]|\\.)*)" is set to "((?:[^"\\]|\\.)*)"$/, async function (key, value) {
-  await this.page.evaluate(({ k, v }) => localStorage.setItem(k, v), { k: unquote(key), v: unquote(value) });
+  await inPageStorage(this, `set the local storage "${unquote(key)}"`, ({ k, v }) => localStorage.setItem(k, v), { k: unquote(key), v: unquote(value) });
 });
 
 /**
@@ -131,7 +146,7 @@ Given(/^(?:the )?local storage "((?:[^"\\]|\\.)*)" is set to "((?:[^"\\]|\\.)*)"
  *
  */
 Given(/^(?:the )?local storage "((?:[^"\\]|\\.)*)" is removed$/, async function (key) {
-  await this.page.evaluate((k) => localStorage.removeItem(k), unquote(key));
+  await inPageStorage(this, `remove the local storage "${unquote(key)}"`, (k) => localStorage.removeItem(k), unquote(key));
 });
 
 /**
@@ -150,7 +165,7 @@ Given(/^(?:the )?local storage "((?:[^"\\]|\\.)*)" is removed$/, async function 
  *
  */
 Given(/^local storage is cleared$/, async function () {
-  await this.page.evaluate(() => localStorage.clear());
+  await inPageStorage(this, 'clear the local storage', () => localStorage.clear());
 });
 
 /**
@@ -166,7 +181,7 @@ Given(/^local storage is cleared$/, async function () {
  *
  */
 Given(/^(?:the )?session storage "((?:[^"\\]|\\.)*)" is set to "((?:[^"\\]|\\.)*)"$/, async function (key, value) {
-  await this.page.evaluate(({ k, v }) => sessionStorage.setItem(k, v), { k: unquote(key), v: unquote(value) });
+  await inPageStorage(this, `set the session storage "${unquote(key)}"`, ({ k, v }) => sessionStorage.setItem(k, v), { k: unquote(key), v: unquote(value) });
 });
 
 /**
@@ -182,7 +197,7 @@ Given(/^(?:the )?session storage "((?:[^"\\]|\\.)*)" is set to "((?:[^"\\]|\\.)*
  *
  */
 Given(/^(?:the )?session storage "((?:[^"\\]|\\.)*)" is removed$/, async function (key) {
-  await this.page.evaluate((k) => sessionStorage.removeItem(k), unquote(key));
+  await inPageStorage(this, `remove the session storage "${unquote(key)}"`, (k) => sessionStorage.removeItem(k), unquote(key));
 });
 
 /**
@@ -200,5 +215,5 @@ Given(/^(?:the )?session storage "((?:[^"\\]|\\.)*)" is removed$/, async functio
  *
  */
 Given(/^session storage is cleared$/, async function () {
-  await this.page.evaluate(() => sessionStorage.clear());
+  await inPageStorage(this, 'clear the session storage', () => sessionStorage.clear());
 });
