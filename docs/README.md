@@ -76,7 +76,7 @@ webship-js/
 │       ├── webship.js                          # World setup, hooks, shared helpers (smartSettle, modal, selectors, date tokens)
 │       ├── a11y.steps.js               (30)   # axe-core audits + WCAG hygiene probes
 │       ├── action.steps.js              (7)   # press / click / follow / attach
-│       ├── api.steps.js                (22)   # REST long form (base URL, headers, query, body, JSON Pointer)
+│       ├── api.steps.js                (23)   # REST long form (base URL, headers, query, body, JSON Pointer)
 │       ├── assertion.steps.js          (14)   # see / not see, in row, in element, response, count
 │       ├── auth.steps.js                (3)   # save / restore / clear storageState
 │       ├── clock.steps.js               (7)   # install / advance / pause / set system time
