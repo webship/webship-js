@@ -170,7 +170,9 @@ Then(/^there should be no JavaScript warnings$/, function () {
 /**
  * Assert that no collected JavaScript error message matches a regular
  * expression. Useful when some noise is unavoidable but a specific bug
- * pattern must never appear.
+ * pattern must never appear. Like the other two checks, it handles the
+ * errors it read: the end-of-scenario report, in "fail" mode too, does not
+ * fail the scenario on the noise the step tolerated.
  *
  * Example #1: Then JavaScript errors should not match "TypeError"
  * Example #2: Then JavaScript errors should not match "is not a function"
@@ -180,6 +182,7 @@ Then(/^there should be no JavaScript warnings$/, function () {
  *
  */
 Then(/^JavaScript errors should not match "([^"]*)"$/, function (pattern) {
+  this._jsErrorsAsserted = true;
   let re;
   try { re = new RegExp(pattern); }
   catch (e) {

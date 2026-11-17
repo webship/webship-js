@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Field states</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    label { display: block; margin-top: 12px; }
+  </style>
+</head>
+<body>
+  <h1>Field states</h1>
+  <form id="states-form">
+    <label for="state-username">Username</label>
+    <input id="state-username" name="username" type="text" value="">
+
+    <label for="state-account">Account ID</label>
+    <input id="state-account" name="account_id" type="text" value="A-100" disabled>
+
+    <label for="state-reference">Reference</label>
+    <input id="state-reference" name="reference" type="text" value="REF-7" readonly>
+
+    <label for="state-notes">Notes</label>
+    <textarea id="state-notes" name="notes" readonly>Kept as written</textarea>
+  </form>
+</body>
+</html>

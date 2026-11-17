@@ -15,11 +15,64 @@ const { When, Then } = require('@cucumber/cucumber');
 const assert = require('assert');
 const {
   getModalLocator,
+  getModalSelector,
   findVisibleModal,
   isAnyModalVisible,
   waitForModalState,
   friendly,
+  failure,
+  isTimeout,
 } = require('./webship');
+
+// The controls a modal is acted on through by their text.
+const MODAL_CONTROLS = 'button, a, [role="button"], input[type="button"], input[type="submit"], .btn';
+
+/**
+ * The modal that is open, waiting up to 5 seconds for one. When none is
+ * open, the step fails at once with what it wanted to do, the modal selector
+ * it tried and a hint, instead of a long wait and "the page took too long".
+ *
+ * @param {Object} world
+ * @param {string} action - What the step wanted to do in the modal.
+ * @returns {Promise<import('playwright').Locator>}
+ */
+async function openModal(world, action) {
+  try {
+    await waitForModalState(world.page, 'visible', 5000, world);
+  } catch (e) {
+    if (!isTimeout(e)) throw e;
+    throw failure(world.page, 'No modal is open: none was visible after 5 seconds.', {
+      hint: `the step wanted to ${action}. Open the modal first, or wait for it: When I wait for the modal to appear. Modals are found with "${getModalSelector(world)}"; register a "modal" CSS selector for other markup.`,
+    });
+  }
+  return findVisibleModal(world.page, world);
+}
+
+/**
+ * Wait up to 5 seconds for an element of the open modal to be visible; fail
+ * plainly, with what the modal offers, when it does not show.
+ *
+ * @param {Object} world
+ * @param {import('playwright').Locator} modal
+ * @param {import('playwright').Locator} target
+ * @param {string} message - The failure when the element does not show.
+ * @param {string} hint
+ * @returns {Promise<void>}
+ */
+async function inModal(world, modal, target, message, hint) {
+  try {
+    await target.waitFor({ state: 'visible', timeout: 5000 });
+  } catch (e) {
+    if (!isTimeout(e)) throw e;
+    const names = await modal.locator(MODAL_CONTROLS).evaluateAll((els) => els
+      .map((el) => (el.innerText || el.value || el.getAttribute('aria-label') || el.getAttribute('title') || '').replace(/\s+/g, ' ').trim())
+      .filter(Boolean)).catch(() => []);
+    throw failure(world.page, message, {
+      found: names.length ? names.map((n) => `"${n}"`).join(', ') : 'no button or link',
+      hint,
+    });
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Visibility
@@ -162,6 +215,10 @@ Then('the modal should not contain {string}', async function (text) {
 /**
  * Click a button or link inside a modal dialog by its visible text.
  *
+ * Waits up to 5 seconds for a modal to be open; when none is, the step fails
+ * with "No modal is open". A button or link the open modal does not have
+ * fails within 5 seconds, listing the ones it has.
+ *
  * Example #1: When I click "Confirm" in the modal
  * Example #2: When I click "Cancel" in the modal dialog
  * Example #3: When we click "OK" button in the modal
@@ -169,18 +226,17 @@ Then('the modal should not contain {string}', async function (text) {
  *
  */
 When(/^(I |we )*click "([^"]*)?"( button)* in( the)* modal( dialog)*$/, async function (pronounCase, buttonText, buttonCase, theCase, dialogCase) {
+  const modal = await openModal(this, `click "${buttonText}" in it`);
+  const target = modal.locator(MODAL_CONTROLS).filter({ hasText: buttonText }).first();
+  await inModal(this, modal, target, `The open modal has no button or link "${buttonText}".`,
+    'name the button by its visible text. For a button without text, use: I click on "<selector>" in the modal');
   try {
-    await waitForModalState(this.page, 'visible', 10000, this);
-    const modal = await findVisibleModal(this.page, this);
-    await modal.locator('button, a, [role="button"], input[type="button"], input[type="submit"], .btn')
-      .filter({ hasText: buttonText })
-      .first()
-      .click();
+    await target.click({ timeout: 5000 });
   } catch (e) {
     throw friendly({
       action: `click "${buttonText}" in the modal`,
       cause: e,
-      hint: `make sure the modal is open ("When I wait for the modal to appear") and the button text matches exactly.`,
+      hint: 'the button is in the open modal but could not be clicked; another element may cover it.',
     });
   }
 });
@@ -190,7 +246,9 @@ When(/^(I |we )*click "([^"]*)?"( button)* in( the)* modal( dialog)*$/, async fu
  *
  * Distinct from "click :text in the modal" which uses visible button text.
  * Use this variant when the target lacks readable text (icon button) or
- * when text is ambiguous across multiple buttons in the modal.
+ * when text is ambiguous across multiple buttons in the modal. The selector
+ * is looked for inside the open modal only; when no modal is open within 5
+ * seconds, the step fails with "No modal is open".
  *
  * Example #1: When I click on "#close-btn" in the modal
  * Example #2: When I click on ".confirm-delete" in the modal
@@ -202,19 +260,25 @@ When(/^(I |we )*click "([^"]*)?"( button)* in( the)* modal( dialog)*$/, async fu
  *
  */
 When(/^(I |we )*click on "([^"]*)" in the modal$/, async function (pronoun, selector) {
+  const modal = await openModal(this, `click on "${selector}" in it`);
+  const target = modal.locator(selector).first();
+  await inModal(this, modal, target, `The open modal has no visible element "${selector}".`,
+    'the selector is looked for inside the open modal only; to click by visible text, use: I click "<text>" in the modal');
   try {
-    await getModalLocator(this.page, this).locator(selector).first().click();
+    await target.click({ timeout: 5000 });
   } catch (e) {
     throw friendly({
       action: `click on "${selector}" in the modal`,
       cause: e,
-      hint: `make sure the modal is open and the selector matches something inside it.`,
+      hint: 'the element is in the open modal but could not be clicked; another element may cover it.',
     });
   }
 });
 
 /**
  * Close or dismiss a modal dialog (uses close button, or Escape fallback).
+ * When no modal is open within 5 seconds, the step fails with "No modal is
+ * open".
  *
  * Example #1: When I close the modal
  * Example #2: When I dismiss the modal dialog
@@ -223,12 +287,11 @@ When(/^(I |we )*click on "([^"]*)" in the modal$/, async function (pronoun, sele
  *
  */
 When(/^(I |we )*(close|dismiss)( the)* modal( dialog)*$/, async function (pronounCase, closeOrDismiss, theCase, dialogCase) {
+  const modal = await openModal(this, `${closeOrDismiss} it`);
   try {
-    await waitForModalState(this.page, 'visible', 10000, this);
-    const modal = await findVisibleModal(this.page, this);
     const closeBtn = modal.locator('.close, .modal-close, [data-dismiss="modal"], [aria-label="Close"], .btn-close, button[class*="close"]').first();
     if (await closeBtn.isVisible()) {
-      await closeBtn.click();
+      await closeBtn.click({ timeout: 5000 });
     } else {
       await modal.press('Escape');
     }

@@ -3,7 +3,7 @@ os: linux
 dist: jammy
 
 node_js:
-  - "20"
+  - "24"
 
 env:
   global:
@@ -31,6 +31,11 @@ before_script:
 
 script:
   - npm test
+
+# Travis CI keeps no build artifacts of its own: the report, the screenshots
+# and the videos (tests/reports/, screenshots/, videos/) stay in the build
+# log only. To keep them, upload them to storage of your own in an
+# after_script step, or use another provider of docs/16-ci-cd.md.
 
 notifications:
   email:
