@@ -102,12 +102,55 @@ function prepareUrl(url) {
 }
 
 /**
- * Helper function to get nested property from object using dot notation.
+ * Find a property of a JSON value by its path: a dot path (`data.0.id`,
+ * `data[0].id`) or a JSON Pointer (`/data/0/id`, with ~1 for "/" and ~0 for
+ * "~"), the form the YAML steps take. Returns where it stopped when a part of
+ * the path is missing, written the way the path was written.
+ *
+ * @param {*} obj
+ * @param {string} path
+ * @returns {{found: boolean, value: *, missing: string, at: string}}
+ */
+function resolveJsonPath(obj, path) {
+  const pointer = path.startsWith('/');
+  const parts = pointer
+    ? path.slice(1).split('/').map((part) => part.replace(/~1/g, '/').replace(/~0/g, '~'))
+    : path.replace(/\[(\d+)\]/g, '.$1').split('.').filter((part) => part !== '');
+  const label = (count) => (pointer ? '/' + parts.slice(0, count).join('/') : parts.slice(0, count).join('.'));
+  let current = obj;
+  for (let i = 0; i < parts.length; i += 1) {
+    const part = parts[i];
+    const has = current !== null && typeof current === 'object' && Object.prototype.hasOwnProperty.call(current, part);
+    if (!has) return { found: false, value: undefined, missing: part, at: i ? label(i) : '' };
+    current = current[part];
+  }
+  return { found: true, value: current, missing: '', at: '' };
+}
+
+/**
+ * The value at a path of a JSON value, or undefined when a part is missing.
  */
 function getNestedProperty(obj, path) {
-  return path.split('.').reduce((current, prop) => {
-    return current && current[prop] !== undefined ? current[prop] : undefined;
-  }, obj);
+  return resolveJsonPath(obj, path).value;
+}
+
+/**
+ * The words that say where a path stopped: the part that is missing and the
+ * property that does not have it.
+ */
+function missingPart(result) {
+  return result.at
+    ? `"${result.at}" has no "${result.missing}"`
+    : `the response has no "${result.missing}" at its top level`;
+}
+
+const PATH_HINT = 'name a property with a dot path ("data.0.id", "data[0].id") or a JSON Pointer ("/data/0/id").';
+
+/**
+ * A value of a JSON response, written for a failure message.
+ */
+function shownValue(value) {
+  return typeof value === 'string' ? `"${value}"` : excerpt(JSON.stringify(value));
 }
 
 /**
@@ -604,7 +647,8 @@ Then(/^(?:the )?API response should contain json:$/, function (docString) {
 });
 
 /**
- * Alternative syntax for JSON property verification.
+ * Alternative syntax for JSON property verification. The property is named by
+ * a dot path (`user.role`, `data[0].id`) or a JSON Pointer (`/user/role`).
  *
  * Example #1: Then the JSON response should have "name" equal to "John Doe"
  * Example #2: Then the API response should have "id" equal to 1
@@ -614,6 +658,7 @@ Then(/^(?:the )?API response should contain json:$/, function (docString) {
  * Example #6: Then the JSON property "count" should be 42
  * Example #7: Then the JSON response should have "user.role" equal to "admin"
  * Example #8: Then the JSON property "published" should be false
+ * Example #9: Then the JSON response should have "/data/0/type" equal to "articles"
  */
 Then(/^(?:the JSON response should have|the API response should have|the JSON property) "([^"]*)" (?:equal to|should be) (.+)$/, function (propertyPath, expectedValue) {
   if (!apiResponse) {
@@ -636,14 +681,21 @@ Then(/^(?:the JSON response should have|the API response should have|the JSON pr
   }
   
   // Get the actual value from response
-  const actualValue = getNestedProperty(apiResponse.data, propertyPath);
-  
-  assert.strictEqual(actualValue, parsedExpectedValue,
-    `Expected "${propertyPath}" to be ${parsedExpectedValue}, but got ${actualValue}`);
+  const result = resolveJsonPath(apiResponse.data, propertyPath);
+  if (!result.found) {
+    throw apiFailure(`The JSON response has no "${propertyPath}": ${missingPart(result)}.`, {
+      hint: PATH_HINT,
+    });
+  }
+  if (result.value !== parsedExpectedValue) {
+    throw apiFailure(`The JSON response has "${propertyPath}" equal to ${shownValue(result.value)}, not ${shownValue(parsedExpectedValue)}.`, {
+      hint: 'a value in quotes is compared as text; true, false and a number without quotes as JSON booleans and numbers.',
+    });
+  }
 });
 
 /**
- * Verify a JSON property exists.
+ * Verify a JSON property exists, named by a dot path or a JSON Pointer.
  *
  * Example #1: Then the JSON response should have property "id"
  * Example #2: Then the API response should contain property "user.email"
@@ -653,20 +705,24 @@ Then(/^(?:the JSON response should have|the API response should have|the JSON pr
  * Example #6: Then the API response should contain property "meta.total"
  * Example #7: Then the JSON response should have property "createdAt"
  * Example #8: Then the API response should contain property "links.self"
+ * Example #9: Then the JSON response should have property "/links/self"
  */
 Then(/^(?:the JSON response should have property|the API response should contain property) "([^"]*)"$/, function (propertyPath) {
   if (!apiResponse) {
     throw friendly('No API response available. Make sure to send a request first.');
   }
   
-  const actualValue = getNestedProperty(apiResponse.data, propertyPath);
-  
-  assert(actualValue !== undefined, 
-    `Expected property "${propertyPath}" to exist in response, but it doesn't`);
+  const result = resolveJsonPath(apiResponse.data, propertyPath);
+  if (!result.found) {
+    throw apiFailure(`The JSON response has no "${propertyPath}": ${missingPart(result)}.`, {
+      hint: PATH_HINT,
+    });
+  }
 });
 
 /**
- * Verify a JSON property does not exist.
+ * Verify a JSON property does not exist, named by a dot path or a JSON
+ * Pointer.
  *
  * Example #1: Then the JSON response should not have property "password"
  * Example #2: Then the API response should not contain property "secret"
@@ -676,16 +732,20 @@ Then(/^(?:the JSON response should have property|the API response should contain
  * Example #6: Then the API response should not contain property "internal"
  * Example #7: Then the JSON response should not have property "debug"
  * Example #8: Then the API response should not contain property "stack"
+ * Example #9: Then the JSON response should not have property "/user/password"
  */
 Then(/^(?:the JSON response should not have property|the API response should not contain property) "([^"]*)"$/, function (propertyPath) {
   if (!apiResponse) {
     throw friendly('No API response available. Make sure to send a request first.');
   }
   
-  const actualValue = getNestedProperty(apiResponse.data, propertyPath);
-  
-  assert(actualValue === undefined, 
-    `Expected property "${propertyPath}" not to exist in response, but it does`);
+  const result = resolveJsonPath(apiResponse.data, propertyPath);
+  if (result.found) {
+    throw apiFailure(`The JSON response has "${propertyPath}", but it should not.`, {
+      found: shownValue(result.value),
+      hint: PATH_HINT,
+    });
+  }
 });
 
 /**
