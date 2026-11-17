@@ -360,6 +360,7 @@ This index lists every public step grouped by source file, with one Gherkin exam
 - *^(?:the response should be valid JSON|the API response should be valid JSON)$*  ·  Example: `Then the response should be valid JSON`
 - *^(?:the response header|the header) "([^"]*)" should (?:be|contain) "([^"]*)"$*  ·  Example: `Then the response header "Content-Type" should be "application/json"`
 - *^print API response$*  ·  Example: `Then print API response`
+- *^(?:the )?API response should( not)? contain the header "([^"]*)"$*  ·  Example: `Then the API response should contain the header "ETag"`
 - *^(?:I|we) set placeholder "([^"]*)" to "([^"]*)"$*  ·  Example: `Given I set placeholder "{{userId}}" to "123"`
 
 ### assertion.steps.js

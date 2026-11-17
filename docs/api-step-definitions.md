@@ -47,6 +47,8 @@ The documentation lists 22 distinct step definition categories:
 - Then the API response should contain "text"
 - Then the API response should contain json
 - Then the API response should not contain "text"
+- Then the API response should contain the header "header name"
+- Then the API response should not contain the header "header name"
 - Then the response should be valid JSON
 - Then the response header "response header" should be "value"
 

@@ -44,6 +44,8 @@ Then the API response code should be 200
  And the API response should contain "Alice"
  And the API response should not contain "<script>"
  And the response header "content-type" should contain "json"
+ And the API response should contain the header "ETag"
+ And the API response should not contain the header "X-Powered-By"
  And the response should be valid JSON
  And the JSON property "user.name" should be "Alice"
  And the JSON response should have property "user.id"

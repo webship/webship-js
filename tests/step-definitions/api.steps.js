@@ -819,6 +819,39 @@ Then(/^print API response$/, function () {
 });
 
 /**
+ * Verify the last API response has, or has not, a header, whatever its value.
+ * The name is matched in any letter case. To check the value, use
+ * `the response header "X" should be "Y"` or `should contain "Y"`.
+ *
+ * Example #1: Then the API response should contain the header "ETag"
+ * Example #2: Then the API response should contain the header "Location"
+ * Example #3: Then API response should contain the header "Content-Type"
+ * Example #4: Then the API response should not contain the header "X-Powered-By"
+ * Example #5: Then the API response should not contain the header "Server"
+ * Example #6: And API response should not contain the header "Set-Cookie"
+ */
+Then(/^(?:the )?API response should( not)? contain the header "([^"]*)"$/, function (notCase, headerName) {
+  if (!apiResponse) {
+    throw friendly('No API response available. Make sure to send a request first.');
+  }
+  const wanted = headerName.trim().toLowerCase();
+  const names = Object.keys(apiResponse.headers || {});
+  const present = names.some((name) => name.toLowerCase() === wanted);
+  if (!notCase && !present) {
+    throw apiFailure(`The API response has no "${headerName}" header.`, {
+      found: `the headers ${names.join(', ') || 'none'}`,
+      hint: 'check the name of the header; the step reads the headers of the last API response, in any letter case.',
+    });
+  }
+  if (notCase && present) {
+    throw apiFailure(`The API response has the header "${headerName}", but it should not.`, {
+      found: `"${headerName}: ${apiResponse.headers[wanted]}"`,
+      hint: 'the step reads the headers of the last API response, in any letter case, whatever their value.',
+    });
+  }
+});
+
+/**
  * Sets placeholder for replacement in URLs, requests, and responses.
  *
  * Example #1: Given I set placeholder "{{userId}}" to "123"
