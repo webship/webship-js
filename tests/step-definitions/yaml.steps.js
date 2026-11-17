@@ -1,6 +1,6 @@
 'use strict';
 
-const { friendly, failure } = require('./webship');
+const { friendly, failure, resolveAssetFile } = require('./webship');
 
 // Parse and assert against YAML response bodies.
 //
@@ -17,7 +17,6 @@ const { friendly, failure } = require('./webship');
 const { Given, Then, When } = require('@cucumber/cucumber');
 const assert = require('assert');
 const fs = require('fs');
-const path = require('path');
 
 let YAML; try { YAML = require('js-yaml'); } catch { /* lazy */ }
 let Ajv; let addFormats;
@@ -123,7 +122,8 @@ function typeOfNode(node) {
 // ---------------------------------------------------------------------------
 
 /**
- * Load YAML response content from a file under `tests/assets/`.
+ * Load YAML response content from a file under `tests/assets/` of the
+ * project, or from a path from the project root.
  *
  * Multi-document streams (`---`) are parsed via `loadAll`. The first document
  * becomes the default; switch with `Given the active YAML document is N`.
@@ -137,8 +137,7 @@ function typeOfNode(node) {
  */
 Given('the YAML response content from the file {string}', async function (filename) {
   requireYaml();
-  const p = path.isAbsolute(filename) ? filename : path.join(this.assetsFolder || './tests/assets', filename);
-  setYamlResponse(this, fs.readFileSync(p, 'utf-8'));
+  setYamlResponse(this, fs.readFileSync(resolveAssetFile(this, filename), 'utf-8'));
 });
 
 /**
@@ -843,8 +842,7 @@ Then('the YAML at {string} should have keys {string}', function (p, csv) {
 Then('the YAML should match JSON Schema {string}', function (schemaFile) {
   if (!Ajv) throw friendly('Schema validation requires ajv. Install with: npm i ajv ajv-formats');
   const doc = activeDoc(this); ensureLoaded(this);
-  const p = path.isAbsolute(schemaFile) ? schemaFile : path.join(this.assetsFolder || './tests/assets', schemaFile);
-  const schema = JSON.parse(fs.readFileSync(p, 'utf-8'));
+  const schema = JSON.parse(fs.readFileSync(resolveAssetFile(this, schemaFile), 'utf-8'));
   const ajv = new Ajv({ allErrors: true, strict: false });
   if (addFormats) addFormats(ajv);
   const validate = ajv.compile(schema);
@@ -872,8 +870,7 @@ Then('the YAML should match JSON Schema {string}', function (schemaFile) {
 Then('the YAML should equal the file {string} ignoring keys {string}', function (file, ignoreCsv) {
   requireYaml();
   const doc = activeDoc(this); ensureLoaded(this);
-  const p = path.isAbsolute(file) ? file : path.join(this.assetsFolder || './tests/assets', file);
-  const expected = YAML.load(fs.readFileSync(p, 'utf-8'));
+  const expected = YAML.load(fs.readFileSync(resolveAssetFile(this, file), 'utf-8'));
   const ignore = ignoreCsv.split(',').map((s) => s.trim()).filter(Boolean);
   const stripAt = (root, ptr) => {
     const parts = ptr.split('/').filter(Boolean);
