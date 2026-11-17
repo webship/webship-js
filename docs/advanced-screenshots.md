@@ -13,6 +13,8 @@ This documentation page covers screenshot capture functionality in Webship JS 2.
 
 **Filename tokens** can be used in `with name "..."` steps or configuration keys like `filenamePattern` and `filenamePatternFailed`.
 
+A named screenshot writes `<name>.png` and `<name>.html`. A name that already ends with `.png`, `.jpg`, `.jpeg` or `.html` keeps that one extension: `with name "homepage.png"` writes `homepage.png` and `homepage.html`.
+
 ## Configuration
 
 Settings reside in `cucumber.js` under `worldParameters.screenshot`. Each key accepts environment variable overrides:

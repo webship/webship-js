@@ -46,6 +46,11 @@ fs.writeFileSync(feature, [
   '  Scenario: A step fails',
   '    Then this step fails on purpose',
   '',
+  '  Scenario: Named screenshots',
+  '    Then I save screenshot with name "homepage.png"',
+  '     And I save fullscreen screenshot with name "full-page.JPG"',
+  '     And I save screenshot with name "plain-name"',
+  '',
 ].join('\n'));
 const lines = { skipped: 4, pending: 7, failed: 10 };
 
@@ -93,6 +98,12 @@ if (!fs.existsSync(report) || !fs.readFileSync(report, 'utf8').trim()) {
     if (found.length) problems.push(`The ${outcome} step (line ${lines[outcome]}) left failure screenshots: ${found.join(', ')}.`);
     if (images[lines[outcome]]) problems.push(`The ${outcome} step (line ${lines[outcome]}) carries ${images[lines[outcome]]} screenshot(s) in the JSON report.`);
   }
+  // A name that ends with the extension of a file the step writes keeps
+  // that one extension: "homepage.png" is homepage.png, not homepage.png.png.
+  const saved = fs.existsSync(shots) ? fs.readdirSync(shots) : [];
+  for (const name of ['homepage.png', 'homepage.html', 'full-page.png', 'full-page.html', 'plain-name.png', 'plain-name.html']) {
+    if (!saved.includes(name)) problems.push(`The named screenshot ${name} was not written; files: ${saved.filter((f) => !f.startsWith('failed_')).join(', ') || 'none'}.`);
+  }
   if (images[lines.failed] !== 1) {
     problems.push(`The failed step (line ${lines.failed}) carries ${images[lines.failed] || 0} screenshot(s) in the JSON report, not 1: no report can show it.`);
   }
@@ -103,4 +114,4 @@ if (problems.length) {
   console.error('Failure screenshots:\n  - ' + problems.join('\n  - '));
   process.exit(1);
 }
-console.log('Failure screenshots: the failed step left one, attached to it in the JSON report; the skipped and the pending step left none.');
+console.log('Failure screenshots: the failed step left one, attached to it in the JSON report; the skipped and the pending step left none. Named screenshots keep the one extension their name gives.');
