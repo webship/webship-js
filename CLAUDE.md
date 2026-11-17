@@ -119,8 +119,12 @@ Everything shared lives here; every `*.steps.js` does
   that needs a new context (restore an auth state, start or stop a video)
   calls `replaceContext()`, never `browser.newContext()` directly — or the
   new page silently loses the smart waits, the viewport and the listeners.
-* **Hooks** — `Before({order:5})` opens the browser (merging
-  `recordVideo` context options when video is on); `After({order:5})`
+* **Hooks** — they run in the order they are registered (cucumber-js has
+  no `order` option; After hooks run in reverse), and `webship.js` is
+  loaded before any other hook is registered (every step file with hooks
+  requires it at its top): its `Before` opens the browser (merging
+  `recordVideo` context options when video is on) before any other
+  `Before`; its `After`
   captures the video path *before* closing the context, saves/deletes per
   mode, then closes the browser; `BeforeStep` resolves `[relative:…]` date
   tokens in step text, doc strings, and data-table cells; `AfterStep`
