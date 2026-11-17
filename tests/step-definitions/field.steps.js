@@ -4,7 +4,7 @@
 
 const { Given, When, Then } = require('@cucumber/cucumber');
 const assert = require('assert');
-const { friendly, failure } = require('./webship');
+const { friendly, failure, fillLocator, humanize, isTimeout } = require('./webship');
 
 // Resolve a field by label, name, id, or selector.
 function fieldLocator(page, field) {
@@ -126,6 +126,106 @@ async function datetimePart(page, label, type, half) {
   throw failure(page, `The datetime field "${label}" has no ${half ? half + ' ' : ''}${type} input.`, {
     hint: `the field is named by the exact text of its label or of the legend of its fieldset; its ${type} input is the one inside the label, the one the label is for, or one that follows the label before the next field. An input whose name or aria-label contains "${label}" is found too.`,
   });
+}
+
+// The checkbox, radio button and field steps find a control by a CSS
+// selector, the exact text of its label, its name, its id or (a checkbox or a
+// radio button) its value. A radio button is not found by its name: the name
+// is shared by its whole group.
+const CONTROLS = {
+  checkbox: {
+    css: 'input[type="checkbox"], [role="checkbox"]',
+    noun: 'checkbox', state: 'checked', by: ['name', 'id', 'value'],
+    says: 'the label, the name, the id or the selector',
+  },
+  radio: {
+    css: 'input[type="radio"], [role="radio"]',
+    noun: 'radio button', state: 'selected', by: ['id', 'value'],
+    says: 'the label, the id, the value or the selector',
+  },
+  field: {
+    css: 'input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="image"]), textarea, select',
+    noun: 'field', by: ['name', 'id'],
+    says: 'the label, the name, the id or the selector',
+  },
+};
+
+/**
+ * Find the checkbox, radio button or field a step names, waiting up to 5
+ * seconds for it; fail the step plainly when there is none.
+ *
+ * @param {import('playwright').Page} page
+ * @param {string} name - A CSS selector, or the label, name, id or value.
+ * @param {'checkbox'|'radio'|'field'} kind
+ * @returns {Promise<import('playwright').Locator>}
+ */
+async function locateControl(page, name, kind) {
+  const spec = CONTROLS[kind];
+  const q = String(name).replace(/["\\]/g, '\\$&');
+  const ofKind = page.locator(spec.css);
+  let named = page.getByLabel(name, { exact: true }).and(ofKind);
+  for (const attr of spec.by) named = named.or(ofKind.and(page.locator(`[${attr}="${q}"]`)));
+  // A name that is not a valid selector is left out of the search instead of
+  // failing it.
+  for (const loc of [named.or(page.locator(name)).first(), named.first()]) {
+    try {
+      await loc.waitFor({ state: 'attached', timeout: 5000 });
+      return loc;
+    } catch (e) {
+      if (isTimeout(e)) break;
+    }
+  }
+  throw failure(page, `No ${spec.noun} with ${spec.says} "${name}" was found after 5 seconds.`, {
+    hint: `name the ${spec.noun} by the exact text of its label, ${spec.by.map((a) => `its ${a}`).join(', ')}, or by a CSS selector such as "#id" or "input[name=…]".`,
+  });
+}
+
+/**
+ * Check that a checkbox is (or is not) checked, or a radio button selected.
+ *
+ * @param {Object} world
+ * @param {string} name
+ * @param {'checkbox'|'radio'} kind
+ * @param {boolean} wanted - true when it should be checked / selected.
+ */
+async function assertChoice(world, name, kind, wanted) {
+  const spec = CONTROLS[kind];
+  const loc = await locateControl(world.page, name, kind);
+  let checked;
+  try {
+    checked = await loc.isChecked({ timeout: 5000 });
+  } catch (e) {
+    throw failure(world.page, `Could not read whether the ${spec.noun} "${name}" is ${spec.state}.`, {
+      hint: `${humanize(e)}; the element the step found may not be a ${spec.noun}.`,
+    });
+  }
+  if (checked === wanted) return;
+  throw failure(world.page, wanted
+    ? `The ${spec.noun} "${name}" is not ${spec.state}.`
+    : `The ${spec.noun} "${name}" is ${spec.state}, but it should not be.`, {
+    hint: `the ${spec.noun} is found by ${spec.says.replace(/ or the selector$/, '')} or a CSS selector; check that the step before it ${wanted ? spec.state.replace('ed', 's') : 'changes'} it.`,
+  });
+}
+
+/**
+ * Check or uncheck a checkbox, or select a radio button, found as the
+ * assertions find it.
+ *
+ * @param {Object} world
+ * @param {string} name
+ * @param {'checkbox'|'radio'} kind
+ * @param {'check'|'uncheck'} action
+ */
+async function setChoice(world, name, kind, action) {
+  const spec = CONTROLS[kind];
+  const loc = await locateControl(world.page, name, kind);
+  try {
+    await loc[action]({ timeout: 5000 });
+  } catch (e) {
+    throw failure(world.page, `Could not ${action === 'check' && kind === 'radio' ? 'select' : action} the ${spec.noun} "${name}".`, {
+      hint: `${humanize(e)}; a ${spec.noun} that is hidden or disabled cannot be changed.`,
+    });
+  }
 }
 
 /**
@@ -528,7 +628,11 @@ When(/^(I |we )*clear the select "([^"]*)"$/, async function (pronoun, sel) {
 });
 
 /**
- * Check a CSS-addressed checkbox.
+ * Check a checkbox.
+ *
+ * The checkbox is named by a CSS selector, the exact text of its label, its
+ * name, its id or its value; one that is not found within 5 seconds fails
+ * the step plainly.
  *
  * Example #1: When I check the checkbox "#agree"
  * Example #2: When I check the checkbox "input[name=newsletter]"
@@ -538,11 +642,15 @@ When(/^(I |we )*clear the select "([^"]*)"$/, async function (pronoun, sel) {
  *
  */
 When(/^(I |we )*check the checkbox "([^"]*)"$/, async function (pronoun, sel) {
-  await this.page.locator(sel).first().check();
+  await setChoice(this, sel, 'checkbox', 'check');
 });
 
 /**
- * Uncheck a CSS-addressed checkbox.
+ * Uncheck a checkbox.
+ *
+ * The checkbox is named by a CSS selector, the exact text of its label, its
+ * name, its id or its value; one that is not found within 5 seconds fails
+ * the step plainly.
  *
  * Example #1: When I uncheck the checkbox "#newsletter"
  * Example #2: When I uncheck the checkbox "input[name=marketing]"
@@ -552,11 +660,15 @@ When(/^(I |we )*check the checkbox "([^"]*)"$/, async function (pronoun, sel) {
  *
  */
 When(/^(I |we )*uncheck the checkbox "([^"]*)"$/, async function (pronoun, sel) {
-  await this.page.locator(sel).first().uncheck();
+  await setChoice(this, sel, 'checkbox', 'uncheck');
 });
 
 /**
- * Select a CSS-addressed radio button.
+ * Select a radio button.
+ *
+ * The radio button is named by a CSS selector, the exact text of its label,
+ * its id or its value (not its name, which its whole group shares); one that
+ * is not found within 5 seconds fails the step plainly.
  *
  * Example #1: When I choose the radio button "#gender-male"
  * Example #2: When I choose the radio button "input[value=premium]"
@@ -566,7 +678,7 @@ When(/^(I |we )*uncheck the checkbox "([^"]*)"$/, async function (pronoun, sel) 
  *
  */
 When(/^(I |we )*choose the radio button "([^"]*)"$/, async function (pronoun, sel) {
-  await this.page.locator(sel).first().check();
+  await setChoice(this, sel, 'radio', 'check');
 });
 
 // Note: "the radio button :sel should be selected" is already provided by
@@ -574,7 +686,10 @@ When(/^(I |we )*choose the radio button "([^"]*)"$/, async function (pronoun, se
 // ambiguous step matches.
 
 /**
- * Fill a CSS-addressed input/textarea with a value.
+ * Fill an input or a textarea with a value. The field is named by a CSS
+ * selector, the exact text of its label, its name or its id; one that is not
+ * found within 5 seconds, or that is hidden, disabled or read-only, fails the
+ * step plainly.
  *
  * Example #1: When I fill in the field "#username" with "alice"
  * Example #2: When I fill in the field "input[name=email]" with "alice@example.com"
@@ -584,7 +699,8 @@ When(/^(I |we )*choose the radio button "([^"]*)"$/, async function (pronoun, se
  *
  */
 When(/^(I |we )*fill in the field "([^"]*)" with "([^"]*)"$/, async function (pronoun, sel, value) {
-  await this.page.locator(sel).first().fill(value);
+  const loc = await locateControl(this.page, sel, 'field');
+  await fillLocator(this.page, loc, value, sel);
 });
 
 /**
@@ -742,6 +858,10 @@ ThenF(/^(the )*"([^"]*)?" field should( not)* contain "([^"]*)?"$/, async functi
 /**
  * Assert that a checkbox should or should not be checked.
  *
+ * The checkbox is named by a CSS selector, the exact text of its label, its
+ * name, its id or its value; one that is not found within 5 seconds fails
+ * the step plainly.
+ *
  * Example #1: Then the "#privacy-policy" checkbox should be checked
  * Example #2: Then the "#newsletter" checkbox should not be checked
  * Example #3: And the "#agree" checkbox should be checked
@@ -751,16 +871,15 @@ ThenF(/^(the )*"([^"]*)?" field should( not)* contain "([^"]*)?"$/, async functi
  *
  */
 ThenF(/^(the )*"([^"]*)?" checkbox should( not)* be checked$/, async function (theCase, checkbox, notCase) {
-  const isChecked = await this.page.locator(checkbox).isChecked();
-  if (notCase) {
-    assertF.ok(!isChecked, `Checkbox "${checkbox}" should NOT be checked but it is.`);
-  } else {
-    assertF.ok(isChecked, `Checkbox "${checkbox}" should be checked but it is not.`);
-  }
+  await assertChoice(this, checkbox, 'checkbox', !notCase);
 });
 
 /**
  * Assert that a checkbox is or is not checked.
+ *
+ * The checkbox is named by a CSS selector, the exact text of its label, its
+ * name, its id or its value; one that is not found within 5 seconds fails
+ * the step plainly.
  *
  * Alternate phrasing of "should be / should not be checked".
  *
@@ -773,16 +892,15 @@ ThenF(/^(the )*"([^"]*)?" checkbox should( not)* be checked$/, async function (t
  *
  */
 ThenF(/^(the )*"([^"]*)?" checkbox is( not)* checked$/, async function (theCase, checkbox, notCase) {
-  const isChecked = await this.page.locator(checkbox).isChecked();
-  if (notCase) {
-    assertF.ok(!isChecked, `Checkbox "${checkbox}" should NOT be checked but it is.`);
-  } else {
-    assertF.ok(isChecked, `Checkbox "${checkbox}" should be checked but it is not.`);
-  }
+  await assertChoice(this, checkbox, 'checkbox', !notCase);
 });
 
 /**
  * Assert that a named checkbox should or should not be checked.
+ *
+ * The checkbox is named by a CSS selector, the exact text of its label, its
+ * name, its id or its value; one that is not found within 5 seconds fails
+ * the step plainly.
  *
  * Reverse phrasing — "checkbox <selector>" instead of "<selector> checkbox".
  *
@@ -795,16 +913,15 @@ ThenF(/^(the )*"([^"]*)?" checkbox is( not)* checked$/, async function (theCase,
  *
  */
 ThenF(/^(the )*checkbox "([^"]*)?" should( not)* be checked$/, async function (theCase, checkbox, notCase) {
-  const isChecked = await this.page.locator(checkbox).isChecked();
-  if (notCase) {
-    assertF.ok(!isChecked, `Checkbox "${checkbox}" should NOT be checked but it is.`);
-  } else {
-    assertF.ok(isChecked, `Checkbox "${checkbox}" should be checked but it is not.`);
-  }
+  await assertChoice(this, checkbox, 'checkbox', !notCase);
 });
 
 /**
  * Assert that a named checkbox is or is not checked.
+ *
+ * The checkbox is named by a CSS selector, the exact text of its label, its
+ * name, its id or its value; one that is not found within 5 seconds fails
+ * the step plainly.
  *
  * Reverse phrasing using "is / is not".
  *
@@ -817,16 +934,15 @@ ThenF(/^(the )*checkbox "([^"]*)?" should( not)* be checked$/, async function (t
  *
  */
 ThenF(/^(the )*checkbox "([^"]*)?" is( not)* checked$/, async function (theCase, checkbox, notCase) {
-  const isChecked = await this.page.locator(checkbox).isChecked();
-  if (notCase) {
-    assertF.ok(!isChecked, `Checkbox "${checkbox}" should NOT be checked but it is.`);
-  } else {
-    assertF.ok(isChecked, `Checkbox "${checkbox}" should be checked but it is not.`);
-  }
+  await assertChoice(this, checkbox, 'checkbox', !notCase);
 });
 
 /**
  * Assert that a radio button should or should not be selected.
+ *
+ * The radio button is named by a CSS selector, the exact text of its label,
+ * its id or its value (not its name, which its whole group shares); one that
+ * is not found within 5 seconds fails the step plainly.
  *
  * Example #1: Then the radio button "#gender-male" should be selected
  * Example #2: Then the radio button "#gender-female" should not be selected
@@ -834,12 +950,7 @@ ThenF(/^(the )*checkbox "([^"]*)?" is( not)* checked$/, async function (theCase,
  *
  */
 ThenF(/^(the )*radio button "([^"]*)?" should( not)* be selected$/, async function (theCase, radioButton, notCase) {
-  const isChecked = await this.page.locator(radioButton).isChecked();
-  if (notCase) {
-    assertF.ok(!isChecked, `Radio button "${radioButton}" should NOT be selected but it is.`);
-  } else {
-    assertF.ok(isChecked, `Radio button "${radioButton}" should be selected but it is not.`);
-  }
+  await assertChoice(this, radioButton, 'radio', !notCase);
 });
 
 /**
@@ -856,16 +967,31 @@ ThenF(/^(the )*radio button "([^"]*)?" should( not)* be selected$/, async functi
  *
  */
 ThenF(/^(the )*radio button with value "([^"]*)?" should( not)* be selected$/, async function (theCase, radioValue, notCase) {
-  const isChecked = await this.page.locator(`input[type="radio"][value="${radioValue}"]`).first().isChecked();
-  if (notCase) {
-    assertF.ok(!isChecked, `Radio button with value "${radioValue}" should NOT be selected but it is.`);
-  } else {
-    assertF.ok(isChecked, `Radio button with value "${radioValue}" should be selected but it is not.`);
+  const loc = this.page.locator(`input[type="radio"][value="${String(radioValue).replace(/["\\]/g, '\\$&')}"]`).first();
+  try {
+    await loc.waitFor({ state: 'attached', timeout: 5000 });
+  } catch (e) {
+    if (!isTimeout(e)) throw e;
+    throw failure(this.page, `No radio button with the value "${radioValue}" was found after 5 seconds.`, {
+      hint: 'the step reads the value attribute of the radio buttons, not their label; to name one by its label, use: the radio button "<label>" should be selected',
+    });
+  }
+  const isChecked = await loc.isChecked();
+  if (isChecked !== !notCase) {
+    throw failure(this.page, notCase
+      ? `The radio button with the value "${radioValue}" is selected, but it should not be.`
+      : `The radio button with the value "${radioValue}" is not selected.`, {
+      hint: 'check that the step before it selects the radio button you expect.',
+    });
   }
 });
 
 /**
  * Assert that the radio button is or is not selected.
+ *
+ * The radio button is named by a CSS selector, the exact text of its label,
+ * its id or its value (not its name, which its whole group shares); one that
+ * is not found within 5 seconds fails the step plainly.
  *
  * Alternate phrasing using "is / is not selected".
  *
@@ -878,10 +1004,5 @@ ThenF(/^(the )*radio button with value "([^"]*)?" should( not)* be selected$/, a
  *
  */
 ThenF(/^(the )*"([^"]*)?" radio button is( not)* selected$/, async function (theCase, radioButton, notCase) {
-  const isChecked = await this.page.locator(radioButton).isChecked();
-  if (notCase) {
-    assertF.ok(!isChecked, `Radio button "${radioButton}" should NOT be selected but it is.`);
-  } else {
-    assertF.ok(isChecked, `Radio button "${radioButton}" should be selected but it is not.`);
-  }
+  await assertChoice(this, radioButton, 'radio', !notCase);
 });
