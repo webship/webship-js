@@ -82,9 +82,9 @@ The three read the page the same way: letter case ignored, white space collapsed
 | `Then I should not see the modal` | |
 | `Then I should see "text" in the modal` | |
 | `Then the modal should contain "text"` | |
-| `When I click "OK" in the modal` | |
-| `When I click on "#sel" in the modal` | |
-| `When I close the modal` | |
+| `When I click "OK" in the modal` | Waits up to 5 s for a modal to be open, else fails with "No modal is open"; a button the open modal lacks fails, listing the ones it has |
+| `When I click on "#sel" in the modal` | The selector inside the open modal only; same 5 s wait for an open modal |
+| `When I close the modal` | Close button, else Escape; same 5 s wait for an open modal |
 
 ## Web-first assertions (auto-retry)
 
