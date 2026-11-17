@@ -176,7 +176,9 @@ function buildInfo(cfg, ctx) {
 function makeFileName(cfg, ctx, ext, explicitName, isFailed) {
   let pattern;
   if (isFailed) pattern = cfg.filenamePatternFailed;
-  else if (explicitName) pattern = explicitName;
+  // A name that ends with the extension of a file the step writes
+  // ("homepage.png") keeps that one extension: homepage.png, homepage.html.
+  else if (explicitName) pattern = explicitName.replace(/\.(?:png|jpe?g|html?)$/i, '');
   else pattern = cfg.filenamePattern;
 
   if (!pattern.endsWith('.{ext}')) pattern += '.{ext}';
@@ -390,7 +392,9 @@ When(/^(I |we )*save fullscreen (\d+) x (\d+) screenshot$/, async function (pron
 });
 
 /**
- * Save a screenshot using an explicit filename (tokens supported).
+ * Save a screenshot using an explicit filename (tokens supported). The step
+ * writes `<name>.png` and `<name>.html`; a name that already ends with
+ * `.png`, `.jpg`, `.jpeg` or `.html` keeps that one extension.
  *
  * Example #1: Then I save screenshot with name "homepage.png"
  * Example #2: Then I save screenshot with name "webship-home"
@@ -412,6 +416,8 @@ When(/^(I |we )*save screenshot with name "([^"]*)"$/, async function (pronounCa
 
 /**
  * Save a full-page screenshot using an explicit filename (tokens supported).
+ * A name that already ends with `.png`, `.jpg`, `.jpeg` or `.html` keeps that
+ * one extension.
  *
  * Example #1: Then I save fullscreen screenshot with name "homepage-full.png"
  * Example #2: Then I save fullscreen screenshot with name "webship-home-full"
