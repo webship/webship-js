@@ -44,6 +44,7 @@ suite — nearly every bundled feature loads a static fixture from `examples/`.
 | `npm run test:paths` | No browser: a feature or a scenario (`file:line`) named on the command line runs alone; naming none runs the whole suite. |
 | `npm run test:config` | A `cucumber.js` whose `worldParameters` carry only the launch URL runs a scenario green and the run ends by itself. |
 | `npm run test:exit-report` | Needs browsers, no server: the HTML report built at the end of a run is built once with `--parallel`, from a JSON report written elsewhere, and says so in one line when there is none. |
+| `npm run test:context` | A step that replaces the browser context (restore an auth state, start / stop a video) keeps the viewport, the smart waits, the cookies, JavaScript-error capture and the request log. |
 | `npm run test:breakpoints` | The `@mobile` / `@desktop` tags, `set the viewport to the "…" breakpoint` and `viewing the site on a … screen` read one breakpoint registry (config, `WEBSHIP_SELECTORS_BREAKPOINTS`, `default: true`). |
 | `npm run generate-reports` | HTML (+ optional PDF) report from `tests/reports/cucumber_report.json`. |
 
@@ -98,12 +99,20 @@ Everything shared lives here; every `*.steps.js` does
   Playwright's 30 s default so locator timeouts reach our try/catch
   wrappers and testers see a friendly message, not "function timed out".
   The 45 s in `cucumber.js` exists for the same reason; keep them aligned.
-* **The init script** installed via `context.addInitScript()` in
-  `openBrowser()` — monkey-patches `fetch`, `XMLHttpRequest.send`,
-  `setTimeout`/`clearTimeout` and attaches a `MutationObserver` to
-  maintain `window.__webshipAjaxCount`, `__webshipPendingTimers`,
-  `__webshipLastMutation`. This is the substrate the whole wait policy
-  stands on. **Never strip it.**
+* **The init script** (`smartWaitProbes`) installed via
+  `context.addInitScript()` in `openContext()` — monkey-patches `fetch`,
+  `XMLHttpRequest.send`, `setTimeout`/`clearTimeout` and attaches a
+  `MutationObserver` to maintain `window.__webshipAjaxCount`,
+  `__webshipPendingTimers`, `__webshipLastMutation`. This is the substrate
+  the whole wait policy stands on. **Never strip it.**
+* **One way to open a browser context** — `openBrowser()` launches the
+  browser and calls `openContext()`, which applies the context options,
+  the scenario's viewport tag and video recording, the init script, and
+  every setup registered with `onNewPage()` (JavaScript-error listeners,
+  the response tracker, the request log, a pending dialog handler). A step
+  that needs a new context (restore an auth state, start or stop a video)
+  calls `replaceContext()`, never `browser.newContext()` directly — or the
+  new page silently loses the smart waits, the viewport and the listeners.
 * **Hooks** — `Before({order:5})` opens the browser (merging
   `recordVideo` context options when video is on); `After({order:5})`
   captures the video path *before* closing the context, saves/deletes per

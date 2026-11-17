@@ -9,6 +9,13 @@
 
 const { Given, Then } = require('@cucumber/cucumber');
 const assert = require('assert');
+const { onNewPage } = require('./webship');
+
+// A handler waiting for a dialog goes over to the page of a browser context
+// that a step replaces (restoring an auth state, a video recording).
+onNewPage((world, page) => {
+  if (world._dialogHandler) page.on('dialog', world._dialogHandler);
+});
 
 // Single shared attach() — handles single-shot ("next") and persistent
 // ("all") variants via the `once` flag.

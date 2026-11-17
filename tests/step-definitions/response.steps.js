@@ -8,7 +8,7 @@
 
 const { Then, Before } = require('@cucumber/cucumber');
 const assert = require('assert');
-const { friendly } = require('./webship');
+const { friendly, onNewPage } = require('./webship');
 
 const trackedPages = new WeakSet();
 
@@ -18,8 +18,8 @@ function withoutHash(url) {
 }
 
 // Record the response of every main-document navigation on the current page.
-// Steps that swap the page (auth state, basic authentication, a new session)
-// get the listener on their first use of the response steps.
+// Every page the World opens gets the listener (onNewPage); a page swapped
+// in some other way gets it on its first use of the response steps.
 function trackResponses(world) {
   const page = world.page;
   if (!page || trackedPages.has(page)) return;
@@ -34,6 +34,8 @@ function trackResponses(world) {
     } catch (e) { /* ignore */ }
   });
 }
+
+onNewPage((world) => trackResponses(world));
 
 Before({ order: 100 }, async function () {
   this._lastResponse = null;
