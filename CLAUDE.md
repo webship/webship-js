@@ -413,7 +413,7 @@ into one reference. Internalise these:
 
 Tag conventions live in `docs/15-tag-conventions.md` — `@critical`,
 `@smoke`, `@auth`, `@security`, `@a11y`, `@i18n`, `@perf`, `@flaky`,
-`@wip`, `@desktop`/`@mobile`, `@external`, `@auth-setup`, plus the
+`@wip`, `@desktop`/`@mobile`, `@touch`, `@external`, `@auth-setup`, plus the
 recording tags `@video` / `@no-video` and the JS-error tags `@js-fail` /
 `@js-warn` / `@js-off`.
 

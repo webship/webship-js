@@ -1381,9 +1381,11 @@ Before({ order: 5 }, async function (scope) {
   this._videoStartedAt = this._videoRequested ? new Date() : null;
 
   // Kept for the whole scenario: a step that replaces the browser context
-  // opens the new one with the same viewport (see openContext).
+  // opens the new one with the same viewport and touch (see openContext).
+  // @touch opens the context with touch on, so "I tap on" fires touch events.
   const viewport = tagViewport(this, scope);
   this._scenarioContextOptions = viewport ? { viewport } : {};
+  if (videoHasTag(scope, '@touch')) this._scenarioContextOptions.hasTouch = true;
 
   await this.openBrowser();
   if (this.minWaitTime.before_scenario > 0) {

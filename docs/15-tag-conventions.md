@@ -17,6 +17,7 @@ Keep them consistent across the suite.
 | `@flaky` | Known-unstable. CI retries it once via `--retry` + `--retryTagFilter "@flaky"`. **Never** ship long-term `@flaky` — fix the root cause. |
 | `@wip` | Work in progress. CI excludes with `--tags "not @wip"`. |
 | `@desktop` / `@mobile` | Viewport-locked variants: the scenario opens at the `desktop` breakpoint (1200 × 900) or the `mobile` breakpoint (375 × 667), or at the sizes `worldParameters.selectors.breakpoints` or `WEBSHIP_SELECTORS_BREAKPOINTS` give those two names; without a `desktop` of the project's own, `@desktop` opens at the breakpoint marked `default: true` (see [Breakpoints](global-settings.md#breakpoints)). `@mobile` wins when both are set. A step can still change the viewport. A mobile lane: `--tags "@mobile"`. |
+| `@touch` | The scenario opens with touch on (`hasTouch`), so `When I tap on "…"` fires the touch events a mobile control listens to; combine it with `@mobile` for a phone. Without it the browser context has no touch and a tap is a click (the step says so once). |
 | `@external` | Hits a third-party service. Skip in offline test runs. |
 | `@auth-setup` | One-shot scenarios that produce auth state files. Run manually after credential rotation. |
 

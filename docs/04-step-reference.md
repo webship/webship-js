@@ -531,7 +531,7 @@ This index lists every public step grouped by source file, with one Gherkin exam
 - *^(I |we )*click on "([^"]*)" while holding "([^"]*)"$*  ·  Example: `When I click on "#row-1" while holding "Shift"`
 - *^(I |we )*drag "([^"]*)" to "([^"]*)"$*  ·  Example: `When I drag "#card-1" to "#column-done"`
 - *^(I |we )*set the viewport size to (\d+)x(\d+)$*  ·  Example: `When I set the viewport size to 1280x720`
-- *^(I |we )*tap on "([^"]*)"$*  ·  Example: `When I tap on "#cta"`
+- *^(I |we )*tap on "([^"]*)"$*  ·  Example: `When I tap on "#cta"` — a real tap in a scenario tagged `@touch`; without touch, a click (and a note)
 
 ### javascript.steps.js
 
