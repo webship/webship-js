@@ -353,7 +353,7 @@ This index lists every public step grouped by source file, with one Gherkin exam
 - *^(?:the JSON response should have property|the API response should contain property) "([^"]*)"$*  ·  Example: `Then the JSON response should have property "id"`
 - *^(?:the JSON response should not have property|the API response should not contain property) "([^"]*)"$*  ·  Example: `Then the JSON response should not have property "password"`
 - *^(?:the response should be valid JSON|the API response should be valid JSON)$*  ·  Example: `Then the response should be valid JSON`
-- *^(?:the response header|the header) "([^"]*)" should (?:be|contain) "([^"]*)"$*  ·  Example: `Then the response header "Content-Type" should be "application/json"`
+- *^(?:the response header|the header) "([^"]*)" should (be|contain) "([^"]*)"$*  ·  Example: `Then the response header "Content-Type" should be "application/json; charset=utf-8"`
 - *^print API response$*  ·  Example: `Then print API response`
 - *^(?:I|we) set placeholder "([^"]*)" to "([^"]*)"$*  ·  Example: `Given I set placeholder "{{userId}}" to "123"`
 
