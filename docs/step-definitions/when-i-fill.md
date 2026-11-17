@@ -18,6 +18,8 @@
 
 Each variant supports different approaches to locating form elements—whether by label text, CSS selectors, or HTML attributes—and accommodates both single-field and multi-field input scenarios.
 
+A field that is hidden, disabled or read-only cannot be filled: the step fails within 5 seconds and says which of the three it is (`The field "Hidden note" is on the page but hidden, so it cannot be filled.`), with the page and a hint; a field named by attribute that is not on the page fails within 5 seconds too.
+
 An empty value empties the field in every form of the step: `When I fill in "Title" with ""`, `When I fill in "" for "Title"`, `When I fill in "#title" with "" by attr`, or an empty cell in the table of `I fill in the following:`.
 
 ## More examples
