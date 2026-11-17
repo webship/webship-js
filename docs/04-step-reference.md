@@ -415,6 +415,7 @@ This index lists every public step grouped by source file, with one Gherkin exam
 
 - *the element {string} should appear after the element {string}*  ·  Example: `Then the element "#footer" should appear after the element "#main"`
 - *the text {string} should appear after the text {string}*  ·  Example: `Then the text "Sign in" should appear after the text "Welcome"`
+- *the text {string} should appear after the text {string} in the {string} element*  ·  Example: `Then the text "Products" should appear after the text "Home" in the "nav.breadcrumb" element`
 - *the element {string} with the attribute {string} and the value {string} should exist*  ·  Example: `Then the element "a" with the attribute "href" and the value "/about" should exist`
 - *the element {string} with the attribute {string} and the value containing {string} should exist*  ·  Example: `Then the element "a" with the attribute "href" and the value containing "/about" should exist`
 - *the element {string} with the attribute {string} and the value {string} should not exist*  ·  Example: `Then the element "a" with the attribute "href" and the value "/admin" should not exist`

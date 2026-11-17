@@ -83,7 +83,7 @@ webship-js/
 │       ├── cookie.steps.js             (12)   # cookie exists / equals / contains
 │       ├── debug.steps.js               (2)   # print URL / last response (diagnostic)
 │       ├── dialog.steps.js              (8)   # native alert / confirm / prompt
-│       ├── element.steps.js            (19)   # focus / scroll-to / dispatch / count / position
+│       ├── element.steps.js            (20)   # focus / scroll-to / dispatch / count / position
 │       ├── field.steps.js              (27)   # field state, checkbox, radio, select-list
 │       ├── file-download.steps.js       (8)   # capture + assert filename / mime / path
 │       ├── form.steps.js               (13)   # fill / select / check / uncheck / radio
