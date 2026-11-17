@@ -64,6 +64,16 @@ I wait for the modal to appear/disappear          # Modal edge
 eventually I should see "..."                     # Polling text assertion
 ```
 
+## Page text
+
+| Step | Notes |
+| --- | --- |
+| `Then I should see "text"` | Waits up to 5 s for the text to come |
+| `Then I should not see "text"` | Waits up to 5 s for the text to go |
+| `Then eventually I should see "text" [within N seconds]` | Waits up to 10 s, or N |
+
+The three read the page the same way: letter case ignored, white space collapsed, the text of hidden elements included, the text of `<script>` and `<style>` left out. For the text a visitor can see, with its letter case, use `I wait for the text "..." to appear` / `to disappear`. See [Then I should see](step-definitions/then-i-should-see.md).
+
 ## Modal
 
 | Step | |

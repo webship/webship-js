@@ -22,6 +22,19 @@ The following step variations are available:
 - Then I should see "value" in the "text" element by attr
 - Then I should not see "value" in the "text" element by attr
 
+## Reading the page text
+
+`I should see "text"`, `I should not see "text"` and `eventually I should see "text"` read the page the same way: the text of the page as Playwright's text matching reads it.
+
+- Letter case is ignored: on a page that reads "Next page", `I should see "next page"` passes and `I should not see "next page"` fails.
+- Runs of white space are collapsed, so a line the markup wraps still matches.
+- The text of hidden elements counts; the text of `<script>`, `<noscript>` and `<style>` does not.
+- The value of a field, the text of an image and the content of an iframe are not page text.
+
+`I should see` waits up to 5 seconds for the text to come, `I should not see` up to 5 seconds for it to go, and `eventually I should see` up to 10 seconds, or the "within N seconds" it is given.
+
+For the text a visitor can see, with its letter case, use `I wait for the text "text" to appear` or `I wait for the text "text" to disappear`; for an element, `"<selector>" should be visible` or `"<selector>" should not be visible`.
+
 ## Seeing an element
 
 `I should see (a/an) "text" element` and `I should not see (a/an) "text" element` name the element by its exact visible text, as it reads on the page. A `<label for="...">` stands for the control it labels. "Should not see" is the opposite of "should see": it passes when no element named that way is visible, so an element that is hidden does not fail it.
