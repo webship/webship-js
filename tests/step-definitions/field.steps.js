@@ -4,7 +4,7 @@
 
 const { Given, When, Then } = require('@cucumber/cucumber');
 const assert = require('assert');
-const { friendly } = require('./webship');
+const { friendly, failure } = require('./webship');
 
 // Resolve a field by label, name, id, or selector.
 function fieldLocator(page, field) {
@@ -28,42 +28,104 @@ async function getField(page, field) {
   return loc;
 }
 
-// Escape a label for use inside a quoted CSS / Playwright selector string.
-function quoted(text) {
-  return String(text).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+// Find, in the page, the date or the time input of the datetime field named
+// `label`, and return a CSS path to it (null when there is none yet). The
+// field is looked for in this order, and the first that has such an input
+// wins:
+//   1. a <label> whose text is the label (white space and letter case aside):
+//      an input inside it, the control it is for, else the inputs that follow
+//      it in its own field: up to the next label, legend or fieldset of the
+//      same level, within the container it shares with its control (or its
+//      parent; a label alone in its wrapper reads the wrapper's next siblings);
+//   2. a <fieldset> whose <legend> is the label: the inputs inside it;
+//   3. an input whose name, then whose aria-label, contains the label.
+// `half` narrows a date range to its "start" or its "end" input (by name, id
+// or aria-label).
+function findDatetimeInput({ label, type, half }) {
+  const norm = (text) => String(text || '').replace(/\s+/g, ' ').trim().toLowerCase();
+  const wanted = norm(label);
+  const halfOk = (el) => !half || [el.name, el.id, el.getAttribute('aria-label')].some((v) => String(v || '').toLowerCase().includes(half));
+  const fits = (el) => !!el && el.nodeType === 1 && el.matches(`input[type="${type}"]`) && halfOk(el);
+  const inside = (root) => Array.from(root.querySelectorAll(`input[type="${type}"]`)).filter(halfOk);
+  const follows = (a, b) => !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+  const BOUNDARY = 'label, legend, fieldset';
+
+  // The inputs after `start`, within `box`, up to the next label, legend or
+  // fieldset that is not nested deeper than `start` (another field).
+  function after(start, box) {
+    const all = Array.from(box.querySelectorAll(`input[type="${type}"], ${BOUNDARY}`));
+    for (const el of all) {
+      if (el === start || start.contains(el) || !follows(start, el)) continue;
+      if (el.matches(BOUNDARY)) {
+        if (el.parentElement && el.parentElement.contains(start)) return null;
+        continue;
+      }
+      if (fits(el)) return el;
+    }
+    return null;
+  }
+
+  function inField(lab) {
+    const own = inside(lab);
+    if (own.length) return own[0];
+    const control = lab.control;
+    if (fits(control)) return control;
+    if (control) {
+      let box = control.parentElement;
+      while (box && !box.contains(lab)) box = box.parentElement;
+      if (box) return after(lab, box);
+    }
+    let unit = lab;
+    for (let level = 0; level < 3 && unit.parentElement && unit.parentElement !== document.body; level += 1) {
+      const found = after(unit, unit.parentElement);
+      if (found || unit.nextElementSibling) return found;
+      unit = unit.parentElement;
+    }
+    return null;
+  }
+
+  function pathTo(el) {
+    const parts = [];
+    for (let node = el; node && node.nodeType === 1 && node !== document.documentElement; node = node.parentElement) {
+      let index = 1;
+      for (let sib = node.previousElementSibling; sib; sib = sib.previousElementSibling) {
+        if (sib.tagName === node.tagName) index += 1;
+      }
+      parts.unshift(`${node.tagName.toLowerCase()}:nth-of-type(${index})`);
+    }
+    return 'html > ' + parts.join(' > ');
+  }
+
+  for (const lab of document.querySelectorAll('label')) {
+    if (norm(lab.textContent) !== wanted) continue;
+    const found = inField(lab);
+    if (found) return pathTo(found);
+  }
+  for (const legend of document.querySelectorAll('fieldset > legend')) {
+    if (norm(legend.textContent) !== wanted) continue;
+    const found = inside(legend.parentElement)[0];
+    if (found) return pathTo(found);
+  }
+  const all = Array.from(document.querySelectorAll(`input[type="${type}"]`)).filter(halfOk);
+  const byName = all.find((el) => norm(el.name).includes(wanted));
+  if (byName) return pathTo(byName);
+  const byAria = all.find((el) => norm(el.getAttribute('aria-label')).includes(wanted));
+  return byAria ? pathTo(byAria) : null;
 }
 
-// Resolve the date or the time input of a datetime field named by its label.
-// The pair is written in many ways, so every usual one is looked at, and the
-// first input in the page that fits is taken:
-//   - inputs in an element that follows the label, or right after the label;
-//   - inputs inside the label;
-//   - inputs of a fieldset whose legend carries the label;
-//   - inputs whose name or accessible name contains the label, whatever the case.
-// `half` narrows a date range to its "start" or its "end" input.
+// Resolve the date or the time input of a datetime field named by its label
+// (see findDatetimeInput), waiting up to 5 seconds for it.
 async function datetimePart(page, label, type, half) {
-  const l = quoted(label);
-  const input = `input[type="${type}"]${half ? `[name*="${half}" i]` : ''}`;
-  const named = `input[type="${type}"][name*="${l}" i]${half ? `[name*="${half}" i]` : ''}`;
-  const loc = page.locator([
-    `label:has-text("${l}") ~ * ${input}`,
-    `label:has-text("${l}") ~ ${input}`,
-    `label:has-text("${l}") ${input}`,
-    `fieldset:has(legend:has-text("${l}")) ${input}`,
-    named,
-    `${input}[aria-label*="${l}" i]`,
-  ].join(', ')).first();
-  try {
-    await loc.waitFor({ state: 'attached', timeout: 5000 });
-  } catch (e) {
-    throw friendly({
-      action: `find the ${half ? half + ' ' : ''}${type} input of the datetime field`,
-      target: label,
-      cause: `no <input type="${type}"> was found after a label, inside a label or a fieldset, or by a name that contains "${label}"`,
-      hint: 'use the visible label of the field, the legend of its fieldset, or a part of the name of its inputs.',
-    });
+  const deadline = Date.now() + 5000;
+  for (;;) {
+    const path = await page.evaluate(findDatetimeInput, { label, type, half: half || null }).catch(() => null);
+    if (path) return page.locator(path);
+    if (Date.now() >= deadline) break;
+    await page.waitForTimeout(100);
   }
-  return loc;
+  throw failure(page, `The datetime field "${label}" has no ${half ? half + ' ' : ''}${type} input.`, {
+    hint: `the field is named by the exact text of its label or of the legend of its fieldset; its ${type} input is the one inside the label, the one the label is for, or one that follows the label before the next field. An input whose name or aria-label contains "${label}" is found too.`,
+  });
 }
 
 /**
@@ -510,10 +572,12 @@ Given('browser validation for the form {string} is disabled', async function (se
 /**
  * Fill paired `<input type=date>` + `<input type=time>` controls for a label.
  *
- * The field is named by its visible label or the legend of its fieldset; an
- * input whose name or aria-label contains that text is found too, whatever
- * the letter case. When an input is not found within 5 seconds the step
- * fails and fills nothing.
+ * The field is named by the exact text of its label or of the legend of its
+ * fieldset (white space and letter case aside), and only its own inputs are
+ * filled: the one inside the label, the one the label is for, or the ones
+ * that follow the label before the next field. An input whose name or
+ * aria-label contains that text is found too. When an input is not found
+ * within 5 seconds the step fails and fills nothing.
  *
  * Example #1: When I fill in the datetime field "Start" with date "2026-05-08" and time "10:00"
  * Example #2: When I fill in the datetime field "Departure" with date "2026-12-31" and time "23:59"
@@ -561,8 +625,9 @@ When(/^(I |we )*fill in the time part of the datetime field "([^"]*)" with "([^"
 /**
  * Fill the `start` half of a date-range pair.
  *
- * The range is named by its label or the legend of its fieldset; of its
- * inputs, the ones whose name contains "start" are filled.
+ * The range is named by the exact text of its label or of the legend of its
+ * fieldset; of its inputs, the ones whose name, id or aria-label contains
+ * "start" are filled.
  *
  * Example #1: When I fill in the start datetime field "Event" with date "2026-05-08" and time "10:00"
  * Example #2: When I fill in the start datetime field "Trip" with date "2026-12-31" and time "08:00"
@@ -581,8 +646,9 @@ When(/^(I |we )*fill in the start datetime field "([^"]*)" with date "([^"]*)" a
 /**
  * Fill the `end` half of a date-range pair.
  *
- * The range is named by its label or the legend of its fieldset; of its
- * inputs, the ones whose name contains "end" are filled.
+ * The range is named by the exact text of its label or of the legend of its
+ * fieldset; of its inputs, the ones whose name, id or aria-label contains
+ * "end" are filled.
  *
  * Example #1: When I fill in the end datetime field "Event" with date "2026-05-09" and time "18:00"
  * Example #2: When I fill in the end datetime field "Trip" with date "2027-01-07" and time "20:00"
