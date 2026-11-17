@@ -462,17 +462,17 @@ async function fillField(page, field, value) {
   value = value === undefined || value === null ? '' : String(value);
   const byLabel = page.getByLabel(field, { exact: true });
   if (await byLabel.count() > 0) {
-    await byLabel.fill(value);
+    await fillLocator(page, byLabel, value, field);
     return;
   }
   const byPlaceholder = page.getByPlaceholder(field, { exact: true });
   if (await byPlaceholder.count() > 0) {
-    await byPlaceholder.fill(value);
+    await fillLocator(page, byPlaceholder, value, field);
     return;
   }
   const byName = page.locator(`[name="${field}"]`).first();
   if (await byName.count() > 0) {
-    await byName.fill(value);
+    await fillLocator(page, byName, value, field);
     return;
   }
   throw friendly(
@@ -481,6 +481,49 @@ async function fillField(page, field, value) {
     `  Hints: check the label/placeholder text matches exactly (case-sensitive),\n` +
     `         or use the attribute variant: 'I fill in "${field}" with "${value}" by attr'.`
   );
+}
+
+/**
+ * Fill the field a step found. A field that is hidden, disabled or read-only,
+ * or that is not on the page, fails the step within 5 seconds with what is
+ * wrong with it, the page and a hint, instead of Playwright's raw timeout.
+ *
+ * @param {import('playwright').Page} page
+ * @param {import('playwright').Locator} loc - The field.
+ * @param {string} value - Value to type; null or undefined fills an empty value.
+ * @param {string} name - How the step named the field, for the message.
+ * @returns {Promise<void>}
+ */
+async function fillLocator(page, loc, value, name) {
+  const text = value === undefined || value === null ? '' : String(value);
+  try {
+    await loc.fill(text, { timeout: 5000 });
+    return;
+  } catch (e) {
+    let state = '';
+    try {
+      if (await loc.count() === 0) state = 'missing';
+      else if (!(await loc.first().isVisible())) state = 'hidden';
+      else if (await loc.first().isDisabled({ timeout: 1000 })) state = 'disabled';
+      else if (!(await loc.first().isEditable({ timeout: 1000 }))) state = 'read-only';
+    } catch { /* the page changed while it was looked at */ }
+    if (state === 'missing') {
+      throw failure(page, `No field with "${name}" was found after 5 seconds.`, {
+        hint: 'by attribute the step reads the text as the attribute it names, else as an id, a class, a name, a test id, an aria-label, a value, a placeholder or a title; a text that starts with #, . or [ is a CSS selector.',
+      });
+    }
+    if (state === 'hidden') {
+      throw failure(page, `The field "${name}" is on the page but hidden, so it cannot be filled.`, {
+        hint: 'a field that shows after an action can be filled once it is visible: wait for it first. A field hidden behind a rich-text editor is filled with: I fill in the WYSIWYG field "<name>" with the "<text>"',
+      });
+    }
+    if (state === 'disabled' || state === 'read-only') {
+      throw failure(page, `The field "${name}" is ${state}, so it cannot be filled.`, {
+        hint: `a ${state} field keeps its value; to check it, use: the field "${name}" should have "${state}" state`,
+      });
+    }
+    throw failure(page, `Could not fill the field "${name}".`, { hint: `${humanize(e)}.` });
+  }
 }
 
 /**
@@ -810,6 +853,7 @@ module.exports = {
   resolveUrl,
   sendRequest,
   fillField,
+  fillLocator,
   getLocatorText,
   locateByLabelOrSelector,
   pad,
