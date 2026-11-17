@@ -90,7 +90,6 @@ selectors: {
   xpath: { /* name → XPath expression */ },
   filesPath: './tests/selectors/',  // base path for JSON presets
   files: [],                         // JSON files to auto-load per scenario
-  offset: 60,                        // px — scroll offset for relative-position assertions
   breakpoints: {                     // named viewport sizes — see "Breakpoints" below
     xs:   { width: 375,  height: 667  },
     sm:   { width: 576,  height: 800  },
@@ -109,7 +108,6 @@ selectors: {
 | `xpath` | `{}` | — |
 | `filesPath` | `./tests/selectors/` | — |
 | `files` | `[]` | — |
-| `offset` | `60` | `WEBSHIP_SELECTORS_OFFSET` |
 | `breakpoints` | xs..xxxl, mobile, tablet, desktop | `WEBSHIP_SELECTORS_BREAKPOINTS` (JSON object, merged over the config) |
 
 #### Breakpoints
