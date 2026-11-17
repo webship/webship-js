@@ -9,18 +9,37 @@ const fs = require('fs');
 // ---------------------------------------------------------------------------
 // Output filter — strip noisy `✔ Before # ...` / `✔ After # ...` hook lines
 // from cucumber-js's failure dump so tester-facing output stays focused on
-// the failing step + hint. Disable with WEBSHIP_FILTER_HOOK_LINES=off.
+// the failing step + hint. In a dry run (--dry-run or -d), also strip the
+// pretty formatter's "- skipped" lines: every hook and every step of a dry
+// run is skipped, and a line for each buries the "? undefined" and
+// "✖ ambiguous" lines the dry run is for. Disable with
+// WEBSHIP_FILTER_HOOK_LINES=off.
 // ---------------------------------------------------------------------------
 if (process.env.WEBSHIP_FILTER_HOOK_LINES !== 'off') {
   const HOOK_LINE = /^\s*[✔✖✗⚠?-]\s+(?:Before|After|BeforeStep|AfterStep)\b.*$/;
+  const DRY_RUN = process.argv.slice(2).some((arg) => arg === '--dry-run' || arg === '-d');
+  const SKIPPED_LINE = /^\s*-\s+skipped\s*$/;
+  const plain = (line) => line.replace(/\x1b\[[0-9;]*m/g, '');
+  const dropped = (line) => HOOK_LINE.test(plain(line)) || (DRY_RUN && SKIPPED_LINE.test(plain(line)));
   const wrap = (stream) => {
     const orig = stream.write.bind(stream);
+    // The pretty formatter writes a line and its line break in two writes:
+    // when a line is dropped, so is the line break that follows it.
+    let dropLineBreak = false;
     stream.write = (chunk, encoding, cb) => {
       if (typeof chunk === 'string' || Buffer.isBuffer(chunk)) {
         const text = typeof chunk === 'string' ? chunk : chunk.toString('utf8');
+        const skipBreak = dropLineBreak && /^\r?\n$/.test(text);
+        dropLineBreak = false;
+        if (skipBreak || (!text.includes('\n') && text.trim() && dropped(text))) {
+          dropLineBreak = !skipBreak;
+          const done = typeof encoding === 'function' ? encoding : cb;
+          if (typeof done === 'function') process.nextTick(done);
+          return true;
+        }
         const filtered = text
           .split('\n')
-          .filter((line) => !HOOK_LINE.test(line.replace(/\x1b\[[0-9;]*m/g, '')))
+          .filter((line) => !dropped(line))
           .join('\n');
         return orig(filtered, encoding, cb);
       }
@@ -466,17 +485,17 @@ async function fillField(page, field, value) {
   value = value === undefined || value === null ? '' : String(value);
   const byLabel = page.getByLabel(field, { exact: true });
   if (await byLabel.count() > 0) {
-    await byLabel.fill(value);
+    await fillLocator(page, byLabel, value, field);
     return;
   }
   const byPlaceholder = page.getByPlaceholder(field, { exact: true });
   if (await byPlaceholder.count() > 0) {
-    await byPlaceholder.fill(value);
+    await fillLocator(page, byPlaceholder, value, field);
     return;
   }
   const byName = page.locator(`[name="${field}"]`).first();
   if (await byName.count() > 0) {
-    await byName.fill(value);
+    await fillLocator(page, byName, value, field);
     return;
   }
   throw friendly(
@@ -485,6 +504,49 @@ async function fillField(page, field, value) {
     `  Hints: check the label/placeholder text matches exactly (case-sensitive),\n` +
     `         or use the attribute variant: 'I fill in "${field}" with "${value}" by attr'.`
   );
+}
+
+/**
+ * Fill the field a step found. A field that is hidden, disabled or read-only,
+ * or that is not on the page, fails the step within 5 seconds with what is
+ * wrong with it, the page and a hint, instead of Playwright's raw timeout.
+ *
+ * @param {import('playwright').Page} page
+ * @param {import('playwright').Locator} loc - The field.
+ * @param {string} value - Value to type; null or undefined fills an empty value.
+ * @param {string} name - How the step named the field, for the message.
+ * @returns {Promise<void>}
+ */
+async function fillLocator(page, loc, value, name) {
+  const text = value === undefined || value === null ? '' : String(value);
+  try {
+    await loc.fill(text, { timeout: 5000 });
+    return;
+  } catch (e) {
+    let state = '';
+    try {
+      if (await loc.count() === 0) state = 'missing';
+      else if (!(await loc.first().isVisible())) state = 'hidden';
+      else if (await loc.first().isDisabled({ timeout: 1000 })) state = 'disabled';
+      else if (!(await loc.first().isEditable({ timeout: 1000 }))) state = 'read-only';
+    } catch { /* the page changed while it was looked at */ }
+    if (state === 'missing') {
+      throw failure(page, `No field with "${name}" was found after 5 seconds.`, {
+        hint: 'by attribute the step reads the text as the attribute it names, else as an id, a class, a name, a test id, an aria-label, a value, a placeholder or a title; a text that starts with #, . or [ is a CSS selector.',
+      });
+    }
+    if (state === 'hidden') {
+      throw failure(page, `The field "${name}" is on the page but hidden, so it cannot be filled.`, {
+        hint: 'a field that shows after an action can be filled once it is visible: wait for it first. A field hidden behind a rich-text editor is filled with: I fill in the WYSIWYG field "<name>" with the "<text>"',
+      });
+    }
+    if (state === 'disabled' || state === 'read-only') {
+      throw failure(page, `The field "${name}" is ${state}, so it cannot be filled.`, {
+        hint: `a ${state} field keeps its value; to check it, use: the field "${name}" should have "${state}" state`,
+      });
+    }
+    throw failure(page, `Could not fill the field "${name}".`, { hint: `${humanize(e)}.` });
+  }
 }
 
 /**
@@ -527,6 +589,40 @@ async function locateByLabelOrSelector(page, name, timeout) {
     if (Date.now() >= deadline) return null;
     await page.waitForTimeout(100);
   }
+}
+
+// The package's own tests/assets/: read last, so that a file only the package
+// ships keeps working.
+const PACKAGE_ASSETS = path.join(__dirname, '..', 'assets');
+
+/**
+ * Find a file a step names by its name: an absolute path as written; a
+ * relative one in the World's `assetsFolder` (the project's tests/assets/),
+ * then as written from the project root, then in the package's own
+ * tests/assets/. Fails plainly, with the paths tried, when none holds it.
+ *
+ * @param {WebshipWorld} world
+ * @param {string} name - The file as the step gives it.
+ * @returns {string} The absolute path of the file.
+ */
+function resolveAssetFile(world, name) {
+  const fs = require('fs');
+  const file = String(name === undefined || name === null ? '' : name).trim();
+  const tried = path.isAbsolute(file)
+    ? [file]
+    : [...new Set([
+      path.resolve((world && world.assetsFolder) || path.join(process.cwd(), 'tests', 'assets'), file),
+      path.resolve(process.cwd(), file),
+      path.resolve(PACKAGE_ASSETS, file),
+    ])];
+  const found = tried.find((candidate) => {
+    try { return fs.statSync(candidate).isFile(); } catch { return false; }
+  });
+  if (found) return found;
+  throw failure(world && world.page, `The file "${file}" was not found.`, {
+    found: `nothing at ${tried.map((candidate) => path.relative(process.cwd(), candidate) || candidate).join(', ')}`,
+    hint: 'put the file in the tests/assets/ folder of the project, or name it by its path from the project root.',
+  });
 }
 
 /**
@@ -831,8 +927,10 @@ module.exports = {
   resolveUrl,
   sendRequest,
   fillField,
+  fillLocator,
   getLocatorText,
   locateByLabelOrSelector,
+  resolveAssetFile,
   pad,
   resolveRelativeDate,
   parseRelativeOffset,
@@ -1107,7 +1205,7 @@ class PlaywrightWorld extends World {
     this.playwrightBrowser = null;
     this.context = null;
     this.page = null;
-    this.assetsFolder = path.join(__dirname, '../assets/');
+    this.assetsFolder = path.join(process.cwd(), 'tests', 'assets');
   }
 
   async openBrowser(extraContextOptions) {
