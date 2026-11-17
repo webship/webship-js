@@ -39,7 +39,7 @@ For the text a visitor can see, with its letter case, use `I wait for the text "
 
 `I should see (a/an) "text" element` and `I should not see (a/an) "text" element` name the element by its exact visible text, as it reads on the page. A `<label for="...">` stands for the control it labels. "Should not see" is the opposite of "should see": it passes when no element named that way is visible, so an element that is hidden does not fail it.
 
-The text is not a CSS selector. For a selector use `"<selector>" should be visible` or `"<selector>" should not be visible`.
+The text is not a CSS selector. For a selector use `"<selector>" should be visible` or `"<selector>" should not be visible`. When the argument looks like a selector (`.news-item`, `#main`, `[data-testid=card]`, `div.card`, or a bare tag name such as `header`), a failure of `I should see a "…" element` says so and names the selector step, and `I should not see a "…" element` prints a warning when it passes while that selector matches a visible element: it checked a text, not the selector.
 
 ## Purpose
 
