@@ -27,10 +27,12 @@ let authorization = '';
 let placeHolders = {};
 
 Before(async function () {
-  // Reset API state before each scenario
+  // Reset API state before each scenario: the base URL too, so a scenario
+  // sends its requests where it says, alone or after another one.
   apiResponse = null;
   apiRequestData = null;
   apiHeaders = {};
+  baseURL = '';
   authorization = '';
   placeHolders = {};
 });
@@ -108,6 +110,24 @@ function nameValueRows(table) {
  */
 function prepareUrl(url) {
   return replacePlaceHolder(url).replace(/^\/+/, '');
+}
+
+/**
+ * The address a request step sends to: a whole `http(s)://` URL as written,
+ * else the path joined to the base URL of the scenario. Without a base URL a
+ * path has no address, and the step fails before sending anything.
+ */
+function apiUrl(endpoint, method) {
+  const target = replacePlaceHolder(endpoint);
+  if (/^https?:\/\//i.test(target)) return target;
+  if (!baseURL) {
+    throw friendly([
+      `No API base URL is set, so "${target}" has no address.`,
+      `  Request: ${method} ${target} (not sent)`,
+      `  Hint: set one in the scenario or its Background before the request: Given the API base URL is "https://api.example.com" ("/" for the launch URL of the run), or give the request a whole URL.`,
+    ].join('\n'));
+  }
+  return baseURL + '/' + prepareUrl(endpoint);
 }
 
 /**
@@ -195,7 +215,10 @@ Given(/^(?:I |we )?set header "([^"]*)" with value "([^"]*)"$/, function (name, 
 });
 
 /**
- * Set the base URL for API calls. Accepts full URLs or paths relative to LAUNCH_URL.
+ * Set the base URL of the API requests of this scenario. A full URL is used as
+ * written; a path is joined to the launch URL of the run (worldParameters
+ * launchUrl, which LAUNCH_URL sets). The base URL is reset before every
+ * scenario: set it in each scenario, or in a Background.
  *
  * Example #1: Given the API base URL is "https://jsonplaceholder.typicode.com"
  * Example #2: Given I set the API base URL to "https://api.example.com/v1"
@@ -211,8 +234,8 @@ Given(/^(?:the API base URL is|I set the API base URL to|the base URL is) "([^"]
   if (url.match(/^https?:\/\//)) {
     baseURL = url.replace(/\/$/, ''); // Remove trailing slash
   } else {
-    // If not a full URL, combine with the LAUNCH_URL env variable or default
-    const launchUrl = (process.env.LAUNCH_URL || 'http://localhost:8080').replace(/\/$/, '');
+    // A path: joined to the launch URL of the run, as "I am on" joins one.
+    const launchUrl = String(this.launchUrl || (this.parameters && this.parameters.launchUrl) || process.env.LAUNCH_URL || 'http://localhost:8080').replace(/\/$/, '');
     baseURL = (launchUrl + '/' + url).replace(/\/+/g, '/').replace(/\/$/, '');
     baseURL = baseURL.replace(':/', '://');
   }
@@ -339,7 +362,7 @@ Given(/^(?:I|we) set the request body with:$/, function (table) {
  * Example #10: When we send a GET request to "/posts/{{postId}}"
  */
 When(/^(?:I |we )?send a ([A-Z]+) request to "([^"]+)"$/, async function (method, endpoint) {
-  const url = baseURL + '/' + prepareUrl(endpoint);
+  const url = apiUrl(endpoint, method);
   
   try {
     apiResponse = await sendApiRequest(this, method, url, apiHeaders, apiRequestData);
@@ -371,7 +394,7 @@ When(/^(?:I |we )?send a ([A-Z]+) request to "([^"]+)"$/, async function (method
  *               | userId | 1               |
  */
 When(/^(?:I |we )?send a ([A-Z]+) request to "([^"]+)" with values:$/, async function (method, endpoint, table) {
-  const url = baseURL + '/' + prepareUrl(endpoint);
+  const url = apiUrl(endpoint, method);
   const fields = {};
   
   const rowsHash = table.rowsHash();
@@ -423,7 +446,7 @@ When(/^(?:I |we )?send a ([A-Z]+) request to "([^"]+)" with values:$/, async fun
  *               """
  */
 When(/^(?:I |we )?send a ([A-Z]+) request to "([^"]+)" with body:$/, async function (method, endpoint, docString) {
-  const url = baseURL + '/' + prepareUrl(endpoint);
+  const url = apiUrl(endpoint, method);
   const body = replacePlaceHolder(docString.trim());
 
   // Parse JSON if the body looks like JSON, otherwise send as string
@@ -483,7 +506,7 @@ When(/^(?:I |we )?send a ([A-Z]+) request to "([^"]+)" with body:$/, async funct
  *               """
  */
 When(/^(?:I |we )?send a ([A-Z]+) request to "([^"]+)" with form data:$/, async function (method, endpoint, docString) {
-  const url = baseURL + '/' + prepareUrl(endpoint);
+  const url = apiUrl(endpoint, method);
   const body = replacePlaceHolder(docString.trim());
   
   // Parse form data: one field per line, split on its first "=".

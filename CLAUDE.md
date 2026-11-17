@@ -41,6 +41,7 @@ suite — nearly every bundled feature loads a static fixture from `examples/`.
 | `npm run test:examples` | No browser: every step definition is documented, every `Example #n:` step and every feature step resolves to exactly one definition. |
 | `npm run test:attachments` | Needs browsers, no server: the steps that print what they found (the accessibility print steps) attach the same text to their step in the JSON report. |
 | `npm run test:must-fail` | Runs the scenarios of `tests/must-fail/` (they must fail) and checks each failure message: what was looked for, the page, a hint. Needs `npm start`. |
+| `npm run test:api-launch-url` | Needs browsers, no server of its own: the relative API base URL (`Given the API base URL is "/"`) is joined to `worldParameters.launchUrl`. |
 | `npm run test:paths` | No browser: a feature or a scenario (`file:line`) named on the command line runs alone; naming none runs the whole suite. |
 | `npm run test:config` | A `cucumber.js` whose `worldParameters` carry only the launch URL runs a scenario green and the run ends by itself. |
 | `npm run test:exit-report` | Needs browsers, no server: the HTML report built at the end of a run is built once with `--parallel`, from a JSON report written elsewhere, and says so in one line when there is none. |

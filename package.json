@@ -23,6 +23,7 @@
     "test:attachments": "node tests/check-attachments.js",
     "test:headed": "HEADLESS=false cucumber-js --config cucumber.js",
     "test:dry-run": "node tests/check-dry-run.js",
+    "test:api-launch-url": "node tests/check-api-launch-url.js",
     "test:must-fail": "node tests/check-must-fail.js",
     "test:js-errors": "node tests/check-javascript-errors.js",
     "test:screenshots": "node tests/check-screenshots.js",

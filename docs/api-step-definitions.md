@@ -19,6 +19,11 @@ login for example, use the short-form REST steps
 (`When I send a REST "GET" request to "/api/me"`), which go through the
 browser context.
 
+The base URL (`Given the API base URL is "url"`) is reset before every
+scenario, like the headers and the body: set it in each scenario or in a
+`Background`. A path is joined to the launch URL of the run, and a request
+step given a whole URL sends it as written.
+
 ## Available API Step Definitions
 
 The documentation lists 22 distinct step definition categories:

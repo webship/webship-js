@@ -19,6 +19,8 @@ Given the API base URL is "https://api.example.com"
    | Accept       | application/json  |
 ```
 
+The base URL, like the headers, the body and the placeholders, belongs to the scenario that sets it: it is reset before every scenario, so set it in each scenario or in a `Background`. A path (`"/"`, `"/api/v2"`) is joined to the launch URL of the run (`worldParameters.launchUrl`, which `LAUNCH_URL` sets), the way `I am on "…"` joins one. A request step given a whole URL (`When I send a GET request to "https://api.example.com/users"`) sends it as written; a request to a path in a scenario that set no base URL fails at once and says so.
+
 ## Sending requests
 
 ```gherkin

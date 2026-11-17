@@ -50,6 +50,9 @@ jobs:
       - name: Check that a dry run prints no line for each skipped step
         run: npm run test:dry-run
 
+      - name: Check that the relative API base URL follows the launch URL
+        run: npm run test:api-launch-url
+
       - name: Check the step examples and the feature steps
         run: npm run test:examples
 
