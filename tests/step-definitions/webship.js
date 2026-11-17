@@ -590,6 +590,40 @@ async function locateByLabelOrSelector(page, name, timeout) {
   }
 }
 
+// The package's own tests/assets/: read last, so that a file only the package
+// ships keeps working.
+const PACKAGE_ASSETS = path.join(__dirname, '..', 'assets');
+
+/**
+ * Find a file a step names by its name: an absolute path as written; a
+ * relative one in the World's `assetsFolder` (the project's tests/assets/),
+ * then as written from the project root, then in the package's own
+ * tests/assets/. Fails plainly, with the paths tried, when none holds it.
+ *
+ * @param {WebshipWorld} world
+ * @param {string} name - The file as the step gives it.
+ * @returns {string} The absolute path of the file.
+ */
+function resolveAssetFile(world, name) {
+  const fs = require('fs');
+  const file = String(name === undefined || name === null ? '' : name).trim();
+  const tried = path.isAbsolute(file)
+    ? [file]
+    : [...new Set([
+      path.resolve((world && world.assetsFolder) || path.join(process.cwd(), 'tests', 'assets'), file),
+      path.resolve(process.cwd(), file),
+      path.resolve(PACKAGE_ASSETS, file),
+    ])];
+  const found = tried.find((candidate) => {
+    try { return fs.statSync(candidate).isFile(); } catch { return false; }
+  });
+  if (found) return found;
+  throw failure(world && world.page, `The file "${file}" was not found.`, {
+    found: `nothing at ${tried.map((candidate) => path.relative(process.cwd(), candidate) || candidate).join(', ')}`,
+    hint: 'put the file in the tests/assets/ folder of the project, or name it by its path from the project root.',
+  });
+}
+
 /**
  * Left-pad a number with zeros to the requested width.
  *
@@ -895,6 +929,7 @@ module.exports = {
   fillLocator,
   getLocatorText,
   locateByLabelOrSelector,
+  resolveAssetFile,
   pad,
   resolveRelativeDate,
   parseRelativeOffset,
@@ -1066,7 +1101,7 @@ class PlaywrightWorld extends World {
     this.playwrightBrowser = null;
     this.context = null;
     this.page = null;
-    this.assetsFolder = path.join(__dirname, '../assets/');
+    this.assetsFolder = path.join(process.cwd(), 'tests', 'assets');
   }
 
   async openBrowser(extraContextOptions) {

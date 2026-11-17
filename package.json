@@ -29,6 +29,7 @@
     "test:config": "node tests/check-config.js",
     "test:exit-report": "node tests/check-exit-report.js",
     "test:fast": "SLOW_MO=0 cucumber-js --config cucumber.js",
+    "test:assets": "node tests/check-assets.js",
     "test:examples": "node tests/check-examples.js",
     "test:paths": "node tests/check-paths.js",
     "test:time-limit": "node tests/check-time-limit.js",

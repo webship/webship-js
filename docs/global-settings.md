@@ -46,9 +46,12 @@ Base URL prepended to every relative path in `Given I am on "/path"`. An absolut
 
 ### `assetsFolder`
 
-Resolved automatically to `tests/assets/`. Used by `When I attach the
-file "...".`. Override per-World by extending the world constructor;
-no env var.
+The `tests/assets/` folder of the project. `When I attach the file "…" to
+"…"`, the XML and YAML file steps and the YAML schema and diff steps look
+for a file name there first, then as written from the project root
+(`tests/schemas/openapi.json`), then in the package's own `tests/assets/`;
+a file found in none of them fails with the paths tried. Override
+per-World by extending the world constructor; no env var.
 
 ### `minWaitTime` — pacing knobs
 
