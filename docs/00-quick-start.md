@@ -55,6 +55,14 @@ npx init-webship-js
 npm install-scripts approve webship-js
 ```
 
+The scaffold never replaces a file or a `test` script the project already
+has, with two exceptions: npm's "no test specified" placeholder, and a
+`test` script that runs Nightwatch (a project upgraded from webship-js
+1.x), which becomes the cucumber-js suite while the old command stays
+available as `npm run test:nightwatch`. `npx init-webship-js --force`
+rewrites the scaffold's files and scripts, but never
+`tests/step-definitions/custom.js`, which holds the project's own steps.
+
 Firefox and WebKit are optional: `npx playwright install firefox webkit`.
 
 ## 60-second first test
