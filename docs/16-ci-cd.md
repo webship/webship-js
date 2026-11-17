@@ -1,6 +1,10 @@
 # CI / CD setup
 
-Webship-js ships ready-to-use config files for every major CI/CD provider. The pattern is the same everywhere: install Node 20, install Playwright's chromium with its system deps, start the fixture server on port 8080, run `npm test`. No build step — `tsx` transpiles `.ts` step files on the fly.
+Webship-js ships ready-to-use config files for every major CI/CD provider. The pattern is the same everywhere: Node 24 (or the Node of the official Playwright image), install Playwright's chromium with its system deps, start the fixture server on port 8080, run `npm test`, and keep `tests/reports/`, `screenshots/` and `videos/` as artifacts of the run, passed or failed, wherever the provider keeps artifacts. No build step — `tsx` transpiles `.ts` step files on the fly.
+
+The configs that run in the official Playwright image (Jenkins, Google Cloud Build, TeamCity, Drone, Bamboo, Codefresh) use the image of the Playwright version a fresh `npm install` brings, `mcr.microsoft.com/playwright:v1.65.1-noble` today, and still run `npx playwright install --with-deps chromium`: when a newer Playwright gets installed, its browser is downloaded, and moving the image tag to that version skips the download again.
+
+Prices, free minutes, credits and plan names change without notice, so this page and the config comments do not quote them: each provider's own pricing page has the current ones.
 
 ## Supported providers
 
@@ -24,7 +28,7 @@ Webship-js ships ready-to-use config files for every major CI/CD provider. The p
 | Bamboo Data Center | `bamboo-specs/bamboo.yml` | self-hosted (Atlassian) | yes |
 | Codefresh | `codefresh.yml` | codefresh.io | yes |
 | Octopus Deploy | (no test runner — CD only, see notes) | octopus.com | n/a |
-| ~~Codeship~~ | retired 2023 — do not use | — | — |
+| ~~Codeship~~ | retired — do not use | — | — |
 
 Each provider's setup notes live in its own section below.
 
@@ -34,7 +38,7 @@ Each provider's setup notes live in its own section below.
 
 **File**: `.github/workflows/github-actions.yml`.
 
-GitHub's native CI/CD. #1 by adoption (~33% of all open-source repos according to JetBrains' 2024 Dev Ecosystem Survey). Free tier: 2,000 minutes per month for private repos, **unlimited** for public repos. Linux minutes count 1:1, macOS 10:1, Windows 2:1.
+GitHub's native CI/CD.
 
 ### Setup steps — open account + connect repo
 
@@ -113,7 +117,7 @@ For a PDF next to the HTML report, add `npx generate-reports --format pdf` as a 
 
 **File**: `.gitlab-ci.yml`.
 
-GitLab's first-party CI/CD. #3 by adoption (~19%). Free tier on GitLab.com: 400 compute-minutes per month on shared runners. Self-hosted GitLab gives unlimited minutes on your own runners.
+GitLab's first-party CI/CD, on GitLab.com's shared runners or on runners of your own.
 
 ### Setup steps — open account + connect repo
 
@@ -125,12 +129,13 @@ GitLab's first-party CI/CD. #3 by adoption (~19%). Free tier on GitLab.com: 400 
 
 ### Pipeline contents
 
-Single job `test` running on the `node:20` image:
+Single job `webship-js-test` running on the `node:24` image:
 
 1. `npm install`.
-2. `npx playwright install --with-deps chromium`.
+2. `npx playwright install --with-deps chromium` (installs the system libraries Chromium needs, nothing else).
 3. `npm start &` + `sleep 3`.
 4. `npm test`.
+5. Keeps `tests/reports/`, `screenshots/` and `videos/` as the `cucumber-report` artifact for 14 days, passed or failed.
 
 `FORCE_COLOR: "1"` is set in the job's `variables:` block.
 
@@ -146,27 +151,24 @@ The `job=` query param targets a specific job's status; drop it to show the whol
 
 ### Reports
 
-Add artefacts to any job:
+The job keeps its report, passed or failed:
 
 ```yaml
-test:
   artifacts:
+    name: cucumber-report
     when: always
-    expire_in: 30 days
+    expire_in: 14 days
     paths:
-      - tests/reports/cucumber_report.html
-      - tests/reports/cucumber_report.pdf
-      - tests/reports/cucumber_report.json
+      - tests/reports/
       - screenshots/
-    reports:
-      junit: tests/reports/junit.xml      # if you add --format junit:
+      - videos/
 ```
 
-GitLab renders JUnit XML inline on the merge-request page.
+Download it from the job page. For test results on the merge-request page, add `reports: junit: tests/reports/junit.xml` to the block and a `--format junit:tests/reports/junit.xml` formatter to the run.
 
 ### Notes
 
-- The `node:20` Docker image is slim — installing chromium via `--with-deps` adds ~120 MB on the first run. Use `cache:` keyed on `package-lock.json` to skip on reruns.
+- The `node:24` Docker image carries no browser: `--with-deps` installs Chromium and its system libraries on each run. Use `cache:` keyed on a lockfile to skip the npm part on reruns.
 - Merge-request pipelines (`workflow.rules`) trigger by default; add `rules:` to scope to specific branches.
 - For self-hosted runners on macOS / Windows, set `tags:` on the job and on the runner registration so the right runner picks up the work.
 - Per-browser matrix: use `parallel.matrix` with `BROWSER: [chromium, firefox, webkit]`.
@@ -177,7 +179,7 @@ GitLab renders JUnit XML inline on the merge-request page.
 
 **File**: `bitbucket-pipelines.yml`.
 
-Atlassian Bitbucket's native CI/CD. Free tier: 50 build-minutes per month for private repos, **unlimited** for public repos. Linked tightly to Jira / Confluence / Trello so handy in Atlassian-stack shops.
+Atlassian Bitbucket's native CI/CD, linked tightly to Jira / Confluence / Trello, so handy in Atlassian-stack shops.
 
 ### Setup steps — open account + connect repo
 
@@ -185,27 +187,34 @@ Atlassian Bitbucket's native CI/CD. Free tier: 50 build-minutes per month for pr
 2. **Create a workspace** (e.g. `webshipco`). Required — every repo lives inside a workspace.
 3. **Create or import the repo**. Bitbucket can import from GitHub directly.
 4. **Enable Pipelines**: `repo → Repository settings → Pipelines → Settings → Enable Pipelines`. Toggle is off by default until you read & accept the runner terms.
-5. **(Optional) Self-hosted runners**: `Repository settings → Pipelines → Runners → Add runner`. Skips the free-tier minute cap.
+5. **(Optional) Self-hosted runners**: `Repository settings → Pipelines → Runners → Add runner`.
 
 ### Pipeline contents
 
 `bitbucket-pipelines.yml` defines a single default pipeline:
 
 ```yaml
-image: node:20
+image: node:24
+
 pipelines:
-  branches:
-    2.0.x:
-      - step:
-          script:
-            - npm install
-            - npx playwright install --with-deps chromium
-            - npm start &
-            - sleep 3
-            - npm test
+  default:
+    - step:
+        name: Install and Test
+        caches:
+          - node
+        script:
+          - npm install
+          - npx playwright install --with-deps chromium
+          - npm start &
+          - sleep 3
+          - FORCE_COLOR=1 npm test
+        artifacts:
+          - tests/reports/**
+          - screenshots/**
+          - videos/**
 ```
 
-`FORCE_COLOR=1` is set in the job's `variables:` block.
+`FORCE_COLOR=1` is set on the `npm test` line.
 
 ### Badge
 
@@ -219,25 +228,12 @@ Uses shields.io as a proxy because Bitbucket does not expose a native SVG endpoi
 
 ### Reports
 
-Add `artifacts:` to a step:
-
-```yaml
-- step:
-    name: test
-    script: [ npm test ]
-    artifacts:
-      - tests/reports/cucumber_report.html
-      - tests/reports/cucumber_report.pdf
-      - tests/reports/cucumber_report.json
-      - screenshots/**
-```
-
-Artefacts live for 14 days on the free tier, 30 days on paid plans. Download from the build page.
+The step's `artifacts:` keep `tests/reports/`, `screenshots/` and `videos/`; Bitbucket captures artifacts whether the step passed or failed. Download them from the build page; how long they are kept depends on the plan (see the Bitbucket docs).
 
 ### Notes
 
-- Each step gets ~4 GB RAM and 2 vCPU by default — fine for the 9-minute suite. `size: 2x` bumps to 8 GB / 4 vCPU at 2× the minutes.
-- `pipelines.branches.2.0.x` scopes the pipeline to that branch only; add `pull-requests:` for PR builds.
+- `size: 2x` on the step gives it twice the memory and CPU, for a slower site or a bigger suite.
+- `pipelines.default` runs on every branch; use `pipelines.branches.<name>` to scope it, and `pull-requests:` for PR builds.
 - Atlassian's Pipes (`pipe:`) catalogue covers Slack notifications, AWS deploys, Jira issue transitions, etc. — drop them into the `script:` section as named steps.
 - Per-browser matrix: define three steps under `parallel:` with `BROWSER` env variations.
 
@@ -247,24 +243,25 @@ Artefacts live for 14 days on the free tier, 30 days on paid plans. Download fro
 
 **File**: `.circleci/config.yml`.
 
-CircleCI ships with a free tier of 6,000 build-minutes per month on Linux x86 medium (4 GB / 2 vCPU). Fits ~666 runs of the 9-minute suite. Active badge on `webship.co`.
+Hosted CI with Docker executors and a long-standing open-source following.
 
 ### Setup steps — open account + connect repo
 
 1. **Sign up**: <https://circleci.com/signup/> → "Sign Up with GitHub" → authorise the CircleCI GitHub App on `webship/webship-js`.
 2. **Choose an organisation** (your GitHub org / user). CircleCI mirrors the GitHub permissions model.
 3. **Set up the project**: dashboard → `Projects → Set up project` → pick `webship-js` → "Use the .circleci/config.yml in my repo" → branch `2.0.x`.
-4. **Pick a plan**: the **Free** plan covers OSS comfortably. The **Performance** plan adds Docker layer caching and more concurrency.
+4. **Pick a plan**: see CircleCI's pricing page for what the free plan covers today.
 
 ### Pipeline contents
 
-`.circleci/config.yml` uses the `cimg/node:20.20` Docker executor (Node + npm preinstalled). Steps:
+`.circleci/config.yml` uses the `cimg/node:24` Docker executor (Node 24 + npm preinstalled, the newest 24.x). Steps:
 
 1. `checkout`.
 2. `npm install`.
 3. `npx playwright install --with-deps chromium`.
 4. `npm start &` + `sleep 3`.
 5. `npm test`.
+6. `store_artifacts` for `tests/reports`, `screenshots` and `videos`.
 
 `FORCE_COLOR: "1"` is exported in the job environment. Filter `branches.only: /^2.0.x/` keeps feature-branch pushes off the queue.
 
@@ -280,7 +277,7 @@ Already shipped in `README.md`:
 
 ### Reports + screenshots
 
-Add `store_artifacts` to the test step:
+The job ends with three `store_artifacts` steps:
 
 ```yaml
 - store_artifacts:
@@ -288,18 +285,32 @@ Add `store_artifacts` to the test step:
     destination: cucumber-report
 - store_artifacts:
     path: screenshots
-    destination: failure-screenshots
-    when: on_fail
+    destination: screenshots
+- store_artifacts:
+    path: videos
+    destination: videos
 ```
 
-Artefacts are retained for 30 days and rendered as downloadable links on the build page.
+`store_artifacts` runs even when an earlier step failed, so a failed run keeps its report too. The files are links on the job's Artifacts tab.
 
 ### Notes
 
-- `cimg/node:20.20` is CircleCI's "convenience image" — much smaller cold-start than `node:20` from Docker Hub.
+- `cimg/node:24` is CircleCI's "convenience image" for the newest Node 24.x; pin a minor (`cimg/node:24.22`) for repeatable runs.
 - The earlier config used `cimg/base:stable-20.04` with manual `apt upgrade` and a NodeSource curl-pipe. That path hit 200-package apt upgrades and PPA 503s (issue #280) and was replaced with the slim form documented above.
-- Docker layer caching is gated behind the Performance plan — toggle in the executor block with `docker_layer_caching: true` when you upgrade.
+- Docker layer caching is a paid feature — toggle it in the executor block with `docker_layer_caching: true` on a plan that has it.
 - Per-browser matrix: use a `matrix` block under `jobs:` or duplicate the job per browser.
+
+---
+
+## Travis CI
+
+**File**: `.travis.yml`.
+
+Hosted CI on travis-ci.com. The shipped file runs Node 24 on Ubuntu 22.04 (`dist: jammy`) for the `2.0.x` branch and its tags: it caches npm and `~/.cache/ms-playwright`, installs Chromium with `--with-deps`, starts the fixture server, checks that it answers and runs `npm test`.
+
+### Reports
+
+Travis CI keeps no build artifacts of its own: the report, the screenshots and the videos (`tests/reports/`, `screenshots/`, `videos/`) stay on the build machine and are lost with it. To keep them, upload them to storage of your own in an `after_script` step (an S3 bucket, for example), or run the suite on another provider of this page.
 
 ---
 
@@ -307,7 +318,7 @@ Artefacts are retained for 30 days and rendered as downloadable links on the bui
 
 **File**: `Jenkinsfile` (declarative pipeline, at repo root).
 
-Jenkins has no SaaS — you run a controller yourself. The shipped `Jenkinsfile` uses the official `mcr.microsoft.com/playwright:v1.58.2-jammy` Docker image so chromium and every apt dependency are already inside.
+Jenkins has no SaaS — you run a controller yourself. The shipped `Jenkinsfile` uses the official `mcr.microsoft.com/playwright:v1.65.1-noble` Docker image, of the Playwright version the install brings, so chromium and every apt dependency are already inside.
 
 ### Setup steps
 
@@ -331,7 +342,7 @@ Jenkins has no SaaS — you run a controller yourself. The shipped `Jenkinsfile`
 
 ### Reports + screenshots
 
-The `post { always }` block archives `tests/reports/cucumber_report.{html,pdf,json}` and any `screenshots/**`. Browse them per build in the Jenkins UI under "Build Artifacts".
+The `post { always }` block archives `tests/reports/**`, `screenshots/**` and `videos/**`, passed or failed. Browse them per build in the Jenkins UI under "Build Artifacts".
 
 ### Badge
 
@@ -340,7 +351,7 @@ Jenkins has no public badge endpoint by default — the controller is usually pr
 ### Notes
 
 - `args '-u root:root'` runs the container as root so `npm install` and `npx playwright install --with-deps` can touch system paths. Switch to a non-root image if you tighten security.
-- The Playwright base image already has every browser dep, so `--with-deps` is a no-op — kept for symmetry with other lanes.
+- The Playwright image already has the browser of its own Playwright version and every browser dep: `npx playwright install --with-deps chromium` is a no-op while the installed Playwright matches the image, and downloads the newer browser when it does not.
 - Need parallelism? Wrap the `Test` stage in `parallel { stage('chromium') {...}; stage('firefox') {...} }` and switch the image to `mcr.microsoft.com/playwright` (latest) which includes all three browsers.
 
 ---
@@ -349,19 +360,16 @@ Jenkins has no public badge endpoint by default — the controller is usually pr
 
 **File**: `azure-pipelines.yml` at repo root.
 
-Microsoft's hosted CI, generous free tier for both public and private repos. Microsoft-hosted `ubuntu-latest` agents already have Node + most browser deps; the pipeline still calls `--with-deps` for safety.
+Microsoft's hosted CI. Microsoft-hosted `ubuntu-latest` agents already have Node + most browser deps; the pipeline installs Node 24 (`NodeTool@0`) and still calls `--with-deps` for safety.
 
 ### Setup steps — open account + connect repo
 
 1. **Microsoft account**: if you do not already have one, create at <https://account.microsoft.com/>. Free.
 2. **Sign in to Azure DevOps**: <https://dev.azure.com> → "Start free with GitHub" *or* sign in with the Microsoft account.
 3. **Create an Organization**. Pick a unique slug (used in the URL `https://dev.azure.com/<org>/`). Example: `webship`.
-4. **Create a Project**. Name `webship-js`. Visibility:
-   - **Public** for open source — unlocks the free OSS tier (10 parallel jobs, unlimited minutes).
-   - **Private** otherwise (1 free parallel job, 1,800 min/mo).
+4. **Create a Project**. Name `webship-js`. The free parallel jobs and minutes depend on the visibility and on Microsoft's current terms: see the Azure DevOps "parallel jobs" page.
 5. **Pipelines → Create Pipeline → GitHub**. Authorise the **Azure Pipelines** GitHub app, scope it to `webship/webship-js`.
 6. **Configure your pipeline**: choose **"Existing Azure Pipelines YAML file"** → branch `2.0.x` → path `/azure-pipelines.yml` → **Continue → Run**.
-7. **Request OSS free parallelism** (only for public projects): `Organization settings → Billing → Public project parallelism request`. Microsoft enables it manually within a day or two.
 
 ### Badge
 
@@ -375,10 +383,11 @@ Replace `<org>`, `<project>`, `<id>`. Paste into `README.md` next to the other b
 
 ### Reports
 
-The pipeline publishes two build artefacts:
+The pipeline publishes three build artefacts, passed or failed:
 
-- `cucumber-report` — `tests/reports/cucumber_report.{html,pdf,json}`
-- `failure-screenshots` (only on failure) — every `screenshots/**/*` capture
+- `cucumber-report` — `tests/reports/` (the HTML and JSON report, and the PDF when it is generated)
+- `screenshots` — every `screenshots/**/*` capture
+- `videos` — the recordings, when recording is on (`continueOnError`: a run without videos is not a failure)
 
 Browse via **Pipelines → Run → Artifacts → 1 published**.
 
@@ -404,11 +413,11 @@ Two `Cache@2` tasks are configured:
 
 **File**: `buildspec.yml` at repo root.
 
-AWS-managed build service. Free tier: 100 build-minutes per month on the `general1.small` compute class indefinitely. The 9-minute suite fits roughly 11 free runs / month — beyond that, each minute costs ~$0.005.
+AWS-managed build service. For the free tier and the price of a build minute, see the CodeBuild pricing page.
 
 ### Setup steps — open account + create project
 
-1. **Create an AWS account** at <https://aws.amazon.com/>. Requires a credit card, phone verification, and an email confirmation. The 12-month free tier and the always-free CodeBuild tier both apply.
+1. **Create an AWS account** at <https://aws.amazon.com/>. Requires a credit card, phone verification, and an email confirmation.
 2. **Sign in to the AWS Console** → switch to a region close to you (e.g. `us-east-1`, `eu-west-1`).
 3. **IAM → Roles → Create role**:
    - Trusted entity: **AWS service** → **CodeBuild**.
@@ -419,7 +428,7 @@ AWS-managed build service. Free tier: 100 build-minutes per month on the `genera
    - Project name: `webship-js`.
    - Source provider: **GitHub** → "Connect using OAuth" → authorise the AWS CodeBuild GitHub app → pick `webship/webship-js` → branch `2.0.x`.
    - Webhook: tick "Rebuild every time a code change is pushed".
-   - Environment: **Managed image** → operating system **Ubuntu** → runtime **Standard** → image `aws/codebuild/standard:7.0` → privileged unchecked.
+   - Environment: **Managed image** → operating system **Ubuntu** → runtime **Standard** → image `aws/codebuild/standard:8.0` (its Node runtimes include the `nodejs: 24` of `buildspec.yml`) → privileged unchecked.
    - Service role: pick the existing `webship-js-codebuild-role` you just created.
    - Build spec: **Use a buildspec file** → buildspec name `buildspec.yml` (default).
    - Artifacts: **Amazon S3** → bucket `webship-js-reports` → name `webship-js-report-$(date)`.
@@ -438,13 +447,12 @@ CodeBuild has no native badge endpoint. Two common patterns:
 `buildspec.yml` declares artefacts:
 
 ```
-tests/reports/cucumber_report.html
-tests/reports/cucumber_report.pdf
-tests/reports/cucumber_report.json
+tests/reports/**/*
 screenshots/**/*
+videos/**/*
 ```
 
-They land in the configured S3 bucket. Grant pre-signed URLs or make the bucket public if you want links you can share.
+CodeBuild uploads them after the build phase, passed or failed. They land in the configured S3 bucket. Grant pre-signed URLs or make the bucket public if you want links you can share.
 
 ### Caching
 
@@ -452,7 +460,6 @@ They land in the configured S3 bucket. Grant pre-signed URLs or make the bucket 
 
 ### Notes
 
-- 9-min suite × $0.005/min ≈ $0.045 per build past the free tier — cheap unless you push hundreds of builds.
 - For multi-AZ or multi-region resilience, place the buildspec in `aws-codebuild/buildspec.yml` and point the CodeBuild project at that path — the file is just a relative source path.
 - CodeBuild can run inside a VPC if your dev server needs private network access — toggle in **VPC configuration** before starting the first build.
 
@@ -462,11 +469,11 @@ They land in the configured S3 bucket. Grant pre-signed URLs or make the bucket 
 
 **File**: `cloudbuild.yaml` at repo root.
 
-Google's managed CI inside GCP. First $300 of usage is free for new accounts (90-day trial); after that the always-free tier covers ~120 build-minutes per day on the default `e2-standard-2` machine — about 13 runs of the 9-min suite per day.
+Google's managed CI inside GCP. For the free tier and the prices, see the Cloud Build pricing page.
 
 ### Setup steps — open account + connect repo
 
-1. **Create a Google Cloud account** at <https://console.cloud.google.com/>. Sign in with a Google account, accept the terms, claim the $300 / 90-day credit (a card is required for verification but is not charged).
+1. **Create a Google Cloud account** at <https://console.cloud.google.com/>. Sign in with a Google account and accept the terms (a card is required for verification).
 2. **Create a Project**: top bar → "Select a project" → "New project" → name `webship-js`. Note the project ID — Cloud Build references it implicitly.
 3. **Enable billing** on the project: `Billing → Link a billing account`. Required even for free-tier-only usage.
 4. **Enable the Cloud Build API**: `APIs & Services → Library → Cloud Build API → Enable`. Wait ~30 s.
@@ -492,19 +499,19 @@ Cloud Build has no native badge. Two workarounds:
 
 ### Reports
 
-The `artifacts.objects` section uploads the HTML / PDF / JSON to `gs://webship-js-reports/<BUILD_ID>/` on every run. Browse via Cloud Storage UI or share pre-signed URLs.
+Cloud Build uploads the files of an `artifacts:` block only when every step succeeds, so the pipeline keeps its report in steps of its own: the test step records a failure instead of stopping the build, `keep-report` copies `tests/reports/`, `screenshots/` and `videos/` to `gs://webship-js-reports/<BUILD_ID>/`, and `test-result` then fails the build when the suite failed. Browse via the Cloud Storage UI or share pre-signed URLs.
 
 ### Caching
 
 Cloud Build does not have a first-class cache step. Common patterns:
 
 1. **Kaniko image cache** for Docker-based builds (not what this pipeline does).
-2. **Volume cache via `dir` + GCS sync**: copy `node_modules` and `~/.cache/ms-playwright` to GCS at the end of each build, restore at the start. Adds two extra steps but cuts a hot rerun from ~9 min to ~5 min.
+2. **Volume cache via `dir` + GCS sync**: copy `node_modules` and `~/.cache/ms-playwright` to GCS at the end of each build, restore at the start. Adds two extra steps and shortens a rerun.
 
 ### Notes
 
-- `options.logging: CLOUD_LOGGING_ONLY` skips the legacy log bucket — saves a few cents per build and avoids the IAM warning Cloud Build prints by default.
-- `timeout: 1800s` matches the 30-minute cap from other lanes; the suite finishes in ~9 min headless.
+- `options.logging: CLOUD_LOGGING_ONLY` skips the legacy log bucket and avoids the IAM warning Cloud Build prints by default.
+- `timeout: 1800s` is a 30-minute cap on the whole build.
 - `_BRANCH_NAME` and `_ARTIFACT_BUCKET` are substitution variables — override per-trigger to point at a different bucket without forking the YAML.
 - For per-browser parallelism, replace the single `step` with three steps, each setting `BROWSER=chromium/firefox/webkit` — `--with-deps` will fetch the matching browser deps inside the container.
 
@@ -514,12 +521,12 @@ Cloud Build does not have a first-class cache step. Common patterns:
 
 **Files**: `.teamcity/settings.kts` + `.teamcity/pom.xml` at repo root.
 
-JetBrains' CI server, available as Cloud (SaaS, no install) or self-hosted. Cloud free tier: 600 build-minutes / month + 1 build agent + 100 build configs forever. The 9-minute suite fits ~66 runs / month.
+JetBrains' CI server, available as Cloud (SaaS, no install) or self-hosted. For the plans of TeamCity Cloud, see the TeamCity pricing page.
 
 ### Setup steps — open account + connect repo
 
 1. **JetBrains account**: <https://account.jetbrains.com/> → sign up (free, OAuth via GitHub / Google / Microsoft also works).
-2. **Start TeamCity Cloud trial**: <https://www.jetbrains.com/teamcity/cloud/> → "Start free trial" → confirm the JetBrains-issued instance URL (e.g. `https://webship.teamcity.com`). The trial collapses into the free tier when it ends.
+2. **Start TeamCity Cloud**: <https://www.jetbrains.com/teamcity/cloud/> → confirm the JetBrains-issued instance URL (e.g. `https://webship.teamcity.com`).
 3. **Create a Project**: top bar `Administration → Projects → Create project`. Pick "From a repository URL" → paste the GitHub HTTPS URL → "Proceed". TeamCity creates a VCS root.
 4. **Authorise GitHub OAuth**: TeamCity asks for GitHub credentials the first time it touches the repo. Use a Personal Access Token with `repo` scope or the OAuth flow.
 5. **Enable Versioned Settings**: open the project → `Versioned Settings → Synchronization enabled → Kotlin DSL`. TeamCity will offer to scan the repo for `.teamcity/settings.kts` — point it at the file we shipped. Commit any generated config UUIDs back to the repo so the next clone is identical.
@@ -535,11 +542,11 @@ TeamCity has no native public badge. Common patterns:
 
 ### Reports
 
-`artifactRules` archives `tests/reports/cucumber_report.{html,pdf,json}` plus any `screenshots/**` capture. Browse per build under `Artifacts` in the TeamCity UI.
+`artifactRules` archives `tests/reports/**`, `screenshots/**` and `videos/**`, and `publishArtifacts = PublishMode.ALWAYS` keeps them for a failed build too. Browse per build under `Artifacts` in the TeamCity UI.
 
 ### Notes
 
-- `dockerImage = "mcr.microsoft.com/playwright:v1.58.2-jammy"` runs the script inside the official Playwright image — chromium and every apt dep are already there.
+- `dockerImage = "mcr.microsoft.com/playwright:v1.65.1-noble"` runs the script inside the official Playwright image of the version the install brings — chromium and every apt dep are already there.
 - `dockerRunParameters = "--user root:root --network host"` keeps the steps simple (no `sudo`, the local fixture server on `localhost:8080` is reachable without port mapping).
 - `pom.xml` exists only so IntelliJ can resolve `configs-dsl-kotlin` types and give completion / inspections in the IDE. TeamCity Cloud ignores it at build time.
 - Kotlin DSL version `2024.03` matches TeamCity Cloud at time of writing — TeamCity warns and offers an auto-upgrade when the server version moves past it.
@@ -551,12 +558,12 @@ TeamCity has no native public badge. Common patterns:
 
 **File**: `.semaphore/semaphore.yml`.
 
-Hosted CI with a developer-friendly UI and one of the fastest cold-build queues. Free tier: 1,300 build-minutes / month on `e1-standard-2` (2 vCPU, 4 GB). The 9-minute suite fits ~144 free runs / month. Open-source maintainers can request the Startup plan for additional minutes.
+Hosted CI with a developer-friendly UI and fast cold-build queues. For the plans and their minutes, see the Semaphore pricing page.
 
 ### Setup steps — open account + connect repo
 
 1. **Sign up**: <https://semaphoreci.com/> → "Sign up with GitHub" → authorise the Semaphore GitHub App on `webship/webship-js`.
-2. **Pick a plan**: the default "Free" plan is fine. Public OSS repos qualify for the Startup tier (more minutes + parallel jobs) — apply via `Account → Billing → Open source program`.
+2. **Pick a plan** (see the Semaphore pricing page for what each one covers).
 3. **Create project**: dashboard → "Create new project" → pick `webship-js` → branch `2.0.x` (Semaphore can auto-detect other branches later).
 4. **Choose pipeline source**: select "Customise the workflow" → "I have a configuration file in my repository" → point at `.semaphore/semaphore.yml`. Semaphore validates the YAML and shows a graph preview.
 5. **Add the project** → Semaphore queues the first run on a fresh worker. The `--with-deps` step pulls chromium apt deps; the cache stores `node_modules` + `~/.cache/ms-playwright` so reruns are fast.
@@ -573,7 +580,7 @@ Replace `<org>` with the organisation slug you picked at signup. Paste in `READM
 
 ### Reports
 
-`epilogue.always` uploads `cucumber_report.{html,pdf,json}` to the per-job artefact store (`Artifacts` tab in the UI). `epilogue.on_failure` adds the `screenshots/` capture. `--expire-in 30d` keeps storage costs down by purging after a month — bump to `90d` or `--retain` for longer retention.
+`epilogue.always` uploads `tests/reports/`, `screenshots/` and `videos/` to the per-job artefact store (`Artifacts` tab in the UI), passed or failed. `--expire-in 30d` purges them after a month — raise it for longer retention.
 
 ### Caching
 
@@ -588,11 +595,11 @@ Two cache slots are populated in the `Install` block and restored in `prologue` 
 
 ### Notes
 
-- `sem-version node 20` is Semaphore's runtime switcher — preinstalled on every `os_image: ubuntu2204` agent.
-- `agent.machine.type: e1-standard-2` is the free-tier default; bumping to `e2-standard-4` halves wall time but costs more minutes.
+- `sem-version node 24` is Semaphore's runtime switcher — preinstalled on every `os_image: ubuntu2204` agent.
+- `agent.machine.type: e1-standard-2` is a small machine; a bigger one (`e2-standard-4`) shortens the run.
 - `nohup npm start > /tmp/srv.log 2>&1 &` keeps the fixture server alive after the `commands` block exits; `curl -sf` is the same ready-probe as the other lanes.
 - Add a `promotions` block (e.g. tag release, deploy to staging) once the test pipeline is stable — see Semaphore docs for the `auto_promote` shape.
-- For per-browser matrix, add three jobs under the `Test` task and parameterise via env (`BROWSER=chromium` etc.) — Semaphore runs them in parallel within the free-tier concurrency limit.
+- For per-browser matrix, add three jobs under the `Test` task and parameterise via env (`BROWSER=chromium` etc.) — Semaphore runs them in parallel within the concurrency of your plan.
 
 ---
 
@@ -600,7 +607,7 @@ Two cache slots are populated in the `Install` block and restored in `prologue` 
 
 **File**: `.drone.yml` at repo root.
 
-Open-source CI/CD that pipelines via simple YAML and runs steps in Docker containers. Drone Cloud (drone.io) moved to a paid model in 2023, so the open-source path is **self-host**. The shipped `.drone.yml` is provider-agnostic — anyone running a Drone server can enable the repo and go.
+Open-source CI/CD that pipelines via simple YAML and runs steps in Docker containers. The open-source path is **self-host**. The shipped `.drone.yml` is provider-agnostic — anyone running a Drone server can enable the repo and go.
 
 ### Setup steps — open account + bring up a server
 
@@ -638,9 +645,9 @@ There is **no SaaS sign-up** for the free version. You have two routes:
    ```
 6. Visit `https://ci.example.com` → sign in with GitHub → **Activate** `webship/webship-js`. Drone reads `.drone.yml` on the next push.
 
-#### Route B — Drone Cloud (paid)
+#### Route B — hosted Drone
 
-<https://drone.io> → "Sign up" → pick a paid plan. Then point at the same `.drone.yml`. No further config differences.
+<https://drone.io> lists the hosted offers. Point it at the same `.drone.yml`; no further config differences.
 
 ### Badge
 
@@ -652,7 +659,7 @@ Replace `ci.example.com` with your server hostname.
 
 ### Reports
 
-The `archive-reports` step tars `tests/reports/` + `screenshots/` into `/var/lib/drone/artifacts/cucumber-report-<build>.tar.gz` on the host. Serve the directory via a static file server (e.g. `python3 -m http.server` behind nginx) or copy to S3/GCS via an extra step.
+The `archive-reports` step, passed or failed, tars `tests/reports/`, `screenshots/` and `videos/` into `/var/lib/drone/artifacts/cucumber-report-<build>.tar.gz` on the host. Serve the directory via a static file server (e.g. `python3 -m http.server` behind nginx) or copy to S3/GCS via an extra step.
 
 ### Notes
 
@@ -722,7 +729,7 @@ Adjust to your Forgejo host.
 
 **File**: `.harness/webship-js-pipeline.yml`.
 
-Harness ships an enterprise Software Delivery Platform; Harness CI is the build/test module. The Developer (free) plan covers 90 build credits per day on hosted Linux-x86 builders — fits ~9 runs of the 9-minute suite.
+Harness ships an enterprise Software Delivery Platform; Harness CI is the build/test module. For the free plan and its build credits, see the Harness pricing page.
 
 ### Setup steps — open account + connect repo
 
@@ -743,11 +750,11 @@ Harness ships an enterprise Software Delivery Platform; Harness CI is the build/
 
 ### Badge
 
-Public dashboards are an Enterprise feature. For the free plan, expose status via the GitHub commit status that the Harness GitHub App posts automatically, or write a tiny shields.io endpoint backed by the Harness REST API (`GET /pipeline/api/pipelines/execution`).
+Expose the status via the GitHub commit status that the Harness GitHub App posts automatically, or write a tiny shields.io endpoint backed by the Harness REST API (`GET /pipeline/api/pipelines/execution`).
 
 ### Reports
 
-The shipped pipeline includes an optional `Upload report artefacts` step that uses the `plugins/s3` connector. Replace the secret IDs and bucket name; or rip the step out entirely and pull reports from Harness's built-in **CI Insights** tab (test logs are retained per-build).
+The shipped pipeline includes an optional `Upload report artefacts` step (run whatever the stage status) that uses the `plugins/s3` connector to upload `tests/reports/`, `screenshots/` and `videos/`. Replace the secret IDs and bucket name; or rip the step out entirely and pull reports from Harness's built-in **CI Insights** tab (test logs are retained per-build).
 
 ### Notes
 
@@ -762,13 +769,13 @@ The shipped pipeline includes an optional `Upload report artefacts` step that us
 
 **File**: `bamboo-specs/bamboo.yml`.
 
-Atlassian's on-prem CI/CD. **Atlassian retired Bamboo Cloud on 2024-02-15** — only the self-hosted **Bamboo Data Center 9.x** remains. The shipped YAML targets the official YAML Specs format introduced in Bamboo 7+.
+Atlassian's on-prem CI/CD: Atlassian offers Bamboo as **Data Center** only, self-hosted. The shipped YAML targets the official YAML Specs format introduced in Bamboo 7+.
 
 ### Setup steps — open account + connect repo
 
 There is no Atlassian-hosted Bamboo any more. You bring your own server.
 
-1. **Buy a Bamboo Data Center licence** at <https://www.atlassian.com/software/bamboo/pricing>, or use the 30-day evaluation. Free starter tier was discontinued.
+1. **Get a Bamboo Data Center licence** (or an evaluation licence) from Atlassian: <https://www.atlassian.com/software/bamboo>.
 2. **Install Bamboo Data Center**:
    - Recommended path: official Docker image `atlassian/bamboo` on a host with at least 4 GB RAM and a persistent volume.
    - Database: PostgreSQL 13+ or MySQL 8+ is supported; SQLite for tiny installs.
@@ -776,7 +783,7 @@ There is no Atlassian-hosted Bamboo any more. You bring your own server.
 3. **Sign in as admin** at `https://bamboo.example.com` → run the setup wizard → activate the licence.
 4. **Link the GitHub repository**: `Bamboo administration → Linked repositories → Add → Git`. Use HTTPS + a Personal Access Token, or SSH with a deploy key. Name the linked repo `webship-js`.
 5. **Enable Bamboo Specs scanning** on that repo: `Bamboo administration → Specs → Repositories → Add`. Bamboo reads `bamboo-specs/bamboo.yml` on every push, recreating plan + permissions from the file.
-6. **Build agent**: at least one Docker-capable agent must be online. The plan runs inside `mcr.microsoft.com/playwright:v1.58.2-jammy`, so the host needs Docker installed and the Bamboo agent needs the Docker plugin enabled.
+6. **Build agent**: at least one Docker-capable agent must be online. The plan runs inside `mcr.microsoft.com/playwright:v1.65.1-noble`, so the host needs Docker installed and the Bamboo agent needs the Docker plugin enabled.
 
 ### Badge
 
@@ -787,12 +794,11 @@ Bamboo emits chat-style status webhooks (Slack, MS Teams) but no native badge im
 
 ### Reports
 
-`Cucumber.artifacts` declares four shared artefacts:
+`Cucumber.artifacts` declares three shared artefacts:
 
-- `cucumber-report-html`  → `tests/reports/cucumber_report.html`
-- `cucumber-report-pdf`   → `tests/reports/cucumber_report.pdf`
-- `cucumber-report-json`  → `tests/reports/cucumber_report.json`
-- `screenshots`           → `screenshots/**` (failure captures)
+- `cucumber-report` → `tests/reports/**`
+- `screenshots`     → `screenshots/**`
+- `videos`          → `videos/**`
 
 Browse per build under `Plan Result → Artifacts`. The `shared: true` flag makes them available to downstream plans and to the Bamboo REST API.
 
@@ -810,12 +816,12 @@ Browse per build under `Plan Result → Artifacts`. The `shared: true` flag make
 
 **File**: `codefresh.yml` at repo root.
 
-Kubernetes-native CI/CD. The Classic pipeline format reads `codefresh.yml` from the repo. Free tier: 100 build-minutes / month on shared infrastructure — fits ~11 runs of the 9-minute suite. Public OSS repos can apply for the Community plan for more capacity.
+Kubernetes-native CI/CD. The Classic pipeline format reads `codefresh.yml` from the repo. For the plans and their build capacity, see the Codefresh pricing page.
 
 ### Setup steps — open account + connect repo
 
 1. **Sign up**: <https://g.codefresh.io/signup> → "Sign up with GitHub" → authorise the Codefresh GitHub App on `webship/webship-js`.
-2. **Pick a runtime**: dashboard prompts you to "Add Runtime" → pick **Codefresh Hosted** for the managed free tier. (Self-hosted runtimes via `cf-runtime install` are also available but out of scope here.)
+2. **Pick a runtime**: dashboard prompts you to "Add Runtime" → pick **Codefresh Hosted** for the managed one. (Self-hosted runtimes via `cf-runtime install` are also available but out of scope here.)
 3. **Create a pipeline**:
    - `Pipelines → New Pipeline → From Git`.
    - Repository `webship/webship-js`, branch `2.0.x`.
@@ -834,10 +840,10 @@ Replace `<account>` with the Codefresh account slug picked at signup and `<pipel
 
 ### Reports
 
-The `upload_reports` step copies `cucumber_report.{html,pdf,json}` + `screenshots/` to `/codefresh/volume/cucumber-report/` — a Codefresh-managed shared volume that persists across pipeline runs. From there you can:
+The `upload_reports` step, passed or failed, copies `tests/reports/`, `screenshots/` and `videos/` to `/codefresh/volume/cucumber-report/` — a Codefresh-managed shared volume that persists across pipeline runs. From there you can:
 
 1. Mount the same volume in a follow-up step that uploads to S3/GCS.
-2. Browse via the **Codefresh storage browser** (Pro+ plans only).
+2. Browse via the **Codefresh storage browser**, on the plans that have it.
 3. Pipe to the built-in **Test Reports** feature by emitting JUnit XML — add a `--format junit:tests/reports/junit.xml` argument to the cucumber-js call.
 
 ### Notes
@@ -864,8 +870,8 @@ Octopus Deploy is a release-orchestration tool. It does not run unit / integrati
 
 ### Setup steps — open account
 
-1. **Octopus Cloud** (SaaS): <https://octopus.com/start> → sign in with email or Google → free for 10 deployment targets. Trial covers everything; the always-free tier covers small teams.
-2. **Octopus Server** (self-hosted): download the Windows / Linux installer from <https://octopus.com/downloads>. Free up to 10 deployment targets.
+1. **Octopus Cloud** (SaaS): <https://octopus.com/start> → sign in with email or Google. See the Octopus pricing page for the free and paid plans.
+2. **Octopus Server** (self-hosted): download the Windows / Linux installer from <https://octopus.com/downloads>.
 
 ### Wire any CI lane into Octopus
 
@@ -894,4 +900,4 @@ Plug that snippet into any of the YAML files we ship — Octopus does not care w
 
 ## Codeship
 
-**Service retired by CloudBees on 2023-09-30.** Do not add a Codeship config. Existing `codeship-steps.yml` / `codeship-services.yml` files on the internet are dead. If a tutorial references Codeship, treat it as Tier-1 advice for **Travis** or **CircleCI** instead — both ship the same `npm test` pattern.
+**Service retired by CloudBees.** Do not add a Codeship config. Existing `codeship-steps.yml` / `codeship-services.yml` files on the internet are dead. If a tutorial references Codeship, treat it as Tier-1 advice for **Travis** or **CircleCI** instead — both ship the same `npm test` pattern.

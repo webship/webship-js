@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Top of the viewport</title>
+  <style>
+    body { margin: 0; }
+    section { height: 1200px; padding: 0; border-top: 1px solid #ccc; }
+    h2 { margin: 0; }
+  </style>
+</head>
+<body>
+  <section id="section-1">
+    <h2>Section 1</h2>
+    <button type="button" id="go-3">Go to section 3</button>
+  </section>
+  <section id="section-2"><h2>Section 2</h2></section>
+  <section id="section-3"><h2>Section 3</h2></section>
+  <section id="section-4"><h2>Section 4</h2></section>
+  <section id="section-5"><h2>Section 5</h2></section>
+  <div id="hidden-section" style="display: none">Hidden</div>
+  <script>
+    // The page scrolls to section 3 a second and a half after the click, on
+    // setInterval, which the smart waits do not count as a pending timer: the
+    // step that checks the place of the section has to wait for it itself.
+    document.getElementById('go-3').addEventListener('click', function () {
+      var start = Date.now();
+      var timer = setInterval(function () {
+        if (Date.now() - start < 1500) return;
+        clearInterval(timer);
+        window.scrollTo(0, document.getElementById('section-3').offsetTop);
+      }, 100);
+    });
+  </script>
+</body>
+</html>

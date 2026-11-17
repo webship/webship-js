@@ -33,7 +33,7 @@ This is a topical reference. For per-step examples, see the JSDoc comment above 
 | `When I fill in "value" for "Label"` | Reverse phrasing |
 | `When I fill in "value" for "selector" by attr` | By attribute |
 | `When I fill in the following:` (table) | Bulk fill |
-| `When I select "Option" from "Label"` | `<select>` |
+| `When I select "Option" from "Label"` | `<select>` by the exact text of its label, its name, its id, or a CSS selector (`#`, `.`, `[`); the option by its text or value |
 | `When I additionally select "Option" from "Label"` | Multi-select |
 | `When I check the checkbox "#agree"` | |
 | `When I uncheck the checkbox "#agree"` | |
@@ -64,6 +64,16 @@ I wait for the modal to appear/disappear          # Modal edge
 eventually I should see "..."                     # Polling text assertion
 ```
 
+## Page text
+
+| Step | Notes |
+| --- | --- |
+| `Then I should see "text"` | Waits up to 5 s for the text to come |
+| `Then I should not see "text"` | Waits up to 5 s for the text to go |
+| `Then eventually I should see "text" [within N seconds]` | Waits up to 10 s, or N |
+
+The three read the page the same way: letter case ignored, white space collapsed, the text of hidden elements included, the text of `<script>` and `<style>` left out. For the text a visitor can see, with its letter case, use `I wait for the text "..." to appear` / `to disappear`. See [Then I should see](step-definitions/then-i-should-see.md).
+
 ## Modal
 
 | Step | |
@@ -72,9 +82,9 @@ eventually I should see "..."                     # Polling text assertion
 | `Then I should not see the modal` | |
 | `Then I should see "text" in the modal` | |
 | `Then the modal should contain "text"` | |
-| `When I click "OK" in the modal` | |
-| `When I click on "#sel" in the modal` | |
-| `When I close the modal` | |
+| `When I click "OK" in the modal` | Waits up to 5 s for a modal to be open, else fails with "No modal is open"; a button the open modal lacks fails, listing the ones it has |
+| `When I click on "#sel" in the modal` | The selector inside the open modal only; same 5 s wait for an open modal |
+| `When I close the modal` | Close button, else Escape; same 5 s wait for an open modal |
 
 ## Web-first assertions (auto-retry)
 
@@ -101,8 +111,11 @@ See `cookie.steps.js`, `response.steps.js`, `metatag.steps.js`.
 the table "selector" should have N rows
 the table "selector" should have N columns
 the table "selector" should not be empty
+the table "selector" should be sorted by "Column" in "ascending|descending" order
 I should see "Text" in the "RowMatch" row
 ```
+
+The sorted step compares the cells of the column the way a reader orders them: as numbers when every cell reads as a number (`$9.99`, `1,299`, `12 %`), else as dates when every cell reads as a date, else as text with letter case ignored and the numbers inside the text in number order ("Item 2" before "Item 10"). Equal cells may come in any order.
 
 ## Iframes / file download / REST / XML / keyboard
 
@@ -229,6 +242,8 @@ Settings (`worldParameters.javascript`):
 
 The explicit step `Then there should be no JavaScript errors` always asserts (independent of `mode`) and suppresses the auto-report so a single error is not announced twice.
 
+`Then JavaScript errors should not match "…"` handles the errors it read in the same way: a page with noise it tolerates does not fail the scenario at its end in `fail` mode, only an error that matches the pattern fails it.
+
 ## Video recording
 
 ```
@@ -345,6 +360,7 @@ This index lists every public step grouped by source file, with one Gherkin exam
 - *^(?:the response should be valid JSON|the API response should be valid JSON)$*  ·  Example: `Then the response should be valid JSON`
 - *^(?:the response header|the header) "([^"]*)" should (?:be|contain) "([^"]*)"$*  ·  Example: `Then the response header "Content-Type" should be "application/json"`
 - *^print API response$*  ·  Example: `Then print API response`
+- *^(?:the )?API response should( not)? contain the header "([^"]*)"$*  ·  Example: `Then the API response should contain the header "ETag"`
 - *^(?:I|we) set placeholder "([^"]*)" to "([^"]*)"$*  ·  Example: `Given I set placeholder "{{userId}}" to "123"`
 
 ### assertion.steps.js
@@ -415,6 +431,7 @@ This index lists every public step grouped by source file, with one Gherkin exam
 
 - *the element {string} should appear after the element {string}*  ·  Example: `Then the element "#footer" should appear after the element "#main"`
 - *the text {string} should appear after the text {string}*  ·  Example: `Then the text "Sign in" should appear after the text "Welcome"`
+- *the text {string} should appear after the text {string} in the {string} element*  ·  Example: `Then the text "Products" should appear after the text "Home" in the "nav.breadcrumb" element`
 - *the element {string} with the attribute {string} and the value {string} should exist*  ·  Example: `Then the element "a" with the attribute "href" and the value "/about" should exist`
 - *the element {string} with the attribute {string} and the value containing {string} should exist*  ·  Example: `Then the element "a" with the attribute "href" and the value containing "/about" should exist`
 - *the element {string} with the attribute {string} and the value {string} should not exist*  ·  Example: `Then the element "a" with the attribute "href" and the value "/admin" should not exist`
@@ -439,7 +456,7 @@ This index lists every public step grouped by source file, with one Gherkin exam
 - *the field {string} should not be empty*  ·  Example: `Then the field "username" should not be empty`
 - *the field {string} should exist*  ·  Example: `Then the field "username" should exist`
 - *the field {string} should not exist*  ·  Example: `Then the field "missing-field" should not exist`
-- *the field {string} should have {string} state*  ·  Example: `Then the field "username" should have "enabled" state`
+- *the field {string} should have {string} state*  ·  Example: `Then the field "username" should have "enabled" state`  ·  States: `enabled`, `disabled`, `editable`, `read-only` (or `readonly`); any other word fails the step
 - *the field {string} should be required*  ·  Example: `Then the field "username" should be required`
 - *the field {string} should not be required*  ·  Example: `Then the field "bio" should not be required`
 - *^(I |we )*fill in the multi-value field "([^"]*)" with the following values:$*  ·  Example: `When I fill in the multi-value field "tags" with the following values:`
@@ -462,6 +479,7 @@ This index lists every public step grouped by source file, with one Gherkin exam
 - *^(I |we )*fill in the time part of the datetime field "([^"]*)" with "([^"]*)"$*  ·  Example: `When I fill in the time part of the datetime field "Start" with "10:00"`
 - *^(I |we )*fill in the start datetime field "([^"]*)" with date "([^"]*)" and time "([^"]*)"$*  ·  Example: `When I fill in the start datetime field "Event" with date "2026-05-08" and time "10:00"`
 - *^(I |we )*fill in the end datetime field "([^"]*)" with date "([^"]*)" and time "([^"]*)"$*  ·  Example: `When I fill in the end datetime field "Event" with date "2026-05-09" and time "18:00"`
+- The datetime steps name a field by the exact text of its label or of the legend of its fieldset (white space and letter case aside) and fill only its own inputs: the one inside the label, the one the label is for, or the ones that follow the label before the next field; an input whose name or aria-label contains the text is found last. A field with no such input fails the step and fills nothing.
 
 ### file-download.steps.js
 
@@ -671,15 +689,17 @@ This index lists every public step grouped by source file, with one Gherkin exam
 
 ### storage.steps.js
 
-- *^(?:the cookie|cookie) "([^"]*)" is set to "([^"]*)"$*  ·  Example: `Given the cookie "session" is set to "abc123"`
-- *^the cookie "([^"]*)" is removed$*  ·  Example: `Given the cookie "session" is removed`
+- *^(?:the cookie|cookie) "((?:[^"\\]|\\.)*)" is set to "((?:[^"\\]|\\.)*)"$*  ·  Example: `Given the cookie "session" is set to "abc123"`
+- *^the cookie "((?:[^"\\]|\\.)*)" is removed$*  ·  Example: `Given the cookie "session" is removed`
 - *^all cookies are cleared$*  ·  Example: `Given all cookies are cleared`
-- *^(?:the )?local storage "([^"]*)" is set to "([^"]*)"$*  ·  Example: `Given the local storage "user" is set to "Alice"`
-- *^(?:the )?local storage "([^"]*)" is removed$*  ·  Example: `Given the local storage "user" is removed`
+- *^(?:the )?local storage "((?:[^"\\]|\\.)*)" is set to "((?:[^"\\]|\\.)*)"$*  ·  Example: `Given the local storage "user" is set to "Alice"`
+- *^(?:the )?local storage "((?:[^"\\]|\\.)*)" is removed$*  ·  Example: `Given the local storage "user" is removed`
 - *^local storage is cleared$*  ·  Example: `Given local storage is cleared`
-- *^(?:the )?session storage "([^"]*)" is set to "([^"]*)"$*  ·  Example: `Given the session storage "checkout step" is set to "2"`
-- *^(?:the )?session storage "([^"]*)" is removed$*  ·  Example: `Given the session storage "checkout step" is removed`
+- *^(?:the )?session storage "((?:[^"\\]|\\.)*)" is set to "((?:[^"\\]|\\.)*)"$*  ·  Example: `Given the session storage "checkout step" is set to "2"`
+- *^(?:the )?session storage "((?:[^"\\]|\\.)*)" is removed$*  ·  Example: `Given the session storage "checkout step" is removed`
 - *^session storage is cleared$*  ·  Example: `Given session storage is cleared`
+
+A key or a value may hold a double quote written `\"`, as in a JSON value: `Given the local storage "prefs" is set to "{\"theme\":\"dark\"}"`.
 
 ### table.steps.js
 
@@ -762,6 +782,8 @@ This index lists every public step grouped by source file, with one Gherkin exam
 - *^(I |we )*print last XML response$*  ·  Example: `When I print last XML response`
 
 ### yaml.steps.js
+
+The numeric steps (greater than, less than, between) compare a YAML number only: a quoted `"3"`, `true` or `null` fails with its type, where `Number()` would have read 3, 1 or 0.
 
 - *the YAML response content from the file {string}*  ·  Example: `Given the YAML response content from the file "config.yml"`
 - *the YAML response content is the following:*  ·  Example: `Given the YAML response content is the following:`

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Select lists named by their label</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    label { display: block; margin-top: 12px; }
+  </style>
+</head>
+<body>
+  <h1>Select lists named by their label</h1>
+  <p>The label of each select list is one word, and its name and id are something else.</p>
+
+  <form id="vehicle-form">
+    <label for="vehicle-list">Cars</label>
+    <select id="vehicle-list" name="vehicle">
+      <option value="">- Choose -</option>
+      <option value="volvo">Volvo</option>
+      <option value="saab">Saab</option>
+      <option value="mercedes">Mercedes</option>
+    </select>
+
+    <label for="filters-colour">Colour</label>
+    <select id="filters-colour" name="filters[colour]">
+      <option value="">- Any -</option>
+      <option value="red">Red</option>
+      <option value="green">Green</option>
+      <option value="blue">Blue</option>
+    </select>
+  </form>
+</body>
+</html>

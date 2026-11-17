@@ -1,10 +1,9 @@
 # Harness CI pipeline for webship-js (Pipeline-as-Code).
 #
-# Harness CI is part of the Harness Software Delivery Platform. The free
-# Developer plan includes 90 build credits/day on hosted Linux x86 builds —
-# enough for ~9 runs of the 9-minute suite per day. After signup, point a
-# Git Sync connector at this repo and pick `.harness/webship-js-pipeline.yml`
-# as the pipeline definition.
+# Harness CI is part of the Harness Software Delivery Platform. For the free
+# plan and its build credits, see the Harness pricing page: they change over
+# time. After signup, point a Git Sync connector at this repo and pick
+# `.harness/webship-js-pipeline.yml` as the pipeline definition.
 #
 # Full walkthrough: docs/16-ci-cd.md → "Harness CI".
 
@@ -92,7 +91,7 @@ pipeline:
                     image: plugins/s3
                     settings:
                       bucket: webship-js-reports
-                      source: tests/reports/cucumber_report.{html,pdf,json}
+                      source: "{tests/reports,screenshots,videos}/**"
                       target: harness/$DRONE_BUILD_NUMBER/
                       access_key: <+secrets.getValue("aws_access_key")>
                       secret_key: <+secrets.getValue("aws_secret_key")>

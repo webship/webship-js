@@ -82,6 +82,21 @@ function apiFailure(message, details) {
 }
 
 /**
+ * The rows of a two-column table of names and values (headers, body fields).
+ * Every row is data, as the examples write the table; a first row that names
+ * the columns (| name | value |, | header | value |, | field | value |,
+ * | key | value |) is a header row and is left out.
+ */
+function nameValueRows(table) {
+  const rows = table.raw();
+  if (rows.length === 0) return rows;
+  const [name, value] = rows[0].map((cell) => String(cell || '').trim().toLowerCase());
+  const header = /^(?:name|header|header name|field|field name|key)$/.test(name || '')
+    && /^(?:value|header value|field value)$/.test(value || '');
+  return header ? rows.slice(1) : rows;
+}
+
+/**
  * Helper function to prepare URL by replacing placeholders and trimming slashes
  */
 function prepareUrl(url) {
@@ -107,12 +122,55 @@ function apiUrl(endpoint, method) {
 }
 
 /**
- * Helper function to get nested property from object using dot notation.
+ * Find a property of a JSON value by its path: a dot path (`data.0.id`,
+ * `data[0].id`) or a JSON Pointer (`/data/0/id`, with ~1 for "/" and ~0 for
+ * "~"), the form the YAML steps take. Returns where it stopped when a part of
+ * the path is missing, written the way the path was written.
+ *
+ * @param {*} obj
+ * @param {string} path
+ * @returns {{found: boolean, value: *, missing: string, at: string}}
+ */
+function resolveJsonPath(obj, path) {
+  const pointer = path.startsWith('/');
+  const parts = pointer
+    ? path.slice(1).split('/').map((part) => part.replace(/~1/g, '/').replace(/~0/g, '~'))
+    : path.replace(/\[(\d+)\]/g, '.$1').split('.').filter((part) => part !== '');
+  const label = (count) => (pointer ? '/' + parts.slice(0, count).join('/') : parts.slice(0, count).join('.'));
+  let current = obj;
+  for (let i = 0; i < parts.length; i += 1) {
+    const part = parts[i];
+    const has = current !== null && typeof current === 'object' && Object.prototype.hasOwnProperty.call(current, part);
+    if (!has) return { found: false, value: undefined, missing: part, at: i ? label(i) : '' };
+    current = current[part];
+  }
+  return { found: true, value: current, missing: '', at: '' };
+}
+
+/**
+ * The value at a path of a JSON value, or undefined when a part is missing.
  */
 function getNestedProperty(obj, path) {
-  return path.split('.').reduce((current, prop) => {
-    return current && current[prop] !== undefined ? current[prop] : undefined;
-  }, obj);
+  return resolveJsonPath(obj, path).value;
+}
+
+/**
+ * The words that say where a path stopped: the part that is missing and the
+ * property that does not have it.
+ */
+function missingPart(result) {
+  return result.at
+    ? `"${result.at}" has no "${result.missing}"`
+    : `the response has no "${result.missing}" at its top level`;
+}
+
+const PATH_HINT = 'name a property with a dot path ("data.0.id", "data[0].id") or a JSON Pointer ("/data/0/id").';
+
+/**
+ * A value of a JSON response, written for a failure message.
+ */
+function shownValue(value) {
+  return typeof value === 'string' ? `"${value}"` : excerpt(JSON.stringify(value));
 }
 
 /**
@@ -192,7 +250,8 @@ Given(/^(?:I set the header|we set the header|the header) "([^"]*)" (?:to|is) "(
 });
 
 /**
- * Set multiple headers using a table.
+ * Set multiple headers using a table: one `| name | value |` row per header,
+ * every row sent (a first row that names the columns is left out).
  *
  * Example #1: Given I set the following headers:
  *               | Content-Type  | application/json    |
@@ -215,7 +274,7 @@ Given(/^(?:I set the header|we set the header|the header) "([^"]*)" (?:to|is) "(
  *               | X-Request-ID  | req-001            |
  */
 Given(/^(?:I|we) set the following headers:$/, function (table) {
-  table.rows().forEach(row => {
+  nameValueRows(table).forEach(row => {
     apiHeaders[row[0]] = replacePlaceHolder(row[1]);
   });
 });
@@ -241,7 +300,9 @@ Given(/^(?:I set the request body to|we set the request body to|the request body
 });
 
 /**
- * Set request body using a table.
+ * Set request body using a table: one `| field | value |` row per field,
+ * every row sent (a first row that names the columns is left out). "true",
+ * "false" and numbers are sent as JSON booleans and numbers.
  *
  * Example #1: Given I set the request body with:
  *               | name  | John Doe           |
@@ -265,7 +326,7 @@ Given(/^(?:I set the request body to|we set the request body to|the request body
  */
 Given(/^(?:I|we) set the request body with:$/, function (table) {
   apiRequestData = {};
-  table.rows().forEach(row => {
+  nameValueRows(table).forEach(row => {
     let value = replacePlaceHolder(row[1]);
     
     // Try to parse as number or boolean, otherwise keep as string
@@ -405,7 +466,9 @@ When(/^(?:I |we )?send a ([A-Z]+) request to "([^"]+)" with body:$/, async funct
 });
 
 /**
- * Sends HTTP request to specific URL with form data.
+ * Sends HTTP request to specific URL with form data: one `name=value` field
+ * per line, split on the first "=" only, so a value keeps every "=" after it
+ * (a query string, a base64 token). Blank lines are skipped.
  *
  * Example #1: When I send a POST request to "/login" with form data:
  *               """
@@ -437,13 +500,13 @@ When(/^(?:I |we )?send a ([A-Z]+) request to "([^"]+)" with form data:$/, async 
   const url = apiUrl(endpoint, method);
   const body = replacePlaceHolder(docString.trim());
   
-  // Parse form data
+  // Parse form data: one field per line, split on its first "=".
   const fields = {};
   body.split('\n').forEach(line => {
-    const [key, value] = line.split('=');
-    if (key && value !== undefined) {
-      fields[key.trim()] = value.trim();
-    }
+    const at = line.indexOf('=');
+    if (at <= 0) return;
+    const key = line.slice(0, at).trim();
+    if (key) fields[key] = line.slice(at + 1).trim();
   });
   
   // Convert to URL encoded format
@@ -607,7 +670,8 @@ Then(/^(?:the )?API response should contain json:$/, function (docString) {
 });
 
 /**
- * Alternative syntax for JSON property verification.
+ * Alternative syntax for JSON property verification. The property is named by
+ * a dot path (`user.role`, `data[0].id`) or a JSON Pointer (`/user/role`).
  *
  * Example #1: Then the JSON response should have "name" equal to "John Doe"
  * Example #2: Then the API response should have "id" equal to 1
@@ -617,6 +681,7 @@ Then(/^(?:the )?API response should contain json:$/, function (docString) {
  * Example #6: Then the JSON property "count" should be 42
  * Example #7: Then the JSON response should have "user.role" equal to "admin"
  * Example #8: Then the JSON property "published" should be false
+ * Example #9: Then the JSON response should have "/data/0/type" equal to "articles"
  */
 Then(/^(?:the JSON response should have|the API response should have|the JSON property) "([^"]*)" (?:equal to|should be) (.+)$/, function (propertyPath, expectedValue) {
   if (!apiResponse) {
@@ -639,14 +704,21 @@ Then(/^(?:the JSON response should have|the API response should have|the JSON pr
   }
   
   // Get the actual value from response
-  const actualValue = getNestedProperty(apiResponse.data, propertyPath);
-  
-  assert.strictEqual(actualValue, parsedExpectedValue,
-    `Expected "${propertyPath}" to be ${parsedExpectedValue}, but got ${actualValue}`);
+  const result = resolveJsonPath(apiResponse.data, propertyPath);
+  if (!result.found) {
+    throw apiFailure(`The JSON response has no "${propertyPath}": ${missingPart(result)}.`, {
+      hint: PATH_HINT,
+    });
+  }
+  if (result.value !== parsedExpectedValue) {
+    throw apiFailure(`The JSON response has "${propertyPath}" equal to ${shownValue(result.value)}, not ${shownValue(parsedExpectedValue)}.`, {
+      hint: 'a value in quotes is compared as text; true, false and a number without quotes as JSON booleans and numbers.',
+    });
+  }
 });
 
 /**
- * Verify a JSON property exists.
+ * Verify a JSON property exists, named by a dot path or a JSON Pointer.
  *
  * Example #1: Then the JSON response should have property "id"
  * Example #2: Then the API response should contain property "user.email"
@@ -656,20 +728,24 @@ Then(/^(?:the JSON response should have|the API response should have|the JSON pr
  * Example #6: Then the API response should contain property "meta.total"
  * Example #7: Then the JSON response should have property "createdAt"
  * Example #8: Then the API response should contain property "links.self"
+ * Example #9: Then the JSON response should have property "/links/self"
  */
 Then(/^(?:the JSON response should have property|the API response should contain property) "([^"]*)"$/, function (propertyPath) {
   if (!apiResponse) {
     throw friendly('No API response available. Make sure to send a request first.');
   }
   
-  const actualValue = getNestedProperty(apiResponse.data, propertyPath);
-  
-  assert(actualValue !== undefined, 
-    `Expected property "${propertyPath}" to exist in response, but it doesn't`);
+  const result = resolveJsonPath(apiResponse.data, propertyPath);
+  if (!result.found) {
+    throw apiFailure(`The JSON response has no "${propertyPath}": ${missingPart(result)}.`, {
+      hint: PATH_HINT,
+    });
+  }
 });
 
 /**
- * Verify a JSON property does not exist.
+ * Verify a JSON property does not exist, named by a dot path or a JSON
+ * Pointer.
  *
  * Example #1: Then the JSON response should not have property "password"
  * Example #2: Then the API response should not contain property "secret"
@@ -679,16 +755,20 @@ Then(/^(?:the JSON response should have property|the API response should contain
  * Example #6: Then the API response should not contain property "internal"
  * Example #7: Then the JSON response should not have property "debug"
  * Example #8: Then the API response should not contain property "stack"
+ * Example #9: Then the JSON response should not have property "/user/password"
  */
 Then(/^(?:the JSON response should not have property|the API response should not contain property) "([^"]*)"$/, function (propertyPath) {
   if (!apiResponse) {
     throw friendly('No API response available. Make sure to send a request first.');
   }
   
-  const actualValue = getNestedProperty(apiResponse.data, propertyPath);
-  
-  assert(actualValue === undefined, 
-    `Expected property "${propertyPath}" not to exist in response, but it does`);
+  const result = resolveJsonPath(apiResponse.data, propertyPath);
+  if (result.found) {
+    throw apiFailure(`The JSON response has "${propertyPath}", but it should not.`, {
+      found: shownValue(result.value),
+      hint: PATH_HINT,
+    });
+  }
 });
 
 /**
@@ -759,6 +839,39 @@ Then(/^print API response$/, function () {
   
   console.log(`${apiResponse.config.method.toUpperCase()} ${apiResponse.config.url} => ${apiResponse.status}:`);
   console.log(typeof apiResponse.data === 'string' ? apiResponse.data : JSON.stringify(apiResponse.data, null, 2));
+});
+
+/**
+ * Verify the last API response has, or has not, a header, whatever its value.
+ * The name is matched in any letter case. To check the value, use
+ * `the response header "X" should be "Y"` or `should contain "Y"`.
+ *
+ * Example #1: Then the API response should contain the header "ETag"
+ * Example #2: Then the API response should contain the header "Location"
+ * Example #3: Then API response should contain the header "Content-Type"
+ * Example #4: Then the API response should not contain the header "X-Powered-By"
+ * Example #5: Then the API response should not contain the header "Server"
+ * Example #6: And API response should not contain the header "Set-Cookie"
+ */
+Then(/^(?:the )?API response should( not)? contain the header "([^"]*)"$/, function (notCase, headerName) {
+  if (!apiResponse) {
+    throw friendly('No API response available. Make sure to send a request first.');
+  }
+  const wanted = headerName.trim().toLowerCase();
+  const names = Object.keys(apiResponse.headers || {});
+  const present = names.some((name) => name.toLowerCase() === wanted);
+  if (!notCase && !present) {
+    throw apiFailure(`The API response has no "${headerName}" header.`, {
+      found: `the headers ${names.join(', ') || 'none'}`,
+      hint: 'check the name of the header; the step reads the headers of the last API response, in any letter case.',
+    });
+  }
+  if (notCase && present) {
+    throw apiFailure(`The API response has the header "${headerName}", but it should not.`, {
+      found: `"${headerName}: ${apiResponse.headers[wanted]}"`,
+      hint: 'the step reads the headers of the last API response, in any letter case, whatever their value.',
+    });
+  }
 });
 
 /**

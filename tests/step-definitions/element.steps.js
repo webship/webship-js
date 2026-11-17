@@ -1,6 +1,6 @@
 'use strict';
 
-const { friendly } = require('./webship');
+const { friendly, failure } = require('./webship');
 
 // Element interactions and visual / positional assertions using Playwright.
 
@@ -27,7 +27,69 @@ Then('the element {string} should appear after the element {string}', async func
 });
 
 /**
- * Assert text A appears after text B in the document body's text order.
+ * A short excerpt of `text` around the place `index`, for a failure message.
+ *
+ * @param {string} text
+ * @param {number} index
+ * @param {number} length
+ * @returns {string}
+ */
+function around(text, index, length) {
+  const start = Math.max(0, index - 30);
+  const end = Math.min(text.length, index + length + 30);
+  return `${start > 0 ? '…' : ''}${text.slice(start, end).replace(/\s+/g, ' ').trim()}${end < text.length ? '…' : ''}`;
+}
+
+/**
+ * Check that the first place `after` appears comes later than the first place
+ * `before` appears, in the visible text of the page or of one element.
+ *
+ * @param {Object} world
+ * @param {string} after
+ * @param {string} before
+ * @param {string} [scope] - CSS selector of the element to read; the page when absent.
+ */
+async function assertTextAfter(world, after, before, scope) {
+  let text;
+  if (scope) {
+    const element = world.page.locator(scope).first();
+    try {
+      await element.waitFor({ state: 'attached', timeout: 5000 });
+    } catch {
+      throw failure(world.page, `No element matches "${scope}" after 5 seconds.`, {
+        hint: 'the last argument is a CSS selector of the element whose text is read, such as "nav.breadcrumb".',
+      });
+    }
+    text = await element.innerText();
+  } else {
+    text = await world.page.locator('body').innerText();
+  }
+  const where = scope ? `in the element "${scope}"` : 'on the page';
+  const scopedForm = `the text "${after}" should appear after the text "${before}" in the "<selector>" element`;
+  const iAfter = text.indexOf(after);
+  const iBefore = text.indexOf(before);
+  if (iAfter === -1 || iBefore === -1) {
+    const missing = [iAfter === -1 ? after : null, iBefore === -1 ? before : null].filter((t) => t !== null);
+    throw failure(world.page, `The text ${missing.map((t) => `"${t}"`).join(' and the text ')} ${missing.length > 1 ? 'are' : 'is'} not ${where}.`, {
+      hint: 'the step reads the visible text, with its letter case.',
+    });
+  }
+  if (iAfter <= iBefore) {
+    throw failure(world.page, `The text "${after}" does not appear after the text "${before}" ${where}.`, {
+      found: `"${after}" first at "${around(text, iAfter, after.length)}"; "${before}" first at "${around(text, iBefore, before.length)}"`,
+      hint: scope
+        ? 'the step compares the first place each text appears in the visible text of the element, with its letter case.'
+        : `the step compares the first place each text appears in the visible text of the whole page, with its letter case, so a menu or a header can decide it. To compare them inside one part of the page, use: ${scopedForm}`,
+    });
+  }
+}
+
+/**
+ * Assert text A appears after text B in the visible text of the page.
+ *
+ * The first place each text appears on the whole page is compared, so a text
+ * that a menu or a header also holds is found there first. To compare two
+ * texts inside one part of the page, add `in the "<selector>" element`.
  *
  * Example #1: Then the text "Sign in" should appear after the text "Welcome"
  * Example #2: Then the text "Total" should appear after the text "Subtotal"
@@ -37,12 +99,22 @@ Then('the element {string} should appear after the element {string}', async func
  *
  */
 Then('the text {string} should appear after the text {string}', async function (t1, t2) {
-  const body = await this.page.locator('body').innerText();
-  const i1 = body.indexOf(t1);
-  const i2 = body.indexOf(t2);
-  assert.ok(i1 !== -1, `Text "${t1}" not found.`);
-  assert.ok(i2 !== -1, `Text "${t2}" not found.`);
-  assert.ok(i1 > i2, `Text "${t1}" should appear after "${t2}".`);
+  await assertTextAfter(this, t1, t2);
+});
+
+/**
+ * Assert text A appears after text B inside one element: the first place each
+ * text appears in the visible text of the first element the selector matches.
+ *
+ * Example #1: Then the text "Products" should appear after the text "Home" in the "nav.breadcrumb" element
+ * Example #2: Then the text "Total" should appear after the text "Subtotal" in the "#cart" element
+ * Example #3: And the text "Step 3" should appear after the text "Step 2" in the ".wizard" element
+ * Example #4: Then the text "Privacy" should appear after the text "Terms" in the "footer" element
+ * Example #5: Then the text "Reply" should appear after the text "Comment" in the "article" element
+ *
+ */
+Then('the text {string} should appear after the text {string} in the {string} element', async function (t1, t2, scope) {
+  await assertTextAfter(this, t1, t2, scope);
 });
 
 /**
@@ -106,7 +178,10 @@ Then('the element {string} with the attribute {string} and the value containing 
 });
 
 /**
- * Assert an element is positioned within the top 100 px of the viewport.
+ * Assert an element is at the top of the viewport: the top of its box is
+ * between 0 and 100 pixels from the top of the viewport. The step looks
+ * again for up to 5 seconds, so an element still on its way after a smooth
+ * scroll gets there.
  *
  * Example #1: Then the element "#header" should be at the top of the viewport
  * Example #2: Then the element "h1" should be at the top of the viewport
@@ -114,12 +189,45 @@ Then('the element {string} with the attribute {string} and the value containing 
  * Example #4: When I scroll to the top
  *               Then the element "#hero" should be at the top of the viewport
  * Example #5: Then the element "[role=banner]" should be at the top of the viewport
+ * Example #6: When I click "Go to section 3"
+ *               Then the element "#section-3" should be at the top of the viewport
  *
  */
 Then('the element {string} should be at the top of the viewport', async function (sel) {
-  const box = await this.page.locator(sel).first().boundingBox();
-  assert.ok(box, `Element "${sel}" not found or not visible.`);
-  assert.ok(box.y >= 0 && box.y <= 100, `Element "${sel}" is not at top of viewport (y=${box.y}).`);
+  const element = this.page.locator(sel).first();
+  const deadline = Date.now() + 5000;
+  let state = 'missing';
+  let top = null;
+  for (;;) {
+    if (await element.count().catch(() => 0)) {
+      const box = await element.boundingBox().catch(() => null);
+      if (box) {
+        top = box.y;
+        state = 'placed';
+        if (top >= 0 && top <= 100) return;
+      } else {
+        state = 'hidden';
+      }
+    } else {
+      state = 'missing';
+    }
+    if (Date.now() >= deadline) break;
+    await this.page.waitForTimeout(100);
+  }
+  if (state === 'missing') {
+    throw failure(this.page, `No element matches "${sel}" after 5 seconds.`, {
+      hint: 'the argument is a CSS selector, such as "#hero" or "header.site-header".',
+    });
+  }
+  if (state === 'hidden') {
+    throw failure(this.page, `The element "${sel}" is on the page but not visible after 5 seconds.`, {
+      hint: 'a hidden element has no place in the viewport.',
+    });
+  }
+  throw failure(this.page, `The element "${sel}" is not at the top of the viewport after 5 seconds.`, {
+    found: `its top is ${Math.round(top)} px from the top of the viewport`,
+    hint: `the step passes when the top of the element is between 0 and 100 pixels from the top of the viewport. To bring it there, use: When I scroll to the element "${sel}"`,
+  });
 });
 
 /**

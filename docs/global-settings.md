@@ -79,6 +79,8 @@ default below.
 
 ### `selectors` — named selector registry
 
+A selector file of `files` is looked for in the `filesPath` folder first (default `./tests/selectors/`), then as written from the project root, so `'auth.json'` and `'tests/selectors/auth.json'` name the same file.
+
 ```js
 selectors: {
   css: { /* name → CSS selector */ },
@@ -215,10 +217,19 @@ const config = {
 | --- | --- | --- |
 | `browser` | `chromium` | `BROWSER` (`chromium` / `firefox` / `webkit`) |
 | `launchOptions.headless` | `true` | `HEADLESS=false` for headed |
-| `launchOptions.slowMo` | `300` headed: `800` | `SLOW_MO` (ms) |
+| `launchOptions.slowMo` | `300` headed: `800`, on a laptop and in CI alike | `SLOW_MO` (ms); `SLOW_MO=0` for full speed |
 | `launchOptions.args` | chromium-only flags | edit file directly |
 | `contextOptions.viewport` | `null` (use browser default) | edit file directly |
 | `contextOptions.ignoreHTTPSErrors` | `true` | edit file directly |
+
+`ignoreHTTPSErrors: true` and Chromium's `--ignore-certificate-errors` let a
+suite run against a local site with a self-signed certificate. They also open
+a page served with an expired, self-signed or wrong-host certificate as if
+the certificate were valid, and the API and REST steps follow the same
+setting: a passing run says nothing about the certificate. To check it, set
+`ignoreHTTPSErrors: false` and remove `--ignore-certificate-errors` from the
+Chromium arguments; the first navigation to a page with a bad certificate
+then fails.
 
 ---
 
@@ -229,6 +240,7 @@ const config = {
 | `WEBSHIP_AUTO_SETTLE` | Set to `off` to disable the BBR auto-settle hook (`smartSettle(page, 1500)` after every state-changing step). |
 | `WEBSHIP_STEP_TIMEOUT` | Cucumber step timeout in milliseconds. Defaults to `45000`. webship-js calls `setDefaultTimeout()` when its step definitions load, which overrides a `timeout` set in your own `cucumber.js`, so raise it here instead. |
 | `WEBSHIP_REPORT_DISABLE` | Set to `1` to skip auto-generating the HTML report on cucumber-js process exit. |
+| `WEBSHIP_REPORT_JSON` | The JSON report the HTML report is built from at the end of a run. Without it, the file of the `json:` formatter of the command line or of `cucumber.js` is used, else `tests/reports/cucumber_report.json`. With `--parallel`, the report is built once, after the whole JSON report is written. |
 | `WEBSHIP_REPORT_ARGS` | Extra CLI flags forwarded to `bin/generate-reports.js`. e.g. `--theme hierarchy --layout 2`. |
 
 ---

@@ -31,9 +31,13 @@ When I send a POST request to "/users" with body:
   """
 When I send a PUT request to "/users/1" with form data:
   """
-  name=Alice&role=admin
+  name=Alice
+  role=admin
+  redirect=/account?tab=profile
   """
 ```
+
+Form data takes one `name=value` field per line. Each line is split on its first `=`, so a value keeps the `=` it holds (`redirect=/account?tab=profile` sends `/account?tab=profile`).
 
 ## Asserting responses
 
@@ -42,11 +46,15 @@ Then the API response code should be 200
  And the API response should contain "Alice"
  And the API response should not contain "<script>"
  And the response header "content-type" should contain "json"
+ And the API response should contain the header "ETag"
+ And the API response should not contain the header "X-Powered-By"
  And the response should be valid JSON
  And the JSON property "user.name" should be "Alice"
  And the JSON response should have property "user.id"
  And the JSON response should not have property "password"
 ```
+
+The JSON property steps name a property by a dot path (`user.name`, `orders.0.status`, `orders[0].status`) or by a JSON Pointer (`/user/name`, `/orders/0/status`), the form the YAML steps take. When a part of the path is missing, the failure says which one and where the path stopped.
 
 `the API response should contain "…"` and `the API response should not contain "…"` read the body of the response the same way: the text is looked for anywhere in it, letter case ignored, after the placeholders set with `I set placeholder` are replaced. A text one of them finds, the other refuses. A failure names the request the response answers.
 
@@ -82,6 +90,8 @@ When I send a POST request to "/users" with values:
   | name  | Alice                |
   | email | alice@example.com    |
 ```
+
+The tables of `with values:`, `I set the request body with:` and `I set the following headers:` send every row, the first one included. A first row that names the columns (`| name | value |`, `| header | value |`, `| field | value |`) is a header row and is left out.
 
 Assert against an exact JSON shape with a doc string:
 

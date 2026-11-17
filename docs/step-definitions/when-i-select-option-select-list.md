@@ -11,6 +11,8 @@ When (I|we)* select "([^"]*)?" from "([^"]*)?"
 
 "This step definition acts as a command to select an option from a dropdown list." The mechanism identifies a select element by its associated label, then selects the matching option based on its displayed text.
 
+The select list is named by the exact text of its label (one word or several), else by its name, else by its id; a name that starts with `#`, `.` or `[` is a CSS selector. The option is named by its text, else by its value. When no select list is found within 5 seconds, or the list has no such option, the step fails at once and lists the options the list has.
+
 ## Example
 
 **Selection by label:**

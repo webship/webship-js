@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Settle budget</title>
+</head>
+<body>
+  <h1>Settle budget</h1>
+  <p>The button answers one second after it is pressed, the way a slow request would.</p>
+  <button id="load" type="button">Load</button>
+  <p id="status">Waiting</p>
+  <script>
+    document.getElementById('load').addEventListener('click', function () {
+      document.getElementById('status').textContent = 'Loading';
+      setTimeout(function () {
+        document.getElementById('status').textContent = 'Loaded';
+      }, 1000);
+    });
+  </script>
+</body>
+</html>
