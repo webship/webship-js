@@ -29,7 +29,7 @@ This is a topical reference. For per-step examples, see the JSDoc comment above 
 
 | Step | Notes |
 | --- | --- |
-| `When I fill in "Label" with "value"` | Resolves by label / placeholder / name. `with ""` empties the field, in every fill form |
+| `When I fill in "Label" with "value"` | Resolves by label / placeholder / name. `with ""` empties the field, in every fill form. A hidden, disabled or read-only field fails within 5 s, saying which |
 | `When I fill in "value" for "Label"` | Reverse phrasing |
 | `When I fill in "value" for "selector" by attr` | By attribute |
 | `When I fill in the following:` (table) | Bulk fill |
@@ -240,7 +240,7 @@ Settings (`worldParameters.javascript`):
 | `beforeScenario` | `WEBSHIP_JS_ERROR_BEFORE` | `false` | Snapshot pre-existing errors at scenario start |
 | `afterScenario` | `WEBSHIP_JS_ERROR_AFTER` | `true` | Report at scenario end |
 
-The explicit step `Then there should be no JavaScript errors` always asserts (independent of `mode`) and suppresses the auto-report so a single error is not announced twice.
+The explicit step `Then there should be no JavaScript errors` counts errors only — uncaught errors and `console.error`, not the warnings when `warning` is a captured level — always asserts (independent of `mode`) and leaves the errors out of the auto-report so a single error is not announced twice; `Then there should be no JavaScript warnings` does the same for the warnings. What a check did not read is still reported at the end of the scenario.
 
 `Then JavaScript errors should not match "…"` handles the errors it read in the same way: a page with noise it tolerates does not fail the scenario at its end in `fail` mode, only an error that matches the pattern fails it.
 
@@ -700,6 +700,8 @@ This index lists every public step grouped by source file, with one Gherkin exam
 - *^session storage is cleared$*  ·  Example: `Given session storage is cleared`
 
 A key or a value may hold a double quote written `\"`, as in a JSON value: `Given the local storage "prefs" is set to "{\"theme\":\"dark\"}"`.
+
+Local and session storage belong to the site of the page, so their steps need a page of the site first: before the first `Given I am on "…"` the page is blank, and the step fails with a hint to open one. A cookie can be set before any page.
 
 ### table.steps.js
 
