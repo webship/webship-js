@@ -24,6 +24,7 @@
     "test:headed": "HEADLESS=false cucumber-js --config cucumber.js",
     "test:dry-run": "node tests/check-dry-run.js",
     "test:must-fail": "node tests/check-must-fail.js",
+    "test:js-errors": "node tests/check-javascript-errors.js",
     "test:screenshots": "node tests/check-screenshots.js",
     "test:config": "node tests/check-config.js",
     "test:exit-report": "node tests/check-exit-report.js",
