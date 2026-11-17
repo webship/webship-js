@@ -671,15 +671,17 @@ This index lists every public step grouped by source file, with one Gherkin exam
 
 ### storage.steps.js
 
-- *^(?:the cookie|cookie) "([^"]*)" is set to "([^"]*)"$*  ·  Example: `Given the cookie "session" is set to "abc123"`
-- *^the cookie "([^"]*)" is removed$*  ·  Example: `Given the cookie "session" is removed`
+- *^(?:the cookie|cookie) "((?:[^"\\]|\\.)*)" is set to "((?:[^"\\]|\\.)*)"$*  ·  Example: `Given the cookie "session" is set to "abc123"`
+- *^the cookie "((?:[^"\\]|\\.)*)" is removed$*  ·  Example: `Given the cookie "session" is removed`
 - *^all cookies are cleared$*  ·  Example: `Given all cookies are cleared`
-- *^(?:the )?local storage "([^"]*)" is set to "([^"]*)"$*  ·  Example: `Given the local storage "user" is set to "Alice"`
-- *^(?:the )?local storage "([^"]*)" is removed$*  ·  Example: `Given the local storage "user" is removed`
+- *^(?:the )?local storage "((?:[^"\\]|\\.)*)" is set to "((?:[^"\\]|\\.)*)"$*  ·  Example: `Given the local storage "user" is set to "Alice"`
+- *^(?:the )?local storage "((?:[^"\\]|\\.)*)" is removed$*  ·  Example: `Given the local storage "user" is removed`
 - *^local storage is cleared$*  ·  Example: `Given local storage is cleared`
-- *^(?:the )?session storage "([^"]*)" is set to "([^"]*)"$*  ·  Example: `Given the session storage "checkout step" is set to "2"`
-- *^(?:the )?session storage "([^"]*)" is removed$*  ·  Example: `Given the session storage "checkout step" is removed`
+- *^(?:the )?session storage "((?:[^"\\]|\\.)*)" is set to "((?:[^"\\]|\\.)*)"$*  ·  Example: `Given the session storage "checkout step" is set to "2"`
+- *^(?:the )?session storage "((?:[^"\\]|\\.)*)" is removed$*  ·  Example: `Given the session storage "checkout step" is removed`
 - *^session storage is cleared$*  ·  Example: `Given session storage is cleared`
+
+A key or a value may hold a double quote written `\"`, as in a JSON value: `Given the local storage "prefs" is set to "{\"theme\":\"dark\"}"`.
 
 ### table.steps.js
 
