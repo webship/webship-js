@@ -44,6 +44,7 @@ suite — nearly every bundled feature loads a static fixture from `examples/`.
 | `npm run test:paths` | No browser: a feature or a scenario (`file:line`) named on the command line runs alone; naming none runs the whole suite. |
 | `npm run test:config` | A `cucumber.js` whose `worldParameters` carry only the launch URL runs a scenario green and the run ends by itself. |
 | `npm run test:exit-report` | Needs browsers, no server: the HTML report built at the end of a run is built once with `--parallel`, from a JSON report written elsewhere, and says so in one line when there is none. |
+| `npm run test:breakpoints` | The `@mobile` / `@desktop` tags, `set the viewport to the "…" breakpoint` and `viewing the site on a … screen` read one breakpoint registry (config, `WEBSHIP_SELECTORS_BREAKPOINTS`, `default: true`). |
 | `npm run generate-reports` | HTML (+ optional PDF) report from `tests/reports/cucumber_report.json`. |
 
 Targeting a subset:
@@ -97,6 +98,9 @@ Everything shared lives here; every `*.steps.js` does
   Playwright's 30 s default so locator timeouts reach our try/catch
   wrappers and testers see a friendly message, not "function timed out".
   The 45 s in `cucumber.js` exists for the same reason; keep them aligned.
+  A step whose length the scenario gives (`I wait 2 minutes`, `within N
+  seconds`) takes `OWN_LENGTH` from `wait.steps.js` (no cucumber limit)
+  and bounds itself with `withinTimeLimit` instead.
 * **The init script** installed via `context.addInitScript()` in
   `openBrowser()` — monkey-patches `fetch`, `XMLHttpRequest.send`,
   `setTimeout`/`clearTimeout` and attaches a `MutationObserver` to
@@ -116,8 +120,9 @@ Everything shared lives here; every `*.steps.js` does
   helpers (`resolveRelativeDate`, `parseRelativeOffset`,
   `formatRelativeDate`), and the error builders (`friendly`, `humanize`).
 * **Two process-level side effects**: a stdout/stderr filter that strips
-  noisy `✔ Before # …` hook lines from cucumber's failure dump
-  (`WEBSHIP_FILTER_HOOK_LINES=off` to disable), and a `process.on('exit')`
+  noisy `✔ Before # …` hook lines from cucumber's failure dump, and in a
+  dry run (`--dry-run`, `-d`) the pretty formatter's `- skipped` line for
+  every hook and step (`WEBSHIP_FILTER_HOOK_LINES=off` to disable), and a `process.on('exit')`
   hook that auto-generates the HTML report via `bin/generate-reports`
   (`WEBSHIP_REPORT_DISABLE=1` to disable, `WEBSHIP_REPORT_ARGS` to pass
   flags). It runs only in the process that runs cucumber-js, never in a

@@ -8,18 +8,37 @@ const path = require('path');
 // ---------------------------------------------------------------------------
 // Output filter — strip noisy `✔ Before # ...` / `✔ After # ...` hook lines
 // from cucumber-js's failure dump so tester-facing output stays focused on
-// the failing step + hint. Disable with WEBSHIP_FILTER_HOOK_LINES=off.
+// the failing step + hint. In a dry run (--dry-run or -d), also strip the
+// pretty formatter's "- skipped" lines: every hook and every step of a dry
+// run is skipped, and a line for each buries the "? undefined" and
+// "✖ ambiguous" lines the dry run is for. Disable with
+// WEBSHIP_FILTER_HOOK_LINES=off.
 // ---------------------------------------------------------------------------
 if (process.env.WEBSHIP_FILTER_HOOK_LINES !== 'off') {
   const HOOK_LINE = /^\s*[✔✖✗⚠?-]\s+(?:Before|After|BeforeStep|AfterStep)\b.*$/;
+  const DRY_RUN = process.argv.slice(2).some((arg) => arg === '--dry-run' || arg === '-d');
+  const SKIPPED_LINE = /^\s*-\s+skipped\s*$/;
+  const plain = (line) => line.replace(/\x1b\[[0-9;]*m/g, '');
+  const dropped = (line) => HOOK_LINE.test(plain(line)) || (DRY_RUN && SKIPPED_LINE.test(plain(line)));
   const wrap = (stream) => {
     const orig = stream.write.bind(stream);
+    // The pretty formatter writes a line and its line break in two writes:
+    // when a line is dropped, so is the line break that follows it.
+    let dropLineBreak = false;
     stream.write = (chunk, encoding, cb) => {
       if (typeof chunk === 'string' || Buffer.isBuffer(chunk)) {
         const text = typeof chunk === 'string' ? chunk : chunk.toString('utf8');
+        const skipBreak = dropLineBreak && /^\r?\n$/.test(text);
+        dropLineBreak = false;
+        if (skipBreak || (!text.includes('\n') && text.trim() && dropped(text))) {
+          dropLineBreak = !skipBreak;
+          const done = typeof encoding === 'function' ? encoding : cb;
+          if (typeof done === 'function') process.nextTick(done);
+          return true;
+        }
         const filtered = text
           .split('\n')
-          .filter((line) => !HOOK_LINE.test(line.replace(/\x1b\[[0-9;]*m/g, '')))
+          .filter((line) => !dropped(line))
           .join('\n');
         return orig(filtered, encoding, cb);
       }
@@ -571,6 +590,40 @@ async function locateByLabelOrSelector(page, name, timeout) {
   }
 }
 
+// The package's own tests/assets/: read last, so that a file only the package
+// ships keeps working.
+const PACKAGE_ASSETS = path.join(__dirname, '..', 'assets');
+
+/**
+ * Find a file a step names by its name: an absolute path as written; a
+ * relative one in the World's `assetsFolder` (the project's tests/assets/),
+ * then as written from the project root, then in the package's own
+ * tests/assets/. Fails plainly, with the paths tried, when none holds it.
+ *
+ * @param {WebshipWorld} world
+ * @param {string} name - The file as the step gives it.
+ * @returns {string} The absolute path of the file.
+ */
+function resolveAssetFile(world, name) {
+  const fs = require('fs');
+  const file = String(name === undefined || name === null ? '' : name).trim();
+  const tried = path.isAbsolute(file)
+    ? [file]
+    : [...new Set([
+      path.resolve((world && world.assetsFolder) || path.join(process.cwd(), 'tests', 'assets'), file),
+      path.resolve(process.cwd(), file),
+      path.resolve(PACKAGE_ASSETS, file),
+    ])];
+  const found = tried.find((candidate) => {
+    try { return fs.statSync(candidate).isFile(); } catch { return false; }
+  });
+  if (found) return found;
+  throw failure(world && world.page, `The file "${file}" was not found.`, {
+    found: `nothing at ${tried.map((candidate) => path.relative(process.cwd(), candidate) || candidate).join(', ')}`,
+    hint: 'put the file in the tests/assets/ folder of the project, or name it by its path from the project root.',
+  });
+}
+
 /**
  * Left-pad a number with zeros to the requested width.
  *
@@ -876,6 +929,7 @@ module.exports = {
   fillLocator,
   getLocatorText,
   locateByLabelOrSelector,
+  resolveAssetFile,
   pad,
   resolveRelativeDate,
   parseRelativeOffset,
@@ -886,6 +940,8 @@ module.exports = {
   excerpt,
   isTimeout,
   pageTextLocator,
+  breakpoints,
+  breakpoint,
 };
 
 // ---------------------------------------------------------------------------
@@ -1047,7 +1103,7 @@ class PlaywrightWorld extends World {
     this.playwrightBrowser = null;
     this.context = null;
     this.page = null;
-    this.assetsFolder = path.join(__dirname, '../assets/');
+    this.assetsFolder = path.join(process.cwd(), 'tests', 'assets');
   }
 
   async openBrowser(extraContextOptions) {
@@ -1200,27 +1256,119 @@ function buildVideoFilename(template, scope, status) {
 }
 
 // ---------------------------------------------------------------------------
-// Viewport tags: a scenario tagged @mobile or @desktop opens at the size of
-// the `mobile` or `desktop` breakpoint of worldParameters.selectors.breakpoints,
-// else at the built-in size (the xs and the default xl sizes). Without either
-// tag the viewport stays fluid (contextOptions.viewport). A step can still
-// change the viewport inside the scenario.
+// Breakpoints: one registry of named viewport sizes for every step and tag
+// that names a size — the @mobile and @desktop tags, "I set the viewport to
+// the "…" breakpoint" and "I am viewing the site on a … screen".
+//
+// The built-in names come first, then worldParameters.selectors.breakpoints,
+// then the JSON object of WEBSHIP_SELECTORS_BREAKPOINTS, then the names a
+// scenario adds with "the following responsive breakpoints:"; each replaces
+// the sizes of the names it gives and keeps the others. `desktop` stands for
+// the breakpoint marked `default: true` when the project gives no `desktop`
+// of its own.
 // ---------------------------------------------------------------------------
 
-const TAG_VIEWPORTS = [
-  ['@mobile', 'mobile', { width: 375, height: 667 }],
-  ['@desktop', 'desktop', { width: 1200, height: 900 }],
-];
+const BUILT_IN_BREAKPOINTS = Object.freeze({
+  xs: { width: 375, height: 667 },
+  sm: { width: 576, height: 800 },
+  md: { width: 768, height: 1024 },
+  lg: { width: 992, height: 768 },
+  xl: { width: 1200, height: 900 },
+  xxl: { width: 1400, height: 900 },
+  xxxl: { width: 1920, height: 1080 },
+  mobile: { width: 375, height: 667 },
+  tablet: { width: 768, height: 1024 },
+  desktop: { width: 1200, height: 900 },
+});
+
+let badBreakpointsReported = false;
+
+/**
+ * The named sizes of WEBSHIP_SELECTORS_BREAKPOINTS, or an empty object when
+ * it is not set. A value that is not a JSON object of sizes is reported once
+ * and ignored.
+ *
+ * @returns {Object<string, {width: number, height: number}>}
+ */
+function breakpointsFromEnv() {
+  const raw = process.env.WEBSHIP_SELECTORS_BREAKPOINTS;
+  if (!raw) return {};
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) return parsed;
+  } catch { /* reported below */ }
+  if (!badBreakpointsReported) {
+    badBreakpointsReported = true;
+    process.stderr.write('\n[webship-js] WEBSHIP_SELECTORS_BREAKPOINTS is not a JSON object of named sizes, such as {"tablet":{"width":800,"height":1280}}; it is ignored.\n');
+  }
+  return {};
+}
+
+/**
+ * A `{ width, height }` of whole positive pixels, or null.
+ *
+ * @param {*} size
+ * @returns {{width: number, height: number}|null}
+ */
+function breakpointSize(size) {
+  const width = parseInt(size && size.width, 10);
+  const height = parseInt(size && size.height, 10);
+  return width > 0 && height > 0 ? { width, height } : null;
+}
+
+/**
+ * Every named viewport size the scenario can use, in the order of precedence
+ * described above.
+ *
+ * @param {WebshipWorld} world
+ * @returns {Object<string, {width: number, height: number}>}
+ */
+function breakpoints(world) {
+  const configured = (world && world.parameters && world.parameters.selectors && world.parameters.selectors.breakpoints) || {};
+  const fromEnv = breakpointsFromEnv();
+  const named = Object.assign({}, BUILT_IN_BREAKPOINTS);
+  for (const source of [configured, fromEnv]) {
+    for (const [name, value] of Object.entries(source)) {
+      const size = breakpointSize(value);
+      if (size) named[name] = size;
+    }
+  }
+  if (!('desktop' in configured) && !('desktop' in fromEnv)) {
+    const marked = Object.values(Object.assign({}, configured, fromEnv)).find((value) => value && value.default === true);
+    const size = breakpointSize(marked);
+    if (size) named.desktop = size;
+  }
+  return Object.assign(named, (world && world.__scenarioBreakpoints) || {});
+}
+
+/**
+ * The size of a named breakpoint. Throws a tester-facing error that lists the
+ * known names when there is no such breakpoint.
+ *
+ * @param {WebshipWorld} world
+ * @param {string} name
+ * @returns {{width: number, height: number}}
+ */
+function breakpoint(world, name) {
+  const named = breakpoints(world);
+  const key = String(name === undefined || name === null ? '' : name).trim();
+  if (Object.prototype.hasOwnProperty.call(named, key)) return Object.assign({}, named[key]);
+  throw failure(world && world.page, `There is no breakpoint named "${key}".`, {
+    found: `the breakpoints ${Object.keys(named).join(', ')}`,
+    hint: 'name a size in worldParameters.selectors.breakpoints of cucumber.js, in WEBSHIP_SELECTORS_BREAKPOINTS (a JSON object), or for one scenario with "Given the following responsive breakpoints:".',
+  });
+}
+
+// A scenario tagged @mobile or @desktop opens at the size of the `mobile` or
+// the `desktop` breakpoint. Without either tag the viewport stays fluid
+// (contextOptions.viewport). A step can still change the viewport inside the
+// scenario.
+const TAG_BREAKPOINTS = [['@mobile', 'mobile'], ['@desktop', 'desktop']];
 
 function tagViewport(world, scope) {
   const tags = new Set(((scope && scope.pickle && scope.pickle.tags) || []).map((t) => t.name));
-  const entry = TAG_VIEWPORTS.find(([tag]) => tags.has(tag));
-  if (!entry) return null;
-  const [, name, size] = entry;
-  const named = ((world.parameters && world.parameters.selectors && world.parameters.selectors.breakpoints) || {})[name];
-  const width = parseInt(named && named.width, 10);
-  const height = parseInt(named && named.height, 10);
-  return width > 0 && height > 0 ? { width, height } : Object.assign({}, size);
+  const entry = TAG_BREAKPOINTS.find(([tag]) => tags.has(tag));
+  return entry ? breakpoint(world, entry[1]) : null;
 }
 
 Before({ order: 5 }, async function (scope) {

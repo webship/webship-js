@@ -35,9 +35,9 @@ This is a topical reference. For per-step examples, see the JSDoc comment above 
 | `When I fill in the following:` (table) | Bulk fill |
 | `When I select "Option" from "Label"` | `<select>` by the exact text of its label, its name, its id, or a CSS selector (`#`, `.`, `[`); the option by its text or value |
 | `When I additionally select "Option" from "Label"` | Multi-select |
-| `When I check the checkbox "#agree"` | |
-| `When I uncheck the checkbox "#agree"` | |
-| `When I choose the radio button "#radio"` | |
+| `When I check the checkbox "#agree"` | By CSS selector, label, name, id or value |
+| `When I uncheck the checkbox "#agree"` | By CSS selector, label, name, id or value |
+| `When I choose the radio button "#radio"` | By CSS selector, label, id or value |
 
 ## Waits — see [BBR](02-bbr-smart-waits.md)
 
@@ -240,7 +240,7 @@ Settings (`worldParameters.javascript`):
 | `beforeScenario` | `WEBSHIP_JS_ERROR_BEFORE` | `false` | Snapshot pre-existing errors at scenario start |
 | `afterScenario` | `WEBSHIP_JS_ERROR_AFTER` | `true` | Report at scenario end |
 
-The explicit step `Then there should be no JavaScript errors` always asserts (independent of `mode`) and suppresses the auto-report so a single error is not announced twice.
+The explicit step `Then there should be no JavaScript errors` counts errors only — uncaught errors and `console.error`, not the warnings when `warning` is a captured level — always asserts (independent of `mode`) and leaves the errors out of the auto-report so a single error is not announced twice; `Then there should be no JavaScript warnings` does the same for the warnings. What a check did not read is still reported at the end of the scenario.
 
 `Then JavaScript errors should not match "…"` handles the errors it read in the same way: a page with noise it tolerates does not fail the scenario at its end in `fail` mode, only an error that matches the pattern fails it.
 
@@ -358,7 +358,7 @@ This index lists every public step grouped by source file, with one Gherkin exam
 - *^(?:the JSON response should have property|the API response should contain property) "([^"]*)"$*  ·  Example: `Then the JSON response should have property "id"`
 - *^(?:the JSON response should not have property|the API response should not contain property) "([^"]*)"$*  ·  Example: `Then the JSON response should not have property "password"`
 - *^(?:the response should be valid JSON|the API response should be valid JSON)$*  ·  Example: `Then the response should be valid JSON`
-- *^(?:the response header|the header) "([^"]*)" should (?:be|contain) "([^"]*)"$*  ·  Example: `Then the response header "Content-Type" should be "application/json"`
+- *^(?:the response header|the header) "([^"]*)" should (be|contain) "([^"]*)"$*  ·  Example: `Then the response header "Content-Type" should be "application/json; charset=utf-8"`
 - *^print API response$*  ·  Example: `Then print API response`
 - *^(?:the )?API response should( not)? contain the header "([^"]*)"$*  ·  Example: `Then the API response should contain the header "ETag"`
 - *^(?:I|we) set placeholder "([^"]*)" to "([^"]*)"$*  ·  Example: `Given I set placeholder "{{userId}}" to "123"`
@@ -700,6 +700,8 @@ This index lists every public step grouped by source file, with one Gherkin exam
 - *^session storage is cleared$*  ·  Example: `Given session storage is cleared`
 
 A key or a value may hold a double quote written `\"`, as in a JSON value: `Given the local storage "prefs" is set to "{\"theme\":\"dark\"}"`.
+
+Local and session storage belong to the site of the page, so their steps need a page of the site first: before the first `Given I am on "…"` the page is blank, and the step fails with a hint to open one. A cookie can be set before any page.
 
 ### table.steps.js
 

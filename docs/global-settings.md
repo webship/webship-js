@@ -46,9 +46,12 @@ Base URL prepended to every relative path in `Given I am on "/path"`. An absolut
 
 ### `assetsFolder`
 
-Resolved automatically to `tests/assets/`. Used by `When I attach the
-file "...".`. Override per-World by extending the world constructor;
-no env var.
+The `tests/assets/` folder of the project. `When I attach the file "…" to
+"…"`, the XML and YAML file steps and the YAML schema and diff steps look
+for a file name there first, then as written from the project root
+(`tests/schemas/openapi.json`), then in the package's own `tests/assets/`;
+a file found in none of them fails with the paths tried. Override
+per-World by extending the world constructor; no env var.
 
 ### `minWaitTime` — pacing knobs
 
@@ -88,7 +91,7 @@ selectors: {
   filesPath: './tests/selectors/',  // base path for JSON presets
   files: [],                         // JSON files to auto-load per scenario
   offset: 60,                        // px — scroll offset for relative-position assertions
-  breakpoints: {                     // viewport sizes (the viewing-the-site steps; add `mobile` / `desktop` to size the @mobile / @desktop tags)
+  breakpoints: {                     // named viewport sizes — see "Breakpoints" below
     xs:   { width: 375,  height: 667  },
     sm:   { width: 576,  height: 800  },
     md:   { width: 768,  height: 1024 },
@@ -107,7 +110,31 @@ selectors: {
 | `filesPath` | `./tests/selectors/` | — |
 | `files` | `[]` | — |
 | `offset` | `60` | `WEBSHIP_SELECTORS_OFFSET` |
-| `breakpoints` | xs..xxxl | `WEBSHIP_SELECTORS_BREAKPOINTS` (JSON string) |
+| `breakpoints` | xs..xxxl, mobile, tablet, desktop | `WEBSHIP_SELECTORS_BREAKPOINTS` (JSON object, merged over the config) |
+
+#### Breakpoints
+
+One registry of named viewport sizes serves every step and tag that names a
+size: `Given I am viewing the site on a "md" screen`, `When I set the
+viewport to the "tablet" breakpoint`, and the `@mobile` / `@desktop` tags.
+The names are looked up in this order, each source replacing the sizes of
+the names it gives and keeping all the others:
+
+1. The built-in names: `xs` 375 × 667, `sm` 576 × 800, `md` 768 × 1024,
+   `lg` 992 × 768, `xl` 1200 × 900, `xxl` 1400 × 900, `xxxl` 1920 × 1080,
+   `mobile` 375 × 667, `tablet` 768 × 1024, `desktop` 1200 × 900.
+2. `worldParameters.selectors.breakpoints`.
+3. `WEBSHIP_SELECTORS_BREAKPOINTS`, a JSON object of named sizes, for
+   example `WEBSHIP_SELECTORS_BREAKPOINTS='{"tablet":{"width":800,"height":1280}}'`.
+   A value that is not a JSON object is reported once and ignored.
+4. The names a scenario adds with `Given the following responsive breakpoints:`.
+
+`@mobile` opens the scenario at the `mobile` size and `@desktop` at the
+`desktop` size. When the project gives no `desktop` of its own, `desktop`
+is the breakpoint marked `default: true` (`xl` in the scaffold), so moving
+the mark moves the `@desktop` size. Without either tag the viewport stays
+fluid (`contextOptions.viewport` of `playwright.config.ts`). An unknown name
+fails with the list of the known ones.
 
 ### `screenshot` — capture configuration
 
@@ -238,7 +265,7 @@ then fails.
 | Env var | Effect |
 | --- | --- |
 | `WEBSHIP_AUTO_SETTLE` | Set to `off` to disable the BBR auto-settle hook (`smartSettle(page, 1500)` after every state-changing step). |
-| `WEBSHIP_STEP_TIMEOUT` | Cucumber step timeout in milliseconds. Defaults to `45000`. webship-js calls `setDefaultTimeout()` when its step definitions load, which overrides a `timeout` set in your own `cucumber.js`, so raise it here instead. |
+| `WEBSHIP_STEP_TIMEOUT` | Cucumber step timeout in milliseconds. Defaults to `45000`. webship-js calls `setDefaultTimeout()` when its step definitions load, which overrides a `timeout` set in your own `cucumber.js`, so raise it here instead. A step whose length the scenario gives (`I wait 2 minutes`, `… within 60 seconds`) is not cut by it: it runs for that length, and gives up 15 seconds past it on a page that stopped answering. |
 | `WEBSHIP_REPORT_DISABLE` | Set to `1` to skip auto-generating the HTML report on cucumber-js process exit. |
 | `WEBSHIP_REPORT_JSON` | The JSON report the HTML report is built from at the end of a run. Without it, the file of the `json:` formatter of the command line or of `cucumber.js` is used, else `tests/reports/cucumber_report.json`. With `--parallel`, the report is built once, after the whole JSON report is written. |
 | `WEBSHIP_REPORT_ARGS` | Extra CLI flags forwarded to `bin/generate-reports.js`. e.g. `--theme hierarchy --layout 2`. |

@@ -93,7 +93,12 @@ module.exports = {
         files: [],                                   // e.g. ['homepage-selectors.json'] or ['front-end-selectors.json', 'back-end-selectors.json']
         // Relative-position scroll offset (px) — WEBSHIP_SELECTORS_OFFSET
         offset: 60,
-        // Viewport breakpoints — WEBSHIP_SELECTORS_BREAKPOINTS (JSON string)
+        // Named viewport sizes for every step and tag that names one (viewing
+        // the site on a … screen, set the viewport to the "…" breakpoint,
+        // @mobile, @desktop). Built in: xs..xxxl, mobile, tablet, desktop;
+        // these replace or add names. WEBSHIP_SELECTORS_BREAKPOINTS (a JSON
+        // object) is merged over them. Without a `desktop` here, @desktop
+        // opens at the breakpoint marked default: true.
         breakpoints: {
           xs:   { width: 375,  height: 667  },                    // phone portrait
           sm:   { width: 576,  height: 800  },                    // large phone / phablet
