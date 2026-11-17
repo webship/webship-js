@@ -2,11 +2,11 @@
 #
 # Runs the full BDD suite on AWS-managed compute. Pair with CodePipeline
 # (for source/build/test orchestration) or invoke CodeBuild directly from a
-# GitHub webhook. Free tier covers 100 build-minutes / month on
-# `general1.small` indefinitely.
+# GitHub webhook. For the free tier and the prices, see the CodeBuild pricing
+# page: they change over time.
 #
 # Suggested CodeBuild project settings:
-#   Environment image: aws/codebuild/standard:7.0
+#   Environment image: aws/codebuild/standard:8.0 (Ubuntu 24.04, Node 22/24/26)
 #   Compute:           general1.small (3 GB RAM, 2 vCPU) — fits the suite
 #   Service role:      needs S3 PutObject for the artifacts bucket
 #
@@ -23,7 +23,7 @@ env:
 phases:
   install:
     runtime-versions:
-      nodejs: 20
+      nodejs: 24
     commands:
       - node --version
       - npm --version
@@ -49,8 +49,7 @@ cache:
 artifacts:
   name: webship-js-report-$(date +%Y%m%d-%H%M%S)
   files:
-    - tests/reports/cucumber_report.html
-    - tests/reports/cucumber_report.pdf
-    - tests/reports/cucumber_report.json
+    - tests/reports/**/*
     - screenshots/**/*
+    - videos/**/*
   discard-paths: no

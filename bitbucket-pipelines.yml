@@ -1,4 +1,4 @@
-image: node:20
+image: node:24
 
 pipelines:
   default:
@@ -12,3 +12,7 @@ pipelines:
           - npm start &
           - sleep 3
           - FORCE_COLOR=1 npm test
+        artifacts:
+          - tests/reports/**
+          - screenshots/**
+          - videos/**
