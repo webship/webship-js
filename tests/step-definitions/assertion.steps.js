@@ -9,7 +9,7 @@
 // Modal assertions live in modal.steps.js.
 
 const { Then } = require('@cucumber/cucumber');
-const { buildSelector, getLocatorText, locateByLabelOrSelector, failure, excerpt, isTimeout } = require('./webship');
+const { buildSelector, getLocatorText, locateByLabelOrSelector, failure, excerpt, isTimeout, pageTextLocator } = require('./webship');
 const { getLastResponse } = require('./response.steps');
 
 // ---------------------------------------------------------------------------
@@ -17,29 +17,75 @@ const { getLastResponse } = require('./response.steps');
 // ---------------------------------------------------------------------------
 
 /**
- * Assert that text is or is not present on the page.
+ * Where a text is on the page, for a failure message: the excerpt of the
+ * element that holds it, the element, and whether a visitor can see it.
+ *
+ * @param {import('playwright').Page} page
+ * @param {string} text
+ * @returns {Promise<string|undefined>} undefined when it cannot be told.
+ */
+async function whereTextIs(page, text) {
+  try {
+    const match = page.locator('body').getByText(text).first();
+    if (!(await match.count())) return undefined;
+    const info = await match.evaluate((el) => ({
+      tag: el.tagName.toLowerCase(),
+      id: el.id || '',
+      cls: typeof el.className === 'string' ? el.className.trim().split(/\s+/)[0] : '',
+      text: el.textContent || el.value || '',
+    }), null, { timeout: 1000 });
+    const visible = await match.isVisible().catch(() => true);
+    const attr = info.id ? ` id="${info.id}"` : info.cls ? ` class="${info.cls}"` : '';
+    return `"${excerpt(info.text, 80)}" in ${visible ? '' : 'a hidden '}<${info.tag}${attr}>`;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Assert that a text is, or is not, on the page.
+ *
+ * Both polarities read the page the same way, as `eventually I should see`
+ * does: the text of the page as Playwright's text matching reads it, letter
+ * case ignored, runs of white space collapsed, the text of hidden elements
+ * included, the text of `<script>` and `<style>` left out. On a page that
+ * reads "Next page", `I should see "next page"` passes and `I should not see
+ * "next page"` fails. "should see" waits up to 5 seconds for the text to
+ * come, "should not see" up to 5 seconds for it to go.
+ *
+ * For the text a visitor can see, with its letter case, use `I wait for the
+ * text "..." to appear` or `... to disappear`; for an element,
+ * `"<selector>" should be visible`.
  *
  * Example #1: Then I should see "Welcome"
  * Example #2: Then we should see "Your accounts for the group is public"
  * Example #3: Then I should not see "Access denied"
  * Example #4: Then we should not see "Edit layout"
+ * Example #5: When I press "Save"
+ *               Then I should see "Saved"
+ *               And I should not see "Saving"
  *
  */
 Then(/^(I |we )*should( not)* see "([^"]*)?"$/, async function (pronounCase, notCase, expectedText) {
+  const text = expectedText === undefined || expectedText === null ? '' : expectedText;
+  const onPage = pageTextLocator(this.page, text);
   if (notCase) {
-    const text = await this.page.locator('body').textContent() || '';
-    if (text.includes(expectedText)) {
-      throw failure(this.page, `The text "${expectedText}" is on the page, but it should not be.`, {
-        hint: 'this step reads all the text of the page, the text that is hidden included.',
+    try {
+      await onPage.waitFor({ state: 'detached', timeout: 5000 });
+    } catch (e) {
+      if (!isTimeout(e)) throw e;
+      throw failure(this.page, `The text "${text}" is on the page, but it should not be.`, {
+        found: await whereTextIs(this.page, text),
+        hint: `the step ignores letter case and reads all the text of the page, the text of hidden elements included (not the text of <script> or <style>); it waited 5 seconds for the text to go. To check only the text a visitor can see, with its letter case, use: I wait for the text "${text}" to disappear`,
       });
     }
   } else {
     try {
-      await this.page.locator('body').filter({ hasText: expectedText }).waitFor({ timeout: 5000 });
+      await onPage.waitFor({ state: 'attached', timeout: 5000 });
     } catch (e) {
       if (!isTimeout(e)) throw e;
-      throw failure(this.page, `The text "${expectedText}" was not found on the page after 5 seconds.`, {
-        hint: `check the spelling and the letter case. The value of a field, an image and the content of an iframe are not page text. For text that arrives late, use: I wait for the text "${expectedText}" to appear`,
+      throw failure(this.page, `The text "${text}" was not found on the page after 5 seconds.`, {
+        hint: `check the spelling; letter case is ignored and the text of hidden elements counts. The value of a field, an image and the content of an iframe are not page text. For a text that arrives late, use: eventually I should see "${text}" within 30 seconds`,
       });
     }
   }
@@ -118,6 +164,32 @@ Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* "([^"]*)?" row$/, async f
 // Element existence + content
 // ---------------------------------------------------------------------------
 
+// Tag names a tester may write where a step reads a text.
+const TAG_NAMES = new Set([
+  'a', 'article', 'aside', 'body', 'button', 'dialog', 'div', 'footer', 'form',
+  'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'iframe', 'img', 'input',
+  'label', 'li', 'main', 'nav', 'ol', 'p', 'section', 'select', 'span', 'table',
+  'tbody', 'td', 'textarea', 'th', 'thead', 'tr', 'ul', 'video',
+]);
+
+/**
+ * True when a step argument reads like a CSS selector rather than a text: it
+ * starts with `.`, `#` or `[`, holds selector syntax (`div.card`,
+ * `input[name=q]`, `li:first-child`, `ul > li`), is an XPath, or is a bare tag
+ * name such as `header`. Used for hints only.
+ *
+ * @param {string} value
+ * @returns {boolean}
+ */
+function looksLikeSelector(value) {
+  const v = String(value === undefined || value === null ? '' : value).trim();
+  if (!v) return false;
+  if (/^(?:\/\/|xpath=|css=)/.test(v)) return true;
+  const parts = v.split(/\s*[>+~]\s*|\s+/).filter(Boolean);
+  const simple = /^(?:[a-z][a-z0-9-]*)?(?:[.#][A-Za-z_-][\w-]*|\[[^\]]+\]|::?[a-z-]+(?:\([^)]*\))?)*$/;
+  return parts.every((part) => simple.test(part) && (/[.#[:]/.test(part) || TAG_NAMES.has(part)));
+}
+
 /**
  * Assert that an element is, or is not, visible on the page. The element is
  * named by its exact visible text; a `<label for="...">` stands for the
@@ -126,6 +198,10 @@ Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* "([^"]*)?" row$/, async f
  *
  * "should not see" is the opposite of "should see": it passes when no element
  * named that way is visible, so an element that is hidden does not fail it.
+ *
+ * An argument that looks like a selector (`.news-item`, `#main`, `header`) is
+ * still read as a text: a failure says so, and the negative prints a warning
+ * when it passes while that selector matches a visible element.
  *
  * Example #1: Then I should see a "Username" element
  * Example #2: Then I should not see a "Username" element
@@ -149,8 +225,13 @@ Then(/^(I |we )*should( not)* see (a|an) "([^"]*)?" element$/, async function (p
         });
       }
     }
+    if (looksLikeSelector(element) && await this.page.locator(element).first().isVisible().catch(() => false)) {
+      console.warn(`\x1b[33m[webship-js] I should not see a "${element}" element: passed, because no element reads "${element}". It looks like a CSS selector, and that selector matches a visible element; this step reads a text. For a selector, use: "${element}" should not be visible\x1b[0m`);
+    }
   } else {
-    const hint = `this step finds an element by its exact visible text or by its label. To find it by its id, class, name or another attribute, use: I should see a "${element}" element by attr`;
+    const hint = looksLikeSelector(element)
+      ? `"${element}" looks like a CSS selector, but this step reads it as the exact text of an element or of a label. For a selector, use: "${element}" should be visible`
+      : `this step finds an element by its exact visible text or by its label. To find it by its id, class, name or another attribute, use: I should see a "${element}" element by attr`;
     const loc = this.page.getByText(element, { exact: true }).first();
     try {
       await loc.waitFor({ state: 'attached', timeout: 3000 });

@@ -50,6 +50,10 @@ The documentation lists 22 distinct step definition categories:
 - Then the response should be valid JSON
 - Then the response header "response header" should be "value"
 
+The two text checks (`should contain "text"`, `should not contain "text"`)
+ignore letter case and replace placeholders in the text first, so the
+negative check fails on any text the positive one finds.
+
 **JSON Response Validation:**
 - Then the JSON response should have "propertyPath" equal to "value"
 - Then the JSON response should have property "propertyPath"

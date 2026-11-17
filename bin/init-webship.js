@@ -196,6 +196,15 @@ const TEST_SCRIPTS = {
 // the project, so the scaffold replaces it.
 const NPM_PLACEHOLDER_TEST = /^echo "Error: no test specified" && exit 1$/;
 
+// A `test` script that runs Nightwatch is the one webship-js 1.x gave a
+// project. webship-js 2.x runs on cucumber-js and Playwright and brings no
+// Nightwatch, so the scaffold replaces it and keeps it as `test:nightwatch`.
+const NIGHTWATCH_TEST = /(^|[\s;&|/])nightwatch(\s|$)/i;
+
+// Files of the scaffold that hold the project's own code once written: never
+// overwritten, not even with --force.
+const PROJECT_FILES = new Set(['tests/step-definitions/custom.js']);
+
 const DEFAULT_PKG = {
   name: 'project-name',
   version: '2.0.0',
@@ -231,7 +240,8 @@ function printHelp() {
       'Idempotent — safe to run multiple times.',
       '',
       'Options:',
-      '  -f, --force          Overwrite existing files',
+      '  -f, --force          Overwrite the files and scripts of the scaffold',
+      '                       (never tests/step-definitions/custom.js)',
       '      --skip-browsers  Skip `npx playwright install chromium`',
       '      --cwd <dir>      Target directory (default: $INIT_CWD or cwd)',
       '  -h, --help           Show this help',
@@ -267,7 +277,8 @@ function writeTextAssets(projectPath, opts) {
   const results = [];
   for (const [rel, content] of Object.entries(TEXT_ASSETS)) {
     const dest = path.join(projectPath, rel);
-    const written = writeFileIfMissing(dest, content, opts);
+    const force = opts.force && !PROJECT_FILES.has(rel);
+    const written = writeFileIfMissing(dest, content, { force });
     results.push({ file: rel, written });
   }
   return results;
@@ -292,9 +303,16 @@ function ensurePackageJson(projectPath, opts) {
   }
 
   pkg.scripts = pkg.scripts || {};
+  let replacedNightwatch = null;
   for (const [name, cmd] of Object.entries(TEST_SCRIPTS)) {
-    const placeholder = name === 'test' && NPM_PLACEHOLDER_TEST.test(String(pkg.scripts[name] || '').trim());
-    if (opts.force || !pkg.scripts[name] || placeholder) {
+    const current = String(pkg.scripts[name] || '').trim();
+    const placeholder = name === 'test' && NPM_PLACEHOLDER_TEST.test(current);
+    const nightwatch = name === 'test' && NIGHTWATCH_TEST.test(current);
+    if (nightwatch && current !== cmd) {
+      if (!pkg.scripts['test:nightwatch']) pkg.scripts['test:nightwatch'] = pkg.scripts.test;
+      replacedNightwatch = pkg.scripts.test;
+    }
+    if (opts.force || !pkg.scripts[name] || placeholder || nightwatch) {
       pkg.scripts[name] = cmd;
     }
   }
@@ -305,7 +323,7 @@ function ensurePackageJson(projectPath, opts) {
   }
 
   fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf8');
-  return { created: !existed };
+  return { created: !existed, replacedNightwatch };
 }
 
 // The browser itself goes into the Playwright cache of the user: no special
@@ -356,12 +374,25 @@ function run(argv) {
   const pkgResult = ensurePackageJson(projectPath, opts);
 
   for (const r of assetResults) {
-    console.log(`  [${r.written ? 'wrote ' : 'kept  '}] ${r.file}`);
+    const note = !r.written && opts.force && PROJECT_FILES.has(r.file)
+      ? ' (the steps of the project: --force never overwrites it)'
+      : '';
+    console.log(`  [${r.written ? 'wrote ' : 'kept  '}] ${r.file}${note}`);
   }
   console.log(`  [${tsconfigWritten ? 'wrote ' : 'kept  '}] tsconfig.json`);
   console.log(
     `  [${pkgResult.created ? 'wrote ' : 'merged'}] package.json`
   );
+  if (pkgResult.replacedNightwatch) {
+    console.log(
+      [
+        '',
+        '  [webship-js] "npm test" ran Nightwatch (a webship-js 1.x project). It now runs',
+        '  cucumber-js: cucumber-js --config cucumber.js',
+        '  The old command is kept as "npm run test:nightwatch".',
+      ].join('\n')
+    );
+  }
 
   const browsersInstalled = opts.skipBrowsers || installBrowsers(projectPath);
 

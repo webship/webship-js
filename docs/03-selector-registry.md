@@ -25,6 +25,8 @@ Scenario: Layout assertions
    Then "main" should be visible
 ```
 
+The table may start with a row that names its columns, `| name | css selector |` (or `| name | xpath selector |` for `I define xpath selectors:`): that first row is read as the header of the table and registers nothing.
+
 ### 3. JSON file (project-wide preset)
 
 ```js

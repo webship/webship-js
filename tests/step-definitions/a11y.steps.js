@@ -881,7 +881,8 @@ Then(/^the page should not violate the accessibility rule "([^"]*)"$/, async fun
 });
 
 /**
- * Print every axe violation to stdout (debug aid). Strip from CI runs.
+ * Print every axe violation to stdout (debug aid), and attach the same text
+ * to the step, so the JSON report and the HTML report show it too.
  *
  * Example #1: Then I print accessibility violations
  * Example #2: When I am on "/checkout"
@@ -895,20 +896,24 @@ Then(/^the page should not violate the accessibility rule "([^"]*)"$/, async fun
  */
 Then(/^(I |we )*print accessibility violations$/, async function (pronounCase) {
   const result = await runAxe(this);
+  const lines = [];
   if (result.violations.length === 0) {
-    console.log('\n--- Accessibility violations: none ---');
-    return;
-  }
-  console.log('\n--- Accessibility violations ---');
-  for (const v of result.violations) {
-    console.log(`[${v.impact}] ${v.id} — ${v.help}`);
-    console.log(`  ${v.helpUrl}`);
-    for (const n of v.nodes.slice(0, 3)) {
-      console.log(`  ${n.target.join(' ')}`);
-      if (n.failureSummary) console.log(`    ${n.failureSummary.split('\n')[0]}`);
+    lines.push('--- Accessibility violations: none ---');
+  } else {
+    lines.push('--- Accessibility violations ---');
+    for (const v of result.violations) {
+      lines.push(`[${v.impact}] ${v.id} — ${v.help}`);
+      lines.push(`  ${v.helpUrl}`);
+      for (const n of v.nodes.slice(0, 3)) {
+        lines.push(`  ${n.target.join(' ')}`);
+        if (n.failureSummary) lines.push(`    ${n.failureSummary.split('\n')[0]}`);
+      }
+      if (v.nodes.length > 3) lines.push(`  ... and ${v.nodes.length - 3} more node(s)`);
     }
-    if (v.nodes.length > 3) console.log(`  ... and ${v.nodes.length - 3} more node(s)`);
   }
+  const text = lines.join('\n');
+  console.log('\n' + text);
+  await this.attach(text, 'text/plain');
 });
 
 /**
@@ -1009,7 +1014,9 @@ Then(/^the page should pass the full accessibility check(?: at level "(A|AA|AAA)
 
 /**
  * The same whole-page check, reported rather than asserted. Use it to see
- * where a page stands before deciding what to gate on.
+ * where a page stands before deciding what to gate on. The report goes to
+ * stdout and is attached to the step, so the JSON report and the HTML report
+ * show it too.
  *
  * Example #1: Then I print the full accessibility check
  * Example #2: When I go to "/about-us"
@@ -1025,6 +1032,8 @@ Then(/^(?:I |we )*print the full accessibility check$/, async function () {
   const result = await runAxe(this, { tags: WCAG_TAGS.AA });
   const found = await structuralAudit(this.page);
   const lines = fullCheckReport(result.violations, found);
-  console.log(`\n--- Full accessibility check: ${this.page.url()} ---`);
-  console.log(lines.length ? lines.join('\n\n') : '  nothing to report');
+  const text = `--- Full accessibility check: ${this.page.url()} ---\n` +
+    (lines.length ? lines.join('\n\n') : '  nothing to report');
+  console.log('\n' + text);
+  await this.attach(text, 'text/plain');
 });

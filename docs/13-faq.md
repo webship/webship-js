@@ -55,7 +55,9 @@ HEADLESS=false npm test    # same, default slow-mo
 ```
 
 Failed scenarios save a PNG under `screenshots/failed_*.png`. The
-filename embeds the feature, scenario line, and timestamp.
+filename embeds the feature, scenario line, and timestamp. The same
+picture is attached to the failed step in the JSON report, so the HTML
+report shows it under that step.
 
 ## How do I run a single feature / scenario?
 
@@ -135,6 +137,10 @@ Then I should see "Welcome, Alice"               # ✅ user behaviour
 
 Behaviour-tested code is refactor-friendly. Implementation-tested code
 breaks every time the schema changes.
+
+## Does `I should see` care about letter case or hidden text?
+
+No, and `I should not see` and `eventually I should see` read the page the same way: letter case is ignored, white space is collapsed, and the text of hidden elements counts (the text of `<script>` and `<style>` does not). On a page that reads "Next page", `I should see "next page"` passes and `I should not see "next page"` fails. For the text a visitor can see, with its letter case, use `I wait for the text "Next page" to appear`; for an element, `"<selector>" should be visible`.
 
 ## How do I name selectors I'll reuse?
 
