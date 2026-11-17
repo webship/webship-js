@@ -82,7 +82,8 @@ When I wait for the modal to disappear
 # Body + DOMContentLoaded only (cheaper than full smart settle).
 When I wait until the page is interactive
 
-# Polling text assertion — re-runs the matcher until the deadline.
+# Polling text assertion — re-runs the matcher until the deadline. It reads the
+# page as "I should see" does: letter case ignored, hidden text included.
 Then eventually I should see "Done"
 Then eventually I should see "Done" within 10 seconds
 ```

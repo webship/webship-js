@@ -133,6 +133,8 @@ One step runs axe at the level (AA by default) and every structural probe in thi
 
 It reports every failure at once, not the first. A finding axe already named is not repeated by the probe that covers the same thing. The print form reports without failing, which is the way to see where a page stands before choosing a gate.
 
+The two print steps (`I print the full accessibility check`, `I print accessibility violations`) write what they found to the console and attach the same text to their step, so the JSON report, the HTML report and a CI artifact show it under the step.
+
 The skip link, focus, ARIA role and required-field steps are not part of it. Add them beside it when you need them.
 
 ## axe-core full audit

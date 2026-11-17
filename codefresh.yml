@@ -1,9 +1,8 @@
 # Codefresh Classic pipeline for webship-js.
 #
 # Codefresh is a Kubernetes-native CI/CD platform. The Classic pipeline format
-# (used here) reads `codefresh.yml` from the repository. Free tier covers 100
-# build-minutes per month on shared infrastructure; OSS public repositories
-# can apply for the Community plan with more capacity.
+# (used here) reads `codefresh.yml` from the repository. For the plans and
+# their build capacity, see the Codefresh pricing page: they change over time.
 #
 # Setup (full walkthrough in docs/16-ci-cd.md → "Codefresh"):
 #   1. codefresh.io → sign up with GitHub → create pipeline → "Inline YAML
@@ -34,7 +33,7 @@ steps:
   install_dependencies:
     title: "Install npm dependencies + Playwright browsers"
     type: freestyle
-    image: mcr.microsoft.com/playwright:v1.58.2-jammy
+    image: mcr.microsoft.com/playwright:v1.65.1-noble
     working_directory: ${{main_clone}}
     environment:
       - FORCE_COLOR=1
@@ -48,7 +47,7 @@ steps:
   test_suite:
     title: "Run cucumber-js"
     type: freestyle
-    image: mcr.microsoft.com/playwright:v1.58.2-jammy
+    image: mcr.microsoft.com/playwright:v1.65.1-noble
     working_directory: ${{main_clone}}
     environment:
       - FORCE_COLOR=1
@@ -72,6 +71,7 @@ steps:
           failureToo: "true"
     commands:
       - mkdir -p /codefresh/volume/cucumber-report
-      - cp -a tests/reports/cucumber_report.html tests/reports/cucumber_report.pdf tests/reports/cucumber_report.json /codefresh/volume/cucumber-report/ || true
+      - cp -a tests/reports/. /codefresh/volume/cucumber-report/ 2>/dev/null || true
       - cp -a screenshots /codefresh/volume/cucumber-report/screenshots 2>/dev/null || true
+      - cp -a videos /codefresh/volume/cucumber-report/videos 2>/dev/null || true
     stage: test

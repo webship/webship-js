@@ -53,6 +53,9 @@ jobs:
       - name: Check that a feature named on the command line runs alone
         run: npm run test:paths
 
+      - name: Check that the print steps attach what they print to the report
+        run: npm run test:attachments
+
       - name: Check that each JavaScript-error check counts its own kind
         run: npm run test:js-errors
 
@@ -61,6 +64,9 @@ jobs:
 
       - name: Check that a configuration with only the launch URL runs
         run: npm run test:config
+
+      - name: Check the HTML report built at the end of a run
+        run: npm run test:exit-report
 
       - name: Start virtual server
         run: npm start &

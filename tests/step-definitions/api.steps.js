@@ -382,7 +382,9 @@ When(/^(?:I |we )?send a ([A-Z]+) request to "([^"]+)" with body:$/, async funct
 });
 
 /**
- * Sends HTTP request to specific URL with form data.
+ * Sends HTTP request to specific URL with form data: one `name=value` field
+ * per line, split on the first "=" only, so a value keeps every "=" after it
+ * (a query string, a base64 token). Blank lines are skipped.
  *
  * Example #1: When I send a POST request to "/login" with form data:
  *               """
@@ -414,13 +416,13 @@ When(/^(?:I |we )?send a ([A-Z]+) request to "([^"]+)" with form data:$/, async 
   const url = baseURL + '/' + prepareUrl(endpoint);
   const body = replacePlaceHolder(docString.trim());
   
-  // Parse form data
+  // Parse form data: one field per line, split on its first "=".
   const fields = {};
   body.split('\n').forEach(line => {
-    const [key, value] = line.split('=');
-    if (key && value !== undefined) {
-      fields[key.trim()] = value.trim();
-    }
+    const at = line.indexOf('=');
+    if (at <= 0) return;
+    const key = line.slice(0, at).trim();
+    if (key) fields[key] = line.slice(at + 1).trim();
   });
   
   // Convert to URL encoded format

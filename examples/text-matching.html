@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Text matching</title>
+  <style>
+    .visually-hidden { display: none; }
+  </style>
+</head>
+<body>
+  <h1>Text matching</h1>
+
+  <nav class="pager">
+    <a href="#page-2">Next page</a>
+  </nav>
+
+  <p class="promo visually-hidden">Members save 10 percent</p>
+
+  <p class="total">Order
+     total:   42
+     items</p>
+
+  <div id="toast">Saving draft</div>
+  <div id="status"></div>
+  <p class="late-hidden visually-hidden"></p>
+
+  <style>
+    .styleRuleMarker { color: #333; }
+  </style>
+  <script>
+    var inlineScriptMarker = 'only a script reads this';
+    // A countdown on setInterval, which the smart waits do not count as a
+    // pending timer: the page has settled before the toast goes and the
+    // status arrives, so a step has to wait for them itself.
+    (function () {
+      var start = Date.now();
+      var timer = setInterval(function () {
+        if (Date.now() - start < 2000) return;
+        clearInterval(timer);
+        var toast = document.getElementById('toast');
+        if (toast) toast.remove();
+        document.getElementById('status').textContent = 'Draft saved';
+        document.querySelector('.late-hidden').textContent = 'Saved as version 2';
+      }, 100);
+    })();
+  </script>
+</body>
+</html>

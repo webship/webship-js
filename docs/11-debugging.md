@@ -55,6 +55,8 @@ Then there should be no JavaScript errors
 
 After every run, `tests/reports/cucumber_report.html` is regenerated. Open it for a clickable summary of features, scenarios, durations, screenshots, and per-step output.
 
+The report is built from the JSON report of the run: the file named by `WEBSHIP_REPORT_JSON`, else the file of the `json:` formatter of the command line (`--format json:reports/run.json`), else the one of `cucumber.js`, else `tests/reports/cucumber_report.json`. With `--parallel`, it is built once, by the process that runs cucumber-js, after the whole JSON report is written. When the run wrote no JSON report, one line says so.
+
 Disable: `WEBSHIP_REPORT_DISABLE=1`.
 
 ### Export to PDF

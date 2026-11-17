@@ -1,9 +1,7 @@
 # Atlassian Bamboo YAML Specs for webship-js.
 #
-# Runs the full BDD suite on a Bamboo Data Center self-hosted instance.
-# (Bamboo Cloud was retired by Atlassian on 2024-02-15; the YAML below
-# targets Bamboo Data Center 9.x — which is the only flavour still
-# supported.)
+# Runs the full BDD suite on a self-hosted Bamboo Data Center instance:
+# Atlassian offers Bamboo as Data Center only, there is no hosted Bamboo.
 #
 # Setup (full walkthrough in docs/16-ci-cd.md → "Bamboo Data Center"):
 #   1. Bamboo admin → Linked repositories → add the GitHub repo.
@@ -30,7 +28,7 @@ stages:
 Cucumber:
   key: CUC
   docker:
-    image: mcr.microsoft.com/playwright:v1.58.2-jammy
+    image: mcr.microsoft.com/playwright:v1.65.1-noble
     docker-run-arguments:
       - --user=root:root
       - --network=host
@@ -61,20 +59,16 @@ Cucumber:
         scripts:
           - npm test
   artifacts:
-    - name: cucumber-report-html
-      pattern: tests/reports/cucumber_report.html
-      shared: true
-      required: false
-    - name: cucumber-report-pdf
-      pattern: tests/reports/cucumber_report.pdf
-      shared: true
-      required: false
-    - name: cucumber-report-json
-      pattern: tests/reports/cucumber_report.json
+    - name: cucumber-report
+      pattern: tests/reports/**
       shared: true
       required: false
     - name: screenshots
       pattern: screenshots/**
+      shared: true
+      required: false
+    - name: videos
+      pattern: videos/**
       shared: true
       required: false
   requirements:

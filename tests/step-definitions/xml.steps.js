@@ -419,8 +419,34 @@ Then('the XML element {string} should have {int} element(s)', async function (xp
   assert.strictEqual((nodes || []).length, count);
 });
 
+// Every namespace an XML document uses: each one an element declares
+// (xmlns="..." or xmlns:p="..."), wherever it is declared, and the namespace
+// of every element and attribute. Other attributes are values, not namespaces.
+function usedNamespaces(doc) {
+  const found = new Set();
+  const walk = (el) => {
+    if (el.namespaceURI) found.add(el.namespaceURI);
+    for (const a of Array.from(el.attributes || [])) {
+      if (a.name === 'xmlns' || a.name.indexOf('xmlns:') === 0) {
+        if (a.value) found.add(a.value);
+      } else if (a.namespaceURI) {
+        found.add(a.namespaceURI);
+      }
+    }
+    for (const c of Array.from(el.childNodes || [])) if (c.nodeType === 1) walk(c);
+  };
+  if (doc && doc.documentElement) walk(doc.documentElement);
+  return found;
+}
+
+function listNamespaces(found) {
+  return found.size ? Array.from(found).map((ns) => `"${ns}"`).join(', ') : 'no namespace';
+}
+
 /**
- * Assert the XML root declares an `xmlns:*` namespace URI.
+ * Assert the XML document uses a namespace: an element declares it
+ * (`xmlns="..."` or `xmlns:p="..."`) anywhere in the document, or an element
+ * or an attribute is in it.
  *
  * Example #1: Then the XML should use the namespace "http://www.w3.org/2005/Atom"
  * Example #2: Then the XML should use the namespace "http://www.sitemaps.org/schemas/sitemap/0.9"
@@ -430,14 +456,19 @@ Then('the XML element {string} should have {int} element(s)', async function (xp
  *
  */
 Then('the XML should use the namespace {string}', async function (ns) {
-  const doc = ensureXml(this);
-  const root = doc.documentElement;
-  const found = Array.from(root.attributes || []).some((a) => a.value === ns);
-  assert.ok(found, `Namespace "${ns}" not declared.`);
+  const found = usedNamespaces(ensureXml(this));
+  if (!found.has(ns)) {
+    throw friendly(
+      `The XML does not use the namespace "${ns}".\n` +
+      `  Found: ${listNamespaces(found)}\n` +
+      '  Hint: the step reads every xmlns declaration of the document, and the namespace of every element and attribute; the URI must match exactly.'
+    );
+  }
 });
 
 /**
- * Assert the XML root does NOT declare a namespace URI.
+ * Assert the XML document does NOT use a namespace: no element declares it
+ * and no element or attribute is in it.
  *
  * Example #1: Then the XML should not use the namespace "http://example.com/legacy"
  * Example #2: Then the XML should not use the namespace "http://example.com/internal"
@@ -447,10 +478,14 @@ Then('the XML should use the namespace {string}', async function (ns) {
  *
  */
 Then('the XML should not use the namespace {string}', async function (ns) {
-  const doc = ensureXml(this);
-  const root = doc.documentElement;
-  const found = Array.from(root.attributes || []).some((a) => a.value === ns);
-  assert.ok(!found, `Namespace "${ns}" should not be declared.`);
+  const found = usedNamespaces(ensureXml(this));
+  if (found.has(ns)) {
+    throw friendly(
+      `The XML uses the namespace "${ns}", but it should not.\n` +
+      `  Found: ${listNamespaces(found)}\n` +
+      '  Hint: the step reads every xmlns declaration of the document, and the namespace of every element and attribute.'
+    );
+  }
 });
 
 /**
