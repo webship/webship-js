@@ -20,6 +20,7 @@ const { When } = require('@cucumber/cucumber');
  * Example #2: When I scroll down 800
  * Example #3: And we scroll down 500
  * Example #4: When scrolling down 1200
+ * Example #5: Then we scroll down 200
  *
  */
 When(/^(I scroll|we scroll|scrolling)? down(?: (\d+))?$/, async function (pronounCase, numValue) {
@@ -33,6 +34,7 @@ When(/^(I scroll|we scroll|scrolling)? down(?: (\d+))?$/, async function (pronou
  * Example #2: When I scroll up 1000
  * Example #3: And we scroll up 300
  * Example #4: When scrolling up 750
+ * Example #5: Then we scroll up 200
  *
  */
 When(/^(I scroll|we scroll|scrolling)? up(?: (\d+))?$/, async function (pronounCase, numValue) {
@@ -45,6 +47,8 @@ When(/^(I scroll|we scroll|scrolling)? up(?: (\d+))?$/, async function (pronounC
  * Example #1: When I scroll to top
  * Example #2: And we scroll to the top
  * Example #3: When scrolling to the top of the page
+ * Example #4: Then we scroll to the top of the page
+ * Example #5: When I scroll to the top
  *
  */
 When(/^(I scroll|we scroll|scrolling)? to( the)* top( of the page)*$/, async function (pronounCase, theCase, pageCase) {
@@ -57,6 +61,8 @@ When(/^(I scroll|we scroll|scrolling)? to( the)* top( of the page)*$/, async fun
  * Example #1: When I scroll to the bottom
  * Example #2: And we scroll to bottom
  * Example #3: When scrolling to the bottom of the page
+ * Example #4: Then I scroll to the bottom of the page
+ * Example #5: When we scroll to the bottom
  *
  */
 When(/^(I scroll|we scroll|scrolling)? to( the)* bottom( of the page)*$/, async function (pronounCase, theCase, pageCase) {
@@ -82,6 +88,8 @@ When(/^(I scroll|we scroll|scrolling)? to( the)* bottom( of the page)*$/, async 
  * Example #1: When I scroll to top of "#off-canvas"
  * Example #2: And we scroll to top of "#sidebar"
  * Example #3: When scrolling to top of "#main-container"
+ * Example #4: When I scroll to top of ".chat-history"
+ * Example #5: And we scroll to top of "#results"
  *
  */
 When(/^(I scroll|we scroll|scrolling)? to top of "([^"]*)"$/, async function (pronounCase, selector) {
@@ -97,6 +105,8 @@ When(/^(I scroll|we scroll|scrolling)? to top of "([^"]*)"$/, async function (pr
  * Example #1: When I scroll to bottom of "#off-canvas"
  * Example #2: And we scroll to bottom of "#sidebar"
  * Example #3: When scrolling to bottom of "#main-container"
+ * Example #4: When I scroll to bottom of ".chat-history"
+ * Example #5: And we scroll to bottom of "#results"
  *
  */
 When(/^(I scroll|we scroll|scrolling)? to bottom of "([^"]*)"$/, async function (pronounCase, selector) {
@@ -117,6 +127,7 @@ When(/^(I scroll|we scroll|scrolling)? to bottom of "([^"]*)"$/, async function 
  * Example #2: When I scroll right 1000
  * Example #3: And we scroll right 300
  * Example #4: When scrolling right 750
+ * Example #5: Then we scroll right 200
  *
  */
 When(/^(I scroll|we scroll|scrolling)? right(?: (\d+))?$/, async function (pronounCase, numValue) {
@@ -130,6 +141,7 @@ When(/^(I scroll|we scroll|scrolling)? right(?: (\d+))?$/, async function (prono
  * Example #2: When I scroll left 800
  * Example #3: And we scroll left 500
  * Example #4: When scrolling left 1200
+ * Example #5: Then we scroll left 200
  *
  */
 When(/^(I scroll|we scroll|scrolling)? left(?: (\d+))?$/, async function (pronounCase, numValue) {
@@ -142,6 +154,8 @@ When(/^(I scroll|we scroll|scrolling)? left(?: (\d+))?$/, async function (pronou
  * Example #1: When I scroll to start
  * Example #2: And we scroll to the start
  * Example #3: When scrolling to the start of the page
+ * Example #4: Then I scroll to the start of the page
+ * Example #5: When we scroll to start
  *
  */
 When(/^(I scroll|we scroll|scrolling)? to( the)* start( of the page)*$/, async function (pronounCase, theCase, pageCase) {
@@ -154,6 +168,8 @@ When(/^(I scroll|we scroll|scrolling)? to( the)* start( of the page)*$/, async f
  * Example #1: When I scroll to the end
  * Example #2: And we scroll to end
  * Example #3: When scrolling to the end of the page
+ * Example #4: Then I scroll to the end of the page
+ * Example #5: When we scroll to the end
  *
  */
 When(/^(I scroll|we scroll|scrolling)? to( the)* end( of the page)*$/, async function (pronounCase, theCase, pageCase) {
@@ -170,6 +186,8 @@ When(/^(I scroll|we scroll|scrolling)? to( the)* end( of the page)*$/, async fun
  * Example #1: When I scroll to start of "#off-canvas"
  * Example #2: And we scroll to start of "#sidebar"
  * Example #3: When scrolling to start of "#main-container"
+ * Example #4: When I scroll to start of ".carousel"
+ * Example #5: And we scroll to start of "#gallery"
  *
  */
 When(/^(I scroll|we scroll|scrolling)? to start of "([^"]*)"$/, async function (pronounCase, selector) {
@@ -182,6 +200,8 @@ When(/^(I scroll|we scroll|scrolling)? to start of "([^"]*)"$/, async function (
  * Example #1: When I scroll to end of "#off-canvas"
  * Example #2: And we scroll to end of "#sidebar"
  * Example #3: When scrolling to end of "#main-container"
+ * Example #4: When I scroll to end of ".carousel"
+ * Example #5: And we scroll to end of "#gallery"
  *
  */
 When(/^(I scroll|we scroll|scrolling)? to end of "([^"]*)"$/, async function (pronounCase, selector) {

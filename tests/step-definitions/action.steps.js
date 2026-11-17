@@ -81,6 +81,7 @@ When(/^(I |we )*press "([^"]*)?" by( its)*(?: "([^"]*)?")* (attribute|attr)$/, a
  * Example #2: And I click "aboutUs"
  * Example #3: When we click "Read more"
  * Example #4: And click "Home"
+ * Example #5: When we click "Sign up"
  *
  */
 When(/^(I |we )*click "([^"]*)?"$/, async function (pronounCase, item) {
@@ -101,6 +102,7 @@ When(/^(I |we )*click "([^"]*)?"$/, async function (pronounCase, item) {
  * Example #2: When I click "data-selector-about" by attribute
  * Example #3: And I click "about-us-css" by "class" attr
  * Example #4: And I click "about-us-id" by its "id" attribute
+ * Example #5: When we click "submit-button" by its "data-testid" attribute
  *
  */
 When(/^(I |we )*click "([^"]*)?" by( its)*(?: "([^"]*)?")* (attribute|attr)$/, async function (pronounCase, attrValue, itsCase, attr, attrWord) {
@@ -114,6 +116,7 @@ When(/^(I |we )*click "([^"]*)?" by( its)*(?: "([^"]*)?")* (attribute|attr)$/, a
  * Example #2: When I click "Delete" in the "Product A" row
  * Example #3: When we click "View Details" in the "Order #12345" row
  * Example #4: And I click "Download" in the "Report 2024" row
+ * Example #5: When we click "Archive" in the "Invoice 1042" row
  *
  */
 When(/^(I |we )*click "([^"]*)?" in( the)* "([^"]*)?" row$/, async function (pronounCase, clickText, theCase, rowIdentifier) {

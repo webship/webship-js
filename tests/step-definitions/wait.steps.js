@@ -169,6 +169,8 @@ When(/^(I |we )*wait max of (\d+)( minute| minutes|m)$/, OWN_LENGTH, async funct
  * Example #1: When I wait until the page is loaded
  * Example #2: When we wait until the page is loaded
  * Example #3: When wait until page loaded
+ * Example #4: And I wait until the page is loaded
+ * Example #5: When we wait until page is loaded
  *
  */
 When(/^(I |we )*wait until( the)* page( is)* loaded*$/, async function (pronounCase, theCase, withIs) {
@@ -197,6 +199,7 @@ When(/^(I |we )*wait for (?:AJAX|ajax|Ajax) to finish$/, async function (pronoun
  * Example #2: When I wait for the modal to disappear
  * Example #3: When we wait for modal to appear
  * Example #4: And I wait for the modal dialog to disappear
+ * Example #5: When we wait for the modal dialog to appear
  *
  */
 When(/^(I |we )*wait for( the)* modal( dialog)* to (appear|disappear)$/, async function (pronounCase, theCase, dialogCase, appearOrDisappear) {

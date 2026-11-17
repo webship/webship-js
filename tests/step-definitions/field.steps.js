@@ -1033,6 +1033,8 @@ ThenF(/^(the )*checkbox "([^"]*)?" is( not)* checked$/, async function (theCase,
  * Example #1: Then the radio button "#gender-male" should be selected
  * Example #2: Then the radio button "#gender-female" should not be selected
  * Example #3: Then the radio button ".option-1" should be selected
+ * Example #4: Then the radio button "Monthly" should be selected
+ * Example #5: And the radio button "#plan-yearly" should not be selected
  *
  */
 ThenF(/^(the )*radio button "([^"]*)?" should( not)* be selected$/, async function (theCase, radioButton, notCase) {

@@ -152,6 +152,7 @@ Then(/^(I |we )*should( not)* see (a |the )*"([^"]*)?" modal$/, async function (
  * Example #2: Then I should see "Delete this item" in the modal
  * Example #3: Then we should see "Confirmation required" in the modal dialog
  * Example #4: Then I should not see "Error occurred" in the modal
+ * Example #5: Then we should not see "Loading" in the modal dialog
  *
  */
 Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* modal( dialog)*$/, async function (pronounCase, notCase, expectedText, theCase, dialogCase) {
@@ -223,6 +224,7 @@ Then('the modal should not contain {string}', async function (text) {
  * Example #2: When I click "Cancel" in the modal dialog
  * Example #3: When we click "OK" button in the modal
  * Example #4: And I click "Close" in the modal
+ * Example #5: When we click "Save changes" in the modal dialog
  *
  */
 When(/^(I |we )*click "([^"]*)?"( button)* in( the)* modal( dialog)*$/, async function (pronounCase, buttonText, buttonCase, theCase, dialogCase) {
@@ -284,6 +286,7 @@ When(/^(I |we )*click on "([^"]*)" in the modal$/, async function (pronoun, sele
  * Example #2: When I dismiss the modal dialog
  * Example #3: When we close the modal
  * Example #4: And I dismiss the modal
+ * Example #5: When we dismiss the modal dialog
  *
  */
 When(/^(I |we )*(close|dismiss)( the)* modal( dialog)*$/, async function (pronounCase, closeOrDismiss, theCase, dialogCase) {

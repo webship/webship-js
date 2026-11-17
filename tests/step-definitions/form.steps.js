@@ -19,6 +19,7 @@ const { buildSelector, fillField, fillLocator, friendly, failure, humanize, isTi
  * Example #2: When I fill in "Email" with "jon@example.com"
  * Example #3: And we fill in "Organization" with "Webship.co"
  * Example #4: And I fill in "Password" with "1234"
+ * Example #5: When we fill in "Search" with "webship"
  *
  */
 When(/^(I |we )*fill in "([^"]*)?" with "([^"]*)?"$/, async function (pronounCase, field, value) {
@@ -33,6 +34,7 @@ When(/^(I |we )*fill in "([^"]*)?" with "([^"]*)?"$/, async function (pronounCas
  * Example #2: When I fill in "uname" with "John Smith" by attr
  * Example #3: And I fill in "pwordcss" with "1234" by "class" attr
  * Example #4: And I fill in "Your full name" with "John Smith" by its "placeholder" attribute
+ * Example #5: When we fill in "email" with "jon@example.com" by its "name" attribute
  *
  */
 When(/^(I |we )*fill in "([^"]*)?" with "([^"]*)?" by( its)*(?: "([^"]*)?")* (attribute|attr)$/, async function (pronounCase, attrValue, txtValue, itsCase, attr, attrWord) {
@@ -45,6 +47,8 @@ When(/^(I |we )*fill in "([^"]*)?" with "([^"]*)?" by( its)*(?: "([^"]*)?")* (at
  * Example #1: When I fill in "Username" with:
  * Example #2: And we fill in "Email" with:
  * Example #3: And I fill in "Password" with:
+ * Example #4: When we fill in "Search" with:
+ * Example #5: When I fill in "Comment" with:
  *
  */
 When(/^(I |we )*fill in "([^"]*)?" with:$/, async function (pronounCase, field) {
@@ -58,6 +62,7 @@ When(/^(I |we )*fill in "([^"]*)?" with:$/, async function (pronounCase, field) 
  * Example #2: When I fill in "uname" with: by attr
  * Example #3: And I fill in "pwordcss" with: by "class" attr
  * Example #4: And I fill in "Your full name" with: by its "placeholder" attribute
+ * Example #5: When we fill in "email" with: by its "name" attribute
  *
  */
 When(/^(I |we )*fill in "([^"]*)?" with: by( its)*(?: "([^"]*)?")* (attribute|attr)$/, async function (pronounCase, attrValue, itsCase, attr, attrWord) {
@@ -71,6 +76,8 @@ When(/^(I |we )*fill in "([^"]*)?" with: by( its)*(?: "([^"]*)?")* (attribute|at
  * Example #1: When I fill in "jon-smith" for "Username"
  * Example #2: When we fill in "Testing" for "Organization options"
  * Example #3: And I fill in "1234" for "Password"
+ * Example #4: When we fill in "jon@example.com" for "Email"
+ * Example #5: And I fill in "Webship" for "Search"
  *
  */
 When(/^(I |we )*fill in "([^"]*)?" for "([^"]*)?"$/, async function (pronounCase, value, field) {
@@ -85,6 +92,7 @@ When(/^(I |we )*fill in "([^"]*)?" for "([^"]*)?"$/, async function (pronounCase
  * Example #2: When I fill in "John Smith" for "uname" by attr
  * Example #3: And I fill in "1234" for "password" by "class" attr
  * Example #4: And I fill in "John Smith" for "Your full name" by its "placeholder" attribute
+ * Example #5: When we fill in "jon@example.com" for "email" by its "name" attribute
  *
  */
 When(/^(I |we )*fill in "([^"]*)?" for "([^"]*)?" by( its)*(?: "([^"]*)?")* (attribute|attr)$/, async function (pronounCase, txtValue, attrValue, itsCase, attr, attrWord) {
@@ -285,6 +293,7 @@ When(/^(I |we )*additionally select "([^"]*)" from "([^"]*)"$/, async function (
  * Example #2: When we check "Put site into maintenance mode"
  * Example #3: And I check "#newsletter"
  * Example #4: And we check ".terms-and-conditions"
+ * Example #5: When I check "I agree to the terms"
  *
  */
 When(/^(I |we )*check "([^"]*)?"$/, async function (pronounCase, item) {
@@ -315,6 +324,7 @@ When(/^(I |we )*check "([^"]*)?"$/, async function (pronounCase, item) {
  * Example #2: When we uncheck "Put site into maintenance mode"
  * Example #3: And I uncheck "#newsletter"
  * Example #4: And we uncheck ".terms-and-conditions"
+ * Example #5: When I uncheck "Send me the newsletter"
  *
  */
 When(/^(I |we )*uncheck "([^"]*)?"$/, async function (pronounCase, item) {
@@ -345,6 +355,7 @@ When(/^(I |we )*uncheck "([^"]*)?"$/, async function (pronounCase, item) {
  * Example #2: When I select radio button "female"
  * Example #3: When I select radio button "#gender-male"
  * Example #4: When we select radio button "option1"
+ * Example #5: And we select radio button "Monthly"
  *
  */
 When(/^(I |we )*select radio button "([^"]*)?"$/, async function (pronounCase, item) {

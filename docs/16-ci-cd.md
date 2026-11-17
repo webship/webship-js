@@ -58,7 +58,7 @@ Single job `build` on `ubuntu-latest`, 45-minute limit:
 3. `npm install`.
 4. `npm run test:report` — generates an HTML report from a small JSON and checks it: no third-party icon, the project's own version, the place of execution.
 5. `npx playwright install --with-deps chromium`.
-6. `npm run test:examples` — no browser: every step definition is documented, every example step and every feature step resolves to exactly one definition.
+6. `npm run test:examples` — no browser: every step definition is documented with at least five examples that use it, every example step and every feature step resolves to exactly one definition.
 7. `npm run test:paths` — no browser: a feature or a scenario (`file:line`) named on the command line runs alone, and naming none runs the whole suite (dry runs).
 8. `npm run test:screenshots` — runs a skipped, a pending and a failing scenario and checks that only the failing one leaves a failure screenshot.
 9. `npm run test:config` — runs a scenario with a `cucumber.js` whose `worldParameters` carry only the launch URL, and checks that it passes and that the run ends by itself.

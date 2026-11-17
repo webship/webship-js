@@ -5,7 +5,8 @@
 // definitions, without a browser:
 //
 //   1. every step definition in tests/step-definitions carries a JSDoc block
-//      with a description and at least one "Example #n:" block,
+//      with a description and at least five "Example #n:" blocks that use
+//      the step itself (CLAUDE.md §4.2),
 //   2. every step line of every example resolves to exactly one definition
 //      (none undefined, none ambiguous),
 //   3. at least one example of a definition resolves to that definition,
@@ -72,7 +73,7 @@ function readDefinitions(file) {
         if (!examples.length && raw.trim()) description.push(raw.trim());
       }
     }
-    definitions.push({ file, line, pattern: m[2], hasDoc: doc !== null, description: description.join(' '), examples, own: 0 });
+    definitions.push({ file, line, pattern: m[2], hasDoc: doc !== null, description: description.join(' '), examples, own: 0, ownExamples: new Set() });
   }
   return definitions;
 }
@@ -104,7 +105,7 @@ function buildFeature(file, definitions) {
       lines.push(`  Scenario: ${file} line ${definition.line} example ${n + 1}`);
       for (const item of body) {
         lines.push(item.text);
-        if (item.step) owners[lines.length] = { definition, step: item.step };
+        if (item.step) owners[lines.length] = { definition, step: item.step, example: n };
       }
       lines.push('');
     });
@@ -192,12 +193,17 @@ for (const feature of examples.report) {
       const status = step.result && step.result.status;
       if (status === 'undefined') problems.push(`${where}  example step matches no definition: ${owner.step}`);
       else if (status === 'ambiguous') problems.push(`${where}  example step matches more than one definition: ${owner.step}`);
-      else if (matched[`${path.basename(feature.uri)}:${step.line}`] === where) owner.definition.own++;
+      else if (matched[`${path.basename(feature.uri)}:${step.line}`] === where) {
+        owner.definition.own++;
+        owner.definition.ownExamples.add(owner.example);
+      }
     }
   }
 }
+const MIN_EXAMPLES = 5;
 for (const d of all) {
   if (d.examples.length && !d.own) problems.push(`${d.file}:${d.line}  none of its examples uses the step itself: ${d.pattern}`);
+  else if (d.hasDoc && d.ownExamples.size < MIN_EXAMPLES) problems.push(`${d.file}:${d.line}  ${d.ownExamples.size} of its examples use the step itself, fewer than ${MIN_EXAMPLES}: ${d.pattern}`);
 }
 
 // 2. The features of the suite.
