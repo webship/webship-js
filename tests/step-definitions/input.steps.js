@@ -179,8 +179,10 @@ When(/^(I |we )*set the viewport size to (\d+)x(\d+)$/, async function (pronoun,
 // ---------------------------------------------------------------------------
 
 /**
- * Touch-tap a CSS-addressed element. Falls back to a regular click if the
- * browser context was not opened with `hasTouch: true`.
+ * Touch-tap a CSS-addressed element. A scenario tagged @touch opens with
+ * touch on, so the tap fires the touch events (touchstart, touchend) a
+ * mobile control listens to. Without touch the browser context cannot tap:
+ * the step clicks instead and says so once per scenario.
  *
  * Example #1: When I tap on "#cta"
  * Example #2: When I tap on ".bottom-nav-item"
@@ -190,13 +192,30 @@ When(/^(I |we )*set the viewport size to (\d+)x(\d+)$/, async function (pronoun,
  *
  */
 When(/^(I |we )*tap on "([^"]*)"$/, async function (pronoun, sel) {
+  const target = this.page.locator(sel).first();
   try {
-    await this.page.locator(sel).first().tap();
+    await target.tap();
+    return;
   } catch (e) {
-    if (/hasTouch/i.test(e.message)) {
-      await this.page.locator(sel).first().click();
-    } else {
-      throw e;
+    if (!/hasTouch/i.test(e.message)) {
+      throw friendly({
+        action: `tap on "${sel}"`,
+        cause: e,
+        hint: 'the selector is a CSS selector; check that the element is on the page and visible.',
+      });
     }
+  }
+  if (!this.__tapAsClickNoted) {
+    this.__tapAsClickNoted = true;
+    process.stderr.write(`\n[webship-js] "tap on" clicked "${sel}": this browser context has no touch. Tag the scenario @touch for a real tap.\n`);
+  }
+  try {
+    await target.click();
+  } catch (e) {
+    throw friendly({
+      action: `tap on "${sel}"`,
+      cause: e,
+      hint: 'the selector is a CSS selector; check that the element is on the page and visible.',
+    });
   }
 });
