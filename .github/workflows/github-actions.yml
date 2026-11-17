@@ -62,6 +62,9 @@ jobs:
       - name: Check that a configuration with only the launch URL runs
         run: npm run test:config
 
+      - name: Check the HTML report built at the end of a run
+        run: npm run test:exit-report
+
       - name: Start virtual server
         run: npm start &
 

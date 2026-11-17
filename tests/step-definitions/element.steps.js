@@ -178,7 +178,10 @@ Then('the element {string} with the attribute {string} and the value containing 
 });
 
 /**
- * Assert an element is positioned within the top 100 px of the viewport.
+ * Assert an element is at the top of the viewport: the top of its box is
+ * between 0 and 100 pixels from the top of the viewport. The step looks
+ * again for up to 5 seconds, so an element still on its way after a smooth
+ * scroll gets there.
  *
  * Example #1: Then the element "#header" should be at the top of the viewport
  * Example #2: Then the element "h1" should be at the top of the viewport
@@ -186,12 +189,45 @@ Then('the element {string} with the attribute {string} and the value containing 
  * Example #4: When I scroll to the top
  *               Then the element "#hero" should be at the top of the viewport
  * Example #5: Then the element "[role=banner]" should be at the top of the viewport
+ * Example #6: When I click "Go to section 3"
+ *               Then the element "#section-3" should be at the top of the viewport
  *
  */
 Then('the element {string} should be at the top of the viewport', async function (sel) {
-  const box = await this.page.locator(sel).first().boundingBox();
-  assert.ok(box, `Element "${sel}" not found or not visible.`);
-  assert.ok(box.y >= 0 && box.y <= 100, `Element "${sel}" is not at top of viewport (y=${box.y}).`);
+  const element = this.page.locator(sel).first();
+  const deadline = Date.now() + 5000;
+  let state = 'missing';
+  let top = null;
+  for (;;) {
+    if (await element.count().catch(() => 0)) {
+      const box = await element.boundingBox().catch(() => null);
+      if (box) {
+        top = box.y;
+        state = 'placed';
+        if (top >= 0 && top <= 100) return;
+      } else {
+        state = 'hidden';
+      }
+    } else {
+      state = 'missing';
+    }
+    if (Date.now() >= deadline) break;
+    await this.page.waitForTimeout(100);
+  }
+  if (state === 'missing') {
+    throw failure(this.page, `No element matches "${sel}" after 5 seconds.`, {
+      hint: 'the argument is a CSS selector, such as "#hero" or "header.site-header".',
+    });
+  }
+  if (state === 'hidden') {
+    throw failure(this.page, `The element "${sel}" is on the page but not visible after 5 seconds.`, {
+      hint: 'a hidden element has no place in the viewport.',
+    });
+  }
+  throw failure(this.page, `The element "${sel}" is not at the top of the viewport after 5 seconds.`, {
+    found: `its top is ${Math.round(top)} px from the top of the viewport`,
+    hint: `the step passes when the top of the element is between 0 and 100 pixels from the top of the viewport. To bring it there, use: When I scroll to the element "${sel}"`,
+  });
 });
 
 /**

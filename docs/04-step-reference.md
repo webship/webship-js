@@ -82,9 +82,9 @@ The three read the page the same way: letter case ignored, white space collapsed
 | `Then I should not see the modal` | |
 | `Then I should see "text" in the modal` | |
 | `Then the modal should contain "text"` | |
-| `When I click "OK" in the modal` | |
-| `When I click on "#sel" in the modal` | |
-| `When I close the modal` | |
+| `When I click "OK" in the modal` | Waits up to 5 s for a modal to be open, else fails with "No modal is open"; a button the open modal lacks fails, listing the ones it has |
+| `When I click on "#sel" in the modal` | The selector inside the open modal only; same 5 s wait for an open modal |
+| `When I close the modal` | Close button, else Escape; same 5 s wait for an open modal |
 
 ## Web-first assertions (auto-retry)
 
@@ -242,6 +242,8 @@ Settings (`worldParameters.javascript`):
 
 The explicit step `Then there should be no JavaScript errors` always asserts (independent of `mode`) and suppresses the auto-report so a single error is not announced twice.
 
+`Then JavaScript errors should not match "…"` handles the errors it read in the same way: a page with noise it tolerates does not fail the scenario at its end in `fail` mode, only an error that matches the pattern fails it.
+
 ## Video recording
 
 ```
@@ -358,6 +360,7 @@ This index lists every public step grouped by source file, with one Gherkin exam
 - *^(?:the response should be valid JSON|the API response should be valid JSON)$*  ·  Example: `Then the response should be valid JSON`
 - *^(?:the response header|the header) "([^"]*)" should (?:be|contain) "([^"]*)"$*  ·  Example: `Then the response header "Content-Type" should be "application/json"`
 - *^print API response$*  ·  Example: `Then print API response`
+- *^(?:the )?API response should( not)? contain the header "([^"]*)"$*  ·  Example: `Then the API response should contain the header "ETag"`
 - *^(?:I|we) set placeholder "([^"]*)" to "([^"]*)"$*  ·  Example: `Given I set placeholder "{{userId}}" to "123"`
 - *^(I |we )*save the JSON property "([^"]*)" as placeholder "([^"]*)"$*  ·  Example: `When I save the JSON property "token" as placeholder "{{token}}"`
 
@@ -780,6 +783,8 @@ A key or a value may hold a double quote written `\"`, as in a JSON value: `Give
 - *^(I |we )*print last XML response$*  ·  Example: `When I print last XML response`
 
 ### yaml.steps.js
+
+The numeric steps (greater than, less than, between) compare a YAML number only: a quoted `"3"`, `true` or `null` fails with its type, where `Number()` would have read 3, 1 or 0.
 
 - *the YAML response content from the file {string}*  ·  Example: `Given the YAML response content from the file "config.yml"`
 - *the YAML response content is the following:*  ·  Example: `Given the YAML response content is the following:`

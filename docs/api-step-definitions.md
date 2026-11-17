@@ -48,6 +48,8 @@ The documentation lists 22 distinct step definition categories:
 - Then the API response should contain "text"
 - Then the API response should contain json
 - Then the API response should not contain "text"
+- Then the API response should contain the header "header name"
+- Then the API response should not contain the header "header name"
 - Then the response should be valid JSON
 - Then the response header "response header" should be "value"
 
@@ -55,7 +57,8 @@ The two text checks (`should contain "text"`, `should not contain "text"`)
 ignore letter case and replace placeholders in the text first, so the
 negative check fails on any text the positive one finds.
 
-**JSON Response Validation:**
+**JSON Response Validation** (a property is named by a dot path,
+`data.0.id` or `data[0].id`, or a JSON Pointer, `/data/0/id`):
 - Then the JSON response should have "propertyPath" equal to "value"
 - Then the JSON response should have property "propertyPath"
 - Then the JSON response should not have property "propertyPath"

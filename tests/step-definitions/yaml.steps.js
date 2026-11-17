@@ -1,6 +1,6 @@
 'use strict';
 
-const { friendly } = require('./webship');
+const { friendly, failure } = require('./webship');
 
 // Parse and assert against YAML response bodies.
 //
@@ -596,17 +596,41 @@ Then('the YAML value at {string} should not be empty', function (p) {
 // Numeric comparisons
 // ---------------------------------------------------------------------------
 
-function numAt(doc, p) {
+// What a YAML value is, in the words of a failure message.
+function describeValue(v) {
+  if (v === null || v === undefined) return 'null';
+  if (typeof v === 'string') return `the string "${v}"`;
+  if (typeof v === 'boolean') return `the boolean ${v}`;
+  if (Array.isArray(v)) return 'a list';
+  if (typeof v === 'object') return 'a mapping';
+  return String(v);
+}
+
+// The number at a path. Only a YAML number compares: a quoted "3", true or
+// null is not one, whatever Number() would make of it.
+function numAt(world, doc, p) {
   const nodes = evalPath(doc, p);
   if (nodes.length === 0) throw friendly(`YAML element "${p}" not found.`);
   const v = nodes[0];
-  const n = typeof v === 'number' ? v : Number(v);
-  if (!Number.isFinite(n)) throw friendly(`YAML value at "${p}" is not numeric: ${v}`);
-  return n;
+  if (typeof v !== 'number' || !Number.isFinite(v)) {
+    throw failure(world.page, `The YAML value at "${p}" is ${describeValue(v)}, not ${typeof v === 'number' ? 'a finite number' : 'a number'}.`, {
+      hint: 'a number compares only with a YAML number: write it without quotes (replicas: 3, not replicas: "3").',
+    });
+  }
+  return v;
 }
 
+// Fail a comparison that does not hold, with the value and the words of the step.
+function expectNumber(world, p, v, holds, words, hint) {
+  if (!holds) throw failure(world.page, `The YAML value at "${p}" is ${v}, not ${words}.`, { hint });
+}
+
+const ABOVE_HINT = '"greater than" leaves the number itself out; "greater than or equal to" lets it in.';
+const BELOW_HINT = '"less than" leaves the number itself out; "less than or equal to" lets it in.';
+
 /**
- * Assert a numeric YAML node is greater than a value.
+ * Assert a numeric YAML node is greater than a value. Only a YAML number
+ * compares: a quoted "3", true or null fails, as in every numeric step below.
  *
  * Example #1: Then the YAML value at "/spec/replicas" should be greater than 0
  * Example #2: Then the YAML value at "/timeout" should be greater than 5
@@ -617,7 +641,8 @@ function numAt(doc, p) {
  */
 Then('the YAML value at {string} should be greater than {float}', function (p, n) {
   const doc = activeDoc(this); ensureLoaded(this);
-  assert.ok(numAt(doc, p) > n);
+  const v = numAt(this, doc, p);
+  expectNumber(this, p, v, v > n, `greater than ${n}`, ABOVE_HINT);
 });
 
 /**
@@ -632,7 +657,8 @@ Then('the YAML value at {string} should be greater than {float}', function (p, n
  */
 Then('the YAML value at {string} should be greater than or equal to {float}', function (p, n) {
   const doc = activeDoc(this); ensureLoaded(this);
-  assert.ok(numAt(doc, p) >= n);
+  const v = numAt(this, doc, p);
+  expectNumber(this, p, v, v >= n, `greater than or equal to ${n}`, ABOVE_HINT);
 });
 
 /**
@@ -647,7 +673,8 @@ Then('the YAML value at {string} should be greater than or equal to {float}', fu
  */
 Then('the YAML value at {string} should be less than {float}', function (p, n) {
   const doc = activeDoc(this); ensureLoaded(this);
-  assert.ok(numAt(doc, p) < n);
+  const v = numAt(this, doc, p);
+  expectNumber(this, p, v, v < n, `less than ${n}`, BELOW_HINT);
 });
 
 /**
@@ -662,7 +689,8 @@ Then('the YAML value at {string} should be less than {float}', function (p, n) {
  */
 Then('the YAML value at {string} should be less than or equal to {float}', function (p, n) {
   const doc = activeDoc(this); ensureLoaded(this);
-  assert.ok(numAt(doc, p) <= n);
+  const v = numAt(this, doc, p);
+  expectNumber(this, p, v, v <= n, `less than or equal to ${n}`, BELOW_HINT);
 });
 
 /**
@@ -677,8 +705,8 @@ Then('the YAML value at {string} should be less than or equal to {float}', funct
  */
 Then('the YAML value at {string} should be between {float} and {float}', function (p, lo, hi) {
   const doc = activeDoc(this); ensureLoaded(this);
-  const v = numAt(doc, p);
-  assert.ok(v >= lo && v <= hi, `Value ${v} not in [${lo}, ${hi}].`);
+  const v = numAt(this, doc, p);
+  expectNumber(this, p, v, v >= lo && v <= hi, `between ${lo} and ${hi}`, '"between" includes both ends of the range.');
 });
 
 // ---------------------------------------------------------------------------
