@@ -45,6 +45,7 @@ suite — nearly every bundled feature loads a static fixture from `examples/`.
 | `npm run test:settle-verbs` | A project's own step whose words carry a page-changing verb (add, log out, enter, open, delete, save) is followed by the settle; `wait for ajax to finish` reads in lower case. |
 | `npm run test:config` | A `cucumber.js` whose `worldParameters` carry only the launch URL runs a scenario green and the run ends by itself. |
 | `npm run test:exit-report` | Needs browsers, no server: the HTML report built at the end of a run is built once with `--parallel`, from a JSON report written elsewhere, and says so in one line when there is none. |
+| `npm run test:breakpoints` | The `@mobile` / `@desktop` tags, `set the viewport to the "…" breakpoint` and `viewing the site on a … screen` read one breakpoint registry (config, `WEBSHIP_SELECTORS_BREAKPOINTS`, `default: true`). |
 | `npm run generate-reports` | HTML (+ optional PDF) report from `tests/reports/cucumber_report.json`. |
 
 Targeting a subset:

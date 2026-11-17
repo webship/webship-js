@@ -771,26 +771,46 @@ Then(/^(?:the response should be valid JSON|the API response should be valid JSO
 });
 
 /**
- * Verify response header value.
+ * Verify a header of the last API response. "should be" compares the whole
+ * value (white space around it trimmed); "should contain" looks for a part of
+ * it. The header name is matched in any letter case.
  *
- * Example #1: Then the response header "Content-Type" should be "application/json"
+ * Example #1: Then the response header "Content-Type" should be "application/json; charset=utf-8"
  * Example #2: Then the header "Cache-Control" should contain "no-cache"
  * Example #3: Then the response header "Content-Type" should contain "charset=utf-8"
  * Example #4: Then the header "X-Powered-By" should be "Webship.co"
  * Example #5: Then the response header "ETag" should contain "etag"
  * Example #6: Then the header "Location" should contain "/users/1"
  * Example #7: Then the response header "Access-Control-Allow-Origin" should be "*"
- * Example #8: Then the header "Content-Length" should contain "0"
+ * Example #8: Then the header "Content-Length" should be "0"
  */
-Then(/^(?:the response header|the header) "([^"]*)" should (?:be|contain) "([^"]*)"$/, function (headerName, expectedValue) {
+Then(/^(?:the response header|the header) "([^"]*)" should (be|contain) "([^"]*)"$/, function (headerName, verb, expectedValue) {
   if (!apiResponse) {
     throw friendly('No API response available. Make sure to send a request first.');
   }
-  
+
   const actualValue = apiResponse.headers[headerName.toLowerCase()];
-  
-  assert(actualValue && actualValue.includes(expectedValue),
-    `Expected header "${headerName}" to contain "${expectedValue}", but got "${actualValue}"`);
+  if (actualValue === undefined || actualValue === null) {
+    throw apiFailure(`The API response has no "${headerName}" header.`, {
+      found: `the headers ${Object.keys(apiResponse.headers).join(', ') || 'none'}`,
+      hint: 'check the name of the header; the step reads the headers of the last API response.',
+    });
+  }
+  const actual = String(actualValue).trim();
+  const expected = replacePlaceHolder(expectedValue).trim();
+  if (verb === 'be' && actual !== expected) {
+    throw apiFailure(`The response header "${headerName}" is "${actual}", not "${expected}".`, {
+      hint: actual.includes(expected)
+        ? `"should be" compares the whole value. For a part of it, use: the response header "${headerName}" should contain "${expected}"`
+        : '"should be" compares the whole value, letter case included.',
+    });
+  }
+  if (verb === 'contain' && !actual.includes(expected)) {
+    throw apiFailure(`The response header "${headerName}" does not contain "${expected}".`, {
+      found: `"${actual}"`,
+      hint: '"should contain" looks for a part of the value, letter case included.',
+    });
+  }
 });
 
 /**

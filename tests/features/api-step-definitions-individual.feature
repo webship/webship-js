@@ -139,7 +139,7 @@ Feature: API Step Definitions Individual
   Scenario: Header Assertions
     Given the API base URL is "https://jsonplaceholder.typicode.com"
     When I send a GET request to "/posts/1"
-    Then the response header "Content-Type" should be "application/json"
+    Then the response header "Content-Type" should be "application/json; charset=utf-8"
     # Alternative syntax:
     # Then the header "Cache-Control" should contain "no-cache"
 
