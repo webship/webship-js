@@ -20,6 +20,7 @@
     "test:firefox": "BROWSER=firefox cucumber-js --config cucumber.js",
     "test:webkit": "BROWSER=webkit cucumber-js --config cucumber.js",
     "test:report": "node tests/check-report.js",
+    "test:attachments": "node tests/check-attachments.js",
     "test:headed": "HEADLESS=false cucumber-js --config cucumber.js",
     "test:must-fail": "node tests/check-must-fail.js",
     "test:screenshots": "node tests/check-screenshots.js",

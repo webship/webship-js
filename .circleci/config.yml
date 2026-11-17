@@ -2,7 +2,7 @@ version: 2.1
 
 defaults: &defaults
   docker:
-    - image: cimg/node:20.20
+    - image: cimg/node:24
   environment:
     FORCE_COLOR: "1"
 
@@ -27,6 +27,15 @@ jobs:
       - run:
           name: Test
           command: npm test
+      - store_artifacts:
+          path: tests/reports
+          destination: cucumber-report
+      - store_artifacts:
+          path: screenshots
+          destination: screenshots
+      - store_artifacts:
+          path: videos
+          destination: videos
 
 workflows:
   version: 2

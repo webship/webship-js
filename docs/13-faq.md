@@ -138,6 +138,10 @@ Then I should see "Welcome, Alice"               # ✅ user behaviour
 Behaviour-tested code is refactor-friendly. Implementation-tested code
 breaks every time the schema changes.
 
+## Does `I should see` care about letter case or hidden text?
+
+No, and `I should not see` and `eventually I should see` read the page the same way: letter case is ignored, white space is collapsed, and the text of hidden elements counts (the text of `<script>` and `<style>` does not). On a page that reads "Next page", `I should see "next page"` passes and `I should not see "next page"` fails. For the text a visitor can see, with its letter case, use `I wait for the text "Next page" to appear`; for an element, `"<selector>" should be visible`.
+
 ## How do I name selectors I'll reuse?
 
 In `tests/selectors/my-app.json`:
@@ -219,6 +223,21 @@ Scenario: Page passes WCAG AA
 Layered approach in [10 Accessibility](10-accessibility.md). Combine
 custom probes (heading order, skip link, ARIA validity) with axe-core
 full audits.
+
+## Does a passing run mean the HTTPS certificate is valid?
+
+No. The scaffold's `playwright.config.ts` opens every browser context with
+`ignoreHTTPSErrors: true` and Chromium with `--ignore-certificate-errors`,
+so a local site with a self-signed certificate can be tested. The same
+settings open a page served with an expired, self-signed or wrong-host
+certificate as if the certificate were valid, and the API and REST steps
+follow them too: a smoke test of a site passes on a broken certificate.
+
+To check the certificate, set `ignoreHTTPSErrors: false` in
+`contextOptions` and remove `--ignore-certificate-errors` from the
+Chromium arguments (in a copy of the project kept for that check, if the
+rest of the suite runs against local sites). The first navigation to a page
+with a bad certificate then fails (`net::ERR_CERT_…`).
 
 ## How do I make CI fast?
 

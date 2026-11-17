@@ -1,12 +1,9 @@
-image: node:20
+image: node:24
 
 variables:
   FORCE_COLOR: "1"
 
 before_script:
-  - apt-get update -qq
-  - apt-get upgrade -qqy
-  - apt-get install -yqq vim links lynx git diffutils htop curl wget p7zip-full unzip zip sed gcc g++ make libfreetype6-dev libaio1 libaio-dev libonig-dev libpng-dev
   - npm install
   - npx playwright install --with-deps chromium
 
@@ -19,6 +16,14 @@ webship-js-test:
     - npm start &
     - sleep 3
     - npm test
+  artifacts:
+    name: cucumber-report
+    when: always
+    expire_in: 14 days
+    paths:
+      - tests/reports/
+      - screenshots/
+      - videos/
 
   only:
     refs:

@@ -807,6 +807,23 @@ function excerpt(text, max) {
 }
 
 /**
+ * Locator for the page when its text contains `text`, read the way the page
+ * text steps (`I should see`, `I should not see`, `eventually I should see`)
+ * read it: Playwright's text matching on `<body>`, letter case ignored, white
+ * space collapsed, the text of hidden elements included, the text of
+ * `<script>`, `<noscript>` and `<style>` left out. It matches nothing while
+ * the text is not on the page, so `waitFor({ state: 'attached' })` waits for
+ * the text to come and `waitFor({ state: 'detached' })` for it to go.
+ *
+ * @param {import('playwright').Page} page
+ * @param {string} text
+ * @returns {import('playwright').Locator}
+ */
+function pageTextLocator(page, text) {
+  return page.locator('body').filter({ hasText: text === undefined || text === null ? '' : String(text) });
+}
+
+/**
  * True when an error is Playwright giving up after its timeout, which in an
  * assertion means "what was looked for is not there".
  *
@@ -865,6 +882,7 @@ module.exports = {
   failure,
   excerpt,
   isTimeout,
+  pageTextLocator,
 };
 
 // ---------------------------------------------------------------------------

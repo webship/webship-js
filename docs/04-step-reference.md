@@ -33,7 +33,7 @@ This is a topical reference. For per-step examples, see the JSDoc comment above 
 | `When I fill in "value" for "Label"` | Reverse phrasing |
 | `When I fill in "value" for "selector" by attr` | By attribute |
 | `When I fill in the following:` (table) | Bulk fill |
-| `When I select "Option" from "Label"` | `<select>` |
+| `When I select "Option" from "Label"` | `<select>` by the exact text of its label, its name, its id, or a CSS selector (`#`, `.`, `[`); the option by its text or value |
 | `When I additionally select "Option" from "Label"` | Multi-select |
 | `When I check the checkbox "#agree"` | |
 | `When I uncheck the checkbox "#agree"` | |
@@ -63,6 +63,16 @@ I wait until at least N elements match "selector" # Count edge
 I wait for the modal to appear/disappear          # Modal edge
 eventually I should see "..."                     # Polling text assertion
 ```
+
+## Page text
+
+| Step | Notes |
+| --- | --- |
+| `Then I should see "text"` | Waits up to 5 s for the text to come |
+| `Then I should not see "text"` | Waits up to 5 s for the text to go |
+| `Then eventually I should see "text" [within N seconds]` | Waits up to 10 s, or N |
+
+The three read the page the same way: letter case ignored, white space collapsed, the text of hidden elements included, the text of `<script>` and `<style>` left out. For the text a visitor can see, with its letter case, use `I wait for the text "..." to appear` / `to disappear`. See [Then I should see](step-definitions/then-i-should-see.md).
 
 ## Modal
 
@@ -101,8 +111,11 @@ See `cookie.steps.js`, `response.steps.js`, `metatag.steps.js`.
 the table "selector" should have N rows
 the table "selector" should have N columns
 the table "selector" should not be empty
+the table "selector" should be sorted by "Column" in "ascending|descending" order
 I should see "Text" in the "RowMatch" row
 ```
+
+The sorted step compares the cells of the column the way a reader orders them: as numbers when every cell reads as a number (`$9.99`, `1,299`, `12 %`), else as dates when every cell reads as a date, else as text with letter case ignored and the numbers inside the text in number order ("Item 2" before "Item 10"). Equal cells may come in any order.
 
 ## Iframes / file download / REST / XML / keyboard
 
@@ -439,7 +452,7 @@ This index lists every public step grouped by source file, with one Gherkin exam
 - *the field {string} should not be empty*  ·  Example: `Then the field "username" should not be empty`
 - *the field {string} should exist*  ·  Example: `Then the field "username" should exist`
 - *the field {string} should not exist*  ·  Example: `Then the field "missing-field" should not exist`
-- *the field {string} should have {string} state*  ·  Example: `Then the field "username" should have "enabled" state`
+- *the field {string} should have {string} state*  ·  Example: `Then the field "username" should have "enabled" state`  ·  States: `enabled`, `disabled`, `editable`, `read-only` (or `readonly`); any other word fails the step
 - *the field {string} should be required*  ·  Example: `Then the field "username" should be required`
 - *the field {string} should not be required*  ·  Example: `Then the field "bio" should not be required`
 - *^(I |we )*fill in the multi-value field "([^"]*)" with the following values:$*  ·  Example: `When I fill in the multi-value field "tags" with the following values:`
@@ -462,6 +475,7 @@ This index lists every public step grouped by source file, with one Gherkin exam
 - *^(I |we )*fill in the time part of the datetime field "([^"]*)" with "([^"]*)"$*  ·  Example: `When I fill in the time part of the datetime field "Start" with "10:00"`
 - *^(I |we )*fill in the start datetime field "([^"]*)" with date "([^"]*)" and time "([^"]*)"$*  ·  Example: `When I fill in the start datetime field "Event" with date "2026-05-08" and time "10:00"`
 - *^(I |we )*fill in the end datetime field "([^"]*)" with date "([^"]*)" and time "([^"]*)"$*  ·  Example: `When I fill in the end datetime field "Event" with date "2026-05-09" and time "18:00"`
+- The datetime steps name a field by the exact text of its label or of the legend of its fieldset (white space and letter case aside) and fill only its own inputs: the one inside the label, the one the label is for, or the ones that follow the label before the next field; an input whose name or aria-label contains the text is found last. A field with no such input fails the step and fills nothing.
 
 ### file-download.steps.js
 

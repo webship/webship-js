@@ -11,7 +11,11 @@
 //      pages of this repository, served on a free port),
 //   3. a feature named on the command line runs alone,
 //   4. a second scaffold run changes nothing, and a `test` script the project
-//      chose itself is kept.
+//      chose itself is kept,
+//   5. a `test` script that runs Nightwatch (a project from webship-js 1.x)
+//      is replaced by the suite and kept as `test:nightwatch`,
+//   6. `--force` rewrites the scaffold's files but keeps the project's own
+//      steps in tests/step-definitions/custom.js.
 //
 // The browser install is skipped (--skip-browsers): Chromium must be in the
 // Playwright cache already, as it is after `npx playwright install chromium`.
@@ -183,6 +187,37 @@ async function main() {
     const ownPkg = JSON.parse(fs.readFileSync(path.join(own, 'package.json'), 'utf8'));
     if (ownPkg.scripts.test !== 'node my-own-tests.js') problems.push(`the scaffold replaced a test script of the project: ${ownPkg.scripts.test}`);
     if (!ownPkg.scripts['test:chromium']) problems.push('the scaffold did not add test:chromium beside an existing test script');
+
+    // A project from webship-js 1.x: its test script runs Nightwatch.
+    const legacy = path.join(tmp, 'from-1x');
+    fs.mkdirSync(legacy);
+    const nightwatch = 'nightwatch --format @cucumber/pretty-formatter --format json:./tests/reports/cucumber-report.json';
+    fs.writeFileSync(path.join(legacy, 'package.json'), JSON.stringify({ name: 'from-1x', version: '1.0.0', scripts: { test: nightwatch } }, null, 2));
+    const legacyRun = scaffold(legacy);
+    const legacyPkg = JSON.parse(fs.readFileSync(path.join(legacy, 'package.json'), 'utf8'));
+    if (legacyPkg.scripts.test !== 'cucumber-js --config cucumber.js') {
+      problems.push(`the scaffold kept a Nightwatch test script from 1.x: "npm test" is still ${legacyPkg.scripts.test}`);
+    }
+    if (legacyPkg.scripts['test:nightwatch'] !== nightwatch) {
+      problems.push(`the scaffold did not keep the old Nightwatch command as test:nightwatch: ${legacyPkg.scripts['test:nightwatch']}`);
+    }
+    if (legacyPkg.scripts.test !== nightwatch && !/nightwatch/i.test(legacyRun.stdout || '')) {
+      problems.push('the scaffold replaced the Nightwatch test script without saying so');
+    }
+
+    // --force keeps the project's own steps.
+    const customFile = path.join(project, 'tests', 'step-definitions', 'custom.js');
+    const ownSteps = fs.readFileSync(customFile, 'utf8') + "\nGiven('a step of the project', function () {});\n";
+    fs.writeFileSync(customFile, ownSteps);
+    fs.writeFileSync(path.join(project, 'playwright.config.ts'), '// changed by the project\n');
+    const forced = spawnSync(process.execPath, [INIT, '--cwd', project, '--skip-browsers', '--force'], { encoding: 'utf8' });
+    if (forced.status !== 0) problems.push(`the scaffold with --force exited with ${forced.status}`);
+    if (fs.readFileSync(customFile, 'utf8') !== ownSteps) {
+      problems.push('the scaffold with --force overwrote tests/step-definitions/custom.js, the steps of the project');
+    }
+    if (fs.readFileSync(path.join(project, 'playwright.config.ts'), 'utf8') === '// changed by the project\n') {
+      problems.push('the scaffold with --force did not rewrite playwright.config.ts');
+    }
 
     // No package.json at all: the scaffold writes one.
     const bare = path.join(tmp, 'no-package-json');

@@ -54,6 +54,8 @@ Then "<sel>" should have value "alice@example.com"
 
 `should have text` is the exact match: the element's text, trimmed. `should contain text` collapses every run of whitespace to one space, on the element's text and on the expected text, before it looks for the substring, so a line the markup wraps still matches.
 
+For a text anywhere on the page, `I should see "text"` and `I should not see "text"` wait up to 5 seconds and `eventually I should see "text" within N seconds` longer. They ignore letter case and count the text of hidden elements, unlike `should have text` and `should contain text`, which match the letter case of the one element they read. See [Then I should see](step-definitions/then-i-should-see.md).
+
 ## Attributes / classes
 
 ```gherkin

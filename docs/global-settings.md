@@ -215,10 +215,19 @@ const config = {
 | --- | --- | --- |
 | `browser` | `chromium` | `BROWSER` (`chromium` / `firefox` / `webkit`) |
 | `launchOptions.headless` | `true` | `HEADLESS=false` for headed |
-| `launchOptions.slowMo` | `300` headed: `800` | `SLOW_MO` (ms) |
+| `launchOptions.slowMo` | `300` headed: `800`, on a laptop and in CI alike | `SLOW_MO` (ms); `SLOW_MO=0` for full speed |
 | `launchOptions.args` | chromium-only flags | edit file directly |
 | `contextOptions.viewport` | `null` (use browser default) | edit file directly |
 | `contextOptions.ignoreHTTPSErrors` | `true` | edit file directly |
+
+`ignoreHTTPSErrors: true` and Chromium's `--ignore-certificate-errors` let a
+suite run against a local site with a self-signed certificate. They also open
+a page served with an expired, self-signed or wrong-host certificate as if
+the certificate were valid, and the API and REST steps follow the same
+setting: a passing run says nothing about the certificate. To check it, set
+`ignoreHTTPSErrors: false` and remove `--ignore-certificate-errors` from the
+Chromium arguments; the first navigation to a page with a bad certificate
+then fails.
 
 ---
 

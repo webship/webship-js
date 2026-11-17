@@ -53,6 +53,9 @@ jobs:
       - name: Check that a feature named on the command line runs alone
         run: npm run test:paths
 
+      - name: Check that the print steps attach what they print to the report
+        run: npm run test:attachments
+
       - name: Check that only a failed step leaves a failure screenshot
         run: npm run test:screenshots
 
