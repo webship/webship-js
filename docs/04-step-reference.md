@@ -521,6 +521,7 @@ This index lists every public step grouped by source file, with one Gherkin exam
 - *^(I |we )*fill in "([^"]*)" with "([^"]*)" inside the iframe$*  ·  Example: `When I fill in "card_number" with "4242 4242 4242 4242" inside the iframe`
 - *^I should see "([^"]*)" inside the iframe$*  ·  Example: `Then I should see "Payment received" inside the iframe`
 - *^I should not see "([^"]*)" inside the iframe$*  ·  Example: `Then I should not see "Error" inside the iframe`
+- The iframe steps act in the iframe the scenario switched to last; while an iframe is active, a switch looks for the iframe inside it first, then in the page (nested iframes). `by attr inside the iframe` tries the attributes `I click "…" by attr` tries; the frame fill finds a field by label, placeholder, name or id; `I should (not) see "…" inside the iframe` reads the iframe as `I should (not) see` reads the page and waits up to 5 seconds.
 
 ### input.steps.js
 

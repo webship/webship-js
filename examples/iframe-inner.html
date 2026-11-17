@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Inner frame</title>
+  <style>body { margin: 0; padding: 10px; font-family: Arial, sans-serif; }</style>
+</head>
+<body>
+  <p>Text of the inner frame, two levels down</p>
+  <p><label for="coupon">Coupon code</label> <input id="coupon" name="coupon_code" type="text" placeholder="Enter a coupon"></p>
+  <p><input id="gift" name="gift_note" type="text" placeholder="Gift note"></p>
+  <button type="button" aria-label="Apply the coupon" onclick="document.getElementById('status').textContent = 'Coupon ' + document.getElementById('coupon').value + ' applied'">Apply</button>
+  <button type="button" title="Remove the coupon" onclick="document.getElementById('status').textContent = 'Coupon removed'">Remove</button>
+  <p id="status"></p>
+  <p id="late"></p>
+  <script>
+    setTimeout(function () { document.getElementById('late').textContent = 'A late message from the inner frame'; }, 1500);
+  </script>
+</body>
+</html>
