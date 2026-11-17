@@ -33,6 +33,7 @@
     "test:context": "node tests/check-context.js",
     "test:video": "node tests/check-video.js",
     "test:world": "node tests/check-world.js",
+    "test:clock": "node tests/check-clock.js",
     "test:fast": "SLOW_MO=0 cucumber-js --config cucumber.js",
     "test:assets": "node tests/check-assets.js",
     "test:examples": "node tests/check-examples.js",

@@ -9,6 +9,22 @@ const { Given, When } = require('@cucumber/cucumber');
 const ISO_HINT = 'install the fake clock first via "Given the system time is \\"YYYY-MM-DDTHH:MM:SSZ\\"".';
 
 /**
+ * Playwright installs a fake clock on the first clock call when none is
+ * installed, at the current time; the timers the page set before that call
+ * keep running on real time. Say so once per scenario when a step moves a
+ * clock that "Given the system time is" did not install.
+ */
+async function noteClockInstalledNow(world, what) {
+  let installed = true;
+  try { installed = await world.page.evaluate(() => !!(window.Date && window.Date.isFake)); } catch { /* no page yet */ }
+  if (installed || world.__clockNoteShown) return;
+  world.__clockNoteShown = true;
+  const note = `[webship-js] The clock was not installed with "Given the system time is …": "${what}" installed a fake clock now, at the current time. Timers the page set before this step run on real time and do not move with it.`;
+  process.stderr.write(`\n${note}\n`);
+  try { await world.attach(note, 'text/plain'); } catch { /* attach is optional */ }
+}
+
+/**
  * Install a fake clock anchored at an ISO 8601 instant.
  *
  * Example #1: Given the system time is "2026-05-08T10:00:00Z"
@@ -41,6 +57,7 @@ Given(/^the system time is "([^"]*)"$/, async function (iso) {
  *
  */
 When(/^(I |we )*advance the clock by (\d+) ?ms$/, async function (pronoun, ms) {
+  await noteClockInstalledNow(this, `advance the clock by ${ms} ms`);
   try { await this.page.clock.runFor(parseInt(ms, 10)); }
   catch (e) { throw friendly({ action: `advance the clock by ${ms} ms`, cause: e, hint: ISO_HINT }); }
 });
@@ -56,6 +73,7 @@ When(/^(I |we )*advance the clock by (\d+) ?ms$/, async function (pronoun, ms) {
  *
  */
 When(/^(I |we )*advance the clock by (\d+) seconds?$/, async function (pronoun, seconds) {
+  await noteClockInstalledNow(this, `advance the clock by ${seconds} second(s)`);
   try { await this.page.clock.runFor(parseInt(seconds, 10) * 1000); }
   catch (e) { throw friendly({ action: `advance the clock by ${seconds} second(s)`, cause: e, hint: ISO_HINT }); }
 });
@@ -71,6 +89,7 @@ When(/^(I |we )*advance the clock by (\d+) seconds?$/, async function (pronoun, 
  *
  */
 When(/^(I |we )*advance the clock by (\d+) minutes?$/, async function (pronoun, minutes) {
+  await noteClockInstalledNow(this, `advance the clock by ${minutes} minute(s)`);
   try { await this.page.clock.runFor(parseInt(minutes, 10) * 60 * 1000); }
   catch (e) { throw friendly({ action: `advance the clock by ${minutes} minute(s)`, cause: e, hint: ISO_HINT }); }
 });
@@ -86,6 +105,7 @@ When(/^(I |we )*advance the clock by (\d+) minutes?$/, async function (pronoun, 
  *
  */
 When(/^(I |we )*pause the clock$/, async function (pronoun) {
+  await noteClockInstalledNow(this, 'pause the clock');
   try { await this.page.clock.pauseAt(await this.page.evaluate(() => Date.now())); }
   catch (e) { throw friendly({ action: 'pause the clock', cause: e, hint: ISO_HINT }); }
 });
@@ -101,6 +121,7 @@ When(/^(I |we )*pause the clock$/, async function (pronoun) {
  *
  */
 When(/^(I |we )*resume the clock$/, async function (pronoun) {
+  await noteClockInstalledNow(this, 'resume the clock');
   try { await this.page.clock.resume(); }
   catch (e) { throw friendly({ action: 'resume the clock', cause: e, hint: 'pause the clock first via "When I pause the clock".' }); }
 });
@@ -123,6 +144,7 @@ When(/^(I |we )*set the system time to "([^"]*)"$/, async function (pronoun, iso
       hint: 'use an ISO 8601 date like "2026-05-08T12:30:00Z".',
     });
   }
+  await noteClockInstalledNow(this, `set the system time to "${iso}"`);
   try { await this.page.clock.setSystemTime(d); }
   catch (e) { throw friendly({ action: `set the system time to "${iso}"`, cause: e, hint: ISO_HINT }); }
 });

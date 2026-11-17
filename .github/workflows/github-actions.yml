@@ -92,6 +92,9 @@ jobs:
       - name: Check that a project extends the World and settles its own steps
         run: npm run test:world
 
+      - name: Check the smart waits under a fake clock
+        run: npm run test:clock
+
       - name: Start virtual server
         run: npm start &
 
