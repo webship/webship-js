@@ -1373,7 +1373,14 @@ function tagViewport(world, scope) {
   return entry ? breakpoint(world, entry[1]) : null;
 }
 
-Before({ order: 5 }, async function (scope) {
+// The order of the hooks is the order they are registered in: cucumber-js
+// runs the Before hooks in that order and the After hooks in the reverse one
+// (it has no `order` option). This file is loaded before any other hook is
+// registered — the first step file of the glob and every step file with
+// hooks of its own require it at their top — so the Before hook below opens
+// the browser before any other Before hook runs, and the After hook below
+// closes it after every other After hook ran.
+Before(async function (scope) {
   this._scenarioScope = scope;
   this._videoSettings = videoSettings(this, scope);
   this._videoRequested = shouldRecordAtStart(this._videoSettings, scope);
@@ -1391,7 +1398,7 @@ Before({ order: 5 }, async function (scope) {
   }
 });
 
-After({ order: 5 }, async function (scope) {
+After(async function (scope) {
   if (this.minWaitTime.after_scenario > 0) {
     try { await this.page.waitForTimeout(this.minWaitTime.after_scenario); } catch { /* page already closed */ }
   }

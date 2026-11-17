@@ -37,7 +37,7 @@ function trackResponses(world) {
 
 onNewPage((world) => trackResponses(world));
 
-Before({ order: 100 }, async function () {
+Before(async function () {
   this._lastResponse = null;
   this._lastResponseHeaders = null;
   this._lastResponseStatus = null;

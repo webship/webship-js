@@ -123,7 +123,7 @@ onNewPage((world, page) => {
   if (world._jsSettings) captureErrors(world, page);
 });
 
-Before({ order: 200 }, function (scope) {
+Before(function (scope) {
   this._jsErrors = [];
   this._jsErrorsAsserted = false;
   this._jsSettings = resolveSettings(this, scope);
@@ -238,7 +238,7 @@ Then(/^print JavaScript errors$/, function () {
 // After — report per mode.
 // ---------------------------------------------------------------------------
 
-After({ order: 200 }, function (scope) {
+After(function (scope) {
   const s = this._jsSettings || resolveSettings(this, scope);
   if (s.mode === 'off') return;
   if (!s.afterScenario) return;
