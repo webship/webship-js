@@ -63,8 +63,7 @@ HEADLESS=false SLOW_MO=800 npx cucumber-js tests/features/x.feature   # watch a 
 Env vars: `LAUNCH_URL`, `BROWSER`, `HEADLESS`, `SLOW_MO`, `FORCE_COLOR`,
 `WEBSHIP_AUTO_SETTLE`, `WEBSHIP_STEP_TIMEOUT`, `WEBSHIP_REPORT_DISABLE`, `WEBSHIP_REPORT_ARGS`, `WEBSHIP_REPORT_JSON`,
 `WEBSHIP_FILTER_HOOK_LINES`, `WEBSHIP_SCREENSHOT_*`, `WEBSHIP_VIDEO*`,
-`WEBSHIP_JS_ERROR_*`, `WEBSHIP_SELECTORS_OFFSET`,
-`WEBSHIP_SELECTORS_BREAKPOINTS`, `DIFFY_*`. Every one of them mirrors a
+`WEBSHIP_JS_ERROR_*`, `WEBSHIP_SELECTORS_BREAKPOINTS`, `DIFFY_*`. Every one of them mirrors a
 `worldParameters` key in `cucumber.js` — that file is the annotated
 reference; read it before inventing a new knob.
 

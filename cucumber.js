@@ -91,8 +91,6 @@ module.exports = {
         // Load additional selectors from JSON files at scenario start.
         filesPath: './tests/selectors/',             // base path for selector files
         files: [],                                   // e.g. ['homepage-selectors.json'] or ['front-end-selectors.json', 'back-end-selectors.json']
-        // Relative-position scroll offset (px) — WEBSHIP_SELECTORS_OFFSET
-        offset: 60,
         // Named viewport sizes for every step and tag that names one (viewing
         // the site on a … screen, set the viewport to the "…" breakpoint,
         // @mobile, @desktop). Built in: xs..xxxl, mobile, tablet, desktop;

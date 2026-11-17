@@ -20,7 +20,6 @@ const { friendly, failure, breakpoint } = require('./webship');
 //   3. built-in defaults
 //
 // Supported env vars / worldParameters keys:
-//   WEBSHIP_SELECTORS_OFFSET      offset        scroll offset in px, default 60
 //   WEBSHIP_SELECTORS_BREAKPOINTS (JSON object) named breakpoints, merged over
 //                                 worldParameters.selectors.breakpoints (one
 //                                 registry for every step and tag: webship.js)
@@ -36,7 +35,6 @@ const { friendly, failure, breakpoint } = require('./webship');
 //     xpath: {
 //       'page title': '//h1[contains(@class,"page-title")]',
 //     },
-//     offset: 60,                                // scroll offset (px)
 //     breakpoints: {
 //       xs:   { width: 375,  height: 667  },                // phone portrait
 //       sm:   { width: 576,  height: 800  },                // large phone / phablet
@@ -105,17 +103,10 @@ function resolveSelectorFile(cfg, file, page) {
 // ---------------------------------------------------------------------------
 // Config
 // ---------------------------------------------------------------------------
-function pick(envVal, paramVal, fallback) {
-  if (envVal !== undefined && envVal !== '') return envVal;
-  if (paramVal !== undefined && paramVal !== '' && paramVal !== null) return paramVal;
-  return fallback;
-}
-
 function resolveConfig(parameters) {
   const s = (parameters && parameters.selectors) || {};
 
   return {
-    offset:     parseInt(pick(process.env.WEBSHIP_SELECTORS_OFFSET, s.offset, '60'), 10),
     filesPath:  s.filesPath || DEFAULT_FILES_PATH,
     files:      Array.isArray(s.files) ? s.files : [],
     css:        Object.assign({}, s.css  || {}),
