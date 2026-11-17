@@ -118,6 +118,32 @@ Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* "([^"]*)?" row$/, async f
 // Element existence + content
 // ---------------------------------------------------------------------------
 
+// Tag names a tester may write where a step reads a text.
+const TAG_NAMES = new Set([
+  'a', 'article', 'aside', 'body', 'button', 'dialog', 'div', 'footer', 'form',
+  'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'iframe', 'img', 'input',
+  'label', 'li', 'main', 'nav', 'ol', 'p', 'section', 'select', 'span', 'table',
+  'tbody', 'td', 'textarea', 'th', 'thead', 'tr', 'ul', 'video',
+]);
+
+/**
+ * True when a step argument reads like a CSS selector rather than a text: it
+ * starts with `.`, `#` or `[`, holds selector syntax (`div.card`,
+ * `input[name=q]`, `li:first-child`, `ul > li`), is an XPath, or is a bare tag
+ * name such as `header`. Used for hints only.
+ *
+ * @param {string} value
+ * @returns {boolean}
+ */
+function looksLikeSelector(value) {
+  const v = String(value === undefined || value === null ? '' : value).trim();
+  if (!v) return false;
+  if (/^(?:\/\/|xpath=|css=)/.test(v)) return true;
+  const parts = v.split(/\s*[>+~]\s*|\s+/).filter(Boolean);
+  const simple = /^(?:[a-z][a-z0-9-]*)?(?:[.#][A-Za-z_-][\w-]*|\[[^\]]+\]|::?[a-z-]+(?:\([^)]*\))?)*$/;
+  return parts.every((part) => simple.test(part) && (/[.#[:]/.test(part) || TAG_NAMES.has(part)));
+}
+
 /**
  * Assert that an element is, or is not, visible on the page. The element is
  * named by its exact visible text; a `<label for="...">` stands for the
@@ -126,6 +152,10 @@ Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* "([^"]*)?" row$/, async f
  *
  * "should not see" is the opposite of "should see": it passes when no element
  * named that way is visible, so an element that is hidden does not fail it.
+ *
+ * An argument that looks like a selector (`.news-item`, `#main`, `header`) is
+ * still read as a text: a failure says so, and the negative prints a warning
+ * when it passes while that selector matches a visible element.
  *
  * Example #1: Then I should see a "Username" element
  * Example #2: Then I should not see a "Username" element
@@ -149,8 +179,13 @@ Then(/^(I |we )*should( not)* see (a|an) "([^"]*)?" element$/, async function (p
         });
       }
     }
+    if (looksLikeSelector(element) && await this.page.locator(element).first().isVisible().catch(() => false)) {
+      console.warn(`\x1b[33m[webship-js] I should not see a "${element}" element: passed, because no element reads "${element}". It looks like a CSS selector, and that selector matches a visible element; this step reads a text. For a selector, use: "${element}" should not be visible\x1b[0m`);
+    }
   } else {
-    const hint = `this step finds an element by its exact visible text or by its label. To find it by its id, class, name or another attribute, use: I should see a "${element}" element by attr`;
+    const hint = looksLikeSelector(element)
+      ? `"${element}" looks like a CSS selector, but this step reads it as the exact text of an element or of a label. For a selector, use: "${element}" should be visible`
+      : `this step finds an element by its exact visible text or by its label. To find it by its id, class, name or another attribute, use: I should see a "${element}" element by attr`;
     const loc = this.page.getByText(element, { exact: true }).first();
     try {
       await loc.waitFor({ state: 'attached', timeout: 3000 });
