@@ -18,6 +18,8 @@
 
 Each variant supports different approaches to locating form elements—whether by label text, CSS selectors, or HTML attributes—and accommodates both single-field and multi-field input scenarios.
 
+An empty value empties the field in every form of the step: `When I fill in "Title" with ""`, `When I fill in "" for "Title"`, `When I fill in "#title" with "" by attr`, or an empty cell in the table of `I fill in the following:`.
+
 ## More examples
 
 <!-- generated: extended-examples -->
