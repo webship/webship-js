@@ -111,8 +111,11 @@ See `cookie.steps.js`, `response.steps.js`, `metatag.steps.js`.
 the table "selector" should have N rows
 the table "selector" should have N columns
 the table "selector" should not be empty
+the table "selector" should be sorted by "Column" in "ascending|descending" order
 I should see "Text" in the "RowMatch" row
 ```
+
+The sorted step compares the cells of the column the way a reader orders them: as numbers when every cell reads as a number (`$9.99`, `1,299`, `12 %`), else as dates when every cell reads as a date, else as text with letter case ignored and the numbers inside the text in number order ("Item 2" before "Item 10"). Equal cells may come in any order.
 
 ## Iframes / file download / REST / XML / keyboard
 

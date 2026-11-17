@@ -119,6 +119,8 @@ Scenario: Sort orders by total descending
   Then the table "#orders" should be sorted by "Total" in "descending" order
 ```
 
+A "Total" column of prices (`$1,299.00`, `$49.99`, `$9.99`) is compared as numbers; a column of dates as dates; any other column as text, letter case ignored.
+
 ## 11. Form file upload
 
 ```gherkin
