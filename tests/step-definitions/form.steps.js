@@ -5,12 +5,7 @@
 // check / uncheck, radio buttons.
 
 const { When } = require('@cucumber/cucumber');
-const { buildSelector, fillField, friendly, failure, humanize, isTimeout } = require('./webship');
-
-// A step value written as "" reaches the definition as null: it means "".
-function orEmpty(value) {
-  return value === undefined || value === null ? '' : String(value);
-}
+const { buildSelector, fillField, fillLocator, friendly, failure, humanize, isTimeout } = require('./webship');
 
 // ---------------------------------------------------------------------------
 // Fill — by label, attribute, table, reverse syntax
@@ -41,7 +36,7 @@ When(/^(I |we )*fill in "([^"]*)?" with "([^"]*)?"$/, async function (pronounCas
  *
  */
 When(/^(I |we )*fill in "([^"]*)?" with "([^"]*)?" by( its)*(?: "([^"]*)?")* (attribute|attr)$/, async function (pronounCase, attrValue, txtValue, itsCase, attr, attrWord) {
-  await this.page.locator(buildSelector(attrValue, attr)).first().fill(orEmpty(txtValue));
+  await fillLocator(this.page, this.page.locator(buildSelector(attrValue, attr)).first(), txtValue, attrValue);
 });
 
 /**
@@ -66,7 +61,7 @@ When(/^(I |we )*fill in "([^"]*)?" with:$/, async function (pronounCase, field) 
  *
  */
 When(/^(I |we )*fill in "([^"]*)?" with: by( its)*(?: "([^"]*)?")* (attribute|attr)$/, async function (pronounCase, attrValue, itsCase, attr, attrWord) {
-  await this.page.locator(buildSelector(attrValue, attr)).first().fill('');
+  await fillLocator(this.page, this.page.locator(buildSelector(attrValue, attr)).first(), '', attrValue);
 });
 
 /**
@@ -93,7 +88,7 @@ When(/^(I |we )*fill in "([^"]*)?" for "([^"]*)?"$/, async function (pronounCase
  *
  */
 When(/^(I |we )*fill in "([^"]*)?" for "([^"]*)?" by( its)*(?: "([^"]*)?")* (attribute|attr)$/, async function (pronounCase, txtValue, attrValue, itsCase, attr, attrWord) {
-  await this.page.locator(buildSelector(attrValue, attr)).first().fill(orEmpty(txtValue));
+  await fillLocator(this.page, this.page.locator(buildSelector(attrValue, attr)).first(), txtValue, attrValue);
 });
 
 /**
@@ -153,7 +148,7 @@ When(/^(I |we )*fill in( the)* following:$/, async function (pronounCase, theCas
  */
 When(/^(I |we )*fill in( the)* following: by( its)*(?: "([^"]*)?")* (attribute|attr)$/, async function (pronounCase, theCase, itsCase, attr, attrWord, table) {
   for (const [attrValue, value] of table.raw()) {
-    await this.page.locator(buildSelector(attrValue, attr)).first().fill(value);
+    await fillLocator(this.page, this.page.locator(buildSelector(attrValue, attr)).first(), value, attrValue);
   }
 });
 
