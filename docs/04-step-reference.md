@@ -701,6 +701,8 @@ This index lists every public step grouped by source file, with one Gherkin exam
 
 A key or a value may hold a double quote written `\"`, as in a JSON value: `Given the local storage "prefs" is set to "{\"theme\":\"dark\"}"`.
 
+Local and session storage belong to the site of the page, so their steps need a page of the site first: before the first `Given I am on "…"` the page is blank, and the step fails with a hint to open one. A cookie can be set before any page.
+
 ### table.steps.js
 
 - *the table {string} should have {int} row(s)*  ·  Example: `Then the table "#users" should have 5 rows`
