@@ -11,7 +11,7 @@
 // so this file never duplicates BBR plumbing.
 
 const { When } = require('@cucumber/cucumber');
-const { smartSettle, pollPage, waitForModalState, friendly, failure, excerpt, isTimeout } = require('./webship');
+const { smartSettle, pollPage, waitForModalState, friendly, failure, excerpt, isTimeout, pageTextLocator } = require('./webship');
 
 /**
  * Wait UP TO N seconds for the page to settle. Returns early on idle.
@@ -462,7 +462,15 @@ When(/^(I |we )*wait until pending timers settle$/, async function (pronounCase)
 });
 
 /**
- * Pollable text assertion — retries the inner step until passing or timeout.
+ * Text assertion that waits longer: `I should see` with a budget of its own,
+ * 10 seconds unless the step says "within N seconds".
+ *
+ * It reads the page exactly as `I should see` and `I should not see` do: the
+ * text of the page as Playwright's text matching reads it, letter case
+ * ignored, runs of white space collapsed, the text of hidden elements
+ * included, the text of `<script>` and `<style>` left out. For the text a
+ * visitor can see, with its letter case, use `I wait for the text "..." to
+ * appear`.
  *
  * Use sparingly; prefer explicit edge waits (`wait for "X" to appear`).
  *
@@ -475,16 +483,13 @@ When(/^(I |we )*wait until pending timers settle$/, async function (pronounCase)
  *
  */
 When(/^eventually (I |we )*should see "([^"]*)"(?: within (\d+) seconds?)?$/, async function (pronoun, text, seconds) {
-  const total = (seconds ? parseInt(seconds, 10) : 10) * 1000;
+  const total = (seconds ? Math.max(1, parseInt(seconds, 10)) : 10) * 1000;
   try {
-    await this.page.waitForFunction(
-      (t) => document.body && document.body.innerText.includes(t),
-      text, { timeout: total, polling: 100 }
-    );
+    await pageTextLocator(this.page, text).waitFor({ state: 'attached', timeout: total });
   } catch (e) {
     if (!isTimeout(e)) throw e;
     throw failure(this.page, `The text "${text}" did not appear within ${total / 1000} seconds.`, {
-      hint: 'check the spelling and the letter case; the step reads the visible text of the page. For a longer wait, add "within N seconds" to the step.',
+      hint: 'check the spelling; like "I should see", the step ignores letter case and reads all the text of the page, the text of hidden elements included. For a longer wait, add "within N seconds" to the step.',
     });
   }
 });

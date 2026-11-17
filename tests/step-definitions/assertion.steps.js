@@ -9,7 +9,7 @@
 // Modal assertions live in modal.steps.js.
 
 const { Then } = require('@cucumber/cucumber');
-const { buildSelector, getLocatorText, locateByLabelOrSelector, failure, excerpt, isTimeout } = require('./webship');
+const { buildSelector, getLocatorText, locateByLabelOrSelector, failure, excerpt, isTimeout, pageTextLocator } = require('./webship');
 const { getLastResponse } = require('./response.steps');
 
 // ---------------------------------------------------------------------------
@@ -17,29 +17,75 @@ const { getLastResponse } = require('./response.steps');
 // ---------------------------------------------------------------------------
 
 /**
- * Assert that text is or is not present on the page.
+ * Where a text is on the page, for a failure message: the excerpt of the
+ * element that holds it, the element, and whether a visitor can see it.
+ *
+ * @param {import('playwright').Page} page
+ * @param {string} text
+ * @returns {Promise<string|undefined>} undefined when it cannot be told.
+ */
+async function whereTextIs(page, text) {
+  try {
+    const match = page.locator('body').getByText(text).first();
+    if (!(await match.count())) return undefined;
+    const info = await match.evaluate((el) => ({
+      tag: el.tagName.toLowerCase(),
+      id: el.id || '',
+      cls: typeof el.className === 'string' ? el.className.trim().split(/\s+/)[0] : '',
+      text: el.textContent || el.value || '',
+    }), null, { timeout: 1000 });
+    const visible = await match.isVisible().catch(() => true);
+    const attr = info.id ? ` id="${info.id}"` : info.cls ? ` class="${info.cls}"` : '';
+    return `"${excerpt(info.text, 80)}" in ${visible ? '' : 'a hidden '}<${info.tag}${attr}>`;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Assert that a text is, or is not, on the page.
+ *
+ * Both polarities read the page the same way, as `eventually I should see`
+ * does: the text of the page as Playwright's text matching reads it, letter
+ * case ignored, runs of white space collapsed, the text of hidden elements
+ * included, the text of `<script>` and `<style>` left out. On a page that
+ * reads "Next page", `I should see "next page"` passes and `I should not see
+ * "next page"` fails. "should see" waits up to 5 seconds for the text to
+ * come, "should not see" up to 5 seconds for it to go.
+ *
+ * For the text a visitor can see, with its letter case, use `I wait for the
+ * text "..." to appear` or `... to disappear`; for an element,
+ * `"<selector>" should be visible`.
  *
  * Example #1: Then I should see "Welcome"
  * Example #2: Then we should see "Your accounts for the group is public"
  * Example #3: Then I should not see "Access denied"
  * Example #4: Then we should not see "Edit layout"
+ * Example #5: When I press "Save"
+ *               Then I should see "Saved"
+ *               And I should not see "Saving"
  *
  */
 Then(/^(I |we )*should( not)* see "([^"]*)?"$/, async function (pronounCase, notCase, expectedText) {
+  const text = expectedText === undefined || expectedText === null ? '' : expectedText;
+  const onPage = pageTextLocator(this.page, text);
   if (notCase) {
-    const text = await this.page.locator('body').textContent() || '';
-    if (text.includes(expectedText)) {
-      throw failure(this.page, `The text "${expectedText}" is on the page, but it should not be.`, {
-        hint: 'this step reads all the text of the page, the text that is hidden included.',
+    try {
+      await onPage.waitFor({ state: 'detached', timeout: 5000 });
+    } catch (e) {
+      if (!isTimeout(e)) throw e;
+      throw failure(this.page, `The text "${text}" is on the page, but it should not be.`, {
+        found: await whereTextIs(this.page, text),
+        hint: `the step ignores letter case and reads all the text of the page, the text of hidden elements included (not the text of <script> or <style>); it waited 5 seconds for the text to go. To check only the text a visitor can see, with its letter case, use: I wait for the text "${text}" to disappear`,
       });
     }
   } else {
     try {
-      await this.page.locator('body').filter({ hasText: expectedText }).waitFor({ timeout: 5000 });
+      await onPage.waitFor({ state: 'attached', timeout: 5000 });
     } catch (e) {
       if (!isTimeout(e)) throw e;
-      throw failure(this.page, `The text "${expectedText}" was not found on the page after 5 seconds.`, {
-        hint: `check the spelling and the letter case. The value of a field, an image and the content of an iframe are not page text. For text that arrives late, use: I wait for the text "${expectedText}" to appear`,
+      throw failure(this.page, `The text "${text}" was not found on the page after 5 seconds.`, {
+        hint: `check the spelling; letter case is ignored and the text of hidden elements counts. The value of a field, an image and the content of an iframe are not page text. For a text that arrives late, use: eventually I should see "${text}" within 30 seconds`,
       });
     }
   }
