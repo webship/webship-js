@@ -56,13 +56,15 @@ Single job `build` on `ubuntu-latest`, 45-minute limit:
 5. `npx playwright install --with-deps chromium`.
 6. `npm run test:examples` — no browser: every step definition is documented, every example step and every feature step resolves to exactly one definition.
 7. `npm run test:paths` — no browser: a feature or a scenario (`file:line`) named on the command line runs alone, and naming none runs the whole suite (dry runs).
-8. `npm run test:breakpoints` — the `@mobile` / `@desktop` tags and the two named-viewport steps open at the sizes of one registry: the config, `WEBSHIP_SELECTORS_BREAKPOINTS`, the breakpoint marked `default: true` and the names a scenario adds.
-9. `npm start &` — backgrounds the fixture server.
-10. Waits until the server answers on port 8080 (30 seconds at most).
-11. `npm run test:must-fail` — runs the scenarios of `tests/must-fail/`, which must fail, and checks that each fails at its last step with the message it announces, the address of the page and a hint.
-12. `npm test`.
-13. `npm run test:scaffold` — scaffolds a new project, runs its first `npm test` and one feature named on the command line (see the notes below).
-14. `actions/upload-artifact@v7` — uploads the report, screenshots and videos, on success and on failure.
+8. `npm run test:screenshots` — runs a skipped, a pending and a failing scenario and checks that only the failing one leaves a failure screenshot.
+9. `npm run test:config` — runs a scenario with a `cucumber.js` whose `worldParameters` carry only the launch URL, and checks that it passes and that the run ends by itself.
+10. `npm run test:breakpoints` — the `@mobile` / `@desktop` tags and the two named-viewport steps open at the sizes of one registry: the config, `WEBSHIP_SELECTORS_BREAKPOINTS`, the breakpoint marked `default: true` and the names a scenario adds.
+11. `npm start &` — backgrounds the fixture server.
+12. Waits until the server answers on port 8080 (30 seconds at most).
+13. `npm run test:must-fail` — runs the scenarios of `tests/must-fail/`, which must fail, and checks that each fails at its last step with the message it announces, the address of the page and a hint.
+14. `npm test`.
+15. `npm run test:scaffold` — scaffolds a new project, runs its first `npm test` and one feature named on the command line (see the notes below).
+16. `actions/upload-artifact@v7` — uploads the report, screenshots and videos, on success and on failure.
 
 `FORCE_COLOR=1` is set on the job so cucumber-js v10 emits ANSI colours.
 

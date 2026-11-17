@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Fill in an empty value</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    label { display: block; margin-top: 12px; }
+  </style>
+</head>
+<body>
+  <h1>Fill in an empty value</h1>
+  <p>Every field starts with a value, so a field that is filled with an empty value shows it.</p>
+
+  <form id="edit-form">
+    <label for="title">Title</label>
+    <input id="title" name="title" type="text" value="Old title" placeholder="Page title">
+
+    <label for="summary">Summary</label>
+    <textarea id="summary" name="summary" placeholder="Short summary">Old summary</textarea>
+
+    <label for="keywords">Keywords</label>
+    <input id="keywords" class="keywords-field" name="keywords" type="text" value="old, words" placeholder="Comma separated">
+  </form>
+</body>
+</html>
