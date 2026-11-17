@@ -100,6 +100,9 @@ Everything shared lives here; every `*.steps.js` does
   Playwright's 30 s default so locator timeouts reach our try/catch
   wrappers and testers see a friendly message, not "function timed out".
   The 45 s in `cucumber.js` exists for the same reason; keep them aligned.
+  A step whose length the scenario gives (`I wait 2 minutes`, `within N
+  seconds`) takes `OWN_LENGTH` from `wait.steps.js` (no cucumber limit)
+  and bounds itself with `withinTimeLimit` instead.
 * **The init script** (`smartWaitProbes`) installed via
   `context.addInitScript()` in `openContext()` — monkey-patches `fetch`,
   `XMLHttpRequest.send`, `setTimeout`/`clearTimeout` and attaches a
@@ -131,8 +134,9 @@ Everything shared lives here; every `*.steps.js` does
   helpers (`resolveRelativeDate`, `parseRelativeOffset`,
   `formatRelativeDate`), and the error builders (`friendly`, `humanize`).
 * **Two process-level side effects**: a stdout/stderr filter that strips
-  noisy `✔ Before # …` hook lines from cucumber's failure dump
-  (`WEBSHIP_FILTER_HOOK_LINES=off` to disable), and a `process.on('exit')`
+  noisy `✔ Before # …` hook lines from cucumber's failure dump, and in a
+  dry run (`--dry-run`, `-d`) the pretty formatter's `- skipped` line for
+  every hook and step (`WEBSHIP_FILTER_HOOK_LINES=off` to disable), and a `process.on('exit')`
   hook that auto-generates the HTML report via `bin/generate-reports`
   (`WEBSHIP_REPORT_DISABLE=1` to disable, `WEBSHIP_REPORT_ARGS` to pass
   flags). It runs only in the process that runs cucumber-js, never in a

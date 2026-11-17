@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Fields that cannot be filled</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    label { display: block; margin-top: 12px; }
+  </style>
+</head>
+<body>
+  <h1>Fields that cannot be filled</h1>
+  <form id="locked-form">
+    <label for="note">Hidden note</label>
+    <textarea id="note" name="note" style="display: none"></textarea>
+
+    <label for="code">Locked code</label>
+    <input id="code" name="code" type="text" value="X1" disabled>
+
+    <label for="ref">Reference</label>
+    <input id="ref" name="reference" type="text" value="R-1" readonly>
+
+    <label for="visible-name">Your name</label>
+    <input id="visible-name" name="visible_name" type="text" placeholder="Full name">
+  </form>
+</body>
+</html>
