@@ -273,7 +273,7 @@ tests/step-definitions/
 ├── webship.js              # World, hooks, init script, shared helpers — see §2.2. Not a steps file.
 ├── a11y.steps.js           (30)  # axe-core WCAG audits + POUR hygiene probes (axe loaded lazily)
 ├── action.steps.js          (7)  # press / click / follow / attach file (actOrExplain lives here)
-├── api.steps.js            (23)  # REST long form — base URL, headers, query, body, JSON Pointer
+├── api.steps.js            (24)  # REST long form — base URL, headers, query, body, JSON Pointer
 ├── assertion.steps.js      (14)  # see / not see, in row, in element, response, count
 ├── auth.steps.js            (3)  # storageState save / restore / clear
 ├── clock.steps.js           (7)  # page.clock — install / advance / pause / set
