@@ -1,6 +1,6 @@
 const { Given, When, Then, Before } = require('@cucumber/cucumber');
 const assert = require('assert');
-const { friendly, sendRequest } = require('./webship');
+const { friendly, sendRequest, excerpt } = require('./webship');
 
 // The API steps talk to an API on its own terms: its own base URL, its own
 // authentication and headers. A request is sent outside the browser session
@@ -36,6 +36,47 @@ function replacePlaceHolder(string) {
     string = string.replace(new RegExp(key, 'g'), value);
   }
   return string;
+}
+
+/**
+ * The body of an API response as text: the JSON written out when the body is
+ * JSON, the text of the body otherwise.
+ */
+function responseText(response) {
+  return typeof response.data === 'string' ? response.data : JSON.stringify(response.data);
+}
+
+/**
+ * Find a text in another one, letter case ignored. Returns the match (with
+ * its index) or null.
+ */
+function findText(haystack, needle) {
+  return new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i').exec(haystack);
+}
+
+/**
+ * A short excerpt of a text around a position, white space collapsed.
+ */
+function excerptAround(text, index, length) {
+  const start = Math.max(0, index - 60);
+  const end = Math.min(text.length, index + length + 60);
+  return (start > 0 ? '…' : '') + text.slice(start, end).replace(/\s+/g, ' ') + (end < text.length ? '…' : '');
+}
+
+/**
+ * Build the failure of an API assertion for a tester: what was expected and
+ * did not hold, what was found, the request the response answers and a hint.
+ * No stack.
+ */
+function apiFailure(message, details) {
+  const info = details || {};
+  const lines = [message];
+  if (info.found !== undefined && info.found !== null) lines.push(`  Found: ${info.found}`);
+  if (apiResponse && apiResponse.config) {
+    lines.push(`  Request: ${String(apiResponse.config.method || '').toUpperCase()} ${apiResponse.config.url} (answered ${apiResponse.status})`);
+  }
+  if (info.hint) lines.push(`  Hint: ${info.hint}`);
+  return friendly(lines.join('\n'));
 }
 
 /**
@@ -420,7 +461,9 @@ Then(/^(?:the )?API response code should be (\d+)$/, function (expectedCode) {
 });
 
 /**
- * Checks that API response body contains specific text.
+ * Checks that the body of the last API response contains a text. Letter case
+ * does not matter, and placeholders set with `I set placeholder` are replaced
+ * in the text first. The negative step reads the body the same way.
  *
  * Example #1: Then the API response should contain "success"
  * Example #2: Then API response should contain "John Doe"
@@ -430,22 +473,26 @@ Then(/^(?:the )?API response code should be (\d+)$/, function (expectedCode) {
  * Example #6: Then API response should contain "id"
  * Example #7: Then the API response should contain "email"
  * Example #8: Then API response should contain "hello@un.org"
+ * Example #9: Then the API response should contain "{{userId}}"
  */
 Then(/^(?:the )?API response should contain "([^"]*)"$/, function (expectedText) {
   if (!apiResponse) {
     throw friendly('No API response available. Make sure to send a request first.');
   }
-  
-  const responseBody = typeof apiResponse.data === 'string' ? 
-    apiResponse.data : JSON.stringify(apiResponse.data);
-  
-  const expectedRegexp = new RegExp(expectedText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
-  assert(expectedRegexp.test(responseBody), 
-    `Response should contain "${expectedText}", but got: ${responseBody}`);
+  const body = responseText(apiResponse);
+  const text = replacePlaceHolder(expectedText);
+  if (!findText(body, text)) {
+    throw apiFailure(`The API response does not contain "${text}".`, {
+      found: `"${excerpt(body)}"`,
+      hint: 'the step looks for the text anywhere in the body of the response, letter case ignored, after replacing the placeholders. For a JSON property, use: the JSON response should have "<path>" equal to "<value>"',
+    });
+  }
 });
 
 /**
- * Checks that API response body doesn't contain specific text.
+ * Checks that the body of the last API response does not contain a text.
+ * Letter case does not matter, and placeholders are replaced first, exactly
+ * as in the positive step: a text that one finds, the other refuses.
  *
  * Example #1: Then the API response should not contain "error"
  * Example #2: Then API response should not contain "failed"
@@ -455,18 +502,21 @@ Then(/^(?:the )?API response should contain "([^"]*)"$/, function (expectedText)
  * Example #6: Then API response should not contain "secret"
  * Example #7: Then the API response should not contain "exception"
  * Example #8: Then API response should not contain "stack trace"
+ * Example #9: Then the API response should not contain "{{apiKey}}"
  */
 Then(/^(?:the )?API response should not contain "([^"]*)"$/, function (unexpectedText) {
   if (!apiResponse) {
     throw friendly('No API response available. Make sure to send a request first.');
   }
-  
-  const responseBody = typeof apiResponse.data === 'string' ? 
-    apiResponse.data : JSON.stringify(apiResponse.data);
-  
-  const expectedRegexp = new RegExp(unexpectedText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
-  assert(!expectedRegexp.test(responseBody), 
-    `Response should not contain "${unexpectedText}", but it does. Response: ${responseBody}`);
+  const body = responseText(apiResponse);
+  const text = replacePlaceHolder(unexpectedText);
+  const match = findText(body, text);
+  if (match) {
+    throw apiFailure(`The API response contains "${text}", but it should not.`, {
+      found: `"${excerptAround(body, match.index, match[0].length)}"`,
+      hint: 'the step looks for the text anywhere in the body of the response, letter case ignored, after replacing the placeholders.',
+    });
+  }
 });
 
 /**

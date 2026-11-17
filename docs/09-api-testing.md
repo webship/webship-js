@@ -46,6 +46,8 @@ Then the API response code should be 200
  And the JSON response should not have property "password"
 ```
 
+`the API response should contain "…"` and `the API response should not contain "…"` read the body of the response the same way: the text is looked for anywhere in it, letter case ignored, after the placeholders set with `I set placeholder` are replaced. A text one of them finds, the other refuses. A failure names the request the response answers.
+
 ## Combining UI and API
 
 ```gherkin
