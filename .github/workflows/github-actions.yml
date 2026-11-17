@@ -83,6 +83,9 @@ jobs:
       - name: Check that every step and tag reads one breakpoint registry
         run: npm run test:breakpoints
 
+      - name: Check that a replaced browser context keeps what the scenario set up
+        run: npm run test:context
+
       - name: Start virtual server
         run: npm start &
 

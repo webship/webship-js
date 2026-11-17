@@ -195,7 +195,7 @@ Modes:
 | `on-failure` | Record every scenario, keep only failures. |
 | `tag` | Record only scenarios tagged `@video`. |
 
-Mid-scenario start / stop steps live in `video.steps.js`. Recording starts at context creation only — `When I start video recording` closes + reopens the context, losing page state. Call before any navigation.
+Mid-scenario start / stop steps live in `video.steps.js`. Recording starts at context creation only — `When I start video recording` opens a new browser context: the cookies and local storage, the viewport, the smart waits, JavaScript-error capture and a running request log go on, the page starts blank. Call it before any navigation.
 
 ### `javascript` — page-error / console capture
 

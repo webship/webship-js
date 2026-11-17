@@ -277,7 +277,7 @@ Settings (`worldParameters.video`):
 | `size` | _none_ | `{ width: 1280, height: 720 }` | Recording resolution. |
 | `filenamePattern` | _none_ | `{datetime}.{feature_file}.{scenario}.{status}.{ext}` | Per-scenario filename. Tokens: `{datetime} {feature_file} {feature} {scenario} {status} {ext}`. |
 
-The `start` / `stop` mid-scenario steps close + reopen the browser context (Playwright records at context creation only). Page state is lost across the boundary — call `start` BEFORE any navigation. `videos/` is gitignored.
+The `start` / `stop` mid-scenario steps open a new browser context (Playwright records at context creation only). The cookies and local storage, the viewport of an `@mobile` / `@desktop` tag, the smart waits, JavaScript-error capture and a running request log go on with it; the page itself starts blank — call `start` BEFORE any navigation, and open the page again after `stop`. `videos/` is gitignored.
 
 ## Date tokens
 

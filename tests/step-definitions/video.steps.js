@@ -5,15 +5,17 @@ const { friendly } = require('./webship');
 // Video recording steps — start / stop / save mid-scenario.
 //
 // Playwright records video only at browser-context creation. Mid-scenario
-// `start` / `stop` therefore work by tearing down the current page +
-// context and reopening with the new recording flag. Page state is lost
-// across the boundary — call `start` BEFORE any navigation and `stop` only
-// when you no longer need the current page state.
+// `start` / `stop` therefore open a new browser context with the new
+// recording flag, through the World (openContext / replaceContext of
+// webship.js): the cookies and local storage, the viewport of an @mobile /
+// @desktop tag, the smart waits, JavaScript-error capture and a running
+// request log go on with the new page. The page itself starts blank — call
+// `start` BEFORE any navigation, and open the page again after `stop` when
+// the scenario goes on.
 //
 // Default mode is 'off' (no recording). See cucumber.js → worldParameters.video.
 
 const { When, Then } = require('@cucumber/cucumber');
-const fs = require('fs');
 const path = require('path');
 
 function settings(world) {
@@ -24,22 +26,10 @@ function settings(world) {
   };
 }
 
-async function rebuildContext(world, recordVideo) {
-  await world.closeBrowser();
-  if (recordVideo) {
-    const s = settings(world);
-    fs.mkdirSync(s.dir, { recursive: true });
-    world._videoRequested = true;
-    await world.openBrowser({ recordVideo: { dir: s.dir, size: s.size } });
-  } else {
-    world._videoRequested = false;
-    await world.openBrowser();
-  }
-}
-
 /**
- * Start recording the browser as a webm video. Closes the current page +
- * context and reopens with `recordVideo` enabled. Place BEFORE any
+ * Start recording the browser as a webm video. Opens a new browser context
+ * with `recordVideo` enabled; the cookies, the local storage, the viewport
+ * and the page setups go on, the page starts blank. Place BEFORE any
  * navigation in the scenario.
  *
  * Example #1: When I start video recording
@@ -51,7 +41,9 @@ async function rebuildContext(world, recordVideo) {
  */
 When(/^(I |we )*start video recording$/, async function (pronoun) {
   try {
-    await rebuildContext(this, true);
+    if (!this._videoSettings) this._videoSettings = settings(this);
+    this._videoRequested = true;
+    await this.replaceContext();
   } catch (e) {
     throw friendly({
       action: 'start video recording',
@@ -62,9 +54,10 @@ When(/^(I |we )*start video recording$/, async function (pronoun) {
 });
 
 /**
- * Stop recording. Closes the current page + context (which flushes the
- * webm to disk) and reopens a fresh, non-recording browser so the rest
- * of the scenario can continue.
+ * Stop recording. Closes the current browser context (which flushes the
+ * webm to disk), saves the video, and opens a new context that does not
+ * record, with the same cookies, local storage, viewport and page setups,
+ * so the rest of the scenario can continue (the page starts blank).
  *
  * Example #1: When I stop video recording
  * Example #2: And I stop video recording
@@ -77,8 +70,10 @@ When(/^(I |we )*stop video recording$/, async function (pronoun) {
   try {
     if (!this.page || !this._videoRequested) return;
     const video = this.page.video();
-    // Close context first — flushes the webm — then saveAs while the
-    // browser is still alive, finally close the browser and reopen fresh.
+    // Keep the session for the new context, close this one — it flushes the
+    // webm — then saveAs while the browser is still alive.
+    let state = null;
+    try { state = await this.context.storageState(); } catch { /* nothing to carry */ }
     try { await this.context.close(); } catch { /* ignore */ }
     if (video) {
       try {
@@ -94,19 +89,13 @@ When(/^(I |we )*stop video recording$/, async function (pronoun) {
         process.stderr.write(`\n[webship-js] video save failed: ${e.message}\n`);
       }
     }
-    if (this.playwrightBrowser) {
-      try { await this.playwrightBrowser.close(); } catch { /* ignore */ }
-      this.playwrightBrowser = null;
-    }
-    this.context = null;
-    this.page = null;
     this._videoRequested = false;
-    await this.openBrowser();
+    await this.openContext(state ? { storageState: state } : {});
   } catch (e) {
     throw friendly({
       action: 'stop video recording',
       cause: e,
-      hint: 'the scenario will continue with a fresh, non-recording browser.',
+      hint: 'the scenario goes on in a new browser context that does not record.',
     });
   }
 });

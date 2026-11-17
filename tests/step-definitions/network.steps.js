@@ -1,6 +1,6 @@
 'use strict';
 
-const { friendly } = require('./webship');
+const { friendly, onNewPage } = require('./webship');
 
 // Network interception and mocking via Playwright's `page.route()` API.
 //
@@ -14,10 +14,8 @@ const { friendly } = require('./webship');
 const { Given, When, Then } = require('@cucumber/cucumber');
 const assert = require('assert');
 
-function ensureRequestLog(world) {
-  if (world._requestLog) return;
-  world._requestLog = [];
-  world.page.on('request', (req) => {
+function logRequests(world, page) {
+  page.on('request', (req) => {
     world._requestLog.push({
       url: req.url(),
       method: req.method(),
@@ -25,6 +23,18 @@ function ensureRequestLog(world) {
     });
   });
 }
+
+function ensureRequestLog(world) {
+  if (world._requestLog) return;
+  world._requestLog = [];
+  logRequests(world, world.page);
+}
+
+// A step that replaces the browser context (restoring an auth state, a video
+// recording) opens a new page: a running request log goes on with it.
+onNewPage((world, page) => {
+  if (world._requestLog) logRequests(world, page);
+});
 
 // ---------------------------------------------------------------------------
 // Stubbing
