@@ -7,12 +7,18 @@
 const { When } = require('@cucumber/cucumber');
 const { buildSelector, fillField, friendly } = require('./webship');
 
+// A step value written as "" reaches the definition as null: it means "".
+function orEmpty(value) {
+  return value === undefined || value === null ? '' : String(value);
+}
+
 // ---------------------------------------------------------------------------
 // Fill — by label, attribute, table, reverse syntax
 // ---------------------------------------------------------------------------
 
 /**
  * Fill an input field located by its label, placeholder, or name.
+ * An empty value ("") empties the field.
  *
  * Example #1: When I fill in "Username" with "John Smith"
  * Example #2: When I fill in "Email" with "jon@example.com"
@@ -25,7 +31,8 @@ When(/^(I |we )*fill in "([^"]*)?" with "([^"]*)?"$/, async function (pronounCas
 });
 
 /**
- * Fill an input field located by its attribute.
+ * Fill an input field located by its attribute. An empty value ("") empties
+ * the field.
  *
  * Example #1: When I fill in "#uname" with "John Smith" by attr
  * Example #2: When I fill in "uname" with "John Smith" by attr
@@ -34,7 +41,7 @@ When(/^(I |we )*fill in "([^"]*)?" with "([^"]*)?"$/, async function (pronounCas
  *
  */
 When(/^(I |we )*fill in "([^"]*)?" with "([^"]*)?" by( its)*(?: "([^"]*)?")* (attribute|attr)$/, async function (pronounCase, attrValue, txtValue, itsCase, attr, attrWord) {
-  await this.page.locator(buildSelector(attrValue, attr)).first().fill(txtValue);
+  await this.page.locator(buildSelector(attrValue, attr)).first().fill(orEmpty(txtValue));
 });
 
 /**
@@ -63,7 +70,8 @@ When(/^(I |we )*fill in "([^"]*)?" with: by( its)*(?: "([^"]*)?")* (attribute|at
 });
 
 /**
- * Fill an input field located by label (reverse syntax).
+ * Fill an input field located by label (reverse syntax). An empty value ("")
+ * empties the field.
  *
  * Example #1: When I fill in "jon-smith" for "Username"
  * Example #2: When we fill in "Testing" for "Organization options"
@@ -75,7 +83,8 @@ When(/^(I |we )*fill in "([^"]*)?" for "([^"]*)?"$/, async function (pronounCase
 });
 
 /**
- * Fill an input field located by attribute (reverse syntax).
+ * Fill an input field located by attribute (reverse syntax). An empty value
+ * ("") empties the field.
  *
  * Example #1: When I fill in "John Smith" for "#uname" by attr
  * Example #2: When I fill in "John Smith" for "uname" by attr
@@ -84,7 +93,7 @@ When(/^(I |we )*fill in "([^"]*)?" for "([^"]*)?"$/, async function (pronounCase
  *
  */
 When(/^(I |we )*fill in "([^"]*)?" for "([^"]*)?" by( its)*(?: "([^"]*)?")* (attribute|attr)$/, async function (pronounCase, txtValue, attrValue, itsCase, attr, attrWord) {
-  await this.page.locator(buildSelector(attrValue, attr)).first().fill(txtValue);
+  await this.page.locator(buildSelector(attrValue, attr)).first().fill(orEmpty(txtValue));
 });
 
 /**
