@@ -130,7 +130,7 @@ Feature: Complete API Testing Examples - All Step Definitions
   Scenario: Response Header Validation
     When I send a GET request to "/posts/1"
     Then the API response code should be 200
-    And the response header "Content-Type" should be "application/json"
+    And the response header "Content-Type" should be "application/json; charset=utf-8"
 
   Scenario: Placeholder Usage
     Given I set placeholder "{{postId}}" to "1"

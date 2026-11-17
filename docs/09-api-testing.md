@@ -48,6 +48,8 @@ Then the API response code should be 200
 
 `the API response should contain "…"` and `the API response should not contain "…"` read the body of the response the same way: the text is looked for anywhere in it, letter case ignored, after the placeholders set with `I set placeholder` are replaced. A text one of them finds, the other refuses. A failure names the request the response answers.
 
+`the response header "<name>" should be "<value>"` compares the whole value of the header (white space around it trimmed), and `should contain "<text>"` looks for a part of it; the header name is matched in any letter case. A server that sends `application/json; charset=utf-8` passes `should contain "application/json"`, not `should be "application/json"`.
+
 ## Combining UI and API
 
 ```gherkin
