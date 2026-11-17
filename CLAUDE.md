@@ -40,6 +40,7 @@ suite — nearly every bundled feature loads a static fixture from `examples/`.
 | `npx cucumber-js --dry-run` | Ambiguity / undefined-step check. Run this before declaring done. |
 | `npm run test:examples` | No browser: every step definition is documented, every `Example #n:` step and every feature step resolves to exactly one definition. |
 | `npm run test:must-fail` | Runs the scenarios of `tests/must-fail/` (they must fail) and checks each failure message: what was looked for, the page, a hint. Needs `npm start`. |
+| `npm run test:api-launch-url` | Needs browsers, no server of its own: the relative API base URL (`Given the API base URL is "/"`) is joined to `worldParameters.launchUrl`. |
 | `npm run test:paths` | No browser: a feature or a scenario (`file:line`) named on the command line runs alone; naming none runs the whole suite. |
 | `npm run test:config` | A `cucumber.js` whose `worldParameters` carry only the launch URL runs a scenario green and the run ends by itself. |
 | `npm run generate-reports` | HTML (+ optional PDF) report from `tests/reports/cucumber_report.json`. |

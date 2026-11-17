@@ -21,6 +21,7 @@
     "test:webkit": "BROWSER=webkit cucumber-js --config cucumber.js",
     "test:report": "node tests/check-report.js",
     "test:headed": "HEADLESS=false cucumber-js --config cucumber.js",
+    "test:api-launch-url": "node tests/check-api-launch-url.js",
     "test:must-fail": "node tests/check-must-fail.js",
     "test:screenshots": "node tests/check-screenshots.js",
     "test:config": "node tests/check-config.js",
