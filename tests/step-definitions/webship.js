@@ -1265,6 +1265,25 @@ class PlaywrightWorld extends World {
     await this.openContext(extra);
   }
 
+  /**
+   * Wait for the page to settle the way the built-in action steps do: no
+   * request in flight, no pending timer and a DOM quiet for 250 ms, bounded
+   * by `budget` ms (by default 1500, the budget after a step). For a
+   * project's own step that changes the page:
+   *
+   *   When('I add {string} to the cart', async function (item) {
+   *     await this.page.click(`[data-add="${item}"]`);
+   *     await this.smartSettle();
+   *   });
+   *
+   * @param {number} [budget=1500]
+   * @returns {Promise<void>}
+   */
+  async smartSettle(budget) {
+    if (!this.page) return;
+    await smartSettle(this.page, typeof budget === 'number' && budget > 0 ? budget : 1500);
+  }
+
   async closeBrowser() {
     if (this.playwrightBrowser) {
       await this.playwrightBrowser.close();
@@ -1276,6 +1295,35 @@ class PlaywrightWorld extends World {
 }
 
 setWorldConstructor(PlaywrightWorld);
+
+// A project extends the World instead of replacing it, so the smart waits,
+// the viewport tags, video recording and the page setups stay:
+//   const { PlaywrightWorld } = require('webship-js/tests/step-definitions/webship');
+//   setWorldConstructor(class extends PlaywrightWorld { … });
+module.exports.PlaywrightWorld = PlaywrightWorld;
+
+let foreignWorldReported = false;
+
+// A World set with setWorldConstructor that does not extend PlaywrightWorld
+// has none of what webship-js puts on a page: say so once, plainly.
+function checkWorld(world) {
+  if (world instanceof PlaywrightWorld) return;
+  // The hooks below read the pacing of the World: give a World of its own
+  // the defaults, so it can still run.
+  if (!world.minWaitTime) world.minWaitTime = Object.assign({}, MIN_WAIT_TIME);
+  if (typeof world.openBrowser !== 'function') {
+    throw friendly(
+      'The World of this run is not a PlaywrightWorld of webship-js, and it has no openBrowser().\n' +
+      "  Hint: extend it instead of replacing it: const { PlaywrightWorld } = require('webship-js/tests/step-definitions/webship'); setWorldConstructor(class extends PlaywrightWorld { … });"
+    );
+  }
+  if (foreignWorldReported) return;
+  foreignWorldReported = true;
+  process.stderr.write(
+    '\n[webship-js] The World of this run does not extend PlaywrightWorld: the smart waits, the @mobile / @desktop viewport, video recording and the page setups depend on it. ' +
+    "Extend it instead: const { PlaywrightWorld } = require('webship-js/tests/step-definitions/webship').\n"
+  );
+}
 
 // ---------------------------------------------------------------------------
 // Video recording — Playwright records at browser-context creation. The
@@ -1479,6 +1527,7 @@ function tagViewport(world, scope) {
 // the browser before any other Before hook runs, and the After hook below
 // closes it after every other After hook ran.
 Before(async function (scope) {
+  checkWorld(this);
   this._scenarioScope = scope;
   this._videoSettings = videoSettings(this, scope);
   this._videoRequested = shouldRecordAtStart(this._videoSettings, scope);
@@ -1486,9 +1535,11 @@ Before(async function (scope) {
   this._videoStartedAt = this._videoRequested ? new Date() : null;
 
   // Kept for the whole scenario: a step that replaces the browser context
-  // opens the new one with the same viewport (see openContext).
+  // opens the new one with the same viewport and touch (see openContext).
+  // @touch opens the context with touch on, so "I tap on" fires touch events.
   const viewport = tagViewport(this, scope);
   this._scenarioContextOptions = viewport ? { viewport } : {};
+  if (videoHasTag(scope, '@touch')) this._scenarioContextOptions.hasTouch = true;
 
   await this.openBrowser();
   if (this.minWaitTime.before_scenario > 0) {

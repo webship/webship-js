@@ -72,7 +72,6 @@ module.exports = {
         xpath: {},
         filesPath: './tests/selectors/',
         files: [],
-        offset: 60,
         // Named viewport sizes for the viewing-the-site and set-the-viewport
         // steps and the @mobile / @desktop tags (built in: xs..xxxl, mobile,
         // tablet, desktop). Without a desktop here, @desktop opens at the
