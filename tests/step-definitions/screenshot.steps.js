@@ -5,7 +5,9 @@
 //
 // Saves PNG (and matching .html) screenshots to a configurable directory.
 // Supports manual steps, automatic capture on failed step, and per-step
-// capture for scenarios tagged @screenshots.
+// capture for scenarios tagged @screenshots. The screenshot of a failed step
+// is also attached to that step in the cucumber JSON report, so the HTML
+// report shows it.
 //
 // Configuration: resolved per-scenario with this priority:
 //   1. process.env.WEBSHIP_SCREENSHOT_*        (CI / shell — highest)
@@ -212,13 +214,17 @@ async function captureScreenshot(world, options = {}) {
     fs.writeFileSync(path.join(cfg.dir, htmlName), html);
   } catch { /* no content yet */ }
 
-  // PNG capture.
+  // PNG capture. A failure screenshot is also attached to the failed step,
+  // so the JSON report carries it and the HTML report shows it.
   try {
     const pngName = makeFileName(cfg, ctx, 'png', options.filename, options.isFailed);
-    await world.page.screenshot({
+    const png = await world.page.screenshot({
       path: path.join(cfg.dir, pngName),
       fullPage: fullscreen,
     });
+    if (options.isFailed && png && typeof world.attach === 'function') {
+      await world.attach(png, 'image/png');
+    }
   } catch { /* driver without screenshot support */ }
 }
 

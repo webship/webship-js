@@ -5,7 +5,9 @@
 // them leave a "failed_" screenshot: the one whose step fails does; the one
 // that a step skips on purpose (the step returns 'skipped', the way a suite
 // leaves out a scenario that does not apply to the site) and the one that
-// stops at a pending step do not.
+// stops at a pending step do not. The failure screenshot is also attached to
+// the failed step in the JSON report (an image/png embedding), so the HTML
+// report shows it; the other two steps carry none.
 //
 // The scenarios never navigate, so no server is needed.
 //
@@ -69,9 +71,13 @@ if (!fs.existsSync(report) || !fs.readFileSync(report, 'utf8').trim()) {
   problems.push('The run wrote no report: cucumber-js did not start.');
 } else {
   const statuses = {};
+  const images = {};
   for (const f of JSON.parse(fs.readFileSync(report, 'utf8'))) {
     for (const scenario of f.elements || []) {
-      for (const step of (scenario.steps || []).filter((s) => !s.hidden)) statuses[step.line] = step.result && step.result.status;
+      for (const step of (scenario.steps || []).filter((s) => !s.hidden)) {
+        statuses[step.line] = step.result && step.result.status;
+        images[step.line] = (step.embeddings || []).filter((e) => e.mime_type === 'image/png' && e.data).length;
+      }
     }
   }
   for (const [outcome, line] of Object.entries(lines)) {
@@ -85,6 +91,10 @@ if (!fs.existsSync(report) || !fs.readFileSync(report, 'utf8').trim()) {
   for (const outcome of ['skipped', 'pending']) {
     const found = forLine(lines[outcome]);
     if (found.length) problems.push(`The ${outcome} step (line ${lines[outcome]}) left failure screenshots: ${found.join(', ')}.`);
+    if (images[lines[outcome]]) problems.push(`The ${outcome} step (line ${lines[outcome]}) carries ${images[lines[outcome]]} screenshot(s) in the JSON report.`);
+  }
+  if (images[lines.failed] !== 1) {
+    problems.push(`The failed step (line ${lines.failed}) carries ${images[lines.failed] || 0} screenshot(s) in the JSON report, not 1: no report can show it.`);
   }
 }
 
@@ -93,4 +103,4 @@ if (problems.length) {
   console.error('Failure screenshots:\n  - ' + problems.join('\n  - '));
   process.exit(1);
 }
-console.log('Failure screenshots: the failed step left one; the skipped and the pending step left none.');
+console.log('Failure screenshots: the failed step left one, attached to it in the JSON report; the skipped and the pending step left none.');
