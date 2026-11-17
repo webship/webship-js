@@ -45,6 +45,7 @@ suite — nearly every bundled feature loads a static fixture from `examples/`.
 | `npm run test:paths` | No browser: a feature or a scenario (`file:line`) named on the command line runs alone; naming none runs the whole suite. |
 | `npm run test:config` | A `cucumber.js` whose `worldParameters` carry only the launch URL runs a scenario green and the run ends by itself. |
 | `npm run test:exit-report` | Needs browsers, no server: the HTML report built at the end of a run is built once with `--parallel`, from a JSON report written elsewhere, and says so in one line when there is none. |
+| `npm run test:world` | A project World that extends `PlaywrightWorld` keeps the viewport tag and `this.smartSettle()`; a World that replaces it is reported. |
 | `npm run test:video` | The video files of the `on`, `on-failure` and `off` modes: final names in lower case, no temporary file left, the printed path is the saved one, reserved names kept, stopped recordings named by the pattern. |
 | `npm run test:context` | A step that replaces the browser context (restore an auth state, start / stop a video) keeps the viewport, the smart waits, the cookies, JavaScript-error capture and the request log. |
 | `npm run test:breakpoints` | The `@mobile` / `@desktop` tags, `set the viewport to the "…" breakpoint` and `viewing the site on a … screen` read one breakpoint registry (config, `WEBSHIP_SELECTORS_BREAKPOINTS`, `default: true`). |
@@ -123,6 +124,11 @@ Everything shared lives here; every `*.steps.js` does
   mode, then closes the browser; `BeforeStep` resolves `[relative:…]` date
   tokens in step text, doc strings, and data-table cells; `AfterStep`
   runs the auto-settle.
+* **`PlaywrightWorld` is exported** so a project extends it
+  (`setWorldConstructor(class extends PlaywrightWorld { … })`) instead of
+  replacing it; a World that does not extend it is reported once at the
+  start of the run. Its `smartSettle(budget = 1500)` method is the settle a
+  custom step calls after changing the page.
 * **Shared helpers** (exported): `smartSettle`, `waitForPageLoad`,
   `buildSelector`, `gotoUrl`, `fillField`, `getLocatorText`, `pad`,
   the modal probes (`getModalSelector`, `getModalLocator`,

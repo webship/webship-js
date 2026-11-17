@@ -89,6 +89,9 @@ jobs:
       - name: Check the video files of the three recording modes
         run: npm run test:video
 
+      - name: Check that a project extends the World and settles its own steps
+        run: npm run test:world
+
       - name: Start virtual server
         run: npm start &
 
