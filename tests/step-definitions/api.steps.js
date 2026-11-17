@@ -189,6 +189,7 @@ function shownValue(value) {
  * Example #2: Given we are authenticating as "user@example.com" with "secret" password
  * Example #3: Given I am authenticating as "api-user" with "pass!word" password
  * Example #4: Given we are authenticating as "reader" with "readonly" password
+ * Example #5: Given I am authenticating as "editor@example.com" with "s3cret" password
  *
  */
 Given(/^(?:I am|we are) authenticating as "([^"]*)" with "([^"]*)" password$/, function (username, password) {
@@ -281,6 +282,9 @@ Given(/^(?:I set the header|we set the header|the header) "([^"]*)" (?:to|is) "(
  *               | Authorization | Bearer {{token}}   |
  *               | Accept        | application/json   |
  *               | X-Request-ID  | req-001            |
+ * Example #5: Given I set the following headers:
+ *               | Accept        | application/json |
+ *               | X-Request-Id  | test-runner-42   |
  */
 Given(/^(?:I|we) set the following headers:$/, function (table) {
   nameValueRows(table).forEach(row => {
@@ -332,6 +336,9 @@ Given(/^(?:I set the request body to|we set the request body to|the request body
  *               | status   | published       |
  *               | priority | 5               |
  *               | featured | false           |
+ * Example #5: Given I set the request body with:
+ *               | title  | Release notes |
+ *               | status | draft         |
  */
 Given(/^(?:I|we) set the request body with:$/, function (table) {
   apiRequestData = {};
@@ -392,6 +399,8 @@ When(/^(?:I |we )?send a ([A-Z]+) request to "([^"]+)"$/, async function (method
  *               | title  | Welcome         |
  *               | body   | Hello Webship.co|
  *               | userId | 1               |
+ * Example #5: When I send a PATCH request to "/users/42" with values:
+ *               | status | active |
  */
 When(/^(?:I |we )?send a ([A-Z]+) request to "([^"]+)" with values:$/, async function (method, endpoint, table) {
   const url = apiUrl(endpoint, method);
@@ -442,6 +451,12 @@ When(/^(?:I |we )?send a ([A-Z]+) request to "([^"]+)" with values:$/, async fun
  *               {
  *                 "email": "info@un.org",
  *                 "subscribe": true
+ *               }
+ *               """
+ * Example #5: When I send a PATCH request to "/posts/1" with body:
+ *               """
+ *               {
+ *                 "status": "published"
  *               }
  *               """
  */
@@ -503,6 +518,11 @@ When(/^(?:I |we )?send a ([A-Z]+) request to "([^"]+)" with body:$/, async funct
  *               """
  *               name=Updated
  *               country=UN
+ *               """
+ * Example #5: When I send a POST request to "/search" with form data:
+ *               """
+ *               q=webship
+ *               page=2
  *               """
  */
 When(/^(?:I |we )?send a ([A-Z]+) request to "([^"]+)" with form data:$/, async function (method, endpoint, docString) {
@@ -645,6 +665,12 @@ Then(/^(?:the )?API response should not contain "([^"]*)"$/, function (unexpecte
  *               """
  *               {
  *                 "email": "hello@un.org"
+ *               }
+ *               """
+ * Example #5: Then the API response should contain json:
+ *               """
+ *               {
+ *                 "status": "published"
  *               }
  *               """
  */

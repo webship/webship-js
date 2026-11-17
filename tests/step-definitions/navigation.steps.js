@@ -18,6 +18,10 @@ const { gotoUrl, resolveUrl, waitForPageLoad, smartSettle } = require('./webship
  * Example #1: Given I am an anonymous user
  * Example #2: Given we are an anonymous user
  * Example #3: Given an anonymous user
+ * Example #4: Given I am an anonymous user
+ *               And I am on "/user/login"
+ * Example #5: Given we are an anonymous user
+ *               When we go to "/admin"
  *
  */
 Given(/^(I am |we are )?an anonymous user$/, async function (pronounCase) {
@@ -117,6 +121,9 @@ When(/^(I go |I navigate |we go |we navigate |navigating )?to "([^"]*)?"$/, asyn
  * Example #1: When I move forward one page
  * Example #2: When we move forward one page
  * Example #3: And move forward one page
+ * Example #4: When I move backward one page
+ *               And I move forward one page
+ * Example #5: Then we move forward one page
  *
  */
 When(/^(I |we )*move forward one page$/, async function (pronounCase) {
@@ -129,6 +136,9 @@ When(/^(I |we )*move forward one page$/, async function (pronounCase) {
  * Example #1: When I move backward one page
  * Example #2: When we move backward one page
  * Example #3: And move backward one page
+ * Example #4: When I follow "About Us"
+ *               And I move backward one page
+ * Example #5: Then we move backward one page
  *
  */
 When(/^(I |we )*move backward one page$/, async function (pronounCase) {
@@ -142,6 +152,8 @@ When(/^(I |we )*move backward one page$/, async function (pronounCase) {
  * Example #2: And I reload the page
  * Example #3: And we reload page
  * Example #4: And we reload the page
+ * Example #5: When I press "Save"
+ *               And I reload the page
  *
  */
 When(/^(I |we )*reload( the)*( page)*$/, async function (pronounCase, theCase, pageCase) {
@@ -208,6 +220,8 @@ Then(/^(I |we )*should( not)* be on( the)* "([^"]*)?"( page)*$/, async function 
  * Example #1: Then the url should match "/contact-us.html"
  * Example #2: Then the url should not match "/contact-us.html"
  * Example #3: And the url should match "^https://"
+ * Example #4: Then the url should match "/user/[0-9]+"
+ * Example #5: And the url should not match "/admin"
  *
  */
 Then(/^(the )*url should( not)* match "([^"]*)?"$/, async function (theCase, notCase, pattern) {

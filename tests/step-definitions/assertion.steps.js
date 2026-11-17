@@ -97,6 +97,8 @@ Then(/^(I |we )*should( not)* see "([^"]*)?"$/, async function (pronounCase, not
  * Example #1: Then I should see text matching "^T\w+"
  * Example #2: Then I should not see text matching "^O\w+"
  * Example #3: And we should see text matching "\d{4}"
+ * Example #4: Then I should see text matching "[0-9]+ items?"
+ * Example #5: Then we should not see text matching "Error [0-9]{3}"
  *
  */
 Then(/^(I |we )*should( not)* see text matching "([^"]*)?"$/, async function (pronounCase, notCase, textPattern) {
@@ -262,6 +264,7 @@ Then(/^(I |we )*should( not)* see (a|an) "([^"]*)?" element$/, async function (p
  * Example #2: Then I should see a "pwordcss" element by attr
  * Example #3: Then I should not see an "emailId" element by its "id" attr
  * Example #4: And I should not see a "countryCss" element by attr
+ * Example #5: Then we should see a "search-box" element by its "data-testid" attribute
  *
  */
 Then(/^(I |we )*should( not)* see (a|an) "([^"]*)?" element by( its)*(?: "([^"]*)?")* (attribute|attr)$/, async function (pronounCase, notCase, aAnCase, attrValue, itsCase, attr, attrWord) {
@@ -333,6 +336,7 @@ Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* "([^"]*)?" element$/, asy
  * Example #2: Then I should see "1234" in the "pwordcss" element by attr
  * Example #3: Then I should not see "John Smith" in the "uname" element by its "id" attr
  * Example #4: Then I should not see "1234" in the "pwordcss" element by attr
+ * Example #5: Then we should see "Welcome" in the "greeting" element by its "class" attribute
  *
  */
 Then(/^(I |we )*should( not)* see "([^"]*)?" in( the)* "([^"]*)?" element by( its)*(?: "([^"]*)?")* (attribute|attr)$/, async function (pronounCase, notCase, expectedText, theCase, attrValue, itsCase, attr, attrWord) {
@@ -410,6 +414,7 @@ Then(/^(I |we )*should( not)* see text matching "([^"]*)?" in( the)* "([^"]*)?" 
  * Example #2: Then the "body" element should not contain "color:white;"
  * Example #3: Then the "#uname" element should not contain "border:solid 5px red;"
  * Example #4: Then the "pword" element should not contain "font-size: 26px;"
+ * Example #5: Then the "h1" element should contain "font-weight: 700"
  *
  */
 Then(/^(the )*"([^"]*)?" element should( not)* contain "([^"]*)?"$/, async function (theCase, selectorRaw, notCase, elementCss) {
@@ -504,6 +509,8 @@ Then(/^(I |we )*should see (\d+) "([^"]*)" elements?$/, async function (pronounC
  * Example #1: Then the "Login" link should contain "/log-in"
  * Example #2: And the "About Us" link should contain "/about"
  * Example #3: Then "Home" link should contain "/"
+ * Example #4: Then the "Contact Us" link should contain "/contact"
+ * Example #5: And "Privacy policy" link should contain "privacy"
  *
  */
 Then(/^(the )*"([^"]*)?" link should contain "([^"]*)?"$/, async function (theCase, element, url) {
@@ -531,6 +538,8 @@ Then(/^(the )*"([^"]*)?" link should contain "([^"]*)?"$/, async function (theCa
  * Example #1: Then the "#about-us-id" link should contain "about" by attr
  * Example #2: And the "aboutUs" link should contain "about" by its "class" attribute
  * Example #3: And the ".contactUs" link should contain "/contact-" by attr
+ * Example #4: Then the "nav-home" link should contain "/" by its "id" attribute
+ * Example #5: And the "footer-link" link should contain "https://" by attr
  *
  */
 Then(/^(the )*"([^"]*)?" link should contain "([^"]*)?" by( its)*(?: "([^"]*)?")* (attribute|attr)$/, async function (theCase, attrValue, url, itsCase, attr, attrWord) {

@@ -11,6 +11,10 @@ const { Then } = require('@cucumber/cucumber');
  * Example #1: Then print current URL
  * Example #2: When print current URL
  * Example #3: And print current URL
+ * Example #4: Given I am on "/about-us.html"
+ *               Then print current URL
+ * Example #5: When I press "Search"
+ *               Then print current URL
  */
 Then(/^print current URL$/, function () {
   try {
@@ -27,6 +31,10 @@ Then(/^print current URL$/, function () {
  * Example #1: Then print last response
  * Example #2: When print last response
  * Example #3: And print last response
+ * Example #4: Given I am on "/about-us.html"
+ *               Then print last response
+ * Example #5: When I follow "Contact"
+ *               Then print last response
  */
 Then(/^print last response$/, async function () {
   try {
