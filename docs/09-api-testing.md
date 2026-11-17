@@ -29,9 +29,13 @@ When I send a POST request to "/users" with body:
   """
 When I send a PUT request to "/users/1" with form data:
   """
-  name=Alice&role=admin
+  name=Alice
+  role=admin
+  redirect=/account?tab=profile
   """
 ```
+
+Form data takes one `name=value` field per line. Each line is split on its first `=`, so a value keeps the `=` it holds (`redirect=/account?tab=profile` sends `/account?tab=profile`).
 
 ## Asserting responses
 
