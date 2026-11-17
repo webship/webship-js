@@ -67,12 +67,13 @@ Single job `build` on `ubuntu-latest`, 45-minute limit:
 12. `npm run test:video` — runs recorded scenarios in the `on`, `on-failure` and `off` modes and checks the video folder: final names with the status in lower case, no temporary `page@….webm` left, `print video path` printing the saved path, a reserved name kept on failure, a stopped recording named by the pattern, `WEBSHIP_VIDEO_SIZE` read.
 13. `npm run test:world` — runs a project World that extends `PlaywrightWorld` with a project step ending in `this.smartSettle()`, then a World that replaces it, and checks the first keeps the `@mobile` viewport and the settle and the second is reported (it serves its own page).
 14. `npm run test:clock` — installs a fake clock and checks that a navigation and a press still settle as soon as the page is quiet, and that advancing a clock nobody installed prints a note (it serves its own page).
-15. `npm start &` — backgrounds the fixture server.
-16. Waits until the server answers on port 8080 (30 seconds at most).
-17. `npm run test:must-fail` — runs the scenarios of `tests/must-fail/`, which must fail, and checks that each fails at its last step with the message it announces, the address of the page and a hint.
-18. `npm test`.
-19. `npm run test:scaffold` — scaffolds a new project, runs its first `npm test` and one feature named on the command line (see the notes below).
-20. `actions/upload-artifact@v7` — uploads the report, screenshots and videos, on success and on failure.
+15. `npm run test:settle-verbs` — runs a project's own steps whose words carry a page-changing verb (add, log out, enter, open, delete, save) and checks that the settle after each one waited for the page; `wait for ajax to finish` in lower case is a step (it serves its own page).
+16. `npm start &` — backgrounds the fixture server.
+17. Waits until the server answers on port 8080 (30 seconds at most).
+18. `npm run test:must-fail` — runs the scenarios of `tests/must-fail/`, which must fail, and checks that each fails at its last step with the message it announces, the address of the page and a hint.
+19. `npm test`.
+20. `npm run test:scaffold` — scaffolds a new project, runs its first `npm test` and one feature named on the command line (see the notes below).
+21. `actions/upload-artifact@v7` — uploads the report, screenshots and videos, on success and on failure.
 
 `FORCE_COLOR=1` is set on the job so cucumber-js v10 emits ANSI colours.
 

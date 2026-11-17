@@ -274,7 +274,7 @@ then fails.
 
 | Env var | Effect |
 | --- | --- |
-| `WEBSHIP_AUTO_SETTLE` | Set to `off` to disable the BBR auto-settle hook (`smartSettle(page, 1500)` after every state-changing step). |
+| `WEBSHIP_AUTO_SETTLE` | Set to `off` to disable the BBR auto-settle hook (`smartSettle(page, 1500)` after every state-changing step; see [BBR smart waits](02-bbr-smart-waits.md#auto-settle-after-actions) for the verbs). |
 | `WEBSHIP_STEP_TIMEOUT` | Cucumber step timeout in milliseconds. Defaults to `45000`. webship-js calls `setDefaultTimeout()` when its step definitions load, which overrides a `timeout` set in your own `cucumber.js`, so raise it here instead. A step whose length the scenario gives (`I wait 2 minutes`, `… within 60 seconds`) is not cut by it: it runs for that length, and gives up 15 seconds past it on a page that stopped answering. |
 | `WEBSHIP_REPORT_DISABLE` | Set to `1` to skip auto-generating the HTML report on cucumber-js process exit. |
 | `WEBSHIP_REPORT_JSON` | The JSON report the HTML report is built from at the end of a run. Without it, the file of the `json:` formatter of the command line or of `cucumber.js` is used, else `tests/reports/cucumber_report.json`. With `--parallel`, the report is built once, after the whole JSON report is written. |
