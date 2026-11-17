@@ -4,7 +4,7 @@
 
 const { Given, When, Then } = require('@cucumber/cucumber');
 const assert = require('assert');
-const { friendly } = require('./webship');
+const { friendly, failure } = require('./webship');
 
 // Resolve a field by label, name, id, or selector.
 function fieldLocator(page, field) {
@@ -130,21 +130,59 @@ Then('the field {string} should not exist', async function (field) {
   assert.strictEqual(await loc.count(), 0, `Field "${field}" should not exist.`);
 });
 
+// The states `the field "X" should have "<state>" state` can check: how to
+// read each one from the field, and how to name what the field is instead.
+const FIELD_STATES = {
+  enabled: async (loc) => !(await loc.isDisabled()),
+  disabled: (loc) => loc.isDisabled(),
+  editable: (loc) => loc.isEditable(),
+  'read-only': async (loc) => !(await loc.isDisabled()) && !(await loc.isEditable()),
+};
+const FIELD_STATE_ALIASES = { readonly: 'read-only', 'read only': 'read-only' };
+
+async function fieldStateNow(loc) {
+  if (await loc.isDisabled()) return 'disabled';
+  return (await loc.isEditable()) ? 'enabled and editable' : 'enabled and read-only';
+}
+
 /**
- * Assert a field's enabled / disabled state.
+ * Assert a field's state: `enabled`, `disabled`, `editable` (enabled and not
+ * read-only) or `read-only` (enabled, but its value cannot be changed;
+ * `readonly` works too). Any other word fails the step with the list of the
+ * states it can check.
  *
  * Example #1: Then the field "username" should have "enabled" state
  * Example #2: Then the field "Email" should have "disabled" state
  * Example #3: And the field "#search" should have "enabled" state
  * Example #4: Then the field "Password" should have "disabled" state
  * Example #5: Then the field "Country" should have "enabled" state
+ * Example #6: Then the field "Reference" should have "read-only" state
+ * Example #7: Then the field "Display name" should have "editable" state
  *
  */
 Then('the field {string} should have {string} state', async function (field, state) {
+  const wanted = String(state).trim().toLowerCase();
+  const name = FIELD_STATE_ALIASES[wanted] || wanted;
+  const check = FIELD_STATES[name];
+  if (!check) {
+    throw failure(this.page, `"${state}" is not a state this step can check.`, {
+      hint: `use one of: ${Object.keys(FIELD_STATES).join(', ')}. For the other states use their own steps: the field "${field}" should be required, the "${field}" checkbox should be checked, "${field}" should be visible.`,
+    });
+  }
   const loc = await getField(this.page, field);
-  const disabled = await loc.isDisabled();
-  if (state === 'disabled') assert.ok(disabled, `Field "${field}" should be disabled.`);
-  else assert.ok(!disabled, `Field "${field}" should be enabled.`);
+  try {
+    await loc.waitFor({ state: 'attached', timeout: 5000 });
+  } catch (e) {
+    throw failure(this.page, `The field "${field}" was not found on the page after 5 seconds.`, {
+      hint: `"${field}" is read as the text of a label, else as a name or an id, else as a CSS selector that starts with #, . or [.`,
+    });
+  }
+  if (!(await check(loc))) {
+    throw failure(this.page, `The field "${field}" is not ${name}.`, {
+      found: `it is ${await fieldStateNow(loc)}`,
+      hint: 'a disabled field is neither editable nor read-only; a read-only field is enabled but its value cannot be changed.',
+    });
+  }
 });
 
 /**
