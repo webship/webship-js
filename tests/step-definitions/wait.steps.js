@@ -475,6 +475,10 @@ When(/^(I |we )*wait until( the)* page is interactive$/, async function (pronoun
  * request. Reads `window.__webshipPendingTimers`, the counter installed by
  * webship.js's init script.
  *
+ * Under a fake clock (`Given the system time is "…"`, or a clock step that
+ * installed one) the page's timers belong to the clock and run only when it
+ * moves, so the step fails at once and says so: advance the clock instead.
+ *
  * Example #1: When I wait until pending timers settle
  * Example #2: When I press "Close"
  *               And I wait until pending timers settle
@@ -487,6 +491,12 @@ When(/^(I |we )*wait until( the)* page is interactive$/, async function (pronoun
  *
  */
 When(/^(I |we )*wait until pending timers settle$/, async function (pronounCase) {
+  const fakeClock = await this.page.evaluate(() => !!(window.Date && window.Date.isFake)).catch(() => false);
+  if (fakeClock) {
+    throw failure(this.page, 'A fake clock is installed, so the timers of the page run only when the clock moves.', {
+      hint: 'advance the clock past the timers instead, for example: When I advance the clock by 5 seconds',
+    });
+  }
   // Polled from Node: a poll on the page's own setTimeout would be counted as
   // one more pending timer, and the wait could never see the count reach zero.
   const settled = await pollPage(

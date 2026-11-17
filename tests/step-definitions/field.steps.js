@@ -381,8 +381,77 @@ Then('the field {string} should not be required', async function (field) {
   assert.ok(req === null && aria !== 'true', `Field "${field}" should not be required.`);
 });
 
+// Find, in the page, the inputs of the multi-value field named `field`, in
+// the order of the page, and return a CSS path to each (an empty list when
+// there are none yet). In this order, the first that has inputs wins:
+//   1. inputs whose name is `field[]`, `field[0]`, `field[0][value]`…;
+//   2. the inputs of a <fieldset> whose <legend> is the text;
+//   3. the inputs that follow a <label> whose text is the text: from the
+//      control it is for (else from the label) up to the next label, legend
+//      or fieldset of the same level, in the container they share.
+// Text compared with letter case and white space aside. Text-like inputs and
+// textareas only: a hidden input, a checkbox or a weight select is no value.
+function findMultiValueInputs(field) {
+  const VALUE = 'input:not([type]), input[type="text"], input[type="email"], input[type="tel"], input[type="url"], input[type="number"], input[type="search"], input[type="date"], input[type="time"], input[type="datetime-local"], textarea';
+  const norm = (text) => String(text || '').replace(/\s+/g, ' ').trim().toLowerCase();
+  const wanted = norm(field);
+  const follows = (a, b) => !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+  const BOUNDARY = 'label, legend, fieldset';
+
+  function pathTo(el) {
+    const parts = [];
+    for (let node = el; node && node.nodeType === 1 && node !== document.documentElement; node = node.parentElement) {
+      let index = 1;
+      for (let sib = node.previousElementSibling; sib; sib = sib.previousElementSibling) {
+        if (sib.tagName === node.tagName) index += 1;
+      }
+      parts.unshift(`${node.tagName.toLowerCase()}:nth-of-type(${index})`);
+    }
+    return 'html > ' + parts.join(' > ');
+  }
+
+  const byName = Array.from(document.querySelectorAll(VALUE)).filter((el) => {
+    const name = el.getAttribute('name') || '';
+    return name === `${field}[]` || name.startsWith(`${field}[`);
+  });
+  if (byName.length) return byName.map(pathTo);
+
+  for (const legend of document.querySelectorAll('fieldset > legend')) {
+    if (norm(legend.textContent) !== wanted) continue;
+    const inputs = Array.from(legend.parentElement.querySelectorAll(VALUE));
+    if (inputs.length) return inputs.map(pathTo);
+  }
+
+  for (const lab of document.querySelectorAll('label')) {
+    if (norm(lab.textContent) !== wanted) continue;
+    const start = lab.control && lab.control.matches(VALUE) ? lab.control : lab;
+    let box = start.parentElement;
+    while (box && !box.contains(lab)) box = box.parentElement;
+    if (!box) continue;
+    const inputs = [];
+    if (start !== lab) inputs.push(start);
+    for (const el of box.querySelectorAll(`${VALUE}, ${BOUNDARY}`)) {
+      if (el === start || el === lab || lab.contains(el) || !follows(start, el)) continue;
+      if (el.matches(BOUNDARY)) {
+        if (el.parentElement && el.parentElement.contains(lab)) break;
+        continue;
+      }
+      inputs.push(el);
+    }
+    if (inputs.length) return inputs.map(pathTo);
+  }
+  return [];
+}
+
 /**
- * Fill a multi-value form field (e.g. `name[]` array inputs) from a table.
+ * Fill a multi-value form field from a table, one value per input, in the
+ * order of the page.
+ *
+ * The field is named by the name of its inputs (`tags` for `tags[]`,
+ * `tags[0]` or `tags[0][value]`), by the legend of its fieldset, or by its
+ * label (the inputs from the one the label is for up to the next field).
+ * A field that is not found within 5 seconds, or that has fewer inputs than
+ * values, fails the step before anything is filled.
  *
  * Example #1: When I fill in the multi-value field "tags" with the following values:
  *               | bdd     |
@@ -401,15 +470,32 @@ Then('the field {string} should not be required', async function (field) {
  *               | tech    |
  *               | devops  |
  *               | testing |
+ * Example #6: When I fill in the multi-value field "Phone numbers" with the following values:
+ *               | 0790000000 |
+ *               | 0791111111 |
  *
  */
 When(/^(I |we )*fill in the multi-value field "([^"]*)" with the following values:$/, async function (pronoun, field, table) {
   const values = table.raw().flat();
+  const deadline = Date.now() + 5000;
+  let paths = [];
+  for (;;) {
+    paths = await this.page.evaluate(findMultiValueInputs, field).catch(() => []);
+    if (paths.length || Date.now() >= deadline) break;
+    await this.page.waitForTimeout(100);
+  }
+  if (!paths.length) {
+    throw failure(this.page, `No multi-value field "${field}" was found after 5 seconds.`, {
+      hint: `name the field by the name of its inputs ("${field}" for ${field}[] or ${field}[0]), by the legend of its fieldset, or by the exact text of its label.`,
+    });
+  }
+  if (paths.length < values.length) {
+    throw failure(this.page, `The multi-value field "${field}" has ${paths.length} input${paths.length === 1 ? '' : 's'} for ${values.length} values.`, {
+      hint: 'add inputs first (a form often has an "Add another item" button), or give as many values as the field has inputs.',
+    });
+  }
   for (let i = 0; i < values.length; i++) {
-    const inputs = this.page.locator(`[name="${field}[${i}]"], [name="${field}[]"]`);
-    const count = await inputs.count();
-    const target = count > i ? inputs.nth(i) : inputs.first();
-    await target.fill(values[i]);
+    await fillLocator(this.page, this.page.locator(paths[i]), values[i], `${field} (value ${i + 1})`);
   }
 });
 

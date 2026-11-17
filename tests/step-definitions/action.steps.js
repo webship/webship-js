@@ -4,12 +4,12 @@
 // press, click (text / attr / row / link follow), and file attach.
 
 const { When } = require('@cucumber/cucumber');
-const { buildSelector, friendly, resolveAssetFile } = require('./webship');
+const { buildSelector, friendly, resolveAssetFile, registeredNameHint } = require('./webship');
 
 // Wrap a Playwright action with a friendlier error pointing at the
 // failing locator + Gherkin step. Pass `label` describing the step
 // ("press button", "click link", ...) and the user-supplied target.
-async function actOrExplain(label, target, fn) {
+async function actOrExplain(label, target, fn, registryHint) {
   try {
     await fn();
   } catch (e) {
@@ -18,11 +18,21 @@ async function actOrExplain(label, target, fn) {
       `Failed to ${label} "${target}".\n` +
       `  ${msg}\n` +
       `  Hints:\n` +
+      (registryHint ? `    - ${registryHint}\n` : '') +
       `    - Check the visible text matches exactly (case-sensitive).\n` +
       `    - Use the "by attr" variant if the element has no readable text.\n` +
       `    - Use "wait for ... to appear" if the element renders late.`
     );
   }
+}
+
+// What a press or a click step says when it was given a name of the selector
+// registry: the bare-name click and the element click read a selector.
+function clickRegistryHint(world, name) {
+  return registeredNameHint(world, name, {
+    bare: 'I click {name}',
+    withSelector: (selector) => `I click on the element "${selector}"`,
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -47,7 +57,7 @@ When(/^(I |we )*press( the)* "([^"]*)?"( button)*$/, async function (pronounCase
       .filter({ hasText: new RegExp('^' + esc + '$') })
       .first()
       .click();
-  });
+  }, clickRegistryHint(this, element));
 });
 
 /**
@@ -81,7 +91,7 @@ When(/^(I |we )*click "([^"]*)?"$/, async function (pronounCase, item) {
       .filter({ hasText: new RegExp('^' + esc + '$') })
       .first()
       .click();
-  });
+  }, clickRegistryHint(this, item));
 });
 
 /**

@@ -92,6 +92,9 @@ jobs:
       - name: Check that a project extends the World and settles its own steps
         run: npm run test:world
 
+      - name: Check the smart waits under a fake clock
+        run: npm run test:clock
+
       - name: Check that a project step with a page-changing verb is followed by the settle
         run: npm run test:settle-verbs
 

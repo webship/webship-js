@@ -45,12 +45,31 @@ Scenario: "5 minutes ago" updates as time passes
 
 ```gherkin
 Scenario: Idle warning fires at 14 minutes
-  Given the system time is "2026-05-08T10:00:00Z"
-   And I restore the auth state from "tests/auth/admin.json"
+  Given I restore the auth state from "tests/auth/admin.json"
+   And the system time is "2026-05-08T10:00:00Z"
    And I am on "/dashboard"
   When I advance the clock by 14 minutes
   Then "<#session-warning>" should be visible
 ```
+
+Restore the auth state first: restoring it opens a new browser context, and the clock belongs to the context it replaced. The same goes for starting or stopping a video recording.
+
+## Smart waits under a fake clock
+
+The smart waits keep real time: the settle after a step does not count the
+clock's timers (they belong to the clock, not to the page's work) and
+measures the DOM-quiet window on the real clock, so a navigation or a press
+settles as soon as the page is quiet, not after its whole budget.
+
+`When I wait until pending timers settle` cannot see the timers of a page
+under a fake clock — they run only when the clock moves — so it fails at
+once and asks you to advance the clock instead.
+
+The clock steps move the clock that `Given the system time is "…"`
+installed. Without it, Playwright installs one on the first clock step, at
+the current time: the timers the page set before that step keep running on
+real time and do not move with the clock. Webship-js prints a note (and
+attaches it to the report) when that happens.
 
 ## Caveats
 

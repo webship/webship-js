@@ -460,7 +460,7 @@ This index lists every public step grouped by source file, with one Gherkin exam
 - *the field {string} should have {string} state*  ·  Example: `Then the field "username" should have "enabled" state`  ·  States: `enabled`, `disabled`, `editable`, `read-only` (or `readonly`); any other word fails the step
 - *the field {string} should be required*  ·  Example: `Then the field "username" should be required`
 - *the field {string} should not be required*  ·  Example: `Then the field "bio" should not be required`
-- *^(I |we )*fill in the multi-value field "([^"]*)" with the following values:$*  ·  Example: `When I fill in the multi-value field "tags" with the following values:`
+- *^(I |we )*fill in the multi-value field "([^"]*)" with the following values:$*  ·  Example: `When I fill in the multi-value field "tags" with the following values:`  ·  The field: the name of its inputs (`tags[]`, `tags[0]`, `tags[0][value]`), the legend of its fieldset, or its label; fewer inputs than values fails before anything is filled
 - *^(I |we )*fill in the color field "([^"]*)" with the value "([^"]*)"$*  ·  Example: `When I fill in the color field "favorite" with the value "#ff0000"`
 - *the color field {string} should have the value {string}*  ·  Example: `Then the color field "favorite" should have the value "#ff0000"`
 - *^(I |we )*fill in the WYSIWYG field "([^"]*)" with the "([^"]*)"$*  ·  Example: `When I fill in the WYSIWYG field "body" with the "Hello world"`

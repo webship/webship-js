@@ -180,9 +180,13 @@ async function smartSettle(page, timeout) {
       const ajax = window.__webshipAjaxCount;
       const timers = window.__webshipPendingTimers;
       const last = window.__webshipLastMutation;
+      const now = typeof window.__webshipNow === 'function' ? window.__webshipNow() : Date.now();
+      // Under a fake clock the page's timers are the clock's and run only
+      // when it moves; the ones the probes count are the clock's own.
+      const fakeClock = !!(window.Date && window.Date.isFake);
       if (typeof ajax === 'number' && ajax > 0) return false;
-      if (typeof timers === 'number' && timers > 0) return false;
-      if (typeof last === 'number' && Date.now() - last < quietMs) return false;
+      if (!fakeClock && typeof timers === 'number' && timers > 0) return false;
+      if (typeof last === 'number' && now - last < quietMs) return false;
       return true;
     },
     250,
@@ -478,9 +482,10 @@ async function gotoUrl(page, url) {
  * @param {import('playwright').Page} page
  * @param {string} field - Label / placeholder / name.
  * @param {string} value - Value to type; null or undefined fills an empty value.
+ * @param {WebshipWorld} [world] - The World of the step, to tell a name of the selector registry.
  * @returns {Promise<void>}
  */
-async function fillField(page, field, value) {
+async function fillField(page, field, value, world) {
   // An empty value in a step ("") reaches the definition as null: it means "".
   value = value === undefined || value === null ? '' : String(value);
   const byLabel = page.getByLabel(field, { exact: true });
@@ -498,12 +503,10 @@ async function fillField(page, field, value) {
     await fillLocator(page, byName, value, field);
     return;
   }
-  throw friendly(
-    `Could not find a field for "${field}".\n` +
-    `  Tried: getByLabel(exact), getByPlaceholder(exact), [name="${field}"].\n` +
-    `  Hints: check the label/placeholder text matches exactly (case-sensitive),\n` +
-    `         or use the attribute variant: 'I fill in "${field}" with "${value}" by attr'.`
-  );
+  throw failure(page, `Could not find a field for "${field}".`, {
+    hint: registeredNameHint(world, field, { withSelector: (selector) => `I fill in the field "${selector}" with "${value}"` }) ||
+      `the step looks for a field whose label, placeholder or name is exactly "${field}", letter case included. For an id, a class or another attribute, use: I fill in "${field}" with "${value}" by attr`,
+  });
 }
 
 /**
@@ -881,6 +884,38 @@ function pageTextLocator(page, text) {
 }
 
 /**
+ * The hint for a step that was given a name of the named-selector registry
+ * where it reads a text, a label or a CSS selector: it does not read the
+ * registry, so the name matched nothing. Names the bare-name step that reads
+ * it, when there is one and the name fits it, and the same step with the
+ * selector the name stands for. An empty string when `name` is not a
+ * registered name, so a failure that has nothing to do with the registry
+ * reads as before.
+ *
+ * @param {WebshipWorld} world
+ * @param {string} name                              - The argument the step was given.
+ * @param {Object} [forms]
+ * @param {string} [forms.bare]                      - The bare-name step, "{name}" for the name.
+ * @param {function(string): string} [forms.withSelector] - The step to use with the selector.
+ * @returns {string}
+ */
+function registeredNameHint(world, name, forms) {
+  const key = String(name === undefined || name === null ? '' : name).trim();
+  if (!key || !world) return '';
+  const css = world.__selectorsCss || {};
+  const xpath = world.__selectorsXpath || {};
+  let selector = null;
+  if (Object.prototype.hasOwnProperty.call(css, key)) selector = css[key];
+  else if (Object.prototype.hasOwnProperty.call(xpath, key)) selector = xpath[key].startsWith('xpath=') ? xpath[key] : `xpath=${xpath[key]}`;
+  if (!selector) return '';
+  const uses = [];
+  if (forms && forms.bare && /^[a-zA-Z0-9 ,-]+$/.test(key)) uses.push(forms.bare.replace('{name}', key));
+  if (forms && typeof forms.withSelector === 'function') uses.push(forms.withSelector(selector));
+  return `"${key}" is a name of the selector registry (${selector}), but this step does not read the registry.` +
+    (uses.length ? ` Use: ${uses.join(', or: ')}` : '');
+}
+
+/**
  * True when an error is Playwright giving up after its timeout, which in an
  * assertion means "what was looked for is not there".
  *
@@ -940,6 +975,7 @@ module.exports = {
   failure,
   excerpt,
   isTimeout,
+  registeredNameHint,
   pageTextLocator,
   breakpoints,
   breakpoint,
@@ -1106,9 +1142,14 @@ const MIN_WAIT_TIME = Object.freeze({
 function smartWaitProbes() {
   if (window.__webshipAjaxInstalled) return;
   window.__webshipAjaxInstalled = true;
+  // The time of the probes is real time: a fake clock (Playwright's
+  // page.clock) replaces Date later, and its Date.now() may stand still or
+  // lie in the past.
+  const realNow = Date.now.bind(Date);
+  window.__webshipNow = realNow;
   window.__webshipAjaxCount = 0;
   window.__webshipPendingTimers = 0;
-  window.__webshipLastMutation = Date.now();
+  window.__webshipLastMutation = realNow();
 
   // Track in-flight fetch requests.
   const origFetch = window.fetch;
@@ -1169,7 +1210,7 @@ function smartWaitProbes() {
   const startObserver = () => {
     if (!document || !document.documentElement) return false;
     try {
-      new MutationObserver(() => { window.__webshipLastMutation = Date.now(); })
+      new MutationObserver(() => { window.__webshipLastMutation = realNow(); })
         .observe(document.documentElement, { childList: true, subtree: true, attributes: true, characterData: true });
       return true;
     } catch (e) { return false; }
