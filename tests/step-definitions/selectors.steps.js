@@ -1,6 +1,6 @@
 'use strict';
 
-const { friendly, failure } = require('./webship');
+const { friendly, failure, breakpoint } = require('./webship');
 
 // ---------------------------------------------------------------------------
 // Webship-JS — Selectors step definitions
@@ -21,7 +21,9 @@ const { friendly, failure } = require('./webship');
 //
 // Supported env vars / worldParameters keys:
 //   WEBSHIP_SELECTORS_OFFSET      offset        scroll offset in px, default 60
-//   WEBSHIP_SELECTORS_BREAKPOINTS (JSON string) named breakpoints
+//   WEBSHIP_SELECTORS_BREAKPOINTS (JSON object) named breakpoints, merged over
+//                                 worldParameters.selectors.breakpoints (one
+//                                 registry for every step and tag: webship.js)
 //
 // Unified config block (worldParameters.selectors):
 //   selectors: {
@@ -112,23 +114,8 @@ function pick(envVal, paramVal, fallback) {
 function resolveConfig(parameters) {
   const s = (parameters && parameters.selectors) || {};
 
-  let breakpoints = s.breakpoints || {
-    xs:   { width: 375,  height: 667  },
-    sm:   { width: 576,  height: 800  },
-    md:   { width: 768,  height: 1024 },
-    lg:   { width: 992,  height: 768  },
-    xl:   { width: 1200, height: 900, default: true },
-    xxl:  { width: 1400, height: 900  },
-    xxxl: { width: 1920, height: 1080 },
-  };
-
-  if (process.env.WEBSHIP_SELECTORS_BREAKPOINTS) {
-    try { breakpoints = JSON.parse(process.env.WEBSHIP_SELECTORS_BREAKPOINTS); } catch { /* ignore */ }
-  }
-
   return {
     offset:     parseInt(pick(process.env.WEBSHIP_SELECTORS_OFFSET, s.offset, '60'), 10),
-    breakpoints,
     filesPath:  s.filesPath || DEFAULT_FILES_PATH,
     files:      Array.isArray(s.files) ? s.files : [],
     css:        Object.assign({}, s.css  || {}),
@@ -607,16 +594,24 @@ Given(/^(I |we )*define xpath selectors:$/, function (pronounCase, dataTable) {
 });
 
 /**
- * Resize viewport to a named breakpoint.
- * Built-in names: xs, sm, md, lg, xl, xxl, xxxl.
+ * Resize viewport to a named breakpoint. The same registry as "I set the
+ * viewport to the "…" breakpoint" and the @mobile / @desktop tags: the
+ * built-in names below, replaced or extended by
+ * worldParameters.selectors.breakpoints, WEBSHIP_SELECTORS_BREAKPOINTS and
+ * "the following responsive breakpoints:". An unknown name fails with the
+ * list of the known ones.
  *
- *   xs   375 x 667    phone portrait
- *   sm   576 x 800    large phone / phablet
- *   md   768 x 1024   tablet portrait
- *   lg   992 x 768    small laptop / tablet landscape
- *   xl   1200 x 900   desktop (default)
- *   xxl  1400 x 900   wide desktop / HD
- *   xxxl 1920 x 1080  Full HD / large monitor
+ *   xs      375 x 667    phone portrait
+ *   sm      576 x 800    large phone / phablet
+ *   md      768 x 1024   tablet portrait
+ *   lg      992 x 768    small laptop / tablet landscape
+ *   xl      1200 x 900   desktop (marked default: true in the scaffold)
+ *   xxl     1400 x 900   wide desktop / HD
+ *   xxxl    1920 x 1080  Full HD / large monitor
+ *   mobile  375 x 667    the size of the @mobile tag
+ *   tablet  768 x 1024
+ *   desktop 1200 x 900   the size of the @desktop tag; without a desktop of
+ *                        the project's own, the breakpoint marked default: true
  *
  * Example #1: Given I am viewing the site on a xl screen
  * Example #2: Given I am viewing the site on a xs screen
@@ -632,11 +627,7 @@ Given(/^(I |we )*define xpath selectors:$/, function (pronounCase, dataTable) {
  * Example #12: Given viewing the site on a lg screen
  */
 Given(/^(I am |we are )?viewing the site on a (?:"([^"]+)"|([a-zA-Z0-9 _,]+)) (?:screen|device)$/, async function (pronounCase, quoted, bare) {
-  const name = (quoted || bare || '').trim();
-  const cfg = this.__selectorsConfig;
-  if (!cfg.breakpoints[name]) throw friendly(`Selectors: breakpoint "${name}" not defined in worldParameters.selectors.breakpoints.`);
-  const { width, height } = cfg.breakpoints[name];
-  await this.page.setViewportSize({ width, height });
+  await this.page.setViewportSize(breakpoint(this, quoted || bare));
 });
 
 // ===========================================================================

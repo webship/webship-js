@@ -28,6 +28,7 @@
     "test:screenshots": "node tests/check-screenshots.js",
     "test:config": "node tests/check-config.js",
     "test:exit-report": "node tests/check-exit-report.js",
+    "test:breakpoints": "node tests/check-breakpoints.js",
     "test:fast": "SLOW_MO=0 cucumber-js --config cucumber.js",
     "test:assets": "node tests/check-assets.js",
     "test:examples": "node tests/check-examples.js",
