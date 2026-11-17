@@ -42,6 +42,7 @@ suite — nearly every bundled feature loads a static fixture from `examples/`.
 | `npm run test:attachments` | Needs browsers, no server: the steps that print what they found (the accessibility print steps) attach the same text to their step in the JSON report. |
 | `npm run test:must-fail` | Runs the scenarios of `tests/must-fail/` (they must fail) and checks each failure message: what was looked for, the page, a hint. Needs `npm start`. |
 | `npm run test:paths` | No browser: a feature or a scenario (`file:line`) named on the command line runs alone; naming none runs the whole suite. |
+| `npm run test:settle-verbs` | A project's own step whose words carry a page-changing verb (add, log out, enter, open, delete, save) is followed by the settle; `wait for ajax to finish` reads in lower case. |
 | `npm run test:config` | A `cucumber.js` whose `worldParameters` carry only the launch URL runs a scenario green and the run ends by itself. |
 | `npm run generate-reports` | HTML (+ optional PDF) report from `tests/reports/cucumber_report.json`. |
 
@@ -333,8 +334,10 @@ Conditions 4/5/6 are evaluated atomically in one `waitForFunction`, so a
 late-firing `setTimeout` that mutates the DOM re-arms the wait.
 
 Auto-settle hook: `AfterStep` runs `smartSettle(page, 1500)` after every
-step whose text matches `STATE_MUTATING_STEP` (click / press / fill /
-select / check / attach / reload / navigate / …). This is what makes
+step whose own words (quoted arguments left out) match
+`STATE_MUTATING_STEP` (click / press / fill / select / check / attach /
+reload / navigate, and the verbs projects use: add / open / delete / save /
+enter / log in / log out / …). This is what makes
 `When I click "X" Then I should see "Y"` work without an explicit wait.
 Disable per-run with `WEBSHIP_AUTO_SETTLE=off`. If a wait is flaky only in
 CI, raise the budget — never add a static sleep.

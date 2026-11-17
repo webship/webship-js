@@ -62,6 +62,9 @@ jobs:
       - name: Check that a configuration with only the launch URL runs
         run: npm run test:config
 
+      - name: Check that a project step with a page-changing verb is followed by the settle
+        run: npm run test:settle-verbs
+
       - name: Start virtual server
         run: npm start &
 
