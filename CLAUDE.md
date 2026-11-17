@@ -41,6 +41,7 @@ suite — nearly every bundled feature loads a static fixture from `examples/`.
 | `npm run test:examples` | No browser: every step definition is documented, every `Example #n:` step and every feature step resolves to exactly one definition. |
 | `npm run test:must-fail` | Runs the scenarios of `tests/must-fail/` (they must fail) and checks each failure message: what was looked for, the page, a hint. Needs `npm start`. |
 | `npm run test:paths` | No browser: a feature or a scenario (`file:line`) named on the command line runs alone; naming none runs the whole suite. |
+| `npm run test:exit-report` | Needs browsers, no server: the HTML report built at the end of a run is built once with `--parallel`, from a JSON report written elsewhere, and says so in one line when there is none. |
 | `npm run generate-reports` | HTML (+ optional PDF) report from `tests/reports/cucumber_report.json`. |
 
 Targeting a subset:
@@ -56,7 +57,7 @@ HEADLESS=false SLOW_MO=800 npx cucumber-js tests/features/x.feature   # watch a 
 ```
 
 Env vars: `LAUNCH_URL`, `BROWSER`, `HEADLESS`, `SLOW_MO`, `FORCE_COLOR`,
-`WEBSHIP_AUTO_SETTLE`, `WEBSHIP_STEP_TIMEOUT`, `WEBSHIP_REPORT_DISABLE`, `WEBSHIP_REPORT_ARGS`,
+`WEBSHIP_AUTO_SETTLE`, `WEBSHIP_STEP_TIMEOUT`, `WEBSHIP_REPORT_DISABLE`, `WEBSHIP_REPORT_ARGS`, `WEBSHIP_REPORT_JSON`,
 `WEBSHIP_FILTER_HOOK_LINES`, `WEBSHIP_SCREENSHOT_*`, `WEBSHIP_VIDEO*`,
 `WEBSHIP_JS_ERROR_*`, `WEBSHIP_SELECTORS_OFFSET`,
 `WEBSHIP_SELECTORS_BREAKPOINTS`, `DIFFY_*`. Every one of them mirrors a
@@ -117,7 +118,10 @@ Everything shared lives here; every `*.steps.js` does
   (`WEBSHIP_FILTER_HOOK_LINES=off` to disable), and a `process.on('exit')`
   hook that auto-generates the HTML report via `bin/generate-reports`
   (`WEBSHIP_REPORT_DISABLE=1` to disable, `WEBSHIP_REPORT_ARGS` to pass
-  flags).
+  flags). It runs only in the process that runs cucumber-js, never in a
+  `--parallel` worker, and reads the JSON report the run wrote
+  (`WEBSHIP_REPORT_JSON`, else the `json:` formatter of the command line or
+  of `cucumber.js`, else `tests/reports/cucumber_report.json`).
 
 ### 2.3 Config layering
 

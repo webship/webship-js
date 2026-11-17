@@ -56,6 +56,9 @@ jobs:
       - name: Check that only a failed step leaves a failure screenshot
         run: npm run test:screenshots
 
+      - name: Check the HTML report built at the end of a run
+        run: npm run test:exit-report
+
       - name: Start virtual server
         run: npm start &
 
