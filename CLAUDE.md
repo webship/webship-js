@@ -44,6 +44,7 @@ suite — nearly every bundled feature loads a static fixture from `examples/`.
 | `npm run test:paths` | No browser: a feature or a scenario (`file:line`) named on the command line runs alone; naming none runs the whole suite. |
 | `npm run test:settle-verbs` | A project's own step whose words carry a page-changing verb (add, log out, enter, open, delete, save) is followed by the settle; `wait for ajax to finish` reads in lower case. |
 | `npm run test:config` | A `cucumber.js` whose `worldParameters` carry only the launch URL runs a scenario green and the run ends by itself. |
+| `npm run test:exit-report` | Needs browsers, no server: the HTML report built at the end of a run is built once with `--parallel`, from a JSON report written elsewhere, and says so in one line when there is none. |
 | `npm run generate-reports` | HTML (+ optional PDF) report from `tests/reports/cucumber_report.json`. |
 
 Targeting a subset:
@@ -59,7 +60,7 @@ HEADLESS=false SLOW_MO=800 npx cucumber-js tests/features/x.feature   # watch a 
 ```
 
 Env vars: `LAUNCH_URL`, `BROWSER`, `HEADLESS`, `SLOW_MO`, `FORCE_COLOR`,
-`WEBSHIP_AUTO_SETTLE`, `WEBSHIP_STEP_TIMEOUT`, `WEBSHIP_REPORT_DISABLE`, `WEBSHIP_REPORT_ARGS`,
+`WEBSHIP_AUTO_SETTLE`, `WEBSHIP_STEP_TIMEOUT`, `WEBSHIP_REPORT_DISABLE`, `WEBSHIP_REPORT_ARGS`, `WEBSHIP_REPORT_JSON`,
 `WEBSHIP_FILTER_HOOK_LINES`, `WEBSHIP_SCREENSHOT_*`, `WEBSHIP_VIDEO*`,
 `WEBSHIP_JS_ERROR_*`, `WEBSHIP_SELECTORS_OFFSET`,
 `WEBSHIP_SELECTORS_BREAKPOINTS`, `DIFFY_*`. Every one of them mirrors a
@@ -97,6 +98,9 @@ Everything shared lives here; every `*.steps.js` does
   Playwright's 30 s default so locator timeouts reach our try/catch
   wrappers and testers see a friendly message, not "function timed out".
   The 45 s in `cucumber.js` exists for the same reason; keep them aligned.
+  A step whose length the scenario gives (`I wait 2 minutes`, `within N
+  seconds`) takes `OWN_LENGTH` from `wait.steps.js` (no cucumber limit)
+  and bounds itself with `withinTimeLimit` instead.
 * **The init script** installed via `context.addInitScript()` in
   `openBrowser()` — monkey-patches `fetch`, `XMLHttpRequest.send`,
   `setTimeout`/`clearTimeout` and attaches a `MutationObserver` to
@@ -116,11 +120,15 @@ Everything shared lives here; every `*.steps.js` does
   helpers (`resolveRelativeDate`, `parseRelativeOffset`,
   `formatRelativeDate`), and the error builders (`friendly`, `humanize`).
 * **Two process-level side effects**: a stdout/stderr filter that strips
-  noisy `✔ Before # …` hook lines from cucumber's failure dump
-  (`WEBSHIP_FILTER_HOOK_LINES=off` to disable), and a `process.on('exit')`
+  noisy `✔ Before # …` hook lines from cucumber's failure dump, and in a
+  dry run (`--dry-run`, `-d`) the pretty formatter's `- skipped` line for
+  every hook and step (`WEBSHIP_FILTER_HOOK_LINES=off` to disable), and a `process.on('exit')`
   hook that auto-generates the HTML report via `bin/generate-reports`
   (`WEBSHIP_REPORT_DISABLE=1` to disable, `WEBSHIP_REPORT_ARGS` to pass
-  flags).
+  flags). It runs only in the process that runs cucumber-js, never in a
+  `--parallel` worker, and reads the JSON report the run wrote
+  (`WEBSHIP_REPORT_JSON`, else the `json:` formatter of the command line or
+  of `cucumber.js`, else `tests/reports/cucumber_report.json`).
 
 ### 2.3 Config layering
 
@@ -270,14 +278,14 @@ tests/step-definitions/
 ├── webship.js              # World, hooks, init script, shared helpers — see §2.2. Not a steps file.
 ├── a11y.steps.js           (30)  # axe-core WCAG audits + POUR hygiene probes (axe loaded lazily)
 ├── action.steps.js          (7)  # press / click / follow / attach file (actOrExplain lives here)
-├── api.steps.js            (22)  # REST long form — base URL, headers, query, body, JSON Pointer
+├── api.steps.js            (23)  # REST long form — base URL, headers, query, body, JSON Pointer
 ├── assertion.steps.js      (14)  # see / not see, in row, in element, response, count
 ├── auth.steps.js            (3)  # storageState save / restore / clear
 ├── clock.steps.js           (7)  # page.clock — install / advance / pause / set
 ├── cookie.steps.js         (12)  # cookie exists / equals / contains
 ├── debug.steps.js           (2)  # print URL / last response
 ├── dialog.steps.js          (8)  # native alert / confirm / prompt handlers
-├── element.steps.js        (19)  # focus / scroll-to / dispatch / count / position
+├── element.steps.js        (20)  # focus / scroll-to / dispatch / count / position
 ├── field.steps.js          (27)  # field, checkbox, radio, select-list state assertions
 ├── file-download.steps.js   (8)  # download capture + filename / mime / path assertions
 ├── form.steps.js           (13)  # fill / select / additionally select / check / uncheck / radio

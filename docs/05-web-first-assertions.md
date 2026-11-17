@@ -11,6 +11,8 @@ Then "#dashboard" should be visible
 Then "#dashboard" should be visible within 12 seconds
 ```
 
+A `within N seconds` longer than the step timeout (45 seconds, `WEBSHIP_STEP_TIMEOUT`) is kept: the step waits the N seconds it was given, as `I wait 2 minutes` and `eventually I should see "…" within 90 seconds` do, and fails with its own message, not with "function timed out". Such a step bounds itself at its length plus 15 seconds, so a page that stopped answering cannot hang the run.
+
 ## State matchers
 
 ```gherkin
@@ -36,6 +38,8 @@ Then "<sel>" should not be focused
 Then "<sel>" should be in the viewport
 Then "<sel>" should not be in the viewport within 3 seconds
 ```
+
+`the element "<sel>" should be at the top of the viewport` passes when the top of the element is between 0 and 100 pixels from the top of the viewport. It looks again for up to 5 seconds, so an element still on its way after a smooth scroll gets there, and its failure gives the measured top.
 
 ## Count
 

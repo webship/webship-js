@@ -1,8 +1,8 @@
 # Azure DevOps Pipelines for webship-js.
 #
-# Runs the full BDD suite on a Microsoft-hosted Ubuntu agent. Free tier for
-# public projects: 10 parallel jobs, unlimited minutes. Free tier for private
-# projects: 1 job, 1,800 minutes / month.
+# Runs the full BDD suite on a Microsoft-hosted Ubuntu agent. For the free
+# parallel jobs and minutes of public and private projects, see the Azure
+# DevOps pricing and parallel-jobs pages: they change over time.
 #
 # Setup:
 #   1. dev.azure.com → sign in → create Organization → create Project.
@@ -35,8 +35,8 @@ variables:
 steps:
   - task: NodeTool@0
     inputs:
-      versionSpec: '20.x'
-    displayName: 'Install Node 20'
+      versionSpec: '24.x'
+    displayName: 'Install Node 24'
 
   - task: Cache@2
     inputs:
@@ -75,8 +75,17 @@ steps:
     displayName: 'Publish HTML / PDF / JSON report'
 
   - task: PublishBuildArtifacts@1
-    condition: failed()
+    condition: always()
+    continueOnError: true
     inputs:
       pathToPublish: 'screenshots'
-      artifactName: 'failure-screenshots'
-    displayName: 'Publish failure screenshots'
+      artifactName: 'screenshots'
+    displayName: 'Publish screenshots'
+
+  - task: PublishBuildArtifacts@1
+    condition: always()
+    continueOnError: true
+    inputs:
+      pathToPublish: 'videos'
+      artifactName: 'videos'
+    displayName: 'Publish videos'

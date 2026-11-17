@@ -1,6 +1,6 @@
 'use strict';
 
-const { friendly } = require('./webship');
+const { friendly, failure } = require('./webship');
 
 // ---------------------------------------------------------------------------
 // Webship-JS — Selectors step definitions
@@ -69,6 +69,37 @@ function parseFile(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
 
+// Folder of the selector files when worldParameters.selectors.filesPath is not
+// set: the one the scaffold writes.
+const DEFAULT_FILES_PATH = './tests/selectors/';
+
+/**
+ * Find a selector file of worldParameters.selectors.files or of the "add
+ * selectors from ... file" step. A name is looked for in the folder of
+ * filesPath first (auth.json), then as written from the project root
+ * (tests/selectors/auth.json): the first that exists wins.
+ *
+ * @param {{filesPath: string}} cfg
+ * @param {string} file
+ * @param {import('playwright').Page} [page] - Named in the failure, when there is one.
+ * @returns {string} The path of the file.
+ */
+function resolveSelectorFile(cfg, file, page) {
+  const name = String(file || '').trim();
+  const tried = path.isAbsolute(name)
+    ? [name]
+    : [...new Set([path.join(cfg.filesPath || '', name), path.normalize(name)])];
+  const found = tried.find((candidate) => fs.existsSync(candidate));
+  if (found) return found;
+  const message = `The selector file "${name}" was not found.`;
+  const details = {
+    found: `nothing at ${tried.join(', ')}`,
+    hint: `name the file by its name in the selectors folder (${cfg.filesPath || DEFAULT_FILES_PATH}) or by its path from the project root.`,
+  };
+  if (page) throw failure(page, message, details);
+  throw friendly(`Selectors: ${message}\n  Found: ${details.found}\n  Hint: ${details.hint}`);
+}
+
 // ---------------------------------------------------------------------------
 // Config
 // ---------------------------------------------------------------------------
@@ -98,7 +129,7 @@ function resolveConfig(parameters) {
   return {
     offset:     parseInt(pick(process.env.WEBSHIP_SELECTORS_OFFSET, s.offset, '60'), 10),
     breakpoints,
-    filesPath:  s.filesPath || '',
+    filesPath:  s.filesPath || DEFAULT_FILES_PATH,
     files:      Array.isArray(s.files) ? s.files : [],
     css:        Object.assign({}, s.css  || {}),
     xpath:      Object.assign({}, s.xpath || {}),
@@ -116,7 +147,7 @@ Before(function () {
 
   // Auto-load selector files specified in worldParameters.
   for (const file of cfg.files) {
-    const filePath = cfg.filesPath ? path.join(cfg.filesPath, file) : file;
+    const filePath = resolveSelectorFile(cfg, file);
     try {
       const parsed = parseFile(filePath);
       if (parsed && parsed.css)   Object.assign(this.__selectorsCss,   parsed.css);
@@ -346,8 +377,9 @@ When(/^(I |we )*add "([^"]*)" selector for "([^"]*)" xpath selector$/, function 
 });
 
 /**
- * Load CSS and XPath selectors from a JSON file.
- * File path is relative to worldParameters.selectors.filesPath.
+ * Load CSS and XPath selectors from a JSON file. The file is looked for in the
+ * folder of worldParameters.selectors.filesPath (default ./tests/selectors/)
+ * first, then as written from the project root.
  *
  * Example #1: When I add selectors from "selectors.json" file
  * Example #2: When I add selectors from "admin-selectors.json" file
@@ -376,8 +408,7 @@ When(/^(I |we )*add "([^"]*)" selector for "([^"]*)" xpath selector$/, function 
 When(/^(I |we )*add selectors from "([^"]*)" file$/, function (pronounCase, fileName) {
   const cfg = this.__selectorsConfig;
   if (!fileName) throw friendly('Selectors: file name must not be empty.');
-  if (!cfg.filesPath) throw friendly('Selectors: worldParameters.selectors.filesPath must be set to load selector files.');
-  const filePath = path.join(cfg.filesPath, fileName);
+  const filePath = resolveSelectorFile(cfg, fileName, this.page);
   let parsed;
   try { parsed = parseFile(filePath); } catch (e) {
     throw friendly(`Selectors: failed to load selector file "${filePath}": ${e.message}`);
@@ -995,6 +1026,12 @@ When(/^(I |we )*select "([^"]*)" text in "([^"]*)" field$/, async function (pron
 
 /**
  * Click one or more named components — uses locator.click() which auto-scrolls.
+ *
+ * The names are read without quotes, so the step matches any unquoted words
+ * after "click" (registered names such as "sign in button" need that). A
+ * custom step that starts the same way, such as "I click next button in
+ * tour", is ambiguous with this one: give a custom step a quoted argument
+ * and words of its own ("I click "Next" in the tour") instead.
  *
  * Example #1: When I click nav
  * Example #2: When I click search button

@@ -4,6 +4,7 @@
 
 const { Then } = require('@cucumber/cucumber');
 const assert = require('assert');
+const { failure } = require('./webship');
 
 async function getTable(page, sel) {
   return await page.locator(sel).first().evaluate((tbl) => {
@@ -101,9 +102,65 @@ Then('the table {string} should not be empty', async function (sel) {
 });
 
 /**
+ * The number a table cell reads as, or null: digits with an optional sign,
+ * thousands separators and decimals, after a currency sign or code and before
+ * a percent sign, a unit or a word (`$1,299.00`, `USD 40`, `12 %`, `3.5 kg`).
+ * A word before the number ("Item 2") makes the cell text.
+ *
+ * @param {string} cell
+ * @returns {number|null}
+ */
+function cellNumber(cell) {
+  const m = String(cell).replace(/[\s\u00a0]+/g, ' ').trim()
+    .match(/^(?:[A-Z]{3} ?)?[^\p{L}\d+-]*([+-]?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?)[^\d]*$/u);
+  return m ? parseFloat(m[1].replace(/,/g, '')) : null;
+}
+
+/**
+ * The time a table cell reads as, in ms, or null when it is not a date.
+ *
+ * @param {string} cell
+ * @returns {number|null}
+ */
+function cellDate(cell) {
+  const text = String(cell).trim();
+  if (!/\d/.test(text)) return null;
+  const ms = Date.parse(text);
+  return Number.isNaN(ms) ? null : ms;
+}
+
+/**
+ * How the cells of a column compare, the way a reader orders them: as numbers
+ * when every cell reads as a number, else as dates when every cell reads as a
+ * date, else as text with letter case ignored and the numbers inside the text
+ * in number order ("Item 2" before "Item 10").
+ *
+ * @param {string[]} values
+ * @returns {{kind: string, compare: function(string, string): number}}
+ */
+function columnOrder(values) {
+  if (values.length && values.every((v) => cellNumber(v) !== null)) {
+    return { kind: 'numbers', compare: (a, b) => cellNumber(a) - cellNumber(b) };
+  }
+  if (values.length && values.every((v) => cellDate(v) !== null)) {
+    return { kind: 'dates', compare: (a, b) => cellDate(a) - cellDate(b) };
+  }
+  return {
+    kind: 'text, letter case ignored',
+    compare: (a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }),
+  };
+}
+
+/**
  * Assert a table is sorted ascending or descending by a header.
  *
- * Direction accepts `ascending` / `asc` / `descending` / `desc`.
+ * The cells of the column are compared the way a reader orders them: as
+ * numbers when every cell reads as a number (`$9.99`, `1,299`, `12 %`), else
+ * as dates when every cell reads as a date, else as text with letter case
+ * ignored and the numbers inside it in number order ("Item 2" before
+ * "Item 10"). Each row is compared with the next one, so equal cells may come
+ * in any order. "descending" or "desc" checks the reverse order; any other
+ * word checks the ascending order.
  *
  * Example #1: Then the table "#users" should be sorted by "Name" in "ascending" order
  * Example #2: Then the table "table.orders" should be sorted by "Total" in "descending" order
@@ -113,13 +170,31 @@ Then('the table {string} should not be empty', async function (sel) {
  *
  */
 Then('the table {string} should be sorted by {string} in {string} order', async function (sel, column, direction) {
+  if (!(await this.page.locator(sel).count())) {
+    throw failure(this.page, `No table matches "${sel}".`, {
+      hint: 'the first argument is a CSS selector of the table, such as "#users" or "table.orders".',
+    });
+  }
   const t = await getTable(this.page, sel);
   const idx = t.head.findIndex((h) => h === column);
-  assert.ok(idx !== -1, `Column "${column}" not found.`);
-  const values = t.body.map((r) => r[idx]);
-  const sorted = [...values].sort();
-  if (direction.toLowerCase() === 'descending' || direction.toLowerCase() === 'desc') sorted.reverse();
-  assert.deepStrictEqual(values, sorted, `Table "${sel}" not sorted by "${column}" ${direction}.`);
+  if (idx === -1) {
+    throw failure(this.page, `The table "${sel}" has no "${column}" column.`, {
+      found: t.head.length ? t.head.map((h) => `"${h}"`).join(', ') : 'no header cells (<th>)',
+      hint: 'the column is named by the exact text of its header cell.',
+    });
+  }
+  const descending = ['descending', 'desc'].includes(direction.toLowerCase());
+  const values = t.body.map((r) => (r[idx] === undefined ? '' : r[idx]));
+  const order = columnOrder(values);
+  for (let i = 1; i < values.length; i++) {
+    const diff = order.compare(values[i - 1], values[i]);
+    if (descending ? diff < 0 : diff > 0) {
+      throw failure(this.page, `The table "${sel}" is not sorted by "${column}" in ${descending ? 'descending' : 'ascending'} order: row ${i} ("${values[i - 1]}") comes before row ${i + 1} ("${values[i]}").`, {
+        found: values.map((v) => `"${v}"`).join(', '),
+        hint: `the cells were compared as ${order.kind}.`,
+      });
+    }
+  }
 });
 
 /**

@@ -12,6 +12,12 @@
 
 const { Given } = require('@cucumber/cucumber');
 
+// A quoted key or value may hold a double quote written \" (a JSON value, a
+// quoted cookie value), read as {string} reads it in the cookie assertions.
+function unquote(text) {
+  return String(text === undefined || text === null ? '' : text).replace(/\\"/g, '"').replace(/\\'/g, "'");
+}
+
 // ---------------------------------------------------------------------------
 // Cookies — context-level
 // ---------------------------------------------------------------------------
@@ -28,7 +34,9 @@ const { Given } = require('@cucumber/cucumber');
  *               And I am on "/dashboard"
  *
  */
-Given(/^(?:the cookie|cookie) "([^"]*)" is set to "([^"]*)"$/, async function (name, value) {
+Given(/^(?:the cookie|cookie) "((?:[^"\\]|\\.)*)" is set to "((?:[^"\\]|\\.)*)"$/, async function (name, value) {
+  name = unquote(name);
+  value = unquote(value);
   const url = this.page.url() && this.page.url() !== 'about:blank' ? this.page.url() : (this.launchUrl || 'http://localhost');
   const u = new URL(url);
   await this.context.addCookies([{
@@ -53,7 +61,8 @@ Given(/^(?:the cookie|cookie) "([^"]*)" is set to "([^"]*)"$/, async function (n
  *               When I follow "Pricing"
  *
  */
-Given(/^the cookie "([^"]*)" is removed$/, async function (name) {
+Given(/^the cookie "((?:[^"\\]|\\.)*)" is removed$/, async function (name) {
+  name = unquote(name);
   const cookies = await this.context.cookies();
   const remaining = cookies.filter((c) => c.name !== name);
   await this.context.clearCookies();
@@ -88,7 +97,8 @@ Given(/^all cookies are cleared$/, async function () {
  * Set a local storage entry on the current page.
  *
  * The page must be loaded first (local storage is per-origin). Stored value
- * is always a string — JSON-encode complex objects manually.
+ * is always a string — JSON-encode complex objects manually, writing each
+ * double quote as \" inside the step's quotes.
  *
  * Example #1: Given the local storage "user" is set to "Alice"
  * Example #2: Given I am on the homepage
@@ -102,8 +112,8 @@ Given(/^all cookies are cleared$/, async function () {
  * Example #5: Given the local storage "feature_flag" is set to "enabled"
  *
  */
-Given(/^(?:the )?local storage "([^"]*)" is set to "([^"]*)"$/, async function (key, value) {
-  await this.page.evaluate(({ k, v }) => localStorage.setItem(k, v), { k: key, v: value });
+Given(/^(?:the )?local storage "((?:[^"\\]|\\.)*)" is set to "((?:[^"\\]|\\.)*)"$/, async function (key, value) {
+  await this.page.evaluate(({ k, v }) => localStorage.setItem(k, v), { k: unquote(key), v: unquote(value) });
 });
 
 /**
@@ -120,8 +130,8 @@ Given(/^(?:the )?local storage "([^"]*)" is set to "([^"]*)"$/, async function (
  * Example #5: Given the local storage "auth_token" is removed
  *
  */
-Given(/^(?:the )?local storage "([^"]*)" is removed$/, async function (key) {
-  await this.page.evaluate((k) => localStorage.removeItem(k), key);
+Given(/^(?:the )?local storage "((?:[^"\\]|\\.)*)" is removed$/, async function (key) {
+  await this.page.evaluate((k) => localStorage.removeItem(k), unquote(key));
 });
 
 /**
@@ -155,8 +165,8 @@ Given(/^local storage is cleared$/, async function () {
  *               And I am on "/cart"
  *
  */
-Given(/^(?:the )?session storage "([^"]*)" is set to "([^"]*)"$/, async function (key, value) {
-  await this.page.evaluate(({ k, v }) => sessionStorage.setItem(k, v), { k: key, v: value });
+Given(/^(?:the )?session storage "((?:[^"\\]|\\.)*)" is set to "((?:[^"\\]|\\.)*)"$/, async function (key, value) {
+  await this.page.evaluate(({ k, v }) => sessionStorage.setItem(k, v), { k: unquote(key), v: unquote(value) });
 });
 
 /**
@@ -171,8 +181,8 @@ Given(/^(?:the )?session storage "([^"]*)" is set to "([^"]*)"$/, async function
  * Example #5: Given the session storage "from checkout" is removed
  *
  */
-Given(/^(?:the )?session storage "([^"]*)" is removed$/, async function (key) {
-  await this.page.evaluate((k) => sessionStorage.removeItem(k), key);
+Given(/^(?:the )?session storage "((?:[^"\\]|\\.)*)" is removed$/, async function (key) {
+  await this.page.evaluate((k) => sessionStorage.removeItem(k), unquote(key));
 });
 
 /**

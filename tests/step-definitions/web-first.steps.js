@@ -11,6 +11,7 @@ const { friendly } = require('./webship');
 
 const { Then, When } = require('@cucumber/cucumber');
 const assert = require('assert');
+const { OWN_LENGTH, withinTimeLimit } = require('./wait.steps');
 
 function parseTimeout(secondsStr) {
   const n = secondsStr ? parseInt(secondsStr, 10) : 0;
@@ -25,20 +26,24 @@ function normalizeText(value) {
 }
 
 // Poll fn() until it returns truthy, or timeout. fn() returns a value;
-// `predicate` decides pass/fail. Returns the last value seen.
+// `predicate` decides pass/fail. Returns the last value seen. The matchers
+// that call it take OWN_LENGTH: "within 60 seconds" runs past the step
+// timeout, bounded by withinTimeLimit.
 async function poll(fn, predicate, timeout, message) {
-  const deadline = Date.now() + timeout;
-  let last;
-  while (Date.now() < deadline) {
-    try {
-      last = await fn();
-      if (predicate(last)) return last;
-    } catch (e) {
-      last = e;
+  return withinTimeLimit(timeout, `The check "${message}"`, async () => {
+    const deadline = Date.now() + timeout;
+    let last;
+    while (Date.now() < deadline) {
+      try {
+        last = await fn();
+        if (predicate(last)) return last;
+      } catch (e) {
+        last = e;
+      }
+      await new Promise((r) => setTimeout(r, 100));
     }
-    await new Promise((r) => setTimeout(r, 100));
-  }
-  throw friendly(`${message} (last seen: ${typeof last === 'object' ? JSON.stringify(last) : String(last)})`);
+    throw friendly(`${message} (last seen: ${typeof last === 'object' ? JSON.stringify(last) : String(last)})`);
+  });
 }
 
 async function checkState(locator, state) {
@@ -69,7 +74,7 @@ async function checkState(locator, state) {
  * Example #5: Then "input#email" should be editable
  *
  */
-Then(/^"([^"]*)" should be (visible|hidden|attached|focused|enabled|disabled|editable)(?: within (\d+) seconds?)?$/, async function (selector, state, sec) {
+Then(/^"([^"]*)" should be (visible|hidden|attached|focused|enabled|disabled|editable)(?: within (\d+) seconds?)?$/, OWN_LENGTH, async function (selector, state, sec) {
   const loc = this.page.locator(selector);
   await poll(
     () => checkState(loc, state),
@@ -89,7 +94,7 @@ Then(/^"([^"]*)" should be (visible|hidden|attached|focused|enabled|disabled|edi
  * Example #5: Then "[data-testid=password]" should not be focused
  *
  */
-Then(/^"([^"]*)" should not be (visible|hidden|attached|focused|enabled|disabled|editable)(?: within (\d+) seconds?)?$/, async function (selector, state, sec) {
+Then(/^"([^"]*)" should not be (visible|hidden|attached|focused|enabled|disabled|editable)(?: within (\d+) seconds?)?$/, OWN_LENGTH, async function (selector, state, sec) {
   const loc = this.page.locator(selector);
   await poll(
     () => checkState(loc, state),
@@ -110,7 +115,7 @@ Then(/^"([^"]*)" should not be (visible|hidden|attached|focused|enabled|disabled
  * Example #5: Then ".banner" should be in the viewport
  *
  */
-Then(/^"([^"]*)" should be in the viewport(?: within (\d+) seconds?)?$/, async function (selector, sec) {
+Then(/^"([^"]*)" should be in the viewport(?: within (\d+) seconds?)?$/, OWN_LENGTH, async function (selector, sec) {
   const loc = this.page.locator(selector).first();
   await poll(
     async () => loc.evaluate((el) => {
@@ -135,7 +140,7 @@ Then(/^"([^"]*)" should be in the viewport(?: within (\d+) seconds?)?$/, async f
  *               Then "#footer" should not be in the viewport
  *
  */
-Then(/^"([^"]*)" should not be in the viewport(?: within (\d+) seconds?)?$/, async function (selector, sec) {
+Then(/^"([^"]*)" should not be in the viewport(?: within (\d+) seconds?)?$/, OWN_LENGTH, async function (selector, sec) {
   const loc = this.page.locator(selector).first();
   await poll(
     async () => loc.evaluate((el) => {
@@ -159,7 +164,7 @@ Then(/^"([^"]*)" should not be in the viewport(?: within (\d+) seconds?)?$/, asy
  * Example #5: Then ".feed-item" should have a count of 25 within 10 seconds
  *
  */
-Then(/^"([^"]*)" should have a count of (\d+)(?: within (\d+) seconds?)?$/, async function (selector, count, sec) {
+Then(/^"([^"]*)" should have a count of (\d+)(?: within (\d+) seconds?)?$/, OWN_LENGTH, async function (selector, count, sec) {
   const expected = parseInt(count, 10);
   const loc = this.page.locator(selector);
   await poll(
@@ -180,7 +185,7 @@ Then(/^"([^"]*)" should have a count of (\d+)(?: within (\d+) seconds?)?$/, asyn
  * Example #5: Then ".alert" should have text "Saved"
  *
  */
-Then(/^"([^"]*)" should have text "([^"]*)"(?: within (\d+) seconds?)?$/, async function (selector, text, sec) {
+Then(/^"([^"]*)" should have text "([^"]*)"(?: within (\d+) seconds?)?$/, OWN_LENGTH, async function (selector, text, sec) {
   const loc = this.page.locator(selector).first();
   await poll(
     () => loc.textContent(),
@@ -203,7 +208,7 @@ Then(/^"([^"]*)" should have text "([^"]*)"(?: within (\d+) seconds?)?$/, async 
  * Example #5: Then ".alert" should contain text "Saved"
  *
  */
-Then(/^"([^"]*)" should contain text "([^"]*)"(?: within (\d+) seconds?)?$/, async function (selector, text, sec) {
+Then(/^"([^"]*)" should contain text "([^"]*)"(?: within (\d+) seconds?)?$/, OWN_LENGTH, async function (selector, text, sec) {
   const loc = this.page.locator(selector).first();
   const expected = normalizeText(text);
   await poll(
@@ -224,7 +229,7 @@ Then(/^"([^"]*)" should contain text "([^"]*)"(?: within (\d+) seconds?)?$/, asy
  * Example #5: Then "select#country" should have value "JO"
  *
  */
-Then(/^"([^"]*)" should have value "([^"]*)"(?: within (\d+) seconds?)?$/, async function (selector, value, sec) {
+Then(/^"([^"]*)" should have value "([^"]*)"(?: within (\d+) seconds?)?$/, OWN_LENGTH, async function (selector, value, sec) {
   const loc = this.page.locator(selector).first();
   await poll(
     () => loc.inputValue(),
@@ -244,7 +249,7 @@ Then(/^"([^"]*)" should have value "([^"]*)"(?: within (\d+) seconds?)?$/, async
  * Example #5: Then "input#email" should have attribute "type" with value "email"
  *
  */
-Then(/^"([^"]*)" should have attribute "([^"]*)" with value "([^"]*)"(?: within (\d+) seconds?)?$/, async function (selector, attr, value, sec) {
+Then(/^"([^"]*)" should have attribute "([^"]*)" with value "([^"]*)"(?: within (\d+) seconds?)?$/, OWN_LENGTH, async function (selector, attr, value, sec) {
   const loc = this.page.locator(selector).first();
   await poll(
     () => loc.getAttribute(attr),
@@ -264,7 +269,7 @@ Then(/^"([^"]*)" should have attribute "([^"]*)" with value "([^"]*)"(?: within 
  * Example #5: Then "[data-testid=card]" should have class "highlighted"
  *
  */
-Then(/^"([^"]*)" should have class "([^"]*)"(?: within (\d+) seconds?)?$/, async function (selector, cls, sec) {
+Then(/^"([^"]*)" should have class "([^"]*)"(?: within (\d+) seconds?)?$/, OWN_LENGTH, async function (selector, cls, sec) {
   const loc = this.page.locator(selector).first();
   await poll(
     () => loc.getAttribute('class'),
@@ -298,7 +303,7 @@ When(/^(I |we )*click the "([^"]*)" (button|link|tab|menuitem|checkbox|radio|opt
  * Example #5: Then the "Premium" radio should be visible
  *
  */
-Then(/^the "([^"]*)" (button|link|tab|menuitem|checkbox|radio|option) should be visible(?: within (\d+) seconds?)?$/, async function (name, role, sec) {
+Then(/^the "([^"]*)" (button|link|tab|menuitem|checkbox|radio|option) should be visible(?: within (\d+) seconds?)?$/, OWN_LENGTH, async function (name, role, sec) {
   const loc = this.page.getByRole(role, { name }).first();
   await poll(
     () => loc.isVisible(),

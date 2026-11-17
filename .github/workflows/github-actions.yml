@@ -47,8 +47,14 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
+      - name: Check that a dry run prints no line for each skipped step
+        run: npm run test:dry-run
+
       - name: Check the step examples and the feature steps
         run: npm run test:examples
+
+      - name: Check that a wait runs for the time the scenario gives it
+        run: npm run test:time-limit
 
       - name: Check that a feature named on the command line runs alone
         run: npm run test:paths
@@ -56,11 +62,17 @@ jobs:
       - name: Check that the print steps attach what they print to the report
         run: npm run test:attachments
 
+      - name: Check that each JavaScript-error check counts its own kind
+        run: npm run test:js-errors
+
       - name: Check that only a failed step leaves a failure screenshot
         run: npm run test:screenshots
 
       - name: Check that a configuration with only the launch URL runs
         run: npm run test:config
+
+      - name: Check the HTML report built at the end of a run
+        run: npm run test:exit-report
 
       - name: Check that a project step with a page-changing verb is followed by the settle
         run: npm run test:settle-verbs

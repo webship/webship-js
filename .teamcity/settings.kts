@@ -11,8 +11,8 @@
 //      TeamCity will offer to generate this file the first time; we ship
 //      a hand-crafted version below.
 //
-// Free tier: 600 build-minutes / month + 1 build agent + 100 build configs.
-// The 9-minute suite fits ~66 runs / month.
+// For the free tier of TeamCity Cloud and its limits, see the TeamCity
+// pricing page: they change over time.
 
 import jetbrains.buildServer.configs.kotlin.v2019_2.*
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
@@ -55,7 +55,7 @@ object WebshipJsTest : BuildType({
                 curl -sf http://localhost:8080/ > /dev/null
                 npm test
             """.trimIndent()
-            dockerImage      = "mcr.microsoft.com/playwright:v1.58.2-jammy"
+            dockerImage      = "mcr.microsoft.com/playwright:v1.65.1-noble"
             dockerPull       = true
             dockerRunParameters = "--user root:root --network host"
         }
@@ -80,11 +80,12 @@ object WebshipJsTest : BuildType({
     }
 
     artifactRules = """
-        tests/reports/cucumber_report.html
-        tests/reports/cucumber_report.pdf
-        tests/reports/cucumber_report.json
+        tests/reports/** => tests/reports
         screenshots/** => screenshots
+        videos/** => videos
     """.trimIndent()
+    // Keep the report of a failed run too.
+    publishArtifacts = PublishMode.ALWAYS
 
     requirements {
         contains("os.name", "Linux")

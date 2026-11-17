@@ -212,6 +212,11 @@ When asked to add a custom step:
 6. Run the audit: `npm run test:examples`. It fails when a definition has
    no JSDoc description or no example, when a step line of an example
    matches no definition or more than one, and when a feature step does.
+7. Do not start a custom step with an unquoted phrase that a bare-name
+   selector step also reads (`I click next button in tour`): the bare-name
+   click matches any unquoted words after "click". Quote the argument and
+   give the step words of its own (`I click "Next" in the tour`), then
+   check with `npx cucumber-js --dry-run`.
 
 ### Recipe AI-3: Maintain tests after a UI change
 

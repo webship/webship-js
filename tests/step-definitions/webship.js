@@ -8,18 +8,37 @@ const path = require('path');
 // ---------------------------------------------------------------------------
 // Output filter — strip noisy `✔ Before # ...` / `✔ After # ...` hook lines
 // from cucumber-js's failure dump so tester-facing output stays focused on
-// the failing step + hint. Disable with WEBSHIP_FILTER_HOOK_LINES=off.
+// the failing step + hint. In a dry run (--dry-run or -d), also strip the
+// pretty formatter's "- skipped" lines: every hook and every step of a dry
+// run is skipped, and a line for each buries the "? undefined" and
+// "✖ ambiguous" lines the dry run is for. Disable with
+// WEBSHIP_FILTER_HOOK_LINES=off.
 // ---------------------------------------------------------------------------
 if (process.env.WEBSHIP_FILTER_HOOK_LINES !== 'off') {
   const HOOK_LINE = /^\s*[✔✖✗⚠?-]\s+(?:Before|After|BeforeStep|AfterStep)\b.*$/;
+  const DRY_RUN = process.argv.slice(2).some((arg) => arg === '--dry-run' || arg === '-d');
+  const SKIPPED_LINE = /^\s*-\s+skipped\s*$/;
+  const plain = (line) => line.replace(/\x1b\[[0-9;]*m/g, '');
+  const dropped = (line) => HOOK_LINE.test(plain(line)) || (DRY_RUN && SKIPPED_LINE.test(plain(line)));
   const wrap = (stream) => {
     const orig = stream.write.bind(stream);
+    // The pretty formatter writes a line and its line break in two writes:
+    // when a line is dropped, so is the line break that follows it.
+    let dropLineBreak = false;
     stream.write = (chunk, encoding, cb) => {
       if (typeof chunk === 'string' || Buffer.isBuffer(chunk)) {
         const text = typeof chunk === 'string' ? chunk : chunk.toString('utf8');
+        const skipBreak = dropLineBreak && /^\r?\n$/.test(text);
+        dropLineBreak = false;
+        if (skipBreak || (!text.includes('\n') && text.trim() && dropped(text))) {
+          dropLineBreak = !skipBreak;
+          const done = typeof encoding === 'function' ? encoding : cb;
+          if (typeof done === 'function') process.nextTick(done);
+          return true;
+        }
         const filtered = text
           .split('\n')
-          .filter((line) => !HOOK_LINE.test(line.replace(/\x1b\[[0-9;]*m/g, '')))
+          .filter((line) => !dropped(line))
           .join('\n');
         return orig(filtered, encoding, cb);
       }
@@ -117,11 +136,14 @@ async function pollPage(page, probe, arg, timeout, interval) {
  * Wait for the page to reach an "edge" of activity — DOM ready, network
  * idle, no pending AJAX or timers, and no DOM mutations for ≥250 ms.
  *
- * Each stage gets a share of the budget rather than "whatever is left", so a
- * stage that can never resolve cannot starve the ones after it. On a page with
- * analytics, a chat widget or a self-rescheduling timer, `networkidle` never
- * arrives; capping it at half the budget keeps the AJAX / pending-timer /
- * DOM-quiet probe — the useful one — running.
+ * Each stage but the last gets a share of the budget rather than "whatever
+ * is left", so a stage that can never resolve cannot starve the ones after
+ * it. On a page with analytics, a chat widget or a self-rescheduling timer,
+ * `networkidle` never arrives; capping it at half the budget keeps the AJAX /
+ * pending-timer / DOM-quiet probe — the useful one — running. That probe is
+ * the last stage, with nothing after it to starve: it gets everything the
+ * earlier stages left, so a request or a timer of more than half the budget
+ * is still waited for.
  *
  * Returns within `timeout` ms even when nothing on the page ever settles.
  *
@@ -151,7 +173,7 @@ async function smartSettle(page, timeout) {
   if (!await stage(0.25, (t) => page.waitForSelector('body', { state: 'attached', timeout: t }))) return;
   if (!await stage(0.25, (t) => page.waitForLoadState('domcontentloaded', { timeout: t }))) return;
   if (!await stage(0.5, (t) => page.waitForLoadState('networkidle', { timeout: t }))) return;
-  await stage(0.5, (t) => pollPage(
+  await stage(1, (t) => pollPage(
     page,
     (quietMs) => {
       const ajax = window.__webshipAjaxCount;
@@ -462,17 +484,17 @@ async function fillField(page, field, value) {
   value = value === undefined || value === null ? '' : String(value);
   const byLabel = page.getByLabel(field, { exact: true });
   if (await byLabel.count() > 0) {
-    await byLabel.fill(value);
+    await fillLocator(page, byLabel, value, field);
     return;
   }
   const byPlaceholder = page.getByPlaceholder(field, { exact: true });
   if (await byPlaceholder.count() > 0) {
-    await byPlaceholder.fill(value);
+    await fillLocator(page, byPlaceholder, value, field);
     return;
   }
   const byName = page.locator(`[name="${field}"]`).first();
   if (await byName.count() > 0) {
-    await byName.fill(value);
+    await fillLocator(page, byName, value, field);
     return;
   }
   throw friendly(
@@ -481,6 +503,49 @@ async function fillField(page, field, value) {
     `  Hints: check the label/placeholder text matches exactly (case-sensitive),\n` +
     `         or use the attribute variant: 'I fill in "${field}" with "${value}" by attr'.`
   );
+}
+
+/**
+ * Fill the field a step found. A field that is hidden, disabled or read-only,
+ * or that is not on the page, fails the step within 5 seconds with what is
+ * wrong with it, the page and a hint, instead of Playwright's raw timeout.
+ *
+ * @param {import('playwright').Page} page
+ * @param {import('playwright').Locator} loc - The field.
+ * @param {string} value - Value to type; null or undefined fills an empty value.
+ * @param {string} name - How the step named the field, for the message.
+ * @returns {Promise<void>}
+ */
+async function fillLocator(page, loc, value, name) {
+  const text = value === undefined || value === null ? '' : String(value);
+  try {
+    await loc.fill(text, { timeout: 5000 });
+    return;
+  } catch (e) {
+    let state = '';
+    try {
+      if (await loc.count() === 0) state = 'missing';
+      else if (!(await loc.first().isVisible())) state = 'hidden';
+      else if (await loc.first().isDisabled({ timeout: 1000 })) state = 'disabled';
+      else if (!(await loc.first().isEditable({ timeout: 1000 }))) state = 'read-only';
+    } catch { /* the page changed while it was looked at */ }
+    if (state === 'missing') {
+      throw failure(page, `No field with "${name}" was found after 5 seconds.`, {
+        hint: 'by attribute the step reads the text as the attribute it names, else as an id, a class, a name, a test id, an aria-label, a value, a placeholder or a title; a text that starts with #, . or [ is a CSS selector.',
+      });
+    }
+    if (state === 'hidden') {
+      throw failure(page, `The field "${name}" is on the page but hidden, so it cannot be filled.`, {
+        hint: 'a field that shows after an action can be filled once it is visible: wait for it first. A field hidden behind a rich-text editor is filled with: I fill in the WYSIWYG field "<name>" with the "<text>"',
+      });
+    }
+    if (state === 'disabled' || state === 'read-only') {
+      throw failure(page, `The field "${name}" is ${state}, so it cannot be filled.`, {
+        hint: `a ${state} field keeps its value; to check it, use: the field "${name}" should have "${state}" state`,
+      });
+    }
+    throw failure(page, `Could not fill the field "${name}".`, { hint: `${humanize(e)}.` });
+  }
 }
 
 /**
@@ -827,6 +892,7 @@ module.exports = {
   resolveUrl,
   sendRequest,
   fillField,
+  fillLocator,
   getLocatorText,
   locateByLabelOrSelector,
   pad,
@@ -844,16 +910,121 @@ module.exports = {
 // ---------------------------------------------------------------------------
 // Auto HTML report on cucumber-js process exit.
 // Disable: WEBSHIP_REPORT_DISABLE=1. Extra flags: WEBSHIP_REPORT_ARGS="--theme hierarchy --layout 2".
-// Registered once per process.
+// Registered once per process, and run only in the process that runs
+// cucumber-js: the workers of a --parallel run load these files too, but exit
+// before the JSON report is complete.
 // ---------------------------------------------------------------------------
+
+/**
+ * The values given to an option on a command line, in order: `--name value`,
+ * `--name=value` and the short form `-n value`.
+ *
+ * @param {string[]} args
+ * @param {string} name   - Long name, with its dashes (`--format`).
+ * @param {string} [short] - Short name, with its dash (`-f`).
+ * @returns {string[]}
+ */
+function optionValues(args, name, short) {
+  const values = [];
+  for (let i = 0; i < args.length; i += 1) {
+    if (args[i] === name || (short && args[i] === short)) {
+      if (i + 1 < args.length) values.push(args[i + 1]);
+      i += 1;
+    } else if (args[i].startsWith(name + '=')) {
+      values.push(args[i].slice(name.length + 1));
+    }
+  }
+  return values;
+}
+
+/**
+ * The file of the last `json` formatter in a list of cucumber-js formats
+ * (`json:path`, `"json":"path"` or `['json', 'path']`), or '' when there is
+ * none that writes to a file.
+ *
+ * @param {Array<string|string[]>} formats
+ * @returns {string}
+ */
+function jsonFormatterFile(formats) {
+  let file = '';
+  for (const format of formats || []) {
+    if (Array.isArray(format)) {
+      if (format[0] === 'json' && format[1]) file = String(format[1]);
+      continue;
+    }
+    const match = /^"?json"?:(.+)$/.exec(String(format));
+    if (match) file = match[1].replace(/^"(.*)"$/, '$1');
+  }
+  return file;
+}
+
+/**
+ * The formats of the cucumber-js config file of this run, for the profiles
+ * the command line names, else the default one. A config file that cannot be
+ * read here (an ES module, a YAML file) gives none.
+ *
+ * @param {string[]} args - The command line of cucumber-js.
+ * @returns {Array<string|string[]>}
+ */
+function configFormats(args) {
+  const named = optionValues(args, '--config', '-c');
+  const candidates = named.length
+    ? [named[named.length - 1]]
+    : ['cucumber.js', 'cucumber.cjs', 'cucumber.json'];
+  for (const candidate of candidates) {
+    const file = path.resolve(process.cwd(), candidate);
+    if (!/\.(c?js|json)$/.test(file) || !require('fs').existsSync(file)) continue;
+    try {
+      const loaded = require(file);
+      const profiles = optionValues(args, '--profile', '-p');
+      const formats = [];
+      for (const profile of profiles.length ? profiles : ['default']) {
+        const config = (loaded && loaded[profile]) || (profile === 'default' && loaded && !loaded.default ? loaded : null);
+        if (config && Array.isArray(config.format)) formats.push(...config.format);
+      }
+      return formats;
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
+/**
+ * Where this run wrote its JSON report: WEBSHIP_REPORT_JSON, else the file of
+ * the `json` formatter of the command line, else the one of the config file,
+ * else the scaffold's `tests/reports/cucumber_report.json`.
+ *
+ * @returns {string}
+ */
+function reportJsonFile() {
+  if (process.env.WEBSHIP_REPORT_JSON) return process.env.WEBSHIP_REPORT_JSON;
+  const args = process.argv.slice(2);
+  return jsonFormatterFile(optionValues(args, '--format', '-f'))
+    || jsonFormatterFile(configFormats(args))
+    || 'tests/reports/cucumber_report.json';
+}
+
 if (!global.__WEBSHIP_AUTO_REPORT__) {
   global.__WEBSHIP_AUTO_REPORT__ = true;
   process.on('exit', () => {
     if (process.env.WEBSHIP_REPORT_DISABLE) return;
+    // A worker of a --parallel run: the process that runs cucumber-js builds
+    // the report once the whole JSON report is written.
+    if (process.env.CUCUMBER_WORKER_ID) return;
     try {
+      const json = reportJsonFile();
+      let size = 0;
+      try { size = require('fs').statSync(path.resolve(process.cwd(), json)).size; } catch { /* not written */ }
+      if (!size) {
+        console.error(`[webship-js] No HTML report: this run wrote no JSON report at "${json}". Set WEBSHIP_REPORT_JSON to the file of your json formatter, or WEBSHIP_REPORT_DISABLE=1 to build no report.`);
+        return;
+      }
       const { run } = require(path.join(__dirname, '..', '..', 'bin', 'generate-reports'));
       const extra = (process.env.WEBSHIP_REPORT_ARGS || '').split(/\s+/).filter(Boolean);
-      run(extra);
+      Promise.resolve(run(['--json', json].concat(extra))).catch((err) => {
+        console.error('[webship-js] Report generation failed:', err.message);
+      });
     } catch (err) {
       console.error('[webship-js] Report generation failed:', err.message);
     }
