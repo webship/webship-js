@@ -35,9 +35,9 @@ This is a topical reference. For per-step examples, see the JSDoc comment above 
 | `When I fill in the following:` (table) | Bulk fill |
 | `When I select "Option" from "Label"` | `<select>` by the exact text of its label, its name, its id, or a CSS selector (`#`, `.`, `[`); the option by its text or value |
 | `When I additionally select "Option" from "Label"` | Multi-select |
-| `When I check the checkbox "#agree"` | |
-| `When I uncheck the checkbox "#agree"` | |
-| `When I choose the radio button "#radio"` | |
+| `When I check the checkbox "#agree"` | By CSS selector, label, name, id or value |
+| `When I uncheck the checkbox "#agree"` | By CSS selector, label, name, id or value |
+| `When I choose the radio button "#radio"` | By CSS selector, label, id or value |
 
 ## Waits — see [BBR](02-bbr-smart-waits.md)
 
@@ -263,10 +263,10 @@ Mode semantics:
 
 | Mode | Behaviour |
 | --- | --- |
-| `off` (default) | No recording. |
+| `off` (default) | No recording, except the scenarios tagged `@video`. |
 | `on` | Every scenario produces a `webm`. |
-| `on-failure` | Every scenario records; only failures are kept on disk. |
-| `tag` | Only scenarios tagged `@video` record. |
+| `on-failure` | Every scenario records; only failures are kept on disk, with the `@video` scenarios and the videos whose name `I save the current video as` reserved. |
+| `tag` | The same as `off`: only scenarios tagged `@video` record. |
 
 Settings (`worldParameters.video`):
 
@@ -274,10 +274,10 @@ Settings (`worldParameters.video`):
 | --- | --- | --- | --- |
 | `mode` | `WEBSHIP_VIDEO` | `off` | Activation mode. |
 | `dir` | `WEBSHIP_VIDEO_DIR` | `./videos` | Output directory (created automatically). |
-| `size` | _none_ | `{ width: 1280, height: 720 }` | Recording resolution. |
-| `filenamePattern` | _none_ | `{datetime}.{feature_file}.{scenario}.{status}.{ext}` | Per-scenario filename. Tokens: `{datetime} {feature_file} {feature} {scenario} {status} {ext}`. |
+| `size` | `WEBSHIP_VIDEO_SIZE` (`1280x720`) | `{ width: 1280, height: 720 }` | Recording resolution. |
+| `filenamePattern` | _none_ | `{datetime}.{feature_file}.{scenario}.{status}.{ext}` | Per-scenario filename. Tokens: `{datetime}` (when the recording started) `{feature_file} {feature} {scenario} {status}` (`passed`, `failed`, … in lower case; `manual` for a recording `stop video recording` ended) `{ext}`. |
 
-The `start` / `stop` mid-scenario steps close + reopen the browser context (Playwright records at context creation only). Page state is lost across the boundary — call `start` BEFORE any navigation. `videos/` is gitignored.
+`print video path` prints the path the video is saved under when the scenario ends (`<status>` stands for the result still to come). `start video recording` on a scenario that already records changes nothing. The `start` / `stop` mid-scenario steps open a new browser context (Playwright records at context creation only). The cookies and local storage, the viewport of an `@mobile` / `@desktop` tag, the smart waits, JavaScript-error capture and a running request log go on with it; the page itself starts blank — call `start` BEFORE any navigation, and open the page again after `stop`. `videos/` is gitignored.
 
 ## Date tokens
 
@@ -362,6 +362,7 @@ This index lists every public step grouped by source file, with one Gherkin exam
 - *^print API response$*  ·  Example: `Then print API response`
 - *^(?:the )?API response should( not)? contain the header "([^"]*)"$*  ·  Example: `Then the API response should contain the header "ETag"`
 - *^(?:I|we) set placeholder "([^"]*)" to "([^"]*)"$*  ·  Example: `Given I set placeholder "{{userId}}" to "123"`
+- *^(I |we )*save the JSON property "([^"]*)" as placeholder "([^"]*)"$*  ·  Example: `When I save the JSON property "token" as placeholder "{{token}}"`
 
 ### assertion.steps.js
 
@@ -520,6 +521,7 @@ This index lists every public step grouped by source file, with one Gherkin exam
 - *^(I |we )*fill in "([^"]*)" with "([^"]*)" inside the iframe$*  ·  Example: `When I fill in "card_number" with "4242 4242 4242 4242" inside the iframe`
 - *^I should see "([^"]*)" inside the iframe$*  ·  Example: `Then I should see "Payment received" inside the iframe`
 - *^I should not see "([^"]*)" inside the iframe$*  ·  Example: `Then I should not see "Error" inside the iframe`
+- The iframe steps act in the iframe the scenario switched to last; while an iframe is active, a switch looks for the iframe inside it first, then in the page (nested iframes). `by attr inside the iframe` tries the attributes `I click "…" by attr` tries; the frame fill finds a field by label, placeholder, name or id; `I should (not) see "…" inside the iframe` reads the iframe as `I should (not) see` reads the page and waits up to 5 seconds.
 
 ### input.steps.js
 
@@ -531,7 +533,7 @@ This index lists every public step grouped by source file, with one Gherkin exam
 - *^(I |we )*click on "([^"]*)" while holding "([^"]*)"$*  ·  Example: `When I click on "#row-1" while holding "Shift"`
 - *^(I |we )*drag "([^"]*)" to "([^"]*)"$*  ·  Example: `When I drag "#card-1" to "#column-done"`
 - *^(I |we )*set the viewport size to (\d+)x(\d+)$*  ·  Example: `When I set the viewport size to 1280x720`
-- *^(I |we )*tap on "([^"]*)"$*  ·  Example: `When I tap on "#cta"`
+- *^(I |we )*tap on "([^"]*)"$*  ·  Example: `When I tap on "#cta"` — a real tap in a scenario tagged `@touch`; without touch, a click (and a note)
 
 ### javascript.steps.js
 

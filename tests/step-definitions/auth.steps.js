@@ -57,9 +57,12 @@ When(/^(I |we )*save the auth state to "([^"]*)"$/, async function (pronoun, tar
  * Restore cookies + localStorage from a previously saved JSON file.
  *
  * The current browser context is closed and a fresh one is opened with the
- * saved state. The webship-js init script (AJAX/timer/mutation tracker) is
- * re-installed automatically so smart waits keep working. Subsequent steps
- * proceed against the restored, authenticated session.
+ * saved state, through the same path as the first one of the scenario: the
+ * smart waits (the AJAX / timer / mutation tracker), the viewport of an
+ * @mobile / @desktop tag, video recording while it is on, JavaScript-error
+ * capture, the response tracker and a running request log all go on with
+ * the new page. The page starts blank: open the page you need next. Routes
+ * stubbed before this step belong to the closed context: stub them after it.
  *
  * Example #1: Given I restore the auth state from "tests/auth/admin.json"
  * Example #2: Given I restore the auth state from "tests/auth/editor.json"
@@ -77,21 +80,15 @@ Given(/^(I |we )*restore the auth state from "([^"]*)"$/, async function (pronou
   if (!fs.existsSync(file)) {
     throw friendly(`Auth state file not found: ${file}`);
   }
-  const playwrightConfig = require(path.join(process.cwd(), 'playwright.config'));
-  const newContext = await this.playwrightBrowser.newContext({
-    ...playwrightConfig.contextOptions,
-    storageState: file,
-  });
-  await newContext.addInitScript(() => {
-    if (window.__webshipAjaxInstalled) return;
-    window.__webshipAjaxInstalled = true;
-    window.__webshipAjaxCount = 0;
-    window.__webshipPendingTimers = 0;
-    window.__webshipLastMutation = Date.now();
-  });
-  if (this.context) await this.context.close();
-  this.context = newContext;
-  this.page = await this.context.newPage();
+  try {
+    await this.replaceContext({ storageState: file });
+  } catch (e) {
+    throw friendly({
+      action: `restore the auth state from "${source}"`,
+      cause: e,
+      hint: 'the file must be one written by "I save the auth state to", and the browser must still be open.',
+    });
+  }
 });
 
 /**

@@ -50,6 +50,9 @@ jobs:
       - name: Check that a dry run prints no line for each skipped step
         run: npm run test:dry-run
 
+      - name: Check that the relative API base URL follows the launch URL
+        run: npm run test:api-launch-url
+
       - name: Check the step examples and the feature steps
         run: npm run test:examples
 
@@ -79,6 +82,15 @@ jobs:
 
       - name: Check that every step and tag reads one breakpoint registry
         run: npm run test:breakpoints
+
+      - name: Check that a replaced browser context keeps what the scenario set up
+        run: npm run test:context
+
+      - name: Check the video files of the three recording modes
+        run: npm run test:video
+
+      - name: Check that a project extends the World and settles its own steps
+        run: npm run test:world
 
       - name: Check that a project step with a page-changing verb is followed by the settle
         run: npm run test:settle-verbs

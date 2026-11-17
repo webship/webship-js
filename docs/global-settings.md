@@ -90,7 +90,6 @@ selectors: {
   xpath: { /* name → XPath expression */ },
   filesPath: './tests/selectors/',  // base path for JSON presets
   files: [],                         // JSON files to auto-load per scenario
-  offset: 60,                        // px — scroll offset for relative-position assertions
   breakpoints: {                     // named viewport sizes — see "Breakpoints" below
     xs:   { width: 375,  height: 667  },
     sm:   { width: 576,  height: 800  },
@@ -109,7 +108,6 @@ selectors: {
 | `xpath` | `{}` | — |
 | `filesPath` | `./tests/selectors/` | — |
 | `files` | `[]` | — |
-| `offset` | `60` | `WEBSHIP_SELECTORS_OFFSET` |
 | `breakpoints` | xs..xxxl, mobile, tablet, desktop | `WEBSHIP_SELECTORS_BREAKPOINTS` (JSON object, merged over the config) |
 
 #### Breakpoints
@@ -176,7 +174,7 @@ Filename pattern tokens: `{datetime}`, `{date}`, `{time}`, `{feature_file}`,
 video: {
   mode: 'off',                                   // WEBSHIP_VIDEO — 'off' | 'on' | 'on-failure' | 'tag'
   dir: './videos',                               // WEBSHIP_VIDEO_DIR
-  size: { width: 1280, height: 720 },            // recording viewport
+  size: { width: 1280, height: 720 },            // WEBSHIP_VIDEO_SIZE ("1280x720")
   filenamePattern: '{datetime}.{feature_file}.{scenario}.{status}.{ext}',
 }
 ```
@@ -185,19 +183,31 @@ Tag overrides per scenario:
 
 | Tag | Effect |
 | --- | --- |
-| `@video` | Force recording on. |
+| `@video` | Force recording on, in every mode. |
 | `@no-video` | Suppress recording. |
 
 Modes:
 
 | Mode | Behaviour |
 | --- | --- |
-| `off` (default) | No recording. |
+| `off` (default) | No recording, except the scenarios tagged `@video`. |
 | `on` | Record every scenario. |
-| `on-failure` | Record every scenario, keep only failures. |
-| `tag` | Record only scenarios tagged `@video`. |
+| `on-failure` | Record every scenario, keep only failures — and the videos of `@video` scenarios or with a name reserved by `I save the current video as "…"`. |
+| `tag` | The same as `off`: only the scenarios tagged `@video` record. |
 
-Mid-scenario start / stop steps live in `video.steps.js`. Recording starts at context creation only — `When I start video recording` closes + reopens the context, losing page state. Call before any navigation.
+A video is saved under `filenamePattern` (default
+`{datetime}.{feature_file}.{scenario}.{status}.{ext}`) when the scenario
+ends: `{datetime}` is when the recording started, `{status}` the result of
+the scenario in lower case (`passed`, `failed`, …), so
+`videos/*.failed.webm` lists the videos of the failures. A recording that
+`When I stop video recording` ends is saved with the status `manual`, and a
+name reserved with `When I save the current video as "…"` wins over the
+pattern. `Then print video path` prints that final path (with `<status>`
+standing for the result still to come), never Playwright's temporary file.
+`When I start video recording` on a scenario that already records changes
+nothing.
+
+Mid-scenario start / stop steps live in `video.steps.js`. Recording starts at context creation only — `When I start video recording` opens a new browser context: the cookies and local storage, the viewport, the smart waits, JavaScript-error capture and a running request log go on, the page starts blank. Call it before any navigation.
 
 ### `javascript` — page-error / console capture
 

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Touch</title>
+</head>
+<body>
+  <h1>Touch</h1>
+  <p>One card listens to touch only, the way a mobile control often does; the other one to a click.</p>
+  <div id="touch-card" style="padding:24px;border:1px solid #888">Touch card</div>
+  <div id="click-card" style="padding:24px;border:1px solid #888">Click card</div>
+  <p id="result">Nothing happened yet</p>
+  <script>
+    document.getElementById('touch-card').addEventListener('touchstart', function () {
+      document.getElementById('result').textContent = 'Touched the card';
+    });
+    document.getElementById('click-card').addEventListener('click', function () {
+      document.getElementById('result').textContent = 'Clicked the card';
+    });
+  </script>
+</body>
+</html>

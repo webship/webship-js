@@ -41,7 +41,7 @@ Feature: Admin dashboard
      And "<#user-list>" should have a count of 5 within 5 seconds
 ```
 
-`I restore the auth state from "..."` swaps the current browser context for a fresh one with the saved cookies/localStorage. The tracker init script is reinstalled automatically so smart waits keep working.
+`I restore the auth state from "..."` swaps the current browser context for a fresh one with the saved cookies/localStorage, opened the same way as the first one of the scenario: the smart-wait init script, the viewport of an `@mobile` / `@desktop` tag, video recording while it is on, JavaScript-error capture, the response tracker and a running request log all go on with the new page. The new page starts blank, so open the page you need next. Routes stubbed before the step (`the URL "…" returns …`) belonged to the closed context: stub them after it.
 
 ## Clearing auth
 

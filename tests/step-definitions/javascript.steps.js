@@ -2,7 +2,9 @@
 
 // Auto-detect JavaScript errors during test execution.
 //
-// Listeners are attached on Before (order 200) once a page is open:
+// Listeners are attached to every page the World opens (onNewPage of
+// webship.js), so a step that replaces the browser context — restoring an
+// auth state, starting or stopping a video recording — keeps the capture:
 //   page.on('pageerror')           → uncaught errors
 //   page.on('console', level)      → console messages (filtered by config)
 //
@@ -21,6 +23,7 @@
 
 const { Before, After, Then } = require('@cucumber/cucumber');
 const assert = require('assert');
+const { onNewPage } = require('./webship');
 
 const VALID_MODES = new Set(['warn', 'fail', 'off']);
 const DEFAULT_CONSOLE_LEVELS = ['error'];
@@ -108,6 +111,31 @@ function reportWarning(scope, errs) {
 // Before — attach listeners + (optional) pre-snapshot.
 // ---------------------------------------------------------------------------
 
+/**
+ * Collect the uncaught errors and the console messages of the captured
+ * levels of a page into the World's list.
+ */
+function captureErrors(world, page) {
+  const settings = world._jsSettings;
+  if (!page || !settings || settings.mode === 'off') return;
+  const levels = new Set(settings.levels);
+  page.on('pageerror', (err) => {
+    world._jsErrors.push({ type: 'pageerror', message: String(err && err.message || err) });
+  });
+  page.on('console', (msg) => {
+    if (levels.has(msg.type())) {
+      world._jsErrors.push({ type: `console.${msg.type()}`, message: msg.text() });
+    }
+  });
+}
+
+// A page opened by a step in a new browser context (the first page of the
+// scenario is set up by the Before hook below, which runs after webship.js
+// opened it).
+onNewPage((world, page) => {
+  if (world._jsSettings) captureErrors(world, page);
+});
+
 Before({ order: 200 }, function (scope) {
   this._jsErrors = [];
   this._jsErrorsAsserted = false;
@@ -115,15 +143,7 @@ Before({ order: 200 }, function (scope) {
   if (this._jsSettings.mode === 'off') return;
   if (!this.page) return;
 
-  const levels = new Set(this._jsSettings.levels);
-  this.page.on('pageerror', (err) => {
-    this._jsErrors.push({ type: 'pageerror', message: String(err && err.message || err) });
-  });
-  this.page.on('console', (msg) => {
-    if (levels.has(msg.type())) {
-      this._jsErrors.push({ type: `console.${msg.type()}`, message: msg.text() });
-    }
-  });
+  captureErrors(this, this.page);
 
   if (this._jsSettings.beforeScenario) {
     // Pre-scenario snapshot — typically empty unless the same page is reused.

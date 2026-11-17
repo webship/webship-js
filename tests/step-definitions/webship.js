@@ -4,6 +4,7 @@ const { setWorldConstructor, World, Before, After, BeforeStep, AfterStep, setDef
 const playwright = require('playwright');
 const playwrightConfig = require(require('path').join(process.cwd(), 'playwright.config'));
 const path = require('path');
+const fs = require('fs');
 
 // ---------------------------------------------------------------------------
 // Output filter — strip noisy `✔ Before # ...` / `✔ After # ...` hook lines
@@ -942,6 +943,8 @@ module.exports = {
   pageTextLocator,
   breakpoints,
   breakpoint,
+  onNewPage,
+  videoFileName,
 };
 
 // ---------------------------------------------------------------------------
@@ -1095,6 +1098,105 @@ const MIN_WAIT_TIME = Object.freeze({
   after_step: 0,
 });
 
+// BBR: the init script installed on every browser context the World opens.
+// It runs before any document script and counts in-flight fetch / XHR
+// requests and pending timers and stamps the last DOM mutation, so
+// smartSettle() detects the edge of background activity rather than guessing
+// a fixed delay.
+function smartWaitProbes() {
+  if (window.__webshipAjaxInstalled) return;
+  window.__webshipAjaxInstalled = true;
+  window.__webshipAjaxCount = 0;
+  window.__webshipPendingTimers = 0;
+  window.__webshipLastMutation = Date.now();
+
+  // Track in-flight fetch requests.
+  const origFetch = window.fetch;
+  if (typeof origFetch === 'function') {
+    window.fetch = function (...args) {
+      window.__webshipAjaxCount++;
+      const p = origFetch.apply(this, args);
+      const settle = () => { window.__webshipAjaxCount--; };
+      p.then(settle, settle);
+      return p;
+    };
+  }
+
+  // Track in-flight XMLHttpRequests.
+  const XHR = window.XMLHttpRequest;
+  if (XHR && XHR.prototype) {
+    const origSend = XHR.prototype.send;
+    XHR.prototype.send = function (...args) {
+      window.__webshipAjaxCount++;
+      const settle = () => { window.__webshipAjaxCount--; };
+      this.addEventListener('loadend', settle, { once: true });
+      return origSend.apply(this, args);
+    };
+  }
+
+  // Track pending setTimeout callbacks. Many client-side frameworks use
+  // setTimeout to schedule UI updates (animation frames, throttled
+  // re-renders, fade-out → display:none). BBR demands we wait for those
+  // timers to drain rather than guess a fixed delay.
+  const origSetTimeout = window.setTimeout;
+  const origClearTimeout = window.clearTimeout;
+  const liveTimers = new Set();
+  if (typeof origSetTimeout === 'function') {
+    window.setTimeout = function (cb, delay, ...args) {
+      window.__webshipPendingTimers++;
+      let id;
+      const wrapped = function () {
+        try {
+          if (typeof cb === 'function') return cb.apply(this, args);
+        } finally {
+          if (liveTimers.delete(id)) window.__webshipPendingTimers--;
+        }
+      };
+      id = origSetTimeout(wrapped, delay);
+      liveTimers.add(id);
+      return id;
+    };
+    if (typeof origClearTimeout === 'function') {
+      window.clearTimeout = function (id) {
+        if (liveTimers.delete(id)) window.__webshipPendingTimers--;
+        return origClearTimeout(id);
+      };
+    }
+  }
+
+  // Track last DOM mutation so smartSettle can wait for the *edge* of
+  // client-side rendering (animations, async hydration, transitions).
+  const startObserver = () => {
+    if (!document || !document.documentElement) return false;
+    try {
+      new MutationObserver(() => { window.__webshipLastMutation = Date.now(); })
+        .observe(document.documentElement, { childList: true, subtree: true, attributes: true, characterData: true });
+      return true;
+    } catch (e) { return false; }
+  };
+  if (!startObserver()) {
+    document.addEventListener('DOMContentLoaded', startObserver, { once: true });
+  }
+}
+
+// Functions that set up every page the World opens: the first page of a
+// scenario and each page a step opens in a new browser context (restoring an
+// auth state, starting or stopping a video recording). Step files add theirs
+// with onNewPage().
+const NEW_PAGE_SETUPS = [];
+
+/**
+ * Run `setup(world, page)` on every page the World opens from now on, before
+ * any step uses it: the first page of each scenario and every page of a
+ * browser context that a step replaces.
+ *
+ * @param {function(WebshipWorld, import('playwright').Page): (void|Promise<void>)} setup
+ * @returns {void}
+ */
+function onNewPage(setup) {
+  if (typeof setup === 'function') NEW_PAGE_SETUPS.push(setup);
+}
+
 class PlaywrightWorld extends World {
   constructor(options) {
     super(options);
@@ -1107,89 +1209,79 @@ class PlaywrightWorld extends World {
   }
 
   async openBrowser(extraContextOptions) {
-    const { browser: browserName, launchOptions, contextOptions } = playwrightConfig;
+    const { browser: browserName, launchOptions } = playwrightConfig;
     this.playwrightBrowser = await playwright[browserName].launch(launchOptions);
-    const merged = Object.assign({}, contextOptions, extraContextOptions || {});
-    this.context = await this.playwrightBrowser.newContext(merged);
-    // BBR: install in-flight fetch/XHR counter on every page (init script runs
-    // before any document script). The counter lets smartSettle() detect the
-    // edge of background activity rather than guessing a fixed delay.
-    await this.context.addInitScript(() => {
-      if (window.__webshipAjaxInstalled) return;
-      window.__webshipAjaxInstalled = true;
-      window.__webshipAjaxCount = 0;
-      window.__webshipPendingTimers = 0;
-      window.__webshipLastMutation = Date.now();
+    await this.openContext(extraContextOptions);
+  }
 
-      // Track in-flight fetch requests.
-      const origFetch = window.fetch;
-      if (typeof origFetch === 'function') {
-        window.fetch = function (...args) {
-          window.__webshipAjaxCount++;
-          const p = origFetch.apply(this, args);
-          const settle = () => { window.__webshipAjaxCount--; };
-          p.then(settle, settle);
-          return p;
-        };
-      }
-
-      // Track in-flight XMLHttpRequests.
-      const XHR = window.XMLHttpRequest;
-      if (XHR && XHR.prototype) {
-        const origSend = XHR.prototype.send;
-        XHR.prototype.send = function (...args) {
-          window.__webshipAjaxCount++;
-          const settle = () => { window.__webshipAjaxCount--; };
-          this.addEventListener('loadend', settle, { once: true });
-          return origSend.apply(this, args);
-        };
-      }
-
-      // Track pending setTimeout callbacks. Many client-side frameworks use
-      // setTimeout to schedule UI updates (animation frames, throttled
-      // re-renders, fade-out → display:none). BBR demands we wait for those
-      // timers to drain rather than guess a fixed delay.
-      const origSetTimeout = window.setTimeout;
-      const origClearTimeout = window.clearTimeout;
-      const liveTimers = new Set();
-      if (typeof origSetTimeout === 'function') {
-        window.setTimeout = function (cb, delay, ...args) {
-          window.__webshipPendingTimers++;
-          let id;
-          const wrapped = function () {
-            try {
-              if (typeof cb === 'function') return cb.apply(this, args);
-            } finally {
-              if (liveTimers.delete(id)) window.__webshipPendingTimers--;
-            }
-          };
-          id = origSetTimeout(wrapped, delay);
-          liveTimers.add(id);
-          return id;
-        };
-        if (typeof origClearTimeout === 'function') {
-          window.clearTimeout = function (id) {
-            if (liveTimers.delete(id)) window.__webshipPendingTimers--;
-            return origClearTimeout(id);
-          };
-        }
-      }
-
-      // Track last DOM mutation so smartSettle can wait for the *edge* of
-      // client-side rendering (animations, async hydration, transitions).
-      const startObserver = () => {
-        if (!document || !document.documentElement) return false;
-        try {
-          new MutationObserver(() => { window.__webshipLastMutation = Date.now(); })
-            .observe(document.documentElement, { childList: true, subtree: true, attributes: true, characterData: true });
-          return true;
-        } catch (e) { return false; }
-      };
-      if (!startObserver()) {
-        document.addEventListener('DOMContentLoaded', startObserver, { once: true });
-      }
-    });
+  /**
+   * Open a browser context and its page with everything a scenario relies
+   * on: the context options of playwright.config.ts, the scenario's own (the
+   * viewport of an @mobile / @desktop tag, video recording while it is on),
+   * then `extraContextOptions`; the smart-wait init script; and the page
+   * setups registered with onNewPage() (JavaScript-error capture, the
+   * response tracker, the request log, a pending dialog handler).
+   *
+   * @param {import('playwright').BrowserContextOptions} [extraContextOptions]
+   * @returns {Promise<void>}
+   */
+  async openContext(extraContextOptions) {
+    const options = Object.assign({}, playwrightConfig.contextOptions, this._scenarioContextOptions || {});
+    if (this._videoRequested && this._videoSettings) {
+      fs.mkdirSync(this._videoSettings.dir, { recursive: true });
+      options.recordVideo = { dir: this._videoSettings.dir, size: this._videoSettings.size };
+    }
+    Object.assign(options, extraContextOptions || {});
+    this.context = await this.playwrightBrowser.newContext(options);
+    await this.context.addInitScript(smartWaitProbes);
     this.page = await this.context.newPage();
+    this.frame = null;
+    for (const setup of NEW_PAGE_SETUPS) await setup(this, this.page);
+  }
+
+  /**
+   * Replace the browser context in the middle of a scenario (restoring an
+   * auth state, starting a video recording) with one opened by
+   * openContext(), so the new page keeps the smart waits, the viewport of the
+   * scenario, video recording and every page setup. The cookies and the
+   * local storage of the context go over to the new one, unless
+   * `extraContextOptions.storageState` gives others. The new page is blank,
+   * and a video of the context being replaced is not kept.
+   *
+   * @param {import('playwright').BrowserContextOptions} [extraContextOptions]
+   * @returns {Promise<void>}
+   */
+  async replaceContext(extraContextOptions) {
+    const extra = Object.assign({}, extraContextOptions || {});
+    const outgoing = this.context;
+    const video = this.page && typeof this.page.video === 'function' ? this.page.video() : null;
+    if (outgoing && !('storageState' in extra)) {
+      try { extra.storageState = await outgoing.storageState(); } catch { /* a closed context has nothing to carry */ }
+    }
+    if (outgoing) {
+      try { await outgoing.close(); } catch { /* already closed */ }
+    }
+    if (video) await video.delete().catch(() => {});
+    await this.openContext(extra);
+  }
+
+  /**
+   * Wait for the page to settle the way the built-in action steps do: no
+   * request in flight, no pending timer and a DOM quiet for 250 ms, bounded
+   * by `budget` ms (by default 1500, the budget after a step). For a
+   * project's own step that changes the page:
+   *
+   *   When('I add {string} to the cart', async function (item) {
+   *     await this.page.click(`[data-add="${item}"]`);
+   *     await this.smartSettle();
+   *   });
+   *
+   * @param {number} [budget=1500]
+   * @returns {Promise<void>}
+   */
+  async smartSettle(budget) {
+    if (!this.page) return;
+    await smartSettle(this.page, typeof budget === 'number' && budget > 0 ? budget : 1500);
   }
 
   async closeBrowser() {
@@ -1204,6 +1296,35 @@ class PlaywrightWorld extends World {
 
 setWorldConstructor(PlaywrightWorld);
 
+// A project extends the World instead of replacing it, so the smart waits,
+// the viewport tags, video recording and the page setups stay:
+//   const { PlaywrightWorld } = require('webship-js/tests/step-definitions/webship');
+//   setWorldConstructor(class extends PlaywrightWorld { … });
+module.exports.PlaywrightWorld = PlaywrightWorld;
+
+let foreignWorldReported = false;
+
+// A World set with setWorldConstructor that does not extend PlaywrightWorld
+// has none of what webship-js puts on a page: say so once, plainly.
+function checkWorld(world) {
+  if (world instanceof PlaywrightWorld) return;
+  // The hooks below read the pacing of the World: give a World of its own
+  // the defaults, so it can still run.
+  if (!world.minWaitTime) world.minWaitTime = Object.assign({}, MIN_WAIT_TIME);
+  if (typeof world.openBrowser !== 'function') {
+    throw friendly(
+      'The World of this run is not a PlaywrightWorld of webship-js, and it has no openBrowser().\n' +
+      "  Hint: extend it instead of replacing it: const { PlaywrightWorld } = require('webship-js/tests/step-definitions/webship'); setWorldConstructor(class extends PlaywrightWorld { … });"
+    );
+  }
+  if (foreignWorldReported) return;
+  foreignWorldReported = true;
+  process.stderr.write(
+    '\n[webship-js] The World of this run does not extend PlaywrightWorld: the smart waits, the @mobile / @desktop viewport, video recording and the page setups depend on it. ' +
+    "Extend it instead: const { PlaywrightWorld } = require('webship-js/tests/step-definitions/webship').\n"
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Video recording — Playwright records at browser-context creation. The
 // helpers below resolve config + tags into either an empty {} (no
@@ -1213,6 +1334,14 @@ setWorldConstructor(PlaywrightWorld);
 
 const VIDEO_MODES = new Set(['off', 'on', 'on-failure', 'tag']);
 
+// WEBSHIP_VIDEO_SIZE: "<width>x<height>", such as "1280x720".
+function videoSizeFromEnv() {
+  const m = String(process.env.WEBSHIP_VIDEO_SIZE || '').trim().match(/^(\d+)\s*[x×]\s*(\d+)$/i);
+  return m && parseInt(m[1], 10) > 0 && parseInt(m[2], 10) > 0
+    ? { width: parseInt(m[1], 10), height: parseInt(m[2], 10) }
+    : null;
+}
+
 function videoSettings(world, scope) {
   const cfg = (world.parameters && world.parameters.video) || {};
   let mode = process.env.WEBSHIP_VIDEO || cfg.mode || 'off';
@@ -1220,7 +1349,7 @@ function videoSettings(world, scope) {
   return {
     mode,
     dir: process.env.WEBSHIP_VIDEO_DIR || cfg.dir || './videos',
-    size: cfg.size || { width: 1280, height: 720 },
+    size: videoSizeFromEnv() || cfg.size || { width: 1280, height: 720 },
     filenamePattern: cfg.filenamePattern || '{datetime}.{feature_file}.{scenario}.{status}.{ext}',
   };
 }
@@ -1240,19 +1369,38 @@ function sanitisePart(s) {
   return String(s || '').replace(/[^a-zA-Z0-9._-]+/g, '_').slice(0, 80);
 }
 
-function buildVideoFilename(template, scope, status) {
+// The file name of a scenario's video: {datetime} is when the recording
+// started, {status} the scenario's result in lower case (passed, failed, …),
+// or the word given for a recording a step stopped. A null status leaves
+// "<status>" in the name, for a name printed before the scenario ends.
+function buildVideoFilename(template, scope, status, startedAt) {
   const featurePath = (scope && scope.gherkinDocument && scope.gherkinDocument.uri) || 'unknown';
   const feature = (scope && scope.gherkinDocument && scope.gherkinDocument.feature && scope.gherkinDocument.feature.name) || 'feature';
   const scenario = (scope && scope.pickle && scope.pickle.name) || 'scenario';
   const featureFile = featurePath.split('/').pop().replace(/\.feature$/, '');
-  const dt = new Date().toISOString().replace(/[:.]/g, '-');
+  const dt = (startedAt instanceof Date ? startedAt : new Date()).toISOString().replace(/[:.]/g, '-');
   return template
     .replace('{datetime}', dt)
     .replace('{feature_file}', sanitisePart(featureFile))
     .replace('{feature}', sanitisePart(feature))
     .replace('{scenario}', sanitisePart(scenario))
-    .replace('{status}', sanitisePart(status))
+    .replace('{status}', status === null ? '<status>' : sanitisePart(String(status).toLowerCase()))
     .replace('{ext}', 'webm');
+}
+
+/**
+ * The file name the current video of the scenario is saved under: the name a
+ * step reserved ("I save the current video as"), else the filenamePattern of
+ * worldParameters.video with the given status (null: "<status>").
+ *
+ * @param {WebshipWorld} world
+ * @param {?string} status
+ * @returns {string}
+ */
+function videoFileName(world, status) {
+  if (world._videoSaveAsName) return world._videoSaveAsName;
+  const settings = world._videoSettings || videoSettings(world);
+  return buildVideoFilename(settings.filenamePattern, world._scenarioScope, status, world._videoStartedAt);
 }
 
 // ---------------------------------------------------------------------------
@@ -1372,22 +1520,21 @@ function tagViewport(world, scope) {
 }
 
 Before({ order: 5 }, async function (scope) {
+  checkWorld(this);
+  this._scenarioScope = scope;
   this._videoSettings = videoSettings(this, scope);
   this._videoRequested = shouldRecordAtStart(this._videoSettings, scope);
   this._videoForcedByTag = videoHasTag(scope, '@video');
+  this._videoStartedAt = this._videoRequested ? new Date() : null;
 
-  const extra = {};
+  // Kept for the whole scenario: a step that replaces the browser context
+  // opens the new one with the same viewport and touch (see openContext).
+  // @touch opens the context with touch on, so "I tap on" fires touch events.
   const viewport = tagViewport(this, scope);
-  if (viewport) extra.viewport = viewport;
-  if (this._videoRequested) {
-    require('fs').mkdirSync(this._videoSettings.dir, { recursive: true });
-    extra.recordVideo = {
-      dir: this._videoSettings.dir,
-      size: this._videoSettings.size,
-    };
-  }
+  this._scenarioContextOptions = viewport ? { viewport } : {};
+  if (videoHasTag(scope, '@touch')) this._scenarioContextOptions.hasTouch = true;
 
-  await this.openBrowser(extra);
+  await this.openBrowser();
   if (this.minWaitTime.before_scenario > 0) {
     await this.page.waitForTimeout(this.minWaitTime.before_scenario);
   }
@@ -1415,11 +1562,13 @@ After({ order: 5 }, async function (scope) {
 
   if (videoRef) {
     const settings = this._videoSettings;
-    const filename = this._videoSaveAsName || buildVideoFilename(settings.filenamePattern, scope, status);
+    const filename = videoFileName(this, status);
     const dest = require('path').join(settings.dir, filename);
     try {
       const passed = status === 'PASSED' || status === 'passed';
-      if (settings.mode === 'on-failure' && passed && !this._videoForcedByTag) {
+      // on-failure keeps a passing scenario's video only when the @video tag
+      // or "I save the current video as" asked for it.
+      if (settings.mode === 'on-failure' && passed && !this._videoForcedByTag && !this._videoSaveAsName) {
         await videoRef.delete().catch(() => {});
       } else {
         await videoRef.saveAs(dest);

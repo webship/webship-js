@@ -91,8 +91,6 @@ module.exports = {
         // Load additional selectors from JSON files at scenario start.
         filesPath: './tests/selectors/',             // base path for selector files
         files: [],                                   // e.g. ['homepage-selectors.json'] or ['front-end-selectors.json', 'back-end-selectors.json']
-        // Relative-position scroll offset (px) — WEBSHIP_SELECTORS_OFFSET
-        offset: 60,
         // Named viewport sizes for every step and tag that names one (viewing
         // the site on a … screen, set the viewport to the "…" breakpoint,
         // @mobile, @desktop). Built in: xs..xxxl, mobile, tablet, desktop;
@@ -122,19 +120,23 @@ module.exports = {
       },
       video: {
         // Record the browser as a webm video.
-        //   'off' (default) — no recording.
+        //   'off' (default) — no recording, except scenarios tagged @video.
         //   'on'            — record every scenario.
-        //   'on-failure'    — record every scenario, keep only failures.
-        //   'tag'           — record only scenarios tagged @video.
+        //   'on-failure'    — record every scenario, keep only failures (and
+        //                     the videos of @video scenarios or with a name
+        //                     reserved by "I save the current video as").
+        //   'tag'           — the same as 'off': only scenarios tagged @video.
         // Override per scenario with tags:
-        //   @video    — force recording on (independent of mode).
+        //   @video    — force recording on (in every mode).
         //   @no-video — suppress recording for this scenario.
         // Override per run with env: WEBSHIP_VIDEO.
         mode: 'off',                                 // WEBSHIP_VIDEO
         dir: './videos',                             // WEBSHIP_VIDEO_DIR
-        size: { width: 1280, height: 720 },          // viewport size of the recording
-        // Filename template tokens: {datetime} {feature_file} {feature} {scenario}
-        // {status} {ext}. Sanitised to filesystem-safe characters.
+        size: { width: 1280, height: 720 },          // WEBSHIP_VIDEO_SIZE  e.g. "1280x720"
+        // Filename template tokens: {datetime} (when the recording started)
+        // {feature_file} {feature} {scenario} {status} (passed, failed, … in
+        // lower case; "manual" for a recording stopped by a step) {ext}.
+        // Sanitised to filesystem-safe characters.
         filenamePattern: '{datetime}.{feature_file}.{scenario}.{status}.{ext}',
       },
       javascript: {

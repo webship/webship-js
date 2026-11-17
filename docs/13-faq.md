@@ -33,6 +33,46 @@ give the step words of its own (`When I click "Next" in the tour`), or
 start it with other words. See
 [Bare names and your own steps](03-selector-registry.md#bare-names-and-your-own-steps).
 
+## How does a custom step that changes the page wait?
+
+Call `this.smartSettle()` at its end. It runs the same smart wait the
+built-in action steps run (no request in flight, no pending timer, a DOM
+quiet for 250 ms), for at most 1.5 seconds, or for the budget you pass in
+milliseconds:
+
+```js
+const { When } = require('@cucumber/cucumber');
+
+When('I add {string} to the cart', async function (item) {
+  await this.page.click(`[data-add="${item}"]`);
+  await this.smartSettle();
+});
+```
+
+## How do I add my own helpers to the World?
+
+Extend the World of webship-js instead of replacing it: the smart waits,
+the `@mobile` / `@desktop` viewport, video recording and the JavaScript-error
+capture all live in it.
+
+```js
+const { setWorldConstructor } = require('@cucumber/cucumber');
+const { PlaywrightWorld } = require('webship-js/tests/step-definitions/webship');
+
+class ProjectWorld extends PlaywrightWorld {
+  async signIn(user) {
+    await this.page.goto(`${this.launchUrl}/user/login`);
+    // …
+  }
+}
+
+setWorldConstructor(ProjectWorld);
+```
+
+A World set with `setWorldConstructor` that does not extend
+`PlaywrightWorld` keeps none of that; webship-js says so once at the start
+of the run.
+
 ## Why no `wait 5 seconds` in the example tests?
 
 Webship-js installs a smart-settle hook that runs after every
