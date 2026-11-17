@@ -185,6 +185,18 @@ function resolveSelector(world, name) {
   );
 }
 
+// The rows of a "define css/xpath selectors" table. A first row that names
+// the columns, as the docs write it (| name | css selector |), is a header,
+// not a selector.
+function selectorRows(dataTable) {
+  const rows = dataTable.raw();
+  if (rows.length === 0) return rows;
+  const [name, selector] = rows[0].map((cell) => String(cell || '').trim().toLowerCase());
+  const header = (name === 'name' || name === 'selector name')
+    && /^(?:(?:css|xpath)(?: selector| expression)?|selector)$/.test(selector || '');
+  return header ? rows.slice(1) : rows;
+}
+
 // Names are separated by a comma or by the whole word "and" ("a, b and c",
 // "a, b, and c"), never by the letters "and" inside a name ("brand logo").
 function parseNames(text) {
@@ -423,6 +435,9 @@ Then(/^(I |we )*print xpath selectors$/, function (_pronounCase) {
 /**
  * Define named CSS selectors in bulk for the current scenario.
  *
+ * The table may start with a header row that names its columns
+ * (`| name | css selector |`): that row registers nothing.
+ *
  * Example #1:
  *   Given I define css selectors:
  *     | header  | #header        |
@@ -498,15 +513,24 @@ Then(/^(I |we )*print xpath selectors$/, function (_pronounCase) {
  *     | nav     | nav[role=navigation] |
  *     | main    | main            |
  *     | footer  | footer          |
+ *
+ * Example #14: A header row names the columns and registers nothing:
+ *   Given I define css selectors:
+ *     | name    | css selector    |
+ *     | heading | h1              |
+ *     | list    | ul              |
  */
 Given(/^(I |we )*define css selectors:$/, function (pronounCase, dataTable) {
-  for (const [name, selector] of dataTable.raw()) {
+  for (const [name, selector] of selectorRows(dataTable)) {
     if (name && selector) this.__selectorsCss[name.trim()] = selector.trim();
   }
 });
 
 /**
  * Define named XPath selectors in bulk for the current scenario.
+ *
+ * The table may start with a header row that names its columns
+ * (`| name | xpath selector |`): that row registers nothing.
  *
  * Example #1:
  *   Given I define xpath selectors:
@@ -540,9 +564,13 @@ Given(/^(I |we )*define css selectors:$/, function (pronounCase, dataTable) {
  * Example #10:
  *   Given I define xpath selectors:
  *     | user menu | //*[@id='user-menu'] |
+ * Example #11:
+ *   Given I define xpath selectors:
+ *     | name          | xpath selector       |
+ *     | first heading | //h1[1]              |
  */
 Given(/^(I |we )*define xpath selectors:$/, function (pronounCase, dataTable) {
-  for (const [name, selector] of dataTable.raw()) {
+  for (const [name, selector] of selectorRows(dataTable)) {
     if (name && selector) this.__selectorsXpath[name.trim()] = selector.trim();
   }
 });
