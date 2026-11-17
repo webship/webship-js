@@ -32,21 +32,23 @@ reads the count the same way.
 ### How the budget is shared
 
 Each phase is best-effort — a phase that times out is not a failure — and each
-gets a **share of the budget** rather than "whatever is left":
+but the last gets a **share of the budget** rather than "whatever is left":
 
 | Phase | Share of the budget |
 | --- | --- |
 | `<body>` attached | 25% |
 | `DOMContentLoaded` | 25% |
 | `networkidle` | 50% |
-| AJAX + pending timers + DOM quiet | 50% |
+| AJAX + pending timers + DOM quiet | everything left |
 
-The shares add up to more than 100% on purpose: a phase that finishes early
-hands its unspent time to the ones after it, and no phase is ever given more
-than what is actually left. Capping `networkidle` matters, because on a page
-with analytics, a chat widget or a self-rescheduling timer it never arrives —
-uncapped it would eat the whole budget and starve the AJAX / pending-timer /
-DOM-quiet probe, which is the phase that decides the answer.
+A phase that finishes early hands its unspent time to the ones after it, and
+no phase is ever given more than what is actually left. Capping `networkidle`
+matters, because on a page with analytics, a chat widget or a
+self-rescheduling timer it never arrives — uncapped it would eat the whole
+budget and starve the AJAX / pending-timer / DOM-quiet probe, which is the
+phase that decides the answer. That probe comes last, so it takes the whole
+rest of the budget: after a step that changes the page (1.5 seconds), a
+request or a timer of a second is still waited for.
 
 `smartSettle` returns within `budget` even when nothing on the page ever
 settles, and never hands Playwright a zero timeout (Playwright reads `0` as

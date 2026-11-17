@@ -117,11 +117,14 @@ async function pollPage(page, probe, arg, timeout, interval) {
  * Wait for the page to reach an "edge" of activity — DOM ready, network
  * idle, no pending AJAX or timers, and no DOM mutations for ≥250 ms.
  *
- * Each stage gets a share of the budget rather than "whatever is left", so a
- * stage that can never resolve cannot starve the ones after it. On a page with
- * analytics, a chat widget or a self-rescheduling timer, `networkidle` never
- * arrives; capping it at half the budget keeps the AJAX / pending-timer /
- * DOM-quiet probe — the useful one — running.
+ * Each stage but the last gets a share of the budget rather than "whatever
+ * is left", so a stage that can never resolve cannot starve the ones after
+ * it. On a page with analytics, a chat widget or a self-rescheduling timer,
+ * `networkidle` never arrives; capping it at half the budget keeps the AJAX /
+ * pending-timer / DOM-quiet probe — the useful one — running. That probe is
+ * the last stage, with nothing after it to starve: it gets everything the
+ * earlier stages left, so a request or a timer of more than half the budget
+ * is still waited for.
  *
  * Returns within `timeout` ms even when nothing on the page ever settles.
  *
@@ -151,7 +154,7 @@ async function smartSettle(page, timeout) {
   if (!await stage(0.25, (t) => page.waitForSelector('body', { state: 'attached', timeout: t }))) return;
   if (!await stage(0.25, (t) => page.waitForLoadState('domcontentloaded', { timeout: t }))) return;
   if (!await stage(0.5, (t) => page.waitForLoadState('networkidle', { timeout: t }))) return;
-  await stage(0.5, (t) => pollPage(
+  await stage(1, (t) => pollPage(
     page,
     (quietMs) => {
       const ajax = window.__webshipAjaxCount;
