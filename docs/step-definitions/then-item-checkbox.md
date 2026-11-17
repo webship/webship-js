@@ -5,6 +5,8 @@
 
 This step definition validates whether a checkbox associated with a specified item is in a checked or unchecked state. It serves to confirm expected checkbox behavior during automated testing.
 
+The "item" is a CSS selector (`#privacy-policy`, `input[name=newsletter]`), the exact text of the checkbox's label, its name, its id or its value. A checkbox that is not found within 5 seconds fails the step with what was looked for, the page and a hint; a wrong state fails with `The checkbox "…" is not checked.` or `… is checked, but it should not be.`
+
 ## Related Step Definitions
 
 The following variations of this step are available:
