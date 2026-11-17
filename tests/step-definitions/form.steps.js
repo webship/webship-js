@@ -22,7 +22,7 @@ const { buildSelector, fillField, fillLocator, friendly, failure, humanize, isTi
  *
  */
 When(/^(I |we )*fill in "([^"]*)?" with "([^"]*)?"$/, async function (pronounCase, field, value) {
-  await fillField(this.page, field, value);
+  await fillField(this.page, field, value, this);
 });
 
 /**
@@ -48,7 +48,7 @@ When(/^(I |we )*fill in "([^"]*)?" with "([^"]*)?" by( its)*(?: "([^"]*)?")* (at
  *
  */
 When(/^(I |we )*fill in "([^"]*)?" with:$/, async function (pronounCase, field) {
-  await fillField(this.page, field, '');
+  await fillField(this.page, field, '', this);
 });
 
 /**
@@ -74,7 +74,7 @@ When(/^(I |we )*fill in "([^"]*)?" with: by( its)*(?: "([^"]*)?")* (attribute|at
  *
  */
 When(/^(I |we )*fill in "([^"]*)?" for "([^"]*)?"$/, async function (pronounCase, value, field) {
-  await fillField(this.page, field, value);
+  await fillField(this.page, field, value, this);
 });
 
 /**
@@ -118,7 +118,7 @@ When(/^(I |we )*fill in "([^"]*)?" for "([^"]*)?" by( its)*(?: "([^"]*)?")* (att
  */
 When(/^(I |we )*fill in( the)* following:$/, async function (pronounCase, theCase, table) {
   for (const [field, value] of table.raw()) {
-    await fillField(this.page, field, value);
+    await fillField(this.page, field, value, this);
   }
 });
 

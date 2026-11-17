@@ -1,6 +1,6 @@
 'use strict';
 
-const { friendly } = require('./webship');
+const { friendly, failure, registeredNameHint } = require('./webship');
 
 // Web-first assertion steps — each matcher polls the live page until the
 // condition holds or the per-step timeout elapses. The assertion IS the
@@ -28,8 +28,9 @@ function normalizeText(value) {
 // Poll fn() until it returns truthy, or timeout. fn() returns a value;
 // `predicate` decides pass/fail. Returns the last value seen. The matchers
 // that call it take OWN_LENGTH: "within 60 seconds" runs past the step
-// timeout, bounded by withinTimeLimit.
-async function poll(fn, predicate, timeout, message) {
+// timeout, bounded by withinTimeLimit. `context.hint`, when the step was given
+// a name of the selector registry, goes into the failure with the page.
+async function poll(fn, predicate, timeout, message, context) {
   return withinTimeLimit(timeout, `The check "${message}"`, async () => {
     const deadline = Date.now() + timeout;
     let last;
@@ -42,8 +43,24 @@ async function poll(fn, predicate, timeout, message) {
       }
       await new Promise((r) => setTimeout(r, 100));
     }
-    throw friendly(`${message} (last seen: ${typeof last === 'object' ? JSON.stringify(last) : String(last)})`);
+    const seen = typeof last === 'object' ? JSON.stringify(last) : String(last);
+    if (context && context.hint) {
+      throw failure(context.page, `${message}.`, { found: `last seen: ${seen}`, hint: context.hint });
+    }
+    throw friendly(`${message} (last seen: ${seen})`);
   });
+}
+
+// The " within N seconds" a step was given, to repeat it in a hint.
+function within(sec) {
+  return sec ? ` within ${sec} seconds` : '';
+}
+
+// The failure context of a web-first step given a name of the selector
+// registry: the same step with the selector, and the bare-name step that
+// reads the registry when there is one.
+function registryContext(world, selector, sameStep, bare) {
+  return { page: world.page, hint: registeredNameHint(world, selector, { bare, withSelector: sameStep }) };
 }
 
 async function checkState(locator, state) {
@@ -80,7 +97,9 @@ Then(/^"([^"]*)" should be (visible|hidden|attached|focused|enabled|disabled|edi
     () => checkState(loc, state),
     (v) => v === true,
     parseTimeout(sec),
-    `Expected "${selector}" to be ${state}`
+    `Expected "${selector}" to be ${state}`,
+    registryContext(this, selector, (s) => `"${s}" should be ${state}${within(sec)}`,
+      { visible: 'I see visible {name}', hidden: "I don't see {name}", focused: 'I see {name} has focus' }[state])
   );
 });
 
@@ -100,7 +119,9 @@ Then(/^"([^"]*)" should not be (visible|hidden|attached|focused|enabled|disabled
     () => checkState(loc, state),
     (v) => v === false,
     parseTimeout(sec),
-    `Expected "${selector}" to not be ${state}`
+    `Expected "${selector}" to not be ${state}`,
+    registryContext(this, selector, (s) => `"${s}" should not be ${state}${within(sec)}`,
+      { visible: "I don't see {name}", hidden: 'I see visible {name}' }[state])
   );
 });
 
@@ -125,7 +146,8 @@ Then(/^"([^"]*)" should be in the viewport(?: within (\d+) seconds?)?$/, OWN_LEN
     }),
     (v) => v === true,
     parseTimeout(sec),
-    `Expected "${selector}" to be in viewport`
+    `Expected "${selector}" to be in viewport`,
+    registryContext(this, selector, (s) => `"${s}" should be in the viewport${within(sec)}`)
   );
 });
 
@@ -150,7 +172,8 @@ Then(/^"([^"]*)" should not be in the viewport(?: within (\d+) seconds?)?$/, OWN
     }).catch(() => false),
     (v) => v === false,
     parseTimeout(sec),
-    `Expected "${selector}" to not be in viewport`
+    `Expected "${selector}" to not be in viewport`,
+    registryContext(this, selector, (s) => `"${s}" should not be in the viewport${within(sec)}`)
   );
 });
 
@@ -171,7 +194,8 @@ Then(/^"([^"]*)" should have a count of (\d+)(?: within (\d+) seconds?)?$/, OWN_
     () => loc.count(),
     (v) => v === expected,
     parseTimeout(sec),
-    `Expected "${selector}" count to be ${expected}`
+    `Expected "${selector}" count to be ${expected}`,
+    registryContext(this, selector, (s) => `"${s}" should have a count of ${expected}${within(sec)}`)
   );
 });
 
@@ -191,7 +215,8 @@ Then(/^"([^"]*)" should have text "([^"]*)"(?: within (\d+) seconds?)?$/, OWN_LE
     () => loc.textContent(),
     (v) => (v || '').trim() === text,
     parseTimeout(sec),
-    `Expected "${selector}" text to be "${text}"`
+    `Expected "${selector}" text to be "${text}"`,
+    registryContext(this, selector, (s) => `"${s}" should have text "${text}"${within(sec)}`)
   );
 });
 
@@ -215,7 +240,8 @@ Then(/^"([^"]*)" should contain text "([^"]*)"(?: within (\d+) seconds?)?$/, OWN
     async () => normalizeText(await loc.textContent()),
     (v) => v.includes(expected),
     parseTimeout(sec),
-    `Expected "${selector}" to contain text "${text}"`
+    `Expected "${selector}" to contain text "${text}"`,
+    registryContext(this, selector, (s) => `"${s}" should contain text "${text}"${within(sec)}`)
   );
 });
 
@@ -235,7 +261,8 @@ Then(/^"([^"]*)" should have value "([^"]*)"(?: within (\d+) seconds?)?$/, OWN_L
     () => loc.inputValue(),
     (v) => v === value,
     parseTimeout(sec),
-    `Expected "${selector}" value to be "${value}"`
+    `Expected "${selector}" value to be "${value}"`,
+    registryContext(this, selector, (s) => `"${s}" should have value "${value}"${within(sec)}`)
   );
 });
 
@@ -255,7 +282,8 @@ Then(/^"([^"]*)" should have attribute "([^"]*)" with value "([^"]*)"(?: within 
     () => loc.getAttribute(attr),
     (v) => v === value,
     parseTimeout(sec),
-    `Expected "${selector}" attribute "${attr}" to be "${value}"`
+    `Expected "${selector}" attribute "${attr}" to be "${value}"`,
+    registryContext(this, selector, (s) => `"${s}" should have attribute "${attr}" with value "${value}"${within(sec)}`)
   );
 });
 
@@ -275,7 +303,8 @@ Then(/^"([^"]*)" should have class "([^"]*)"(?: within (\d+) seconds?)?$/, OWN_L
     () => loc.getAttribute('class'),
     (v) => (v || '').split(/\s+/).includes(cls),
     parseTimeout(sec),
-    `Expected "${selector}" to have class "${cls}"`
+    `Expected "${selector}" to have class "${cls}"`,
+    registryContext(this, selector, (s) => `"${s}" should have class "${cls}"${within(sec)}`)
   );
 });
 
