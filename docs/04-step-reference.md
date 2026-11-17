@@ -780,6 +780,8 @@ A key or a value may hold a double quote written `\"`, as in a JSON value: `Give
 
 ### yaml.steps.js
 
+The numeric steps (greater than, less than, between) compare a YAML number only: a quoted `"3"`, `true` or `null` fails with its type, where `Number()` would have read 3, 1 or 0.
+
 - *the YAML response content from the file {string}*  ·  Example: `Given the YAML response content from the file "config.yml"`
 - *the YAML response content is the following:*  ·  Example: `Given the YAML response content is the following:`
 - *the active YAML document is {int}*  ·  Example: `Given the active YAML document is 1`
