@@ -33,7 +33,7 @@ This is a topical reference. For per-step examples, see the JSDoc comment above 
 | `When I fill in "value" for "Label"` | Reverse phrasing |
 | `When I fill in "value" for "selector" by attr` | By attribute |
 | `When I fill in the following:` (table) | Bulk fill |
-| `When I select "Option" from "Label"` | `<select>` |
+| `When I select "Option" from "Label"` | `<select>` by the exact text of its label, its name, its id, or a CSS selector (`#`, `.`, `[`); the option by its text or value |
 | `When I additionally select "Option" from "Label"` | Multi-select |
 | `When I check the checkbox "#agree"` | |
 | `When I uncheck the checkbox "#agree"` | |

@@ -5,7 +5,7 @@
 // check / uncheck, radio buttons.
 
 const { When } = require('@cucumber/cucumber');
-const { buildSelector, fillField, friendly } = require('./webship');
+const { buildSelector, fillField, friendly, failure, humanize, isTimeout } = require('./webship');
 
 // ---------------------------------------------------------------------------
 // Fill — by label, attribute, table, reverse syntax
@@ -153,38 +153,70 @@ When(/^(I |we )*fill in( the)* following: by( its)*(?: "([^"]*)?")* (attribute|a
 // ---------------------------------------------------------------------------
 
 /**
+ * Find the `<select>` a step names. A CSS selector (it starts with `#`, `.`
+ * or `[`) is used as written; any other text is the exact text of the label
+ * of the select list, else its name, else its id, whatever its length.
+ *
+ * @param {import('playwright').Page} page
+ * @param {string} name
+ * @returns {import('playwright').Locator}
+ */
+function selectList(page, name) {
+  if (/^[#.[]/.test(name)) return page.locator(name).first();
+  const value = name.replace(/["\\]/g, '\\$&');
+  return page.getByLabel(name, { exact: true })
+    .or(page.locator(`select[name="${value}"]`))
+    .or(page.locator(`select[id="${value}"]`))
+    .first();
+}
+
+/**
  * Select an option from a dropdown by label, id, class, or name.
+ *
+ * The select list is named by the exact text of its label (one word or
+ * several), by its name, by its id, or by a CSS selector that starts with
+ * `#`, `.` or `[`. The option is named by its text, else by its value. A
+ * select list that is not on the page after 5 seconds, or that has no such
+ * option, fails the step at once with the options it has.
  *
  * Example #1: When I select "Mercedes" from "Cars"
  * Example #2: When I select "saab" from "#cars"
  * Example #3: When I select "Mercedes" from "cars"
  * Example #4: And we select "English" from "Language"
+ * Example #5: When I select "Red" from "filters[colour]"
  *
  */
-When(/^(I |we )*select "([^"]*)?" from "([^"]*)?"$/, async function (pronounCase, option, selectList) {
-  let loc;
-  if (selectList.startsWith('#') || selectList.startsWith('.')) {
-    loc = this.page.locator(selectList);
-  } else if (!selectList.includes(' ')) {
-    loc = this.page.locator(`[name="${selectList}"], #${selectList}`).first();
-  } else {
-    loc = this.page.getByLabel(selectList, { exact: true });
+When(/^(I |we )*select "([^"]*)?" from "([^"]*)?"$/, async function (pronounCase, option, selectName) {
+  const loc = selectList(this.page, selectName);
+  try {
+    await loc.waitFor({ state: 'attached', timeout: 5000 });
+  } catch (e) {
+    if (!isTimeout(e)) throw e;
+    throw failure(this.page, /^[#.[]/.test(selectName)
+      ? `No select list matches "${selectName}" after 5 seconds.`
+      : `No select list with the label, the name or the id "${selectName}" was found after 5 seconds.`, {
+      hint: 'name the select list by the exact text of its label, by its name or its id, or by a CSS selector that starts with #, . or [.',
+    });
   }
   try {
     await loc.selectOption({ label: option }, { timeout: 3000 });
     return;
   } catch { /* fall through to value-based selection */ }
   try {
-    await loc.selectOption(option);
+    await loc.selectOption(option, { timeout: 2000 });
   } catch (e) {
-    throw friendly(
-      `Could not select "${option}" from "${selectList}".\n` +
-      `  ${(e.message || '').split('\n')[0]}\n` +
-      `  Hints:\n` +
-      `    - Confirm the option text matches exactly (case-sensitive).\n` +
-      `    - For value-based selection pass the option's "value" attribute.\n` +
-      `    - For multi-select, use "additionally select" instead.`
-    );
+    const options = await loc.evaluate((el) => Array.from(el.options || []).map((o) => o.label || o.text)).catch(() => []);
+    const listed = options.length ? options.map((o) => `"${o}"`).join(', ') : 'no option';
+    if (!isTimeout(e) || options.includes(option)) {
+      throw failure(this.page, `Could not select "${option}" from "${selectName}".`, {
+        found: listed,
+        hint: `${humanize(e)}. A select list that is hidden or disabled cannot be changed.`,
+      });
+    }
+    throw failure(this.page, `The select list "${selectName}" has no option "${option}".`, {
+      found: listed,
+      hint: 'name the option by its text or by its value, as the page writes it (the letter case counts). For a select list that takes several options, use: I additionally select',
+    });
   }
 });
 
