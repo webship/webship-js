@@ -1455,9 +1455,11 @@ BeforeStep(async function () {
 // save, log in, …). After such a step, run a short smartSettle so the next
 // step observes the post-action edge instead of a mid-transition state. The
 // verbs are read in the step's own words, not in its quoted arguments: "Then
-// I should see "Delete"" is no action. A project step whose words carry none
-// of them can settle itself with `await this.smartSettle()`.
-const STATE_MUTATING_STEP = /\b(click|press|fill|submit|select|check|uncheck|choose|attach|upload|reload|move (?:back|forward)|go to|navigate|on (?:the )?(?:home|front)page|open|close|add|remove|insert|delete|save|publish|edit|update|create|enter|type|clear|reset|drag|drop|hover|tap|toggle|expand|collapse|search|send|request|flush|confirm|cancel|accept|dismiss|scroll|log ?in|log ?out|sign ?in|sign ?out)\b/i;
+// I should see "Delete"" is no action. "scroll" is left out on purpose: a
+// scroll often starts a loader that the next step checks while it shows. A
+// project step whose words carry none of them can settle itself with
+// `await this.smartSettle()`.
+const STATE_MUTATING_STEP = /\b(click|press|fill|submit|select|check|uncheck|choose|attach|upload|reload|move (?:back|forward)|go to|navigate|on (?:the )?(?:home|front)page|open|close|add|remove|insert|delete|save|publish|edit|update|create|enter|type|clear|reset|drag|drop|hover|tap|toggle|expand|collapse|search|send|request|flush|confirm|cancel|accept|dismiss|log ?in|log ?out|sign ?in|sign ?out)\b/i;
 
 // The words of a step without its quoted arguments.
 function stepWords(text) {
