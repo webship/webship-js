@@ -23,6 +23,16 @@ For most tests, no. Use the built-in steps. Write JavaScript only when
 your business has a step that no preset covers — and even then, place
 it in `tests/step-definitions/<topic>.steps.js`, not in feature files.
 
+## My own step is reported as ambiguous. Why?
+
+A step of the selector registry takes registered names without quotes:
+`When I click primary button`, `Then I see visible header`. It matches
+any unquoted words after its verb, so a custom step such as
+`When I click next button in tour` matches it too. Quote the argument and
+give the step words of its own (`When I click "Next" in the tour`), or
+start it with other words. See
+[Bare names and your own steps](03-selector-registry.md#bare-names-and-your-own-steps).
+
 ## Why no `wait 5 seconds` in the example tests?
 
 Webship-js installs a smart-settle hook that runs after every

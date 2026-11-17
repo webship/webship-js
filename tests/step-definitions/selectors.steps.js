@@ -996,6 +996,12 @@ When(/^(I |we )*select "([^"]*)" text in "([^"]*)" field$/, async function (pron
 /**
  * Click one or more named components — uses locator.click() which auto-scrolls.
  *
+ * The names are read without quotes, so the step matches any unquoted words
+ * after "click" (registered names such as "sign in button" need that). A
+ * custom step that starts the same way, such as "I click next button in
+ * tour", is ambiguous with this one: give a custom step a quoted argument
+ * and words of its own ("I click "Next" in the tour") instead.
+ *
  * Example #1: When I click nav
  * Example #2: When I click search button
  * Example #3: When click cta
