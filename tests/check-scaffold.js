@@ -10,8 +10,9 @@
 //   2. `npm test` in that project is green against a site (the examples/
 //      pages of this repository, served on a free port),
 //   3. a feature named on the command line runs alone,
-//   4. a second scaffold run changes nothing, and a `test` script the project
-//      chose itself is kept,
+//   4. a second scaffold run changes nothing, a `test` script the project
+//      chose itself is kept, and webship-js declared as a dev or peer
+//      dependency is not listed a second time,
 //   5. a `test` script that runs Nightwatch (a project from webship-js 1.x)
 //      is replaced by the suite and kept as `test:nightwatch`,
 //   6. `--force` rewrites the scaffold's files but keeps the project's own
@@ -187,6 +188,22 @@ async function main() {
     const ownPkg = JSON.parse(fs.readFileSync(path.join(own, 'package.json'), 'utf8'));
     if (ownPkg.scripts.test !== 'node my-own-tests.js') problems.push(`the scaffold replaced a test script of the project: ${ownPkg.scripts.test}`);
     if (!ownPkg.scripts['test:chromium']) problems.push('the scaffold did not add test:chromium beside an existing test script');
+
+    // webship-js already declared as a dev dependency (or a peer): the scaffold leaves it there, with
+    // its range, and does not list it a second time under dependencies.
+    for (const field of ['devDependencies', 'peerDependencies']) {
+      const declared = path.join(tmp, `declared-in-${field}`);
+      fs.mkdirSync(declared);
+      fs.writeFileSync(path.join(declared, 'package.json'), JSON.stringify({ name: `declared-in-${field.toLowerCase()}`, version: '1.0.0', [field]: { 'webship-js': '^2.0.12' } }, null, 2));
+      scaffold(declared);
+      const declaredPkg = JSON.parse(fs.readFileSync(path.join(declared, 'package.json'), 'utf8'));
+      if (declaredPkg.dependencies && declaredPkg.dependencies['webship-js']) {
+        problems.push(`with webship-js in ${field}, the scaffold listed it again under dependencies (${declaredPkg.dependencies['webship-js']})`);
+      }
+      if ((declaredPkg[field] || {})['webship-js'] !== '^2.0.12') {
+        problems.push(`the scaffold changed the range of webship-js in ${field}: ${(declaredPkg[field] || {})['webship-js']}`);
+      }
+    }
 
     // A project from webship-js 1.x: its test script runs Nightwatch.
     const legacy = path.join(tmp, 'from-1x');

@@ -318,9 +318,16 @@ function ensurePackageJson(projectPath, opts) {
     }
   }
 
-  pkg.dependencies = pkg.dependencies || {};
-  if (opts.force || !pkg.dependencies['webship-js']) {
+  // webship-js is listed once: where the project already declares it (a dev or peer dependency
+  // included), with its range; --force only refreshes that range. Otherwise it goes under
+  // dependencies.
+  const declaredIn = ['dependencies', 'devDependencies', 'peerDependencies', 'optionalDependencies']
+    .find((field) => pkg[field] && pkg[field]['webship-js']);
+  if (!declaredIn) {
+    pkg.dependencies = pkg.dependencies || {};
     pkg.dependencies['webship-js'] = readPkgVersion();
+  } else if (opts.force) {
+    pkg[declaredIn]['webship-js'] = readPkgVersion();
   }
 
   fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n', 'utf8');
