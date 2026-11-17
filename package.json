@@ -28,6 +28,7 @@
     "test:exit-report": "node tests/check-exit-report.js",
     "test:breakpoints": "node tests/check-breakpoints.js",
     "test:context": "node tests/check-context.js",
+    "test:video": "node tests/check-video.js",
     "test:fast": "SLOW_MO=0 cucumber-js --config cucumber.js",
     "test:examples": "node tests/check-examples.js",
     "test:paths": "node tests/check-paths.js",
