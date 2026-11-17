@@ -1,6 +1,6 @@
 'use strict';
 
-const { friendly } = require('./webship');
+const { friendly, resolveAssetFile } = require('./webship');
 
 // Parse and assert against an XML response loaded from a file or doc string.
 //
@@ -12,7 +12,6 @@ const { friendly } = require('./webship');
 const { Given, Then, When } = require('@cucumber/cucumber');
 const assert = require('assert');
 const fs = require('fs');
-const path = require('path');
 
 let DOMParser;
 try { ({ DOMParser } = require('@xmldom/xmldom')); }
@@ -110,7 +109,8 @@ function evalXPath(doc, xpath) {
 }
 
 /**
- * Load XML response content from a file under `tests/assets/`.
+ * Load XML response content from a file under `tests/assets/` of the project,
+ * or from a path from the project root.
  *
  * Example #1: Given the response content from the file "feed.xml"
  * Example #2: Given the response content from the file "rss.xml"
@@ -120,8 +120,7 @@ function evalXPath(doc, xpath) {
  *
  */
 Given('the response content from the file {string}', async function (filename) {
-  const p = path.isAbsolute(filename) ? filename : path.join(this.assetsFolder || './tests/assets', filename);
-  setXmlResponse(this, fs.readFileSync(p, 'utf-8'));
+  setXmlResponse(this, fs.readFileSync(resolveAssetFile(this, filename), 'utf-8'));
 });
 
 /**

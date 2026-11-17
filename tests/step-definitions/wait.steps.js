@@ -13,8 +13,51 @@
 const { When } = require('@cucumber/cucumber');
 const { smartSettle, pollPage, waitForModalState, friendly, failure, excerpt, isTimeout, pageTextLocator } = require('./webship');
 
+// A step whose length the scenario gives ("I wait 2 minutes", "within 60
+// seconds") runs for that time, past the step timeout too (45 s,
+// WEBSHIP_STEP_TIMEOUT): its definition takes OWN_LENGTH, which sets no
+// cucumber time limit, and the step bounds itself with withinTimeLimit.
+const OWN_LENGTH = { timeout: -1 };
+
+// How long past its own length a step waits for a page that stopped answering.
+const TIME_LIMIT_MARGIN_MS = 15000;
+
+/**
+ * Run the work of a step whose length the scenario gives, bounded by that
+ * length plus a margin, so that a page that stopped answering ends the step
+ * with a plain failure instead of hanging the run.
+ *
+ * @param {number} ms       - The length the scenario gave, in ms.
+ * @param {string} what     - The step's work, for the failure ("The wait of 2 minutes").
+ * @param {Function} work   - Returns the promise of the work.
+ * @returns {Promise<*>} What the work returns.
+ */
+async function withinTimeLimit(ms, what, work) {
+  const limit = ms + TIME_LIMIT_MARGIN_MS;
+  let timer;
+  const overdue = new Promise((resolve, reject) => {
+    timer = setTimeout(() => reject(friendly(
+      `${what} did not end: the page did not answer within ${Math.ceil(limit / 1000)} seconds.\n` +
+      '  Hint: a script of the page may never return; open the page in a browser to see it.'
+    )), limit);
+  });
+  try {
+    return await Promise.race([Promise.resolve().then(work), overdue]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Settle the page for the length a wait step was given, past the step timeout too.
+function settleFor(world, ms, what) {
+  return withinTimeLimit(ms, what, () => smartSettle(world.page, ms));
+}
+
 /**
  * Wait UP TO N seconds for the page to settle. Returns early on idle.
+ *
+ * Like every wait whose length the scenario gives, it runs for that length
+ * even past the step timeout (45 s, WEBSHIP_STEP_TIMEOUT).
  *
  * "Settle" = DOM ready, no in-flight fetch/XHR, no pending setTimeout
  * callbacks, and no MutationObserver activity for at least 250 ms.
@@ -29,8 +72,8 @@ const { smartSettle, pollPage, waitForModalState, friendly, failure, excerpt, is
  *               Then I should see "Saved"
  *
  */
-When(/^(I |we )*wait for (\d+) seconds?$/, async function (pronoun, seconds) {
-  await smartSettle(this.page, parseInt(seconds, 10) * 1000);
+When(/^(I |we )*wait for (\d+) seconds?$/, OWN_LENGTH, async function (pronoun, seconds) {
+  await settleFor(this, parseInt(seconds, 10) * 1000, `The wait for ${seconds} seconds`);
 });
 
 /**
@@ -48,8 +91,8 @@ When(/^(I |we )*wait for (\d+) seconds?$/, async function (pronoun, seconds) {
  *               Then I should see "Results"
  *
  */
-When(/^(I |we )*wait for (\d+) seconds? for AJAX to finish$/, async function (pronoun, seconds) {
-  await smartSettle(this.page, parseInt(seconds, 10) * 1000);
+When(/^(I |we )*wait for (\d+) seconds? for AJAX to finish$/, OWN_LENGTH, async function (pronoun, seconds) {
+  await settleFor(this, parseInt(seconds, 10) * 1000, `The wait for ${seconds} seconds for AJAX`);
 });
 
 /**
@@ -67,8 +110,8 @@ When(/^(I |we )*wait for (\d+) seconds? for AJAX to finish$/, async function (pr
  * Example #9: When I wait 2
  *
  */
-When(/^(I |we )*wait (\d+)( second| seconds|s)?$/, async function (pronounCase, number, withSecondWord) {
-  await smartSettle(this.page, parseInt(number, 10) * 1000);
+When(/^(I |we )*wait (\d+)( second| seconds|s)?$/, OWN_LENGTH, async function (pronounCase, number, withSecondWord) {
+  await settleFor(this, parseInt(number, 10) * 1000, `The wait of ${number} seconds`);
 });
 
 /**
@@ -86,8 +129,8 @@ When(/^(I |we )*wait (\d+)( second| seconds|s)?$/, async function (pronounCase, 
  * Example #9: When I wait max of 2
  *
  */
-When(/^(I |we )*wait max of (\d+)( second| seconds|s)?$/, async function (pronounCase, number, withSecondWord) {
-  await smartSettle(this.page, parseInt(number, 10) * 1000);
+When(/^(I |we )*wait max of (\d+)( second| seconds|s)?$/, OWN_LENGTH, async function (pronounCase, number, withSecondWord) {
+  await settleFor(this, parseInt(number, 10) * 1000, `The wait of at most ${number} seconds`);
 });
 
 /**
@@ -101,8 +144,8 @@ When(/^(I |we )*wait max of (\d+)( second| seconds|s)?$/, async function (pronou
  * Example #5: And wait 2 minutes
  *
  */
-When(/^(I |we )*wait (\d+)( minute| minutes|m)$/, async function (pronounCase, number, withMinuteWord) {
-  await smartSettle(this.page, parseInt(number, 10) * 1000 * 60);
+When(/^(I |we )*wait (\d+)( minute| minutes|m)$/, OWN_LENGTH, async function (pronounCase, number, withMinuteWord) {
+  await settleFor(this, parseInt(number, 10) * 1000 * 60, `The wait of ${number} minutes`);
 });
 
 /**
@@ -116,8 +159,8 @@ When(/^(I |we )*wait (\d+)( minute| minutes|m)$/, async function (pronounCase, n
  * Example #5: And wait max of 2 minutes
  *
  */
-When(/^(I |we )*wait max of (\d+)( minute| minutes|m)$/, async function (pronounCase, number, withMinuteWord) {
-  await smartSettle(this.page, parseInt(number, 10) * 1000 * 60);
+When(/^(I |we )*wait max of (\d+)( minute| minutes|m)$/, OWN_LENGTH, async function (pronounCase, number, withMinuteWord) {
+  await settleFor(this, parseInt(number, 10) * 1000 * 60, `The wait of at most ${number} minutes`);
 });
 
 /**
@@ -492,10 +535,10 @@ When(/^(I |we )*wait until pending timers settle$/, async function (pronounCase)
  *               Then eventually I should see "Submitted" within 8 seconds
  *
  */
-When(/^eventually (I |we )*should see "([^"]*)"(?: within (\d+) seconds?)?$/, async function (pronoun, text, seconds) {
+When(/^eventually (I |we )*should see "([^"]*)"(?: within (\d+) seconds?)?$/, OWN_LENGTH, async function (pronoun, text, seconds) {
   const total = (seconds ? Math.max(1, parseInt(seconds, 10)) : 10) * 1000;
   try {
-    await pageTextLocator(this.page, text).waitFor({ state: 'attached', timeout: total });
+    await withinTimeLimit(total, `The wait for the text "${text}"`, () => pageTextLocator(this.page, text).waitFor({ state: 'attached', timeout: total }));
   } catch (e) {
     if (!isTimeout(e)) throw e;
     throw failure(this.page, `The text "${text}" did not appear within ${total / 1000} seconds.`, {
@@ -503,3 +546,5 @@ When(/^eventually (I |we )*should see "([^"]*)"(?: within (\d+) seconds?)?$/, as
     });
   }
 });
+
+module.exports = { OWN_LENGTH, withinTimeLimit };
