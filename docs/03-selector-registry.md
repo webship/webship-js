@@ -103,3 +103,17 @@ To keep tests portable, every preset exposes the same core names. See `tests/sel
 The steps that take registered names without quotes (`When I click primary button`, `Then I see visible header, footer`, `Then I don't see promo banner`, `Then I see header above footer`, `Then I see search input has focus`) match any unquoted words after their verb, so that every registered name works, `sign in button` and `log in link` included. A custom step of your project that starts the same way with unquoted words matches them too: `When I click next button in tour` is ambiguous between your step and the bare-name click, and cucumber-js stops at it.
 
 Write such a step with a quoted argument and words of its own around it (`When I click "Next" in the tour`), or start it with other words (`When I move to the next step of the tour`). Or register the element and use the built-in step: `When I add "tour next button" selector for ".tour .next" css selector`, then `When I click tour next button`. After adding a step, `npx cucumber-js --dry-run` lists every step that is ambiguous.
+
+## Which steps read a registered name
+
+The registry is read by the bare-name steps above and by the modal steps. Every step that takes its argument in quotes reads it as it is written: a text (`I click "Subscribe"`, `I press "Save"`), a label, a placeholder or a name (`I fill in "Email" with "…"`), or a CSS selector (`"#dashboard" should be visible`, `the element "#hero" should be displayed`). A registered name given to one of those steps matches nothing, and its failure says so and names the step to use:
+
+```
+✖ Then "premium-banner" should be visible
+    Expected "premium-banner" to be visible.
+      Found: last seen: false
+      Page: http://localhost:8080/registered-names.html
+      Hint: "premium-banner" is a name of the selector registry (.promo-banner), but this step does not read the registry. Use: I see visible premium-banner, or: ".promo-banner" should be visible
+```
+
+The hint is added to the failures of the click and press steps, the fill steps, the web-first steps (`"…" should be visible`, `… should have text`, …) and the element steps (`I click on the element "…"`, `I scroll to the element "…"`, `the element "…" should be at the top of the viewport`, …).
