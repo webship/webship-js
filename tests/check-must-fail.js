@@ -3,8 +3,9 @@
 
 // Runs the scenarios of tests/must-fail/ and checks that every one of them
 // FAILS, at its last step, with the message its description announces
-// ("Fails with: ..."), and that the message names the page and carries a
-// hint, with no Playwright call log and no stack trace.
+// ("Fails with: ..."), and that the message names the page (for an API step,
+// the request the response answers) and carries a hint, with no Playwright
+// call log and no stack trace.
 //
 // A step that cannot fail proves nothing, and a failure nobody can read
 // costs a tester an hour. Each scenario here asserts something that is not
@@ -67,7 +68,7 @@ if (!fs.existsSync(report) || !fs.readFileSync(report, 'utf8').trim()) {
       const shown = message.split('\n').slice(0, 4).join('\n      ');
       if (!message.includes(wanted)) { problems.push(`${where}: failed, but not with "${wanted}":\n      ${shown}`); continue; }
       if (!/^\s*Hint: \S/m.test(message)) { problems.push(`${where}: the failure carries no hint:\n      ${shown}`); continue; }
-      if (!/^\s*Page: \S/m.test(message)) { problems.push(`${where}: the failure does not name the page:\n      ${shown}`); continue; }
+      if (!/^\s*(?:Page|Request): \S/m.test(message)) { problems.push(`${where}: the failure names neither the page nor the request:\n      ${shown}`); continue; }
       if (/Call log:|Timeout \d+ms exceeded|^\s+at .+:\d+:\d+\)?$/m.test(message)) { problems.push(`${where}: the failure shows a Playwright call log, a raw timeout or a stack trace:\n      ${shown}`); continue; }
       console.log(`  fails as it must: ${scenario.name}\n      ${message.split('\n')[0].trim()}`);
     }
@@ -81,4 +82,4 @@ if (problems.length) {
   console.error(`\n${problems.length} problem(s) in ${count} must-fail scenario(s):\n  ${problems.join('\n  ')}`);
   process.exit(1);
 }
-console.log(`\n${count} must-fail scenarios: each failed at its last step with the announced message, the page and a hint.`);
+console.log(`\n${count} must-fail scenarios: each failed at its last step with the announced message, the page (or the request) and a hint.`);
