@@ -51,6 +51,13 @@ suite — nearly every bundled feature loads a static fixture from `examples/`.
 | `npm run test:video` | The video files of the `on`, `on-failure` and `off` modes: final names in lower case, no temporary file left, the printed path is the saved one, reserved names kept, stopped recordings named by the pattern. |
 | `npm run test:context` | A step that replaces the browser context (restore an auth state, start / stop a video) keeps the viewport, the smart waits, the cookies, JavaScript-error capture and the request log. |
 | `npm run test:breakpoints` | The `@mobile` / `@desktop` tags, `set the viewport to the "…" breakpoint` and `viewing the site on a … screen` read one breakpoint registry (config, `WEBSHIP_SELECTORS_BREAKPOINTS`, `default: true`). |
+| `npm run test:report` | No server: generates an HTML report from a small JSON and checks it — no third-party icon, the project's own version, the place of execution. |
+| `npm run test:dry-run` | No server: a dry run with the pretty formatter prints the steps, `? undefined` and the summary, with no `- skipped` line for each hook or step. |
+| `npm run test:time-limit` | No server: the waits that take a length and the web-first `within N seconds` matchers run past `WEBSHIP_STEP_TIMEOUT` and pass, or fail with their own message. |
+| `npm run test:js-errors` | No server: with warnings captured, the errors check counts errors only and the warnings check warnings only; what a check did not read is reported at the end of the scenario. |
+| `npm run test:assets` | No server: in a project of its own, the attach, XML-file and YAML-file steps read its `tests/assets/` and paths from its root; a missing file fails plainly. |
+| `npm run test:screenshots` | No server: only a failed step leaves a failure screenshot (a skipped or pending one does not). |
+| `npm run test:scaffold` | Scaffolds a new project, runs its first `npm test` and one feature named on the command line. |
 | `npm run generate-reports` | HTML (+ optional PDF) report from `tests/reports/cucumber_report.json`. |
 
 Targeting a subset:
@@ -292,7 +299,7 @@ Some pairs look similar but cover different domains. NEVER merge:
 
 ## 5. File organisation
 
-417 built-in steps across 36 step files. Cucumber auto-loads every
+428 built-in steps across 36 step files. Cucumber auto-loads every
 `*.steps.js` in `tests/step-definitions/`.
 
 ```
@@ -308,7 +315,7 @@ tests/step-definitions/
 ├── debug.steps.js           (2)  # print URL / last response
 ├── dialog.steps.js          (8)  # native alert / confirm / prompt handlers
 ├── element.steps.js        (20)  # focus / scroll-to / dispatch / count / position
-├── field.steps.js          (27)  # field, checkbox, radio, select-list state assertions
+├── field.steps.js          (35)  # field, checkbox, radio, select-list state assertions
 ├── file-download.steps.js   (8)  # download capture + filename / mime / path assertions
 ├── form.steps.js           (13)  # fill / select / additionally select / check / uncheck / radio
 ├── iframe.steps.js         (10)  # frameLocator switch + frame-scoped interactions
@@ -335,7 +342,7 @@ tests/step-definitions/
 ├── xml.steps.js            (20)  # XPath equals / contains / count / attr
 └── yaml.steps.js           (38)  # multi-doc, types, numerics, JSON Schema, diff
 
-tests/features/                 # 73 .feature files
+tests/features/                 # 122 .feature files
 tests/selectors/                # 26 JSON presets + _canonical-keys.json
 tests/assets/                   # upload fixtures (pdf, png)
 examples/                       # static HTML fixtures served by `npm start`

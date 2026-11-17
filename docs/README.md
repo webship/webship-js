@@ -2,7 +2,7 @@
 
 Webship-js is a BDD-first browser-automation harness built on Playwright + Cucumber-js. Feature files in plain Gherkin; selectors that survive redesigns; smart waits that never sleep.
 
-**417 built-in steps** across **36 step files**. **288 example scenarios / 1,406 step executions** in the bundled suite, all green on chromium, firefox, and webkit.
+**428 built-in steps** across **36 step files**. **580 example scenarios / 2,868 step executions** in the bundled suite, all green in the CI run on Chromium.
 
 ## Reading order
 
@@ -84,7 +84,7 @@ webship-js/
 │       ├── debug.steps.js               (2)   # print URL / last response (diagnostic)
 │       ├── dialog.steps.js              (8)   # native alert / confirm / prompt
 │       ├── element.steps.js            (20)   # focus / scroll-to / dispatch / count / position
-│       ├── field.steps.js              (27)   # field state, checkbox, radio, select-list
+│       ├── field.steps.js              (35)   # field state, checkbox, radio, select-list
 │       ├── file-download.steps.js       (8)   # capture + assert filename / mime / path
 │       ├── form.steps.js               (13)   # fill / select / check / uncheck / radio
 │       ├── iframe.steps.js             (10)   # frameLocator switch + scoped click / fill / assert
@@ -102,7 +102,7 @@ webship-js/
 │       ├── rest.steps.js                (5)   # REST short form
 │       ├── screenshot.steps.js          (6)   # manual + auto-on-failure + per-step capture
 │       ├── scroll.steps.js             (12)   # page + scoped element scroll
-│       ├── selectors.steps.js          (22)   # named CSS / XPath registry + 22 CMS / framework presets
+│       ├── selectors.steps.js          (24)   # named CSS / XPath registry + 22 CMS / framework presets
 │       ├── storage.steps.js             (9)   # local / session storage
 │       ├── table.steps.js               (8)   # data-table row / column assertions
 │       ├── video.steps.js               (4)   # start / stop / save webm recording
