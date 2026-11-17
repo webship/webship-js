@@ -229,6 +229,8 @@ Settings (`worldParameters.javascript`):
 
 The explicit step `Then there should be no JavaScript errors` always asserts (independent of `mode`) and suppresses the auto-report so a single error is not announced twice.
 
+`Then JavaScript errors should not match "…"` handles the errors it read in the same way: a page with noise it tolerates does not fail the scenario at its end in `fail` mode, only an error that matches the pattern fails it.
+
 ## Video recording
 
 ```
