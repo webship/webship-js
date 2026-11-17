@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Multi-value fields</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    input { display: block; margin: 4px 0; }
+    .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  </style>
+</head>
+<body>
+  <h1>Multi-value fields</h1>
+  <form id="profile">
+    <fieldset>
+      <legend>Phone numbers</legend>
+      <input id="phone-a" name="contact_phone_a" type="tel">
+      <input id="phone-b" name="contact_phone_b" type="tel">
+    </fieldset>
+
+    <div class="multi">
+      <label for="skill-1">Skills</label>
+      <input id="skill-1" name="skill_one" type="text">
+      <input id="skill-2" name="skill_two" type="text">
+      <input id="skill-3" name="skill_three" type="text">
+    </div>
+
+    <div class="multi">
+      <label for="website-1">Websites</label>
+      <input id="website-1" name="website_one" type="url">
+    </div>
+
+    <table class="field-multiple-table">
+      <tbody>
+        <tr>
+          <td>
+            <label class="visually-hidden" for="topics-0">Topic (value 1)</label>
+            <input id="topics-0" name="field_topics[0][value]" type="text">
+            <select name="field_topics[0][_weight]" hidden><option value="0">0</option></select>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <label class="visually-hidden" for="topics-1">Topic (value 2)</label>
+            <input id="topics-1" name="field_topics[1][value]" type="text">
+            <select name="field_topics[1][_weight]" hidden><option value="1">1</option></select>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <input type="submit" name="field_topics_add_more" value="Add another item">
+  </form>
+</body>
+</html>
