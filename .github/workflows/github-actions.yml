@@ -50,6 +50,9 @@ jobs:
       - name: Check the step examples and the feature steps
         run: npm run test:examples
 
+      - name: Check that a wait runs for the time the scenario gives it
+        run: npm run test:time-limit
+
       - name: Check that a feature named on the command line runs alone
         run: npm run test:paths
 

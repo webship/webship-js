@@ -97,6 +97,9 @@ Everything shared lives here; every `*.steps.js` does
   Playwright's 30 s default so locator timeouts reach our try/catch
   wrappers and testers see a friendly message, not "function timed out".
   The 45 s in `cucumber.js` exists for the same reason; keep them aligned.
+  A step whose length the scenario gives (`I wait 2 minutes`, `within N
+  seconds`) takes `OWN_LENGTH` from `wait.steps.js` (no cucumber limit)
+  and bounds itself with `withinTimeLimit` instead.
 * **The init script** installed via `context.addInitScript()` in
   `openBrowser()` — monkey-patches `fetch`, `XMLHttpRequest.send`,
   `setTimeout`/`clearTimeout` and attaches a `MutationObserver` to
