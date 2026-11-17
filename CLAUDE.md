@@ -276,7 +276,7 @@ tests/step-definitions/
 ├── cookie.steps.js         (12)  # cookie exists / equals / contains
 ├── debug.steps.js           (2)  # print URL / last response
 ├── dialog.steps.js          (8)  # native alert / confirm / prompt handlers
-├── element.steps.js        (19)  # focus / scroll-to / dispatch / count / position
+├── element.steps.js        (20)  # focus / scroll-to / dispatch / count / position
 ├── field.steps.js          (27)  # field, checkbox, radio, select-list state assertions
 ├── file-download.steps.js   (8)  # download capture + filename / mime / path assertions
 ├── form.steps.js           (13)  # fill / select / additionally select / check / uncheck / radio
