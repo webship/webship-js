@@ -8,18 +8,37 @@ const path = require('path');
 // ---------------------------------------------------------------------------
 // Output filter — strip noisy `✔ Before # ...` / `✔ After # ...` hook lines
 // from cucumber-js's failure dump so tester-facing output stays focused on
-// the failing step + hint. Disable with WEBSHIP_FILTER_HOOK_LINES=off.
+// the failing step + hint. In a dry run (--dry-run or -d), also strip the
+// pretty formatter's "- skipped" lines: every hook and every step of a dry
+// run is skipped, and a line for each buries the "? undefined" and
+// "✖ ambiguous" lines the dry run is for. Disable with
+// WEBSHIP_FILTER_HOOK_LINES=off.
 // ---------------------------------------------------------------------------
 if (process.env.WEBSHIP_FILTER_HOOK_LINES !== 'off') {
   const HOOK_LINE = /^\s*[✔✖✗⚠?-]\s+(?:Before|After|BeforeStep|AfterStep)\b.*$/;
+  const DRY_RUN = process.argv.slice(2).some((arg) => arg === '--dry-run' || arg === '-d');
+  const SKIPPED_LINE = /^\s*-\s+skipped\s*$/;
+  const plain = (line) => line.replace(/\x1b\[[0-9;]*m/g, '');
+  const dropped = (line) => HOOK_LINE.test(plain(line)) || (DRY_RUN && SKIPPED_LINE.test(plain(line)));
   const wrap = (stream) => {
     const orig = stream.write.bind(stream);
+    // The pretty formatter writes a line and its line break in two writes:
+    // when a line is dropped, so is the line break that follows it.
+    let dropLineBreak = false;
     stream.write = (chunk, encoding, cb) => {
       if (typeof chunk === 'string' || Buffer.isBuffer(chunk)) {
         const text = typeof chunk === 'string' ? chunk : chunk.toString('utf8');
+        const skipBreak = dropLineBreak && /^\r?\n$/.test(text);
+        dropLineBreak = false;
+        if (skipBreak || (!text.includes('\n') && text.trim() && dropped(text))) {
+          dropLineBreak = !skipBreak;
+          const done = typeof encoding === 'function' ? encoding : cb;
+          if (typeof done === 'function') process.nextTick(done);
+          return true;
+        }
         const filtered = text
           .split('\n')
-          .filter((line) => !HOOK_LINE.test(line.replace(/\x1b\[[0-9;]*m/g, '')))
+          .filter((line) => !dropped(line))
           .join('\n');
         return orig(filtered, encoding, cb);
       }
