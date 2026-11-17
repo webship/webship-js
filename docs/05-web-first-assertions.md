@@ -11,6 +11,8 @@ Then "#dashboard" should be visible
 Then "#dashboard" should be visible within 12 seconds
 ```
 
+A `within N seconds` longer than the step timeout (45 seconds, `WEBSHIP_STEP_TIMEOUT`) is kept: the step waits the N seconds it was given, as `I wait 2 minutes` and `eventually I should see "…" within 90 seconds` do, and fails with its own message, not with "function timed out". Such a step bounds itself at its length plus 15 seconds, so a page that stopped answering cannot hang the run.
+
 ## State matchers
 
 ```gherkin
