@@ -58,22 +58,29 @@ Single job `build` on `ubuntu-latest`, 45-minute limit:
 3. `npm install`.
 4. `npm run test:report` — generates an HTML report from a small JSON and checks it: no third-party icon, the project's own version, the place of execution.
 5. `npx playwright install --with-deps chromium`.
-6. `npm run test:examples` — no browser: every step definition is documented with at least five examples that use it, every example step and every feature step resolves to exactly one definition.
-7. `npm run test:paths` — no browser: a feature or a scenario (`file:line`) named on the command line runs alone, and naming none runs the whole suite (dry runs).
-8. `npm run test:screenshots` — runs a skipped, a pending and a failing scenario and checks that only the failing one leaves a failure screenshot.
-9. `npm run test:config` — runs a scenario with a `cucumber.js` whose `worldParameters` carry only the launch URL, and checks that it passes and that the run ends by itself.
-10. `npm run test:breakpoints` — the `@mobile` / `@desktop` tags and the two named-viewport steps open at the sizes of one registry: the config, `WEBSHIP_SELECTORS_BREAKPOINTS`, the breakpoint marked `default: true` and the names a scenario adds.
-11. `npm run test:context` — runs scenarios that restore an auth state and start and stop a video recording, and checks that the new page keeps the viewport of the `@mobile` tag, the smart waits, the cookies, JavaScript-error capture and the request log (it serves its own page).
-12. `npm run test:video` — runs recorded scenarios in the `on`, `on-failure` and `off` modes and checks the video folder: final names with the status in lower case, no temporary `page@….webm` left, `print video path` printing the saved path, a reserved name kept on failure, a stopped recording named by the pattern, `WEBSHIP_VIDEO_SIZE` read.
-13. `npm run test:world` — runs a project World that extends `PlaywrightWorld` with a project step ending in `this.smartSettle()`, then a World that replaces it, and checks the first keeps the `@mobile` viewport and the settle and the second is reported (it serves its own page).
-14. `npm run test:clock` — installs a fake clock and checks that a navigation and a press still settle as soon as the page is quiet, and that advancing a clock nobody installed prints a note (it serves its own page).
-15. `npm run test:settle-verbs` — runs a project's own steps whose words carry a page-changing verb (add, log out, enter, open, delete, save) and checks that the settle after each one waited for the page; `wait for ajax to finish` in lower case is a step (it serves its own page).
-16. `npm start &` — backgrounds the fixture server.
-17. Waits until the server answers on port 8080 (30 seconds at most).
-18. `npm run test:must-fail` — runs the scenarios of `tests/must-fail/`, which must fail, and checks that each fails at its last step with the message it announces, the address of the page and a hint.
-19. `npm test`.
-20. `npm run test:scaffold` — scaffolds a new project, runs its first `npm test` and one feature named on the command line (see the notes below).
-21. `actions/upload-artifact@v7` — uploads the report, screenshots and videos, on success and on failure.
+6. `npm run test:dry-run` — no server: a dry run with the pretty formatter prints the steps, `? undefined` and the summary with no `- skipped` line for each hook or step; a real run still shows a skipped step.
+7. `npm run test:api-launch-url` — no server: a relative API base URL follows `worldParameters.launchUrl`, and a scenario without a base URL fails plainly instead of reusing the previous one.
+8. `npm run test:examples` — no browser: every step definition is documented with at least five examples that use it, every example step and every feature step resolves to exactly one definition.
+9. `npm run test:time-limit` — no server: under a short `WEBSHIP_STEP_TIMEOUT`, the waits that take a length and the web-first `within N seconds` matchers run past the step timeout and pass, or fail with their own message.
+10. `npm run test:paths` — no browser: a feature or a scenario (`file:line`) named on the command line runs alone, and naming none runs the whole suite (dry runs).
+11. `npm run test:attachments` — the print steps (accessibility violations, …) attach what they print to the step in the JSON report.
+12. `npm run test:js-errors` — no server: with warnings captured, the errors check counts errors only and the warnings check warnings only; what a check did not read is reported at the end of the scenario, in warn and in fail mode.
+13. `npm run test:screenshots` — runs a skipped, a pending and a failing scenario and checks that only the failing one leaves a failure screenshot.
+14. `npm run test:assets` — no server: in a project of its own, the attach, XML-file and YAML-file steps read its `tests/assets/` and paths from its root, and a missing file fails plainly.
+15. `npm run test:config` — runs a scenario with a `cucumber.js` whose `worldParameters` carry only the launch URL, and checks that it passes and that the run ends by itself.
+16. `npm run test:exit-report` — no server: the HTML report built at the end of a run is built once with `--parallel`, from a JSON report written elsewhere, and says so in one line when there is none.
+17. `npm run test:breakpoints` — the `@mobile` / `@desktop` tags and the two named-viewport steps open at the sizes of one registry: the config, `WEBSHIP_SELECTORS_BREAKPOINTS`, the breakpoint marked `default: true` and the names a scenario adds.
+18. `npm run test:context` — runs scenarios that restore an auth state and start and stop a video recording, and checks that the new page keeps the viewport of the `@mobile` tag, the smart waits, the cookies, JavaScript-error capture and the request log (it serves its own page).
+19. `npm run test:video` — runs recorded scenarios in the `on`, `on-failure` and `off` modes and checks the video folder: final names with the status in lower case, no temporary `page@….webm` left, `print video path` printing the saved path, a reserved name kept on failure, a stopped recording named by the pattern, `WEBSHIP_VIDEO_SIZE` read.
+20. `npm run test:world` — runs a project World that extends `PlaywrightWorld` with a project step ending in `this.smartSettle()`, then a World that replaces it, and checks the first keeps the `@mobile` viewport and the settle and the second is reported (it serves its own page).
+21. `npm run test:clock` — installs a fake clock and checks that a navigation and a press still settle as soon as the page is quiet, and that advancing a clock nobody installed prints a note (it serves its own page).
+22. `npm run test:settle-verbs` — runs a project's own steps whose words carry a page-changing verb (add, log out, enter, open, delete, save) and checks that the settle after each one waited for the page; `wait for ajax to finish` in lower case is a step (it serves its own page).
+23. `npm start &` — backgrounds the fixture server.
+24. Waits until the server answers on port 8080 (30 seconds at most).
+25. `npm run test:must-fail` — runs the scenarios of `tests/must-fail/`, which must fail, and checks that each fails at its last step with the message it announces, the address of the page and a hint.
+26. `npm test`.
+27. `npm run test:scaffold` — scaffolds a new project, runs its first `npm test` and one feature named on the command line (see the notes below).
+28. `actions/upload-artifact@v7` — uploads the report, screenshots and videos, on success and on failure.
 
 `FORCE_COLOR=1` is set on the job so cucumber-js v10 emits ANSI colours.
 
