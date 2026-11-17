@@ -74,6 +74,9 @@ jobs:
       - name: Check the video files of the three recording modes
         run: npm run test:video
 
+      - name: Check the smart waits under a fake clock
+        run: npm run test:clock
+
       - name: Start virtual server
         run: npm start &
 

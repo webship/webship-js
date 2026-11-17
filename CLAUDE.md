@@ -44,6 +44,7 @@ suite — nearly every bundled feature loads a static fixture from `examples/`.
 | `npm run test:paths` | No browser: a feature or a scenario (`file:line`) named on the command line runs alone; naming none runs the whole suite. |
 | `npm run test:config` | A `cucumber.js` whose `worldParameters` carry only the launch URL runs a scenario green and the run ends by itself. |
 | `npm run test:exit-report` | Needs browsers, no server: the HTML report built at the end of a run is built once with `--parallel`, from a JSON report written elsewhere, and says so in one line when there is none. |
+| `npm run test:clock` | Under a fake clock a navigation and a press settle when the page is quiet; a clock step on a clock nobody installed says so. |
 | `npm run test:video` | The video files of the `on`, `on-failure` and `off` modes: final names in lower case, no temporary file left, the printed path is the saved one, reserved names kept, stopped recordings named by the pattern. |
 | `npm run test:context` | A step that replaces the browser context (restore an auth state, start / stop a video) keeps the viewport, the smart waits, the cookies, JavaScript-error capture and the request log. |
 | `npm run test:breakpoints` | The `@mobile` / `@desktop` tags, `set the viewport to the "…" breakpoint` and `viewing the site on a … screen` read one breakpoint registry (config, `WEBSHIP_SELECTORS_BREAKPOINTS`, `default: true`). |
