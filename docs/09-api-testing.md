@@ -85,6 +85,8 @@ When I send a POST request to "/users" with values:
   | email | alice@example.com    |
 ```
 
+The tables of `with values:`, `I set the request body with:` and `I set the following headers:` send every row, the first one included. A first row that names the columns (`| name | value |`, `| header | value |`, `| field | value |`) is a header row and is left out.
+
 Assert against an exact JSON shape with a doc string:
 
 ```gherkin

@@ -80,6 +80,21 @@ function apiFailure(message, details) {
 }
 
 /**
+ * The rows of a two-column table of names and values (headers, body fields).
+ * Every row is data, as the examples write the table; a first row that names
+ * the columns (| name | value |, | header | value |, | field | value |,
+ * | key | value |) is a header row and is left out.
+ */
+function nameValueRows(table) {
+  const rows = table.raw();
+  if (rows.length === 0) return rows;
+  const [name, value] = rows[0].map((cell) => String(cell || '').trim().toLowerCase());
+  const header = /^(?:name|header|header name|field|field name|key)$/.test(name || '')
+    && /^(?:value|header value|field value)$/.test(value || '');
+  return header ? rows.slice(1) : rows;
+}
+
+/**
  * Helper function to prepare URL by replacing placeholders and trimming slashes
  */
 function prepareUrl(url) {
@@ -169,7 +184,8 @@ Given(/^(?:I set the header|we set the header|the header) "([^"]*)" (?:to|is) "(
 });
 
 /**
- * Set multiple headers using a table.
+ * Set multiple headers using a table: one `| name | value |` row per header,
+ * every row sent (a first row that names the columns is left out).
  *
  * Example #1: Given I set the following headers:
  *               | Content-Type  | application/json    |
@@ -192,7 +208,7 @@ Given(/^(?:I set the header|we set the header|the header) "([^"]*)" (?:to|is) "(
  *               | X-Request-ID  | req-001            |
  */
 Given(/^(?:I|we) set the following headers:$/, function (table) {
-  table.rows().forEach(row => {
+  nameValueRows(table).forEach(row => {
     apiHeaders[row[0]] = replacePlaceHolder(row[1]);
   });
 });
@@ -218,7 +234,9 @@ Given(/^(?:I set the request body to|we set the request body to|the request body
 });
 
 /**
- * Set request body using a table.
+ * Set request body using a table: one `| field | value |` row per field,
+ * every row sent (a first row that names the columns is left out). "true",
+ * "false" and numbers are sent as JSON booleans and numbers.
  *
  * Example #1: Given I set the request body with:
  *               | name  | John Doe           |
@@ -242,7 +260,7 @@ Given(/^(?:I set the request body to|we set the request body to|the request body
  */
 Given(/^(?:I|we) set the request body with:$/, function (table) {
   apiRequestData = {};
-  table.rows().forEach(row => {
+  nameValueRows(table).forEach(row => {
     let value = replacePlaceHolder(row[1]);
     
     // Try to parse as number or boolean, otherwise keep as string
