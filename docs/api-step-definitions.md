@@ -50,7 +50,8 @@ The documentation lists 22 distinct step definition categories:
 - Then the API response should contain the header "header name"
 - Then the API response should not contain the header "header name"
 - Then the response should be valid JSON
-- Then the response header "response header" should be "value"
+- Then the response header "response header" should be "value" (the whole value)
+- Then the response header "response header" should contain "part" (a part of the value)
 
 The two text checks (`should contain "text"`, `should not contain "text"`)
 ignore letter case and replace placeholders in the text first, so the
