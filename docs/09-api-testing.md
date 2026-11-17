@@ -102,11 +102,33 @@ Then the API response should contain json:
   """
 ```
 
-Substitute placeholders captured from earlier responses or scenario data:
+Substitute placeholders set in the scenario or saved from an earlier response:
 
 ```gherkin
 Given I set placeholder "{{userId}}" to "42"
 When I send a GET request to "/users/{{userId}}"
+
+When I send a POST request to "/login" with body:
+  """
+  {"username": "editor", "password": "{{password}}"}
+  """
+ And I save the JSON property "token" as placeholder "{{token}}"
+ And I set the header "Authorization" to "Bearer {{token}}"
+ And I send a GET request to "/me"
+```
+
+`I save the JSON property "<path>" as placeholder "<name>"` names the property the way the JSON property steps do. Placeholders are replaced as plain text in URLs, headers (when the request is sent, so a header set in a `Background` gets a value saved later), bodies and the checks.
+
+A custom step reaches the same state through the exports of `api.steps.js`:
+
+```js
+const api = require('webship-js/tests/step-definitions/api.steps');
+
+Then('the saved token is not empty', function () {
+  if (!api.getPlaceholder('{{token}}')) throw new Error('no token was saved');
+});
+// Also: api.getApiResponse(), api.setPlaceholder(name, value),
+// api.replacePlaceHolder(text), api.getNestedProperty(object, path).
 ```
 
 For HTTP basic auth on the next page navigation, see also `path.steps.js`:

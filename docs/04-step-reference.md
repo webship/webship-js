@@ -362,6 +362,7 @@ This index lists every public step grouped by source file, with one Gherkin exam
 - *^print API response$*  ·  Example: `Then print API response`
 - *^(?:the )?API response should( not)? contain the header "([^"]*)"$*  ·  Example: `Then the API response should contain the header "ETag"`
 - *^(?:I|we) set placeholder "([^"]*)" to "([^"]*)"$*  ·  Example: `Given I set placeholder "{{userId}}" to "123"`
+- *^(I |we )*save the JSON property "([^"]*)" as placeholder "([^"]*)"$*  ·  Example: `When I save the JSON property "token" as placeholder "{{token}}"`
 
 ### assertion.steps.js
 

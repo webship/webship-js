@@ -7,8 +7,15 @@ const { friendly, sendRequest, excerpt } = require('./webship');
 // (no cookie of the browser goes with it), and it follows the HTTPS setting
 // of the browser context, so a self-signed or locally issued certificate is
 // accepted whenever the browser accepts it.
+// Placeholders are replaced in the headers when the request is sent, so a
+// header set before its value exists (in a Background, before the response
+// that carries it) gets it.
 function sendApiRequest(world, method, url, headers, data) {
-  return sendRequest(world, { method, url, headers, data, session: false });
+  const sent = {};
+  for (const [name, value] of Object.entries(headers || {})) {
+    sent[name] = typeof value === 'string' ? replacePlaceHolder(value) : value;
+  }
+  return sendRequest(world, { method, url, headers: sent, data, session: false });
 }
 
 // Global variables to store API response and request data
@@ -29,13 +36,15 @@ Before(async function () {
 });
 
 /**
- * Helper function to replace placeholders in text
+ * Replace the placeholders of the scenario in a text, as plain text: no
+ * character of a name or a value has a special meaning ("$1.50", "[id]").
  */
 function replacePlaceHolder(string) {
+  let text = String(string);
   for (const [key, value] of Object.entries(placeHolders)) {
-    string = string.replace(new RegExp(key, 'g'), value);
+    if (key) text = text.split(key).join(String(value));
   }
-  return string;
+  return text;
 }
 
 /**
@@ -886,3 +895,44 @@ Then(/^(?:the )?API response should( not)? contain the header "([^"]*)"$/, funct
 Given(/^(?:I|we) set placeholder "([^"]*)" to "([^"]*)"$/, function (placeholder, value) {
   placeHolders[placeholder] = value;
 });
+
+/**
+ * Save a JSON property of the last API response as a placeholder, to carry a
+ * value the API returned (a token, the id of a new record) into the URLs,
+ * headers and bodies of the next requests and into the checks. The property
+ * is named the way the other JSON property steps name it.
+ *
+ * Example #1: When I save the JSON property "token" as placeholder "{{token}}"
+ * Example #2: When we save the JSON property "id" as placeholder "{{postId}}"
+ * Example #3: And I save the JSON property "data.0.id" as placeholder "{{articleId}}"
+ * Example #4: When I save the JSON property "user.email" as placeholder "{{email}}"
+ * Example #5: Then I save the JSON property "meta.total" as placeholder "{{total}}"
+ *               And I send a GET request to "/items?count={{total}}"
+ */
+When(/^(I |we )*save the JSON property "([^"]*)" as placeholder "([^"]*)"$/, function (pronoun, propertyPath, placeholder) {
+  if (!apiResponse) {
+    throw friendly({
+      action: `save the JSON property "${propertyPath}" as placeholder "${placeholder}"`,
+      cause: 'no API response yet',
+      hint: 'send a request first: When I send a GET request to "/path"',
+    });
+  }
+  const value = getNestedProperty(apiResponse.data, propertyPath);
+  if (value === undefined) {
+    throw apiFailure(`The JSON response has no "${propertyPath}" to save as placeholder "${placeholder}".`, {
+      found: `"${excerpt(responseText(apiResponse))}"`,
+      hint: 'name the property the way the JSON property steps do: "token", "data.0.id".',
+    });
+  }
+  placeHolders[placeholder] = typeof value === 'string' ? value : JSON.stringify(value);
+});
+
+// The state of the API steps for a custom step: the last response and the
+// placeholders of the scenario.
+module.exports = {
+  getApiResponse: () => apiResponse,
+  setPlaceholder: (name, value) => { placeHolders[name] = String(value); },
+  getPlaceholder: (name) => placeHolders[name],
+  replacePlaceHolder,
+  getNestedProperty,
+};

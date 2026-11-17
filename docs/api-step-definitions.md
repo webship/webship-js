@@ -31,6 +31,7 @@ The documentation lists 22 distinct step definition categories:
 
 **Request Configuration:**
 - Given I set placeholder "{{placeholder}}" to "value"
+- When I save the JSON property "propertyPath" as placeholder "{{placeholder}}"
 - Given I set the request body to 'JSON-data'
 - Given I set the request body with
 - Given the API base URL is "url"
