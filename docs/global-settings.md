@@ -83,7 +83,7 @@ selectors: {
   filesPath: './tests/selectors/',  // base path for JSON presets
   files: [],                         // JSON files to auto-load per scenario
   offset: 60,                        // px — scroll offset for relative-position assertions
-  breakpoints: {                     // viewport sizes (the viewing-the-site steps; add `mobile` / `desktop` to size the @mobile / @desktop tags)
+  breakpoints: {                     // named viewport sizes — see "Breakpoints" below
     xs:   { width: 375,  height: 667  },
     sm:   { width: 576,  height: 800  },
     md:   { width: 768,  height: 1024 },
@@ -102,7 +102,31 @@ selectors: {
 | `filesPath` | `./tests/selectors/` | — |
 | `files` | `[]` | — |
 | `offset` | `60` | `WEBSHIP_SELECTORS_OFFSET` |
-| `breakpoints` | xs..xxxl | `WEBSHIP_SELECTORS_BREAKPOINTS` (JSON string) |
+| `breakpoints` | xs..xxxl, mobile, tablet, desktop | `WEBSHIP_SELECTORS_BREAKPOINTS` (JSON object, merged over the config) |
+
+#### Breakpoints
+
+One registry of named viewport sizes serves every step and tag that names a
+size: `Given I am viewing the site on a "md" screen`, `When I set the
+viewport to the "tablet" breakpoint`, and the `@mobile` / `@desktop` tags.
+The names are looked up in this order, each source replacing the sizes of
+the names it gives and keeping all the others:
+
+1. The built-in names: `xs` 375 × 667, `sm` 576 × 800, `md` 768 × 1024,
+   `lg` 992 × 768, `xl` 1200 × 900, `xxl` 1400 × 900, `xxxl` 1920 × 1080,
+   `mobile` 375 × 667, `tablet` 768 × 1024, `desktop` 1200 × 900.
+2. `worldParameters.selectors.breakpoints`.
+3. `WEBSHIP_SELECTORS_BREAKPOINTS`, a JSON object of named sizes, for
+   example `WEBSHIP_SELECTORS_BREAKPOINTS='{"tablet":{"width":800,"height":1280}}'`.
+   A value that is not a JSON object is reported once and ignored.
+4. The names a scenario adds with `Given the following responsive breakpoints:`.
+
+`@mobile` opens the scenario at the `mobile` size and `@desktop` at the
+`desktop` size. When the project gives no `desktop` of its own, `desktop`
+is the breakpoint marked `default: true` (`xl` in the scaffold), so moving
+the mark moves the `@desktop` size. Without either tag the viewport stays
+fluid (`contextOptions.viewport` of `playwright.config.ts`). An unknown name
+fails with the list of the known ones.
 
 ### `screenshot` — capture configuration
 

@@ -1,34 +1,19 @@
 'use strict';
 
-const { friendly } = require('./webship');
+const { friendly, breakpoint } = require('./webship');
 
-// Set viewport dimensions and named breakpoints.
+// Set viewport dimensions and named breakpoints. The named sizes come from
+// the one breakpoint registry of webship.js: the built-in names (xs, sm, md,
+// lg, xl, xxl, xxxl, mobile, tablet, desktop), then
+// worldParameters.selectors.breakpoints, then WEBSHIP_SELECTORS_BREAKPOINTS,
+// then the names a scenario adds with "the following responsive breakpoints:".
 
 const { Given, When } = require('@cucumber/cucumber');
 
-const DEFAULT_BREAKPOINTS = {
-  xs: { width: 375, height: 667 },
-  sm: { width: 576, height: 800 },
-  md: { width: 768, height: 1024 },
-  lg: { width: 992, height: 768 },
-  xl: { width: 1200, height: 900 },
-  xxl: { width: 1400, height: 900 },
-  xxxl: { width: 1920, height: 1080 },
-  mobile: { width: 375, height: 667 },
-  tablet: { width: 768, height: 1024 },
-  desktop: { width: 1200, height: 900 },
-};
-
-function getBreakpoints(world) {
-  if (!world._breakpoints) {
-    const cfg = (world.parameters && world.parameters.selectors && world.parameters.selectors.breakpoints) || {};
-    world._breakpoints = { ...DEFAULT_BREAKPOINTS, ...cfg };
-  }
-  return world._breakpoints;
-}
-
 /**
- * Replace the breakpoint registry for the current scenario from a data table.
+ * Add named breakpoints for the current scenario from a data table: one row
+ * per name, `| name | width | height |`. The names replace the sizes of the
+ * same names; every other breakpoint (built in or configured) stays.
  *
  * Example #1: Given the following responsive breakpoints:
  *               | mobile  | 375  | 667  |
@@ -49,19 +34,30 @@ function getBreakpoints(world) {
  *
  */
 Given('the following responsive breakpoints:', async function (table) {
-  const map = {};
+  const added = {};
   for (const row of table.raw()) {
     const [name, w, h] = row;
-    map[name] = { width: parseInt(w, 10), height: parseInt(h, 10) };
+    const width = parseInt(w, 10);
+    const height = parseInt(h, 10);
+    if (!name || !(width > 0) || !(height > 0)) {
+      throw friendly(
+        `The breakpoint row | ${row.join(' | ')} | is not a name, a width and a height.\n` +
+        '  Hint: write each row as | name | width | height |, with the sizes in whole pixels, such as | tablet | 768 | 1024 |.'
+      );
+    }
+    added[name.trim()] = { width, height };
   }
-  this._breakpoints = { ...DEFAULT_BREAKPOINTS, ...map };
+  this.__scenarioBreakpoints = Object.assign({}, this.__scenarioBreakpoints, added);
 });
 
 /**
- * Resize the viewport to a registered named breakpoint.
+ * Resize the viewport to a named breakpoint.
  *
  * Built-in names: `xs`, `sm`, `md`, `lg`, `xl`, `xxl`, `xxxl`, `mobile`,
- * `tablet`, `desktop`. Project-defined names override built-ins.
+ * `tablet`, `desktop`. A project's names (worldParameters.selectors.breakpoints,
+ * WEBSHIP_SELECTORS_BREAKPOINTS) and a scenario's own (the table step above)
+ * replace the built-in sizes of the same names. An unknown name fails with
+ * the list of the known ones.
  *
  * Example #1: When I set the viewport to the "mobile" breakpoint
  * Example #2: When I set the viewport to the "tablet" breakpoint
@@ -71,10 +67,7 @@ Given('the following responsive breakpoints:', async function (table) {
  *
  */
 When(/^(I |we )*set the viewport to the "([^"]*)" breakpoint$/, async function (pronoun, name) {
-  const bps = getBreakpoints(this);
-  const bp = bps[name];
-  if (!bp) throw friendly(`Unknown breakpoint "${name}".`);
-  await this.page.setViewportSize({ width: bp.width, height: bp.height });
+  await this.page.setViewportSize(breakpoint(this, name));
 });
 
 /**

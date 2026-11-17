@@ -73,6 +73,10 @@ module.exports = {
         filesPath: './tests/selectors/',
         files: [],
         offset: 60,
+        // Named viewport sizes for the viewing-the-site and set-the-viewport
+        // steps and the @mobile / @desktop tags (built in: xs..xxxl, mobile,
+        // tablet, desktop). Without a desktop here, @desktop opens at the
+        // breakpoint marked default: true.
         breakpoints: {
           xs:   { width: 375,  height: 667  },
           sm:   { width: 576,  height: 800  },
