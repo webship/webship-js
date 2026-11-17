@@ -449,7 +449,7 @@ This index lists every public step grouped by source file, with one Gherkin exam
 - *the field {string} should not be empty*  ·  Example: `Then the field "username" should not be empty`
 - *the field {string} should exist*  ·  Example: `Then the field "username" should exist`
 - *the field {string} should not exist*  ·  Example: `Then the field "missing-field" should not exist`
-- *the field {string} should have {string} state*  ·  Example: `Then the field "username" should have "enabled" state`
+- *the field {string} should have {string} state*  ·  Example: `Then the field "username" should have "enabled" state`  ·  States: `enabled`, `disabled`, `editable`, `read-only` (or `readonly`); any other word fails the step
 - *the field {string} should be required*  ·  Example: `Then the field "username" should be required`
 - *the field {string} should not be required*  ·  Example: `Then the field "bio" should not be required`
 - *^(I |we )*fill in the multi-value field "([^"]*)" with the following values:$*  ·  Example: `When I fill in the multi-value field "tags" with the following values:`
