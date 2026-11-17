@@ -944,6 +944,7 @@ module.exports = {
   breakpoints,
   breakpoint,
   onNewPage,
+  videoFileName,
 };
 
 // ---------------------------------------------------------------------------
@@ -1285,6 +1286,14 @@ setWorldConstructor(PlaywrightWorld);
 
 const VIDEO_MODES = new Set(['off', 'on', 'on-failure', 'tag']);
 
+// WEBSHIP_VIDEO_SIZE: "<width>x<height>", such as "1280x720".
+function videoSizeFromEnv() {
+  const m = String(process.env.WEBSHIP_VIDEO_SIZE || '').trim().match(/^(\d+)\s*[x×]\s*(\d+)$/i);
+  return m && parseInt(m[1], 10) > 0 && parseInt(m[2], 10) > 0
+    ? { width: parseInt(m[1], 10), height: parseInt(m[2], 10) }
+    : null;
+}
+
 function videoSettings(world, scope) {
   const cfg = (world.parameters && world.parameters.video) || {};
   let mode = process.env.WEBSHIP_VIDEO || cfg.mode || 'off';
@@ -1292,7 +1301,7 @@ function videoSettings(world, scope) {
   return {
     mode,
     dir: process.env.WEBSHIP_VIDEO_DIR || cfg.dir || './videos',
-    size: cfg.size || { width: 1280, height: 720 },
+    size: videoSizeFromEnv() || cfg.size || { width: 1280, height: 720 },
     filenamePattern: cfg.filenamePattern || '{datetime}.{feature_file}.{scenario}.{status}.{ext}',
   };
 }
@@ -1312,19 +1321,38 @@ function sanitisePart(s) {
   return String(s || '').replace(/[^a-zA-Z0-9._-]+/g, '_').slice(0, 80);
 }
 
-function buildVideoFilename(template, scope, status) {
+// The file name of a scenario's video: {datetime} is when the recording
+// started, {status} the scenario's result in lower case (passed, failed, …),
+// or the word given for a recording a step stopped. A null status leaves
+// "<status>" in the name, for a name printed before the scenario ends.
+function buildVideoFilename(template, scope, status, startedAt) {
   const featurePath = (scope && scope.gherkinDocument && scope.gherkinDocument.uri) || 'unknown';
   const feature = (scope && scope.gherkinDocument && scope.gherkinDocument.feature && scope.gherkinDocument.feature.name) || 'feature';
   const scenario = (scope && scope.pickle && scope.pickle.name) || 'scenario';
   const featureFile = featurePath.split('/').pop().replace(/\.feature$/, '');
-  const dt = new Date().toISOString().replace(/[:.]/g, '-');
+  const dt = (startedAt instanceof Date ? startedAt : new Date()).toISOString().replace(/[:.]/g, '-');
   return template
     .replace('{datetime}', dt)
     .replace('{feature_file}', sanitisePart(featureFile))
     .replace('{feature}', sanitisePart(feature))
     .replace('{scenario}', sanitisePart(scenario))
-    .replace('{status}', sanitisePart(status))
+    .replace('{status}', status === null ? '<status>' : sanitisePart(String(status).toLowerCase()))
     .replace('{ext}', 'webm');
+}
+
+/**
+ * The file name the current video of the scenario is saved under: the name a
+ * step reserved ("I save the current video as"), else the filenamePattern of
+ * worldParameters.video with the given status (null: "<status>").
+ *
+ * @param {WebshipWorld} world
+ * @param {?string} status
+ * @returns {string}
+ */
+function videoFileName(world, status) {
+  if (world._videoSaveAsName) return world._videoSaveAsName;
+  const settings = world._videoSettings || videoSettings(world);
+  return buildVideoFilename(settings.filenamePattern, world._scenarioScope, status, world._videoStartedAt);
 }
 
 // ---------------------------------------------------------------------------
@@ -1444,9 +1472,11 @@ function tagViewport(world, scope) {
 }
 
 Before({ order: 5 }, async function (scope) {
+  this._scenarioScope = scope;
   this._videoSettings = videoSettings(this, scope);
   this._videoRequested = shouldRecordAtStart(this._videoSettings, scope);
   this._videoForcedByTag = videoHasTag(scope, '@video');
+  this._videoStartedAt = this._videoRequested ? new Date() : null;
 
   // Kept for the whole scenario: a step that replaces the browser context
   // opens the new one with the same viewport (see openContext).
@@ -1481,11 +1511,13 @@ After({ order: 5 }, async function (scope) {
 
   if (videoRef) {
     const settings = this._videoSettings;
-    const filename = this._videoSaveAsName || buildVideoFilename(settings.filenamePattern, scope, status);
+    const filename = videoFileName(this, status);
     const dest = require('path').join(settings.dir, filename);
     try {
       const passed = status === 'PASSED' || status === 'passed';
-      if (settings.mode === 'on-failure' && passed && !this._videoForcedByTag) {
+      // on-failure keeps a passing scenario's video only when the @video tag
+      // or "I save the current video as" asked for it.
+      if (settings.mode === 'on-failure' && passed && !this._videoForcedByTag && !this._videoSaveAsName) {
         await videoRef.delete().catch(() => {});
       } else {
         await videoRef.saveAs(dest);

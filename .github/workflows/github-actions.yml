@@ -86,6 +86,9 @@ jobs:
       - name: Check that a replaced browser context keeps what the scenario set up
         run: npm run test:context
 
+      - name: Check the video files of the three recording modes
+        run: npm run test:video
+
       - name: Start virtual server
         run: npm start &
 
