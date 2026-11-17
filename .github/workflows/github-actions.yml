@@ -56,6 +56,9 @@ jobs:
       - name: Check that only a failed step leaves a failure screenshot
         run: npm run test:screenshots
 
+      - name: Check that a configuration with only the launch URL runs
+        run: npm run test:config
+
       - name: Start virtual server
         run: npm start &
 
