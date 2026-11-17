@@ -39,6 +39,8 @@ worldParameters: {
 }
 ```
 
+A file of `files` (and of `When I add selectors from "…" file`) is looked for in the `filesPath` folder first (default `./tests/selectors/`), then as written from the project root: `'auth.json'` and `'tests/selectors/auth.json'` name the same file. A file found in neither place fails the scenario with the paths tried.
+
 Every scenario starts with a fresh registry. Later entries with the same name override earlier ones (last wins).
 
 ## Built-in CMS / framework presets

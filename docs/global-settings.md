@@ -79,6 +79,8 @@ default below.
 
 ### `selectors` — named selector registry
 
+A selector file of `files` is looked for in the `filesPath` folder first (default `./tests/selectors/`), then as written from the project root, so `'auth.json'` and `'tests/selectors/auth.json'` name the same file.
+
 ```js
 selectors: {
   css: { /* name → CSS selector */ },
