@@ -53,6 +53,9 @@ jobs:
       - name: Check that a feature named on the command line runs alone
         run: npm run test:paths
 
+      - name: Check that each JavaScript-error check counts its own kind
+        run: npm run test:js-errors
+
       - name: Check that only a failed step leaves a failure screenshot
         run: npm run test:screenshots
 

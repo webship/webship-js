@@ -83,6 +83,19 @@ function filterErrors(errs, ignore) {
   return errs.filter((e) => !ignore.test(e.message));
 }
 
+// The kind of a collected entry: "error" for an uncaught error or a
+// console.error, else the console level it was logged at ("warning", ...).
+function kindOf(entry) {
+  return entry.type === 'pageerror' || entry.type === 'console.error' ? 'error' : String(entry.type).replace(/^console\./, '');
+}
+
+// A check handles the kind of entries it read: the end-of-scenario report
+// leaves those out and still reports the others.
+function markHandled(world, kind) {
+  if (!world._jsHandledKinds) world._jsHandledKinds = new Set();
+  world._jsHandledKinds.add(kind);
+}
+
 function reportWarning(scope, errs) {
   const name = (scope && scope.pickle && scope.pickle.name) || 'scenario';
   // Yellow ANSI when FORCE_COLOR is on, plain otherwise — let the runtime
@@ -128,11 +141,14 @@ Before({ order: 200 }, function (scope) {
 // ---------------------------------------------------------------------------
 
 /**
- * Assert that no JavaScript errors have been collected so far.
+ * Assert that no JavaScript errors have been collected so far: uncaught
+ * errors and console.error. A console warning is not an error, even when
+ * warnings are captured.
  *
  * Always fails on error (ignoring the active mode) — this is the explicit
- * "hard check" step. Calling it also prevents the auto-report at scenario
- * end so a single error is not reported twice.
+ * "hard check" step. Calling it also leaves the errors out of the
+ * auto-report at scenario end, so a single error is not reported twice;
+ * captured warnings are still reported there.
  *
  * Example #1: Then there should be no JavaScript errors
  * Example #2: And there should be no JavaScript errors
@@ -142,8 +158,9 @@ Before({ order: 200 }, function (scope) {
  *
  */
 Then(/^there should be no JavaScript errors$/, function () {
-  this._jsErrorsAsserted = true;
-  const errs = filterErrors(this._jsErrors || [], this._jsSettings && this._jsSettings.ignore);
+  markHandled(this, 'error');
+  const errs = filterErrors(this._jsErrors || [], this._jsSettings && this._jsSettings.ignore)
+    .filter((e) => kindOf(e) === 'error');
   if (errs.length === 0) return;
   assert.fail(`JavaScript errors detected:\n${formatErrors(errs)}`);
 });
@@ -151,7 +168,8 @@ Then(/^there should be no JavaScript errors$/, function () {
 /**
  * Assert that no JavaScript console warnings were collected. Requires
  * 'warning' to be in the captured console levels (see worldParameters or
- * WEBSHIP_JS_ERROR_LEVELS).
+ * WEBSHIP_JS_ERROR_LEVELS). The warnings are left out of the auto-report at
+ * scenario end; errors are still reported there.
  *
  * Example #1: Then there should be no JavaScript warnings
  * Example #2: And there should be no JavaScript warnings
@@ -161,8 +179,8 @@ Then(/^there should be no JavaScript errors$/, function () {
  *
  */
 Then(/^there should be no JavaScript warnings$/, function () {
-  this._jsErrorsAsserted = true;
-  const errs = (this._jsErrors || []).filter((e) => e.type === 'console.warning');
+  markHandled(this, 'warning');
+  const errs = (this._jsErrors || []).filter((e) => kindOf(e) === 'warning');
   if (errs.length === 0) return;
   assert.fail(`JavaScript warnings detected:\n${formatErrors(errs)}`);
 });
@@ -221,7 +239,8 @@ After({ order: 200 }, function (scope) {
   if (!s.afterScenario) return;
   if (this._jsErrorsAsserted) return;            // already handled by explicit step
 
-  const errs = filterErrors(this._jsErrors || [], s.ignore);
+  const handled = this._jsHandledKinds || new Set();
+  const errs = filterErrors(this._jsErrors || [], s.ignore).filter((e) => !handled.has(kindOf(e)));
   if (errs.length === 0) return;
 
   if (s.mode === 'fail') {

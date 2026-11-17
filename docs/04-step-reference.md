@@ -227,7 +227,7 @@ Settings (`worldParameters.javascript`):
 | `beforeScenario` | `WEBSHIP_JS_ERROR_BEFORE` | `false` | Snapshot pre-existing errors at scenario start |
 | `afterScenario` | `WEBSHIP_JS_ERROR_AFTER` | `true` | Report at scenario end |
 
-The explicit step `Then there should be no JavaScript errors` always asserts (independent of `mode`) and suppresses the auto-report so a single error is not announced twice.
+The explicit step `Then there should be no JavaScript errors` counts errors only — uncaught errors and `console.error`, not the warnings when `warning` is a captured level — always asserts (independent of `mode`) and leaves the errors out of the auto-report so a single error is not announced twice; `Then there should be no JavaScript warnings` does the same for the warnings. What a check did not read is still reported at the end of the scenario.
 
 ## Video recording
 
