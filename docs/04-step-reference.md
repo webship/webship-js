@@ -35,9 +35,9 @@ This is a topical reference. For per-step examples, see the JSDoc comment above 
 | `When I fill in the following:` (table) | Bulk fill |
 | `When I select "Option" from "Label"` | `<select>` by the exact text of its label, its name, its id, or a CSS selector (`#`, `.`, `[`); the option by its text or value |
 | `When I additionally select "Option" from "Label"` | Multi-select |
-| `When I check the checkbox "#agree"` | |
-| `When I uncheck the checkbox "#agree"` | |
-| `When I choose the radio button "#radio"` | |
+| `When I check the checkbox "#agree"` | By CSS selector, label, name, id or value |
+| `When I uncheck the checkbox "#agree"` | By CSS selector, label, name, id or value |
+| `When I choose the radio button "#radio"` | By CSS selector, label, id or value |
 
 ## Waits — see [BBR](02-bbr-smart-waits.md)
 
@@ -362,6 +362,7 @@ This index lists every public step grouped by source file, with one Gherkin exam
 - *^print API response$*  ·  Example: `Then print API response`
 - *^(?:the )?API response should( not)? contain the header "([^"]*)"$*  ·  Example: `Then the API response should contain the header "ETag"`
 - *^(?:I|we) set placeholder "([^"]*)" to "([^"]*)"$*  ·  Example: `Given I set placeholder "{{userId}}" to "123"`
+- *^(I |we )*save the JSON property "([^"]*)" as placeholder "([^"]*)"$*  ·  Example: `When I save the JSON property "token" as placeholder "{{token}}"`
 
 ### assertion.steps.js
 
@@ -520,6 +521,7 @@ This index lists every public step grouped by source file, with one Gherkin exam
 - *^(I |we )*fill in "([^"]*)" with "([^"]*)" inside the iframe$*  ·  Example: `When I fill in "card_number" with "4242 4242 4242 4242" inside the iframe`
 - *^I should see "([^"]*)" inside the iframe$*  ·  Example: `Then I should see "Payment received" inside the iframe`
 - *^I should not see "([^"]*)" inside the iframe$*  ·  Example: `Then I should not see "Error" inside the iframe`
+- The iframe steps act in the iframe the scenario switched to last; while an iframe is active, a switch looks for the iframe inside it first, then in the page (nested iframes). `by attr inside the iframe` tries the attributes `I click "…" by attr` tries; the frame fill finds a field by label, placeholder, name or id; `I should (not) see "…" inside the iframe` reads the iframe as `I should (not) see` reads the page and waits up to 5 seconds.
 
 ### input.steps.js
 

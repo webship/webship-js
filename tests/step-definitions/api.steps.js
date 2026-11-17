@@ -7,8 +7,15 @@ const { friendly, sendRequest, excerpt } = require('./webship');
 // (no cookie of the browser goes with it), and it follows the HTTPS setting
 // of the browser context, so a self-signed or locally issued certificate is
 // accepted whenever the browser accepts it.
+// Placeholders are replaced in the headers when the request is sent, so a
+// header set before its value exists (in a Background, before the response
+// that carries it) gets it.
 function sendApiRequest(world, method, url, headers, data) {
-  return sendRequest(world, { method, url, headers, data, session: false });
+  const sent = {};
+  for (const [name, value] of Object.entries(headers || {})) {
+    sent[name] = typeof value === 'string' ? replacePlaceHolder(value) : value;
+  }
+  return sendRequest(world, { method, url, headers: sent, data, session: false });
 }
 
 // Global variables to store API response and request data
@@ -20,22 +27,26 @@ let authorization = '';
 let placeHolders = {};
 
 Before(async function () {
-  // Reset API state before each scenario
+  // Reset API state before each scenario: the base URL too, so a scenario
+  // sends its requests where it says, alone or after another one.
   apiResponse = null;
   apiRequestData = null;
   apiHeaders = {};
+  baseURL = '';
   authorization = '';
   placeHolders = {};
 });
 
 /**
- * Helper function to replace placeholders in text
+ * Replace the placeholders of the scenario in a text, as plain text: no
+ * character of a name or a value has a special meaning ("$1.50", "[id]").
  */
 function replacePlaceHolder(string) {
+  let text = String(string);
   for (const [key, value] of Object.entries(placeHolders)) {
-    string = string.replace(new RegExp(key, 'g'), value);
+    if (key) text = text.split(key).join(String(value));
   }
-  return string;
+  return text;
 }
 
 /**
@@ -99,6 +110,24 @@ function nameValueRows(table) {
  */
 function prepareUrl(url) {
   return replacePlaceHolder(url).replace(/^\/+/, '');
+}
+
+/**
+ * The address a request step sends to: a whole `http(s)://` URL as written,
+ * else the path joined to the base URL of the scenario. Without a base URL a
+ * path has no address, and the step fails before sending anything.
+ */
+function apiUrl(endpoint, method) {
+  const target = replacePlaceHolder(endpoint);
+  if (/^https?:\/\//i.test(target)) return target;
+  if (!baseURL) {
+    throw friendly([
+      `No API base URL is set, so "${target}" has no address.`,
+      `  Request: ${method} ${target} (not sent)`,
+      `  Hint: set one in the scenario or its Background before the request: Given the API base URL is "https://api.example.com" ("/" for the launch URL of the run), or give the request a whole URL.`,
+    ].join('\n'));
+  }
+  return baseURL + '/' + prepareUrl(endpoint);
 }
 
 /**
@@ -186,7 +215,10 @@ Given(/^(?:I |we )?set header "([^"]*)" with value "([^"]*)"$/, function (name, 
 });
 
 /**
- * Set the base URL for API calls. Accepts full URLs or paths relative to LAUNCH_URL.
+ * Set the base URL of the API requests of this scenario. A full URL is used as
+ * written; a path is joined to the launch URL of the run (worldParameters
+ * launchUrl, which LAUNCH_URL sets). The base URL is reset before every
+ * scenario: set it in each scenario, or in a Background.
  *
  * Example #1: Given the API base URL is "https://jsonplaceholder.typicode.com"
  * Example #2: Given I set the API base URL to "https://api.example.com/v1"
@@ -202,8 +234,8 @@ Given(/^(?:the API base URL is|I set the API base URL to|the base URL is) "([^"]
   if (url.match(/^https?:\/\//)) {
     baseURL = url.replace(/\/$/, ''); // Remove trailing slash
   } else {
-    // If not a full URL, combine with the LAUNCH_URL env variable or default
-    const launchUrl = (process.env.LAUNCH_URL || 'http://localhost:8080').replace(/\/$/, '');
+    // A path: joined to the launch URL of the run, as "I am on" joins one.
+    const launchUrl = String(this.launchUrl || (this.parameters && this.parameters.launchUrl) || process.env.LAUNCH_URL || 'http://localhost:8080').replace(/\/$/, '');
     baseURL = (launchUrl + '/' + url).replace(/\/+/g, '/').replace(/\/$/, '');
     baseURL = baseURL.replace(':/', '://');
   }
@@ -330,7 +362,7 @@ Given(/^(?:I|we) set the request body with:$/, function (table) {
  * Example #10: When we send a GET request to "/posts/{{postId}}"
  */
 When(/^(?:I |we )?send a ([A-Z]+) request to "([^"]+)"$/, async function (method, endpoint) {
-  const url = baseURL + '/' + prepareUrl(endpoint);
+  const url = apiUrl(endpoint, method);
   
   try {
     apiResponse = await sendApiRequest(this, method, url, apiHeaders, apiRequestData);
@@ -362,7 +394,7 @@ When(/^(?:I |we )?send a ([A-Z]+) request to "([^"]+)"$/, async function (method
  *               | userId | 1               |
  */
 When(/^(?:I |we )?send a ([A-Z]+) request to "([^"]+)" with values:$/, async function (method, endpoint, table) {
-  const url = baseURL + '/' + prepareUrl(endpoint);
+  const url = apiUrl(endpoint, method);
   const fields = {};
   
   const rowsHash = table.rowsHash();
@@ -414,7 +446,7 @@ When(/^(?:I |we )?send a ([A-Z]+) request to "([^"]+)" with values:$/, async fun
  *               """
  */
 When(/^(?:I |we )?send a ([A-Z]+) request to "([^"]+)" with body:$/, async function (method, endpoint, docString) {
-  const url = baseURL + '/' + prepareUrl(endpoint);
+  const url = apiUrl(endpoint, method);
   const body = replacePlaceHolder(docString.trim());
 
   // Parse JSON if the body looks like JSON, otherwise send as string
@@ -474,7 +506,7 @@ When(/^(?:I |we )?send a ([A-Z]+) request to "([^"]+)" with body:$/, async funct
  *               """
  */
 When(/^(?:I |we )?send a ([A-Z]+) request to "([^"]+)" with form data:$/, async function (method, endpoint, docString) {
-  const url = baseURL + '/' + prepareUrl(endpoint);
+  const url = apiUrl(endpoint, method);
   const body = replacePlaceHolder(docString.trim());
   
   // Parse form data: one field per line, split on its first "=".
@@ -886,3 +918,44 @@ Then(/^(?:the )?API response should( not)? contain the header "([^"]*)"$/, funct
 Given(/^(?:I|we) set placeholder "([^"]*)" to "([^"]*)"$/, function (placeholder, value) {
   placeHolders[placeholder] = value;
 });
+
+/**
+ * Save a JSON property of the last API response as a placeholder, to carry a
+ * value the API returned (a token, the id of a new record) into the URLs,
+ * headers and bodies of the next requests and into the checks. The property
+ * is named the way the other JSON property steps name it.
+ *
+ * Example #1: When I save the JSON property "token" as placeholder "{{token}}"
+ * Example #2: When we save the JSON property "id" as placeholder "{{postId}}"
+ * Example #3: And I save the JSON property "data.0.id" as placeholder "{{articleId}}"
+ * Example #4: When I save the JSON property "user.email" as placeholder "{{email}}"
+ * Example #5: Then I save the JSON property "meta.total" as placeholder "{{total}}"
+ *               And I send a GET request to "/items?count={{total}}"
+ */
+When(/^(I |we )*save the JSON property "([^"]*)" as placeholder "([^"]*)"$/, function (pronoun, propertyPath, placeholder) {
+  if (!apiResponse) {
+    throw friendly({
+      action: `save the JSON property "${propertyPath}" as placeholder "${placeholder}"`,
+      cause: 'no API response yet',
+      hint: 'send a request first: When I send a GET request to "/path"',
+    });
+  }
+  const value = getNestedProperty(apiResponse.data, propertyPath);
+  if (value === undefined) {
+    throw apiFailure(`The JSON response has no "${propertyPath}" to save as placeholder "${placeholder}".`, {
+      found: `"${excerpt(responseText(apiResponse))}"`,
+      hint: 'name the property the way the JSON property steps do: "token", "data.0.id".',
+    });
+  }
+  placeHolders[placeholder] = typeof value === 'string' ? value : JSON.stringify(value);
+});
+
+// The state of the API steps for a custom step: the last response and the
+// placeholders of the scenario.
+module.exports = {
+  getApiResponse: () => apiResponse,
+  setPlaceholder: (name, value) => { placeHolders[name] = String(value); },
+  getPlaceholder: (name) => placeHolders[name],
+  replacePlaceHolder,
+  getNestedProperty,
+};

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Checkboxes, radio buttons and fields named by label, name or id</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    p, fieldset { margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <h1>Checkboxes, radio buttons and fields</h1>
+  <form id="choices">
+    <p><label><input type="checkbox" id="opt-news" name="newsletter" checked> Newsletter</label></p>
+    <p>
+      <input type="hidden" name="terms" value="0">
+      <input type="checkbox" id="opt-terms" name="terms" value="1">
+      <label for="opt-terms">Accept the terms</label>
+    </p>
+    <fieldset>
+      <legend>Plan</legend>
+      <label><input type="radio" name="plan" value="basic" id="plan-basic"> Basic</label>
+      <label><input type="radio" name="plan" value="premium" id="plan-premium" checked> Premium</label>
+    </fieldset>
+    <p><label for="city">City</label> <input id="city" name="city_name" type="text"></p>
+    <p><input type="text" name="nickname" id="nick" aria-label="Nick"></p>
+  </form>
+</body>
+</html>

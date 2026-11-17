@@ -41,9 +41,11 @@ suite — nearly every bundled feature loads a static fixture from `examples/`.
 | `npm run test:examples` | No browser: every step definition is documented, every `Example #n:` step and every feature step resolves to exactly one definition. |
 | `npm run test:attachments` | Needs browsers, no server: the steps that print what they found (the accessibility print steps) attach the same text to their step in the JSON report. |
 | `npm run test:must-fail` | Runs the scenarios of `tests/must-fail/` (they must fail) and checks each failure message: what was looked for, the page, a hint. Needs `npm start`. |
+| `npm run test:api-launch-url` | Needs browsers, no server of its own: the relative API base URL (`Given the API base URL is "/"`) is joined to `worldParameters.launchUrl`. |
 | `npm run test:paths` | No browser: a feature or a scenario (`file:line`) named on the command line runs alone; naming none runs the whole suite. |
 | `npm run test:config` | A `cucumber.js` whose `worldParameters` carry only the launch URL runs a scenario green and the run ends by itself. |
 | `npm run test:exit-report` | Needs browsers, no server: the HTML report built at the end of a run is built once with `--parallel`, from a JSON report written elsewhere, and says so in one line when there is none. |
+| `npm run test:world` | A project World that extends `PlaywrightWorld` keeps the viewport tag and `this.smartSettle()`; a World that replaces it is reported. |
 | `npm run test:clock` | Under a fake clock a navigation and a press settle when the page is quiet; a clock step on a clock nobody installed says so. |
 | `npm run test:video` | The video files of the `on`, `on-failure` and `off` modes: final names in lower case, no temporary file left, the printed path is the saved one, reserved names kept, stopped recordings named by the pattern. |
 | `npm run test:context` | A step that replaces the browser context (restore an auth state, start / stop a video) keeps the viewport, the smart waits, the cookies, JavaScript-error capture and the request log. |
@@ -65,8 +67,7 @@ HEADLESS=false SLOW_MO=800 npx cucumber-js tests/features/x.feature   # watch a 
 Env vars: `LAUNCH_URL`, `BROWSER`, `HEADLESS`, `SLOW_MO`, `FORCE_COLOR`,
 `WEBSHIP_AUTO_SETTLE`, `WEBSHIP_STEP_TIMEOUT`, `WEBSHIP_REPORT_DISABLE`, `WEBSHIP_REPORT_ARGS`, `WEBSHIP_REPORT_JSON`,
 `WEBSHIP_FILTER_HOOK_LINES`, `WEBSHIP_SCREENSHOT_*`, `WEBSHIP_VIDEO*`,
-`WEBSHIP_JS_ERROR_*`, `WEBSHIP_SELECTORS_OFFSET`,
-`WEBSHIP_SELECTORS_BREAKPOINTS`, `DIFFY_*`. Every one of them mirrors a
+`WEBSHIP_JS_ERROR_*`, `WEBSHIP_SELECTORS_BREAKPOINTS`, `DIFFY_*`. Every one of them mirrors a
 `worldParameters` key in `cucumber.js` — that file is the annotated
 reference; read it before inventing a new knob.
 
@@ -124,6 +125,11 @@ Everything shared lives here; every `*.steps.js` does
   mode, then closes the browser; `BeforeStep` resolves `[relative:…]` date
   tokens in step text, doc strings, and data-table cells; `AfterStep`
   runs the auto-settle.
+* **`PlaywrightWorld` is exported** so a project extends it
+  (`setWorldConstructor(class extends PlaywrightWorld { … })`) instead of
+  replacing it; a World that does not extend it is reported once at the
+  start of the run. Its `smartSettle(budget = 1500)` method is the settle a
+  custom step calls after changing the page.
 * **Shared helpers** (exported): `smartSettle`, `waitForPageLoad`,
   `buildSelector`, `gotoUrl`, `fillField`, `getLocatorText`, `pad`,
   the modal probes (`getModalSelector`, `getModalLocator`,
@@ -289,7 +295,7 @@ tests/step-definitions/
 ├── webship.js              # World, hooks, init script, shared helpers — see §2.2. Not a steps file.
 ├── a11y.steps.js           (30)  # axe-core WCAG audits + POUR hygiene probes (axe loaded lazily)
 ├── action.steps.js          (7)  # press / click / follow / attach file (actOrExplain lives here)
-├── api.steps.js            (23)  # REST long form — base URL, headers, query, body, JSON Pointer
+├── api.steps.js            (24)  # REST long form — base URL, headers, query, body, JSON Pointer
 ├── assertion.steps.js      (14)  # see / not see, in row, in element, response, count
 ├── auth.steps.js            (3)  # storageState save / restore / clear
 ├── clock.steps.js           (7)  # page.clock — install / advance / pause / set

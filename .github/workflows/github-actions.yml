@@ -50,6 +50,9 @@ jobs:
       - name: Check that a dry run prints no line for each skipped step
         run: npm run test:dry-run
 
+      - name: Check that the relative API base URL follows the launch URL
+        run: npm run test:api-launch-url
+
       - name: Check the step examples and the feature steps
         run: npm run test:examples
 
@@ -85,6 +88,9 @@ jobs:
 
       - name: Check the video files of the three recording modes
         run: npm run test:video
+
+      - name: Check that a project extends the World and settles its own steps
+        run: npm run test:world
 
       - name: Check the smart waits under a fake clock
         run: npm run test:clock
