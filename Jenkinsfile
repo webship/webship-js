@@ -1,7 +1,9 @@
 // Jenkins declarative pipeline for webship-js.
 //
 // Runs the full BDD suite against an http-server fixture on port 8080.
-// Uses the official Playwright image so chromium + all apt deps are baked in.
+// Uses the official Playwright image of the version the install brings, so
+// chromium + all apt deps are baked in; `npx playwright install` below gets
+// the browser of a newer Playwright release when there is one.
 //
 // Requirements on the Jenkins controller:
 //   - Docker Pipeline plugin (built into the "suggested plugins" install)
@@ -13,7 +15,7 @@
 pipeline {
   agent {
     docker {
-      image 'mcr.microsoft.com/playwright:v1.58.2-jammy'
+      image 'mcr.microsoft.com/playwright:v1.65.1-noble'
       args  '-u root:root'
     }
   }
@@ -47,7 +49,7 @@ pipeline {
   }
   post {
     always {
-      archiveArtifacts artifacts: 'tests/reports/cucumber_report.html,tests/reports/cucumber_report.pdf,tests/reports/cucumber_report.json,screenshots/**/*',
+      archiveArtifacts artifacts: 'tests/reports/**/*,screenshots/**/*,videos/**/*',
                        allowEmptyArchive: true
     }
   }

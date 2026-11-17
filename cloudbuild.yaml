@@ -1,9 +1,10 @@
 # Google Cloud Build config for webship-js.
 #
 # Runs the full BDD suite inside a Playwright-prepped container on Google's
-# managed builder pool. Free tier (post-$300 credit): 120 build-minutes per
-# day on the default `e2-standard-2` machine — the 9-minute suite fits ~13
-# runs / day.
+# managed builder pool. For the free tier and the prices, see the Cloud Build
+# pricing page: they change over time. The image is the one of the Playwright
+# the install brings; `npx playwright install` gets the browser of a newer
+# Playwright release when there is one.
 #
 # Setup (full walkthrough in docs/16-ci-cd.md → "Google Cloud Build"):
 #   1. console.cloud.google.com → create project → enable Cloud Build API.
@@ -22,7 +23,7 @@ timeout: '1800s'
 
 steps:
   - id: install-and-test
-    name: 'mcr.microsoft.com/playwright:v1.58.2-jammy'
+    name: 'mcr.microsoft.com/playwright:v1.65.1-noble'
     entrypoint: 'bash'
     env:
       - 'FORCE_COLOR=1'
@@ -38,12 +39,27 @@ steps:
         nohup npm start > /tmp/srv.log 2>&1 &
         sleep 3
         curl -sf http://localhost:8080/ > /dev/null
-        npm test
+        # A failing suite must not stop the build before the report is kept:
+        # the result is checked by the last step.
+        npm test || touch /workspace/.tests-failed
 
-artifacts:
-  objects:
-    location: 'gs://${_ARTIFACT_BUCKET}/$BUILD_ID/'
-    paths:
-      - 'tests/reports/cucumber_report.html'
-      - 'tests/reports/cucumber_report.pdf'
-      - 'tests/reports/cucumber_report.json'
+  # Cloud Build uploads the files of `artifacts:` only when every step
+  # succeeds, so the report, the screenshots and the videos are copied here,
+  # passed or failed.
+  - id: keep-report
+    name: 'gcr.io/cloud-builders/gsutil'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        for dir in tests/reports screenshots videos; do
+          if [ -d "$$dir" ]; then gsutil -m cp -r "$$dir" "gs://${_ARTIFACT_BUCKET}/$BUILD_ID/"; fi
+        done
+
+  - id: test-result
+    name: 'gcr.io/cloud-builders/gsutil'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        if [ -f /workspace/.tests-failed ]; then echo "The suite failed: see the report in gs://${_ARTIFACT_BUCKET}/$BUILD_ID/"; exit 1; fi
