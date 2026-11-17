@@ -8,7 +8,7 @@ This documentation page covers screenshot capture functionality in Webship JS 2.
 ## Key Features
 
 **Auto-capture hooks** activate screenshots in two scenarios:
-- On failed steps (with `failedPrefix` prepended)
+- On failed steps (with `failedPrefix` prepended); the screenshot of a failed step is also attached to that step in the JSON report, so the HTML report shows it
 - On every step when scenarios are tagged `@screenshots`
 
 **Filename tokens** can be used in `with name "..."` steps or configuration keys like `filenamePattern` and `filenamePatternFailed`.

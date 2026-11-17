@@ -62,6 +62,9 @@ minWaitTime: {
 }
 ```
 
+Every key is optional, and so is the block: a key left out keeps the
+default below.
+
 | Key | Default | Purpose |
 | --- | --- | --- |
 | `page` | `3000` | Per-navigation budget for `smartSettle`. Bump for slow CI. |

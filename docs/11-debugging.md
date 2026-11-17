@@ -4,7 +4,7 @@ When a scenario fails, you have several layers of evidence to inspect.
 
 ## Auto-screenshot on failure
 
-Every failed step automatically writes a screenshot under `screenshots/` with a timestamped filename. Configure in `cucumber.js`:
+Every failed step automatically writes a screenshot under `screenshots/` with a timestamped filename, and attaches it to the failed step in the JSON report: the HTML report shows it under that step. Configure in `cucumber.js`:
 
 ```js
 worldParameters: {

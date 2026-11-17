@@ -55,7 +55,9 @@ HEADLESS=false npm test    # same, default slow-mo
 ```
 
 Failed scenarios save a PNG under `screenshots/failed_*.png`. The
-filename embeds the feature, scenario line, and timestamp.
+filename embeds the feature, scenario line, and timestamp. The same
+picture is attached to the failed step in the JSON report, so the HTML
+report shows it under that step.
 
 ## How do I run a single feature / scenario?
 

@@ -454,10 +454,12 @@ async function gotoUrl(page, url) {
  *
  * @param {import('playwright').Page} page
  * @param {string} field - Label / placeholder / name.
- * @param {string} value - Value to type.
+ * @param {string} value - Value to type; null or undefined fills an empty value.
  * @returns {Promise<void>}
  */
 async function fillField(page, field, value) {
+  // An empty value in a step ("") reaches the definition as null: it means "".
+  value = value === undefined || value === null ? '' : String(value);
   const byLabel = page.getByLabel(field, { exact: true });
   if (await byLabel.count() > 0) {
     await byLabel.fill(value);
@@ -962,11 +964,21 @@ const STEP_TIMEOUT = (() => {
 })();
 setDefaultTimeout(STEP_TIMEOUT);
 
+// The pacing of worldParameters.minWaitTime, in ms. A project may leave the
+// block out or set only some of its keys: the others keep these values.
+const MIN_WAIT_TIME = Object.freeze({
+  page: 3000,
+  before_scenario: 0,
+  after_scenario: 0,
+  before_step: 0,
+  after_step: 0,
+});
+
 class PlaywrightWorld extends World {
   constructor(options) {
     super(options);
     this.launchUrl = this.parameters.launchUrl;
-    this.minWaitTime = this.parameters.minWaitTime;
+    this.minWaitTime = Object.assign({}, MIN_WAIT_TIME, this.parameters.minWaitTime || {});
     this.playwrightBrowser = null;
     this.context = null;
     this.page = null;
