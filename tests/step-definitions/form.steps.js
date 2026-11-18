@@ -5,7 +5,7 @@
 // check / uncheck, radio buttons.
 
 const { When } = require('@cucumber/cucumber');
-const { buildSelector, fillField, fillLocator, friendly, failure, humanize, isTimeout } = require('./webship');
+const { buildSelector, fillField, fillLocator, friendly, failure, humanize, isTimeout, setChecked } = require('./webship');
 
 // ---------------------------------------------------------------------------
 // Fill — by label, attribute, table, reverse syntax
@@ -287,7 +287,9 @@ When(/^(I |we )*additionally select "([^"]*)" from "([^"]*)"$/, async function (
 // ---------------------------------------------------------------------------
 
 /**
- * Checks the specified checkbox by label, id, class, or name.
+ * Checks the specified checkbox by label, id, class, or name. A toggle
+ * switch whose slider covers its checkbox, and a checkbox whose label draws
+ * the box, are clicked through their label, as a person does.
  *
  * Example #1: When I check "Remember me"
  * Example #2: When we check "Put site into maintenance mode"
@@ -299,13 +301,13 @@ When(/^(I |we )*additionally select "([^"]*)" from "([^"]*)"$/, async function (
 When(/^(I |we )*check "([^"]*)?"$/, async function (pronounCase, item) {
   try {
     if (item.startsWith('#') || item.startsWith('.')) {
-      await this.page.locator(item).check();
+      await setChecked(this.page.locator(item), true);
     } else {
       const byLabel = this.page.getByLabel(item, { exact: true });
       if (await byLabel.count() > 0) {
-        await byLabel.check();
+        await setChecked(byLabel, true);
       } else {
-        await this.page.locator(`input[type="checkbox"][id="${item}"], input[type="checkbox"][name="${item}"], input[type="checkbox"][value="${item}"]`).first().check();
+        await setChecked(this.page.locator(`input[type="checkbox"][id="${item}"], input[type="checkbox"][name="${item}"], input[type="checkbox"][value="${item}"]`).first(), true);
       }
     }
   } catch (e) {
@@ -318,7 +320,9 @@ When(/^(I |we )*check "([^"]*)?"$/, async function (pronounCase, item) {
 });
 
 /**
- * Unchecks the specified checkbox by label, id, class, or name.
+ * Unchecks the specified checkbox by label, id, class, or name. A toggle
+ * switch whose slider covers its checkbox, and a checkbox whose label draws
+ * the box, are clicked through their label, as a person does.
  *
  * Example #1: When I uncheck "Remember me"
  * Example #2: When we uncheck "Put site into maintenance mode"
@@ -330,13 +334,13 @@ When(/^(I |we )*check "([^"]*)?"$/, async function (pronounCase, item) {
 When(/^(I |we )*uncheck "([^"]*)?"$/, async function (pronounCase, item) {
   try {
     if (item.startsWith('#') || item.startsWith('.')) {
-      await this.page.locator(item).uncheck();
+      await setChecked(this.page.locator(item), false);
     } else {
       const byLabel = this.page.getByLabel(item, { exact: true });
       if (await byLabel.count() > 0) {
-        await byLabel.uncheck();
+        await setChecked(byLabel, false);
       } else {
-        await this.page.locator(`input[type="checkbox"][id="${item}"], input[type="checkbox"][name="${item}"], input[type="checkbox"][value="${item}"]`).first().uncheck();
+        await setChecked(this.page.locator(`input[type="checkbox"][id="${item}"], input[type="checkbox"][name="${item}"], input[type="checkbox"][value="${item}"]`).first(), false);
       }
     }
   } catch (e) {

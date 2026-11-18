@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Toggle switches and custom checkboxes | Webship-js</title>
+  <style>
+    /* A toggle switch as cookie consent dialogs draw it: the checkbox is an
+       invisible input, and the slider of its label lies on top of it. */
+    .switch { position: relative; display: block; height: 30px; margin: 12px 0; }
+    .switch input { position: absolute; top: 0; left: 0; opacity: 0; width: 50px; height: 30px; margin: 0; }
+    .switch .slider { position: absolute; top: 0; left: 0; width: 50px; height: 30px; background: #ccc; border-radius: 15px; }
+    .switch input:checked + label .slider { background: #2a7; }
+    .switch .title { margin-left: 60px; line-height: 30px; }
+    /* A custom checkbox: the input is not displayed, its label draws the box. */
+    .custom input { display: none; }
+    .custom label::before { content: ""; display: inline-block; width: 16px; height: 16px; margin-right: 8px; border: 1px solid #333; }
+    .custom input:checked + label::before { background: #333; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Toggle switches and custom checkboxes</h1>
+    <div class="switch">
+      <input id="analytics" type="checkbox" aria-labelledby="analytics-title">
+      <label for="analytics"><span class="slider"></span><span id="analytics-title" class="title">Analytics cookies</span></label>
+    </div>
+    <div class="switch">
+      <input id="marketing" type="checkbox" aria-labelledby="marketing-title" checked>
+      <label for="marketing"><span class="slider"></span><span id="marketing-title" class="title">Marketing cookies</span></label>
+    </div>
+    <div class="custom">
+      <input id="remember" type="checkbox">
+      <label for="remember">Remember this device</label>
+    </div>
+  </main>
+</body>
+</html>
