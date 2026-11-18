@@ -35,6 +35,7 @@
     "test:world": "node tests/check-world.js",
     "test:clock": "node tests/check-clock.js",
     "test:settle-verbs": "node tests/check-settle-verbs.js",
+    "test:network-changed": "node tests/check-network-changed.js",
     "test:fast": "SLOW_MO=0 cucumber-js --config cucumber.js",
     "test:assets": "node tests/check-assets.js",
     "test:examples": "node tests/check-examples.js",
