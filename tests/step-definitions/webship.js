@@ -927,6 +927,50 @@ function isTimeout(error) {
 }
 
 /**
+ * Check or uncheck a checkbox, or select a radio button, the way a person
+ * does. A toggle switch draws its slider over the checkbox (an invisible
+ * input under a part of its own label), and a custom checkbox hides the input
+ * and draws the box with its label: Playwright's check() then finds no way to
+ * click the input and waits out its whole timeout. A person clicks the label,
+ * and so does this when the input is hidden or covered by a part of its own
+ * label; the control must then reach the asked state. Any other control is
+ * checked by Playwright as before.
+ *
+ * @param {import('playwright').Locator} loc - The input (one element).
+ * @param {boolean} wanted                   - true to check / select, false to uncheck.
+ * @param {Object} [options]
+ * @param {number} [options.timeout]         - For Playwright's check() / uncheck().
+ * @returns {Promise<void>}
+ */
+async function setChecked(loc, wanted, options) {
+  const timeout = options && options.timeout;
+  await loc.waitFor({ state: 'attached', timeout });
+  const label = (await loc.evaluateHandle((el) => {
+    const own = (el.labels && el.labels[0]) || el.closest('label');
+    if (!own) return null;
+    const style = getComputedStyle(el);
+    const box = el.getBoundingClientRect();
+    if (box.width === 0 || box.height === 0 || style.display === 'none' || style.visibility === 'hidden') return own;
+    el.scrollIntoView({ block: 'center', inline: 'center' });
+    const at = el.getBoundingClientRect();
+    const top = document.elementFromPoint(at.left + at.width / 2, at.top + at.height / 2);
+    return top && top !== el && !el.contains(top) && own.contains(top) ? own : null;
+  })).asElement();
+  if (!label) {
+    await (wanted ? loc.check({ timeout }) : loc.uncheck({ timeout }));
+    return;
+  }
+  if ((await loc.isChecked()) !== wanted) await label.click({ timeout });
+  const deadline = Date.now() + 5000;
+  while ((await loc.isChecked()) !== wanted) {
+    if (Date.now() > deadline) {
+      throw new Error(`clicking its label left it ${wanted ? 'unchecked' : 'checked'}`);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+}
+
+/**
  * Build the failure of an assertion for a tester: what was looked for, what
  * was found, the address of the page and a hint. No call log, no stack.
  *
@@ -975,6 +1019,7 @@ module.exports = {
   failure,
   excerpt,
   isTimeout,
+  setChecked,
   registeredNameHint,
   pageTextLocator,
   breakpoints,

@@ -4,7 +4,7 @@
 
 const { Given, When, Then } = require('@cucumber/cucumber');
 const assert = require('assert');
-const { friendly, failure, fillLocator, humanize, isTimeout } = require('./webship');
+const { friendly, failure, fillLocator, humanize, isTimeout, setChecked } = require('./webship');
 
 // Resolve a field by label, name, id, or selector.
 function fieldLocator(page, field) {
@@ -220,7 +220,7 @@ async function setChoice(world, name, kind, action) {
   const spec = CONTROLS[kind];
   const loc = await locateControl(world.page, name, kind);
   try {
-    await loc[action]({ timeout: 5000 });
+    await setChecked(loc, action === 'check', { timeout: 5000 });
   } catch (e) {
     throw failure(world.page, `Could not ${action === 'check' && kind === 'radio' ? 'select' : action} the ${spec.noun} "${name}".`, {
       hint: `${humanize(e)}; a ${spec.noun} that is hidden or disabled cannot be changed.`,
@@ -714,7 +714,8 @@ When(/^(I |we )*clear the select "([^"]*)"$/, async function (pronoun, sel) {
 });
 
 /**
- * Check a checkbox.
+ * Check a checkbox. One whose input is covered by a part of its own label (a toggle
+ * switch) or hidden (a box drawn by its label) is clicked through its label.
  *
  * The checkbox is named by a CSS selector, the exact text of its label, its
  * name, its id or its value; one that is not found within 5 seconds fails
@@ -732,7 +733,8 @@ When(/^(I |we )*check the checkbox "([^"]*)"$/, async function (pronoun, sel) {
 });
 
 /**
- * Uncheck a checkbox.
+ * Uncheck a checkbox. One whose input is covered by a part of its own label (a toggle
+ * switch) or hidden (a box drawn by its label) is clicked through its label.
  *
  * The checkbox is named by a CSS selector, the exact text of its label, its
  * name, its id or its value; one that is not found within 5 seconds fails
@@ -750,7 +752,8 @@ When(/^(I |we )*uncheck the checkbox "([^"]*)"$/, async function (pronoun, sel) 
 });
 
 /**
- * Select a radio button.
+ * Select a radio button. One whose input is covered by a part of its own label (a toggle
+ * switch) or hidden (a box drawn by its label) is clicked through its label.
  *
  * The radio button is named by a CSS selector, the exact text of its label,
  * its id or its value (not its name, which its whole group shares); one that
