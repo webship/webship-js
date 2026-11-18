@@ -16,6 +16,8 @@ The "Then I should be" group contains four primary variations:
 
 Each step allows testers to validate whether the current page matches expected navigation outcomes.
 
+**The homepage** is `launchUrl`, or the address `launchUrl` redirects to (a site that sends `/` to a language prefix such as `/en/`); the query, the fragment and a trailing slash do not count. Any other page of the site is not the homepage: check it with `Then I should be on "/path"`. The homepage steps wait up to 5 seconds for a navigation in progress (the back button, a redirect after a form).
+
 ## Purpose
 
 These assertions verify successful navigation by confirming the user's location within the website after executing actions like clicking links, submitting forms, or using browser controls. They serve as validation checkpoints in automated testing workflows.

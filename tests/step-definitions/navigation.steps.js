@@ -6,7 +6,7 @@
 
 const { Given, When, Then } = require('@cucumber/cucumber');
 const assert = require('assert');
-const { gotoUrl, resolveUrl, waitForPageLoad, smartSettle } = require('./webship');
+const { gotoUrl, resolveUrl, waitForPageLoad, smartSettle, failure } = require('./webship');
 
 // ---------------------------------------------------------------------------
 // Sessions / visits
@@ -165,7 +165,49 @@ When(/^(I |we )*reload( the)*( page)*$/, async function (pronounCase, theCase, p
 // ---------------------------------------------------------------------------
 
 /**
- * Assert that the current page is or is not the homepage.
+ * The address of a page without its query and fragment, its path ending in a
+ * slash: "https://site.example/en" and "https://site.example/en/?a=1#top"
+ * are the same page.
+ *
+ * @param {string} url
+ * @returns {string}
+ */
+function pageAddress(url) {
+  try {
+    const parsed = new URL(url);
+    return parsed.origin + (parsed.pathname.endsWith('/') ? parsed.pathname : parsed.pathname + '/');
+  } catch {
+    return String(url);
+  }
+}
+
+/**
+ * The addresses that are the homepage: `launchUrl`, and the address it
+ * redirects to (a site that sends "/" to a language prefix such as "/en/").
+ * Asked once per scenario.
+ *
+ * @param {object} world
+ * @returns {Promise<string[]>}
+ */
+async function homepageAddresses(world) {
+  if (world.homepageAddresses) return world.homepageAddresses;
+  const addresses = [pageAddress(world.launchUrl)];
+  try {
+    const response = await world.page.request.get(world.launchUrl, { maxRedirects: 10, failOnStatusCode: false, timeout: 10000 });
+    const landed = pageAddress(response.url());
+    if (!addresses.includes(landed)) addresses.push(landed);
+  } catch { /* launchUrl alone */ }
+  world.homepageAddresses = addresses;
+  return addresses;
+}
+
+/**
+ * Assert that the current page is or is not the homepage: `launchUrl`, or the
+ * address `launchUrl` redirects to (a language prefix such as "/en/"). The
+ * query and the fragment do not count, nor a trailing slash. The step waits
+ * up to 5 seconds for a navigation in progress (the back button, a redirect
+ * after a form). Any other page of the site is not the homepage; assert it
+ * with `I should be on "/path"`.
  *
  * Example #1: Then I should be on homepage
  * Example #2: And I should be on the homepage
@@ -180,14 +222,22 @@ When(/^(I |we )*reload( the)*( page)*$/, async function (pronounCase, theCase, p
  *
  */
 Then(/^(I |we )*should( not)* be on( the)* (homepage|frontpage)$/, async function (pronounCase, notCase, theCase, pageCase) {
-  const currentUrl = this.page.url();
-  if (notCase) {
-    assert.ok(currentUrl !== this.launchUrl && !currentUrl.startsWith(this.launchUrl + '/'),
-      `Should NOT be on homepage but current URL is: ${currentUrl}`);
-  } else {
-    assert.ok(currentUrl.startsWith(this.launchUrl),
-      `Should be on homepage but current URL is: ${currentUrl}`);
+  const homes = await homepageAddresses(this);
+  const deadline = Date.now() + 5000;
+  for (;;) {
+    const onHome = homes.includes(pageAddress(this.page.url()));
+    if (notCase ? !onHome : onHome) return;
+    if (Date.now() > deadline) break;
+    await new Promise((resolve) => setTimeout(resolve, 100));
   }
+  throw failure(this.page, notCase
+    ? 'Expected not to be on the homepage, but the page is the homepage.'
+    : 'Expected to be on the homepage, but the page is another one.', {
+    found: `the homepage is ${homes.join(' or ')}`,
+    hint: notCase
+      ? 'The homepage is launchUrl, or the address launchUrl redirects to.'
+      : 'The homepage is launchUrl, or the address launchUrl redirects to; the query, the fragment and a trailing slash do not count. To check another page, use: Then I should be on "/path".',
+  });
 });
 
 /**
