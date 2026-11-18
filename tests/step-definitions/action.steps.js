@@ -35,6 +35,16 @@ function clickRegistryHint(world, name) {
   });
 }
 
+// The whole text of a link or a button as a person reads it. A template that
+// prints the text on its own line (`<a>\n  <span>Products</span>\n</a>`, the
+// way Drupal's menus do) gives the element white space around its text, and
+// a long label can break across lines: both still match, the text itself is
+// matched whole and literally.
+function wholeText(text) {
+  const words = String(text).trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+');
+  return new RegExp('^\\s*' + words + '\\s*$');
+}
+
 // ---------------------------------------------------------------------------
 // Press / click — by visible text
 // ---------------------------------------------------------------------------
@@ -50,11 +60,10 @@ function clickRegistryHint(world, name) {
  *
  */
 When(/^(I |we )*press( the)* "([^"]*)?"( button)*$/, async function (pronounCase, theCase, element, buttonCase) {
-  const esc = element.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const page = this.page;
   await actOrExplain('press button', element, async () => {
     await page.locator('button, input[type="button"], input[type="submit"], [role="button"], a')
-      .filter({ hasText: new RegExp('^' + esc + '$') })
+      .filter({ hasText: wholeText(element) })
       .first()
       .click();
   }, clickRegistryHint(this, element));
@@ -85,11 +94,10 @@ When(/^(I |we )*press "([^"]*)?" by( its)*(?: "([^"]*)?")* (attribute|attr)$/, a
  *
  */
 When(/^(I |we )*click "([^"]*)?"$/, async function (pronounCase, item) {
-  const esc = item.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const page = this.page;
   await actOrExplain('click', item, async () => {
     await page.locator('a, button, [role="button"], input[type="button"], input[type="submit"]')
-      .filter({ hasText: new RegExp('^' + esc + '$') })
+      .filter({ hasText: wholeText(item) })
       .first()
       .click();
   }, clickRegistryHint(this, item));
@@ -120,10 +128,9 @@ When(/^(I |we )*click "([^"]*)?" by( its)*(?: "([^"]*)?")* (attribute|attr)$/, a
  *
  */
 When(/^(I |we )*click "([^"]*)?" in( the)* "([^"]*)?" row$/, async function (pronounCase, clickText, theCase, rowIdentifier) {
-  const esc = clickText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const row = this.page.locator('tr').filter({ hasText: rowIdentifier }).first();
   const clickable = row.locator('a, button, [role="button"], input[type="submit"], input[type="button"]')
-    .filter({ hasText: new RegExp('^' + esc + '$') });
+    .filter({ hasText: wholeText(clickText) });
   if (await clickable.count() > 0) {
     await clickable.first().click();
   } else {
@@ -148,11 +155,10 @@ When(/^(I |we )*click "([^"]*)?" in( the)* "([^"]*)?" row$/, async function (pro
  * Example #10: When I follow "Next"
  */
 When(/^(I |we )*follow "([^"]*)"$/, async function (pronounCase, link) {
-  const esc = link.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const page = this.page;
   await actOrExplain('follow link', link, async () => {
     const loc = page.getByRole('link', { name: link, exact: true }).or(
-      page.locator('a').filter({ hasText: new RegExp('^' + esc + '$') })
+      page.locator('a').filter({ hasText: wholeText(link) })
     ).first();
     await loc.click();
   });

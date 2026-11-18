@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Links and buttons with white space around their text | Webship-js</title>
+</head>
+<body>
+  <!-- The way menu templates print their links: the text on a line of its own,
+       inside a span, with the indentation of the template around it. -->
+  <nav aria-label="Main">
+    <ul>
+      <li><a href="#products">
+            <span class="inner">Products</span>
+          </a></li>
+      <li><a href="#about-us">About
+            us</a></li>
+    </ul>
+  </nav>
+  <main>
+    <h1>Links and buttons with white space around their text</h1>
+    <button type="button" id="save-draft" onclick="document.getElementById('result').textContent = 'The draft was saved.'">
+        Save draft
+    </button>
+    <table>
+      <tbody>
+        <tr>
+          <td>Order 1042</td>
+          <td><a href="#order-1042">
+                Edit
+              </a></td>
+        </tr>
+      </tbody>
+    </table>
+    <p id="result"></p>
+  </main>
+</body>
+</html>
