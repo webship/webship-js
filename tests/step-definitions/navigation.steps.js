@@ -50,6 +50,7 @@ Given(/^(I am |we are )?on( the)* (homepage|frontpage)$/, async function (pronou
   await gotoUrl(this.page, this.launchUrl);
   await this.page.waitForSelector('body', { state: 'attached', timeout: defaultTime });
   await waitForPageLoad(this.page, defaultTime);
+  rememberHomepageShown(this);
 });
 
 /**
@@ -89,6 +90,7 @@ When(/^(I go |I navigate |we go |we navigate |navigating )?to( the)* (homepage|f
   await gotoUrl(this.page, this.launchUrl);
   await this.page.waitForSelector('body', { state: 'attached', timeout: defaultTime });
   await waitForPageLoad(this.page, defaultTime);
+  rememberHomepageShown(this);
 });
 
 /**
@@ -182,28 +184,44 @@ function pageAddress(url) {
 }
 
 /**
- * The addresses that are the homepage: `launchUrl`, and the address it
- * redirects to (a site that sends "/" to a language prefix such as "/en/").
- * Asked once per scenario.
+ * The addresses that are the homepage: `launchUrl`, the address it redirects
+ * to (a site that sends "/" to a language prefix such as "/en/"), and the
+ * address the browser showed once a step of this scenario had opened it (a
+ * home page that rewrites its own address while it loads, as Jira's dashboard
+ * does with `history.replaceState`). The redirect is asked once per scenario.
  *
  * @param {object} world
  * @returns {Promise<string[]>}
  */
 async function homepageAddresses(world) {
-  if (world.homepageAddresses) return world.homepageAddresses;
-  const addresses = [pageAddress(world.launchUrl)];
-  try {
-    const response = await world.page.request.get(world.launchUrl, { maxRedirects: 10, failOnStatusCode: false, timeout: 10000 });
-    const landed = pageAddress(response.url());
-    if (!addresses.includes(landed)) addresses.push(landed);
-  } catch { /* launchUrl alone */ }
-  world.homepageAddresses = addresses;
-  return addresses;
+  if (!world.homepageAddresses) {
+    const addresses = [pageAddress(world.launchUrl)];
+    try {
+      const response = await world.page.request.get(world.launchUrl, { maxRedirects: 10, failOnStatusCode: false, timeout: 10000 });
+      const landed = pageAddress(response.url());
+      if (!addresses.includes(landed)) addresses.push(landed);
+    } catch { /* launchUrl alone */ }
+    world.homepageAddresses = addresses;
+  }
+  const shown = world.homepageShownAddress;
+  return shown && !world.homepageAddresses.includes(shown) ? [...world.homepageAddresses, shown] : world.homepageAddresses;
 }
 
 /**
- * Assert that the current page is or is not the homepage: `launchUrl`, or the
- * address `launchUrl` redirects to (a language prefix such as "/en/"). The
+ * Remember the address the browser shows after a step opened `launchUrl`:
+ * a home page may rewrite it while it loads, with no HTTP redirect.
+ *
+ * @param {object} world
+ */
+function rememberHomepageShown(world) {
+  world.homepageShownAddress = pageAddress(world.page.url());
+}
+
+/**
+ * Assert that the current page is or is not the homepage: `launchUrl`, the
+ * address `launchUrl` redirects to (a language prefix such as "/en/"), or the
+ * address the browser showed once "I am on the homepage" or "I go to the
+ * homepage" had opened it (a home page that rewrites its own address). The
  * query and the fragment do not count, nor a trailing slash. The step waits
  * up to 5 seconds for a navigation in progress (the back button, a redirect
  * after a form). Any other page of the site is not the homepage; assert it

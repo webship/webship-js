@@ -101,6 +101,9 @@ jobs:
       - name: Check that a page load aborted by a network change is loaded once more
         run: npm run test:network-changed
 
+      - name: Check that a home page which rewrites its own address is the homepage
+        run: npm run test:homepage-address
+
       - name: Start virtual server
         run: npm start &
 
