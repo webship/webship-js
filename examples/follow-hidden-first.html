@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>A link repeated in a collapsed menu | Webship-js</title>
+  <style>.dropdown { display: none; }</style>
+</head>
+<body>
+  <!-- The way a store's top menu repeats every category in a dropdown that is
+       hidden until the menu opens: the hidden copy comes first in the page. -->
+  <nav aria-label="Main">
+    <ul>
+      <li>Gear
+        <ul class="dropdown">
+          <li><a role="menuitem" href="#from-the-menu">Bags</a></li>
+          <li><a role="menuitem" href="#from-the-menu">Watches</a></li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+  <main>
+    <h1>A link repeated in a collapsed menu</h1>
+    <aside>
+      <h2>Shop by category</h2>
+      <a href="#bags">Bags</a>
+    </aside>
+  </main>
+</body>
+</html>

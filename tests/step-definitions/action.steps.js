@@ -141,7 +141,8 @@ When(/^(I |we )*click "([^"]*)?" in( the)* "([^"]*)?" row$/, async function (pro
 /**
  * Follow a link by its visible text.
  * Uses Playwright's accessibility-first `getByRole('link', { name })` with a
- * text-match fallback.
+ * text-match fallback, and follows the first link of that name a person can
+ * see: a hidden copy in a collapsed menu is passed over.
  *
  * Example #1: When I follow "Contact Us"
  * Example #2: When I follow "About"
@@ -157,10 +158,22 @@ When(/^(I |we )*click "([^"]*)?" in( the)* "([^"]*)?" row$/, async function (pro
 When(/^(I |we )*follow "([^"]*)"$/, async function (pronounCase, link) {
   const page = this.page;
   await actOrExplain('follow link', link, async () => {
-    const loc = page.getByRole('link', { name: link, exact: true }).or(
+    const matches = page.getByRole('link', { name: link, exact: true }).or(
       page.locator('a').filter({ hasText: wholeText(link) })
-    ).first();
-    await loc.click();
+    );
+    // A site that repeats its links in a collapsed menu (a dropdown, a mobile
+    // menu kept in the page) puts a hidden copy first: the link a person sees
+    // and follows is the first visible one.
+    const visible = matches.filter({ visible: true }).first();
+    if (await visible.waitFor({ state: 'visible', timeout: 5000 }).then(() => true, () => false)) {
+      await visible.click();
+      return;
+    }
+    const found = await matches.count();
+    if (found > 0) {
+      throw new Error(`the page has ${found === 1 ? 'a link' : `${found} links`} named "${link}", but none is visible (a closed menu, a hidden section).`);
+    }
+    await matches.first().click();
   });
 });
 
