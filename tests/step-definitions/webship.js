@@ -796,17 +796,24 @@ BeforeStep(function (scope) {
 function humanize(err) {
   const msg = typeof err === 'string' ? err : (err && err.message) || '';
   const first = msg.split('\n')[0].trim();
-  // Common Playwright / Node patterns → plain English.
+  // A wait for a locator that ended without the locator ever resolving: Playwright writes the
+  // same "Timeout …ms exceeded" as for a slow page, but its call log never says "locator resolved
+  // to". Nothing on the page matched: say that, not that the page was slow.
+  if (/Timeout\s+\d+ms\s+exceeded/i.test(first) && /waiting for (?:locator|get[A-Z]\w*)\(/.test(msg) && !/locator resolved to/i.test(msg)) {
+    return 'nothing on the page matched within the wait';
+  }
+  // Common Playwright / Node patterns → plain English. What the element was doing comes before the
+  // timeout it caused, so a hidden, covered or disabled element says so.
   const map = [
-    [/Timeout\s+\d+ms\s+exceeded/i,                       'the page took too long to respond'],
-    [/locator\.(click|press|fill|hover|dblclick|tap|focus|dispatchEvent|scrollIntoViewIfNeeded)/i,
-                                                          'the element could not be reached'],
     [/strict mode violation/i,                            'the locator matched more than one element'],
     [/element is not visible/i,                           'the element is hidden or off-screen'],
     [/element is not attached/i,                          'the element was removed from the page'],
     [/element is not enabled/i,                           'the element is disabled'],
     [/element is outside of the viewport/i,               'the element is outside the visible area'],
     [/intercepts pointer events/i,                        'another element is on top of the target'],
+    [/Timeout\s+\d+ms\s+exceeded/i,                       'the page took too long to respond'],
+    [/locator\.(click|press|fill|hover|dblclick|tap|focus|dispatchEvent|scrollIntoViewIfNeeded)/i,
+                                                          'the element could not be reached'],
     [/ECONNREFUSED|net::ERR_CONNECTION_REFUSED/i,         'the server is not running or refused the connection'],
     [/ERR_NAME_NOT_RESOLVED|NS_ERROR_UNKNOWN_HOST/i,      'the hostname could not be resolved'],
     [/ERR_HTTP_RESPONSE_CODE_FAILURE/i,                   'the page returned an HTTP error status'],
