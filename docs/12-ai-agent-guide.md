@@ -1,7 +1,8 @@
 # AI Agent Guide — Wisdom from the Recipes Book
 
-This page distills the canonical guidance from
-**Webship-js-Recipes v1.0.30** (583 pages, 35 chapters, 340+ recipes) into
+This page distills the canonical guidance from the book
+**Automated Functional Testing Recipes**, in its v1.0.30 edition (then
+titled *Webship-js-Recipes*: 583 pages, 35 chapters, 340+ recipes), into
 a compact reference for AI coding assistants working on any webship-js
 project.
 
@@ -339,7 +340,11 @@ Master the loop.
 
 ## Source
 
-This page summarises *Webship-js-Recipes v1.0.30* — chapters 1, 7, 21,
-24, 26, 29, 30, 31, 33, 34, 35 plus appendices. The full PDF lives at
-`/home/rajab/Desktop/w-book/Webship-js-Recipes-v1.0.30.pdf`. The
-chapter Markdown sources live at `/home/rajab/Desktop/w-book/chapters/`.
+This page summarises the v1.0.30 edition of the book (then titled
+*Webship-js-Recipes*): chapters 1, 7, 21, 24, 26, 29, 30, 31, 33, 34, 35
+plus appendices. The book, *Automated Functional Testing Recipes*, ships
+in Markdown with the webship-js AI agent
+([webship/webship-js-ai-agent](https://github.com/webship/webship-js-ai-agent))
+and skills ([webship/webship-js-skills](https://github.com/webship/webship-js-skills))
+as the folder `automated-functional-testing-recipes/`; their
+`install-book.sh` copies it to `.claude/automated-functional-testing-recipes/`.
