@@ -439,7 +439,9 @@ async function sendRequest(world, { method, url, headers, data, session }) {
 
 /**
  * Navigate to a URL with friendly error messages for common failures
- * (server down, DNS, empty response). All other errors rethrow with
+ * (server down, DNS, empty response). A load that Chromium aborts with
+ * net::ERR_NETWORK_CHANGED (the network of the machine changed under it) is
+ * tried once more, with a line in the log. All other errors rethrow with
  * preserved stack + extra context.
  *
  * @param {import('playwright').Page} page
@@ -448,7 +450,18 @@ async function sendRequest(world, { method, url, headers, data, session }) {
  */
 async function gotoUrl(page, url) {
   try {
-    await page.goto(url, { waitUntil: 'domcontentloaded' });
+    try {
+      await page.goto(url, { waitUntil: 'domcontentloaded' });
+    } catch (e) {
+      // Chromium aborts every request in flight when the network of the
+      // machine changes: a Docker network created or removed, as when another
+      // DDEV project starts or stops on the same machine. The page load then
+      // fails with net::ERR_NETWORK_CHANGED although the site is fine. It is
+      // loaded once more, and the run says so; nothing else is retried.
+      if (!/net::ERR_NETWORK_CHANGED/.test(String((e && e.message) || ''))) throw e;
+      console.warn(`[webship-js] Loading "${url}" was aborted because the network of this machine changed (net::ERR_NETWORK_CHANGED, as when a Docker network starts or stops); loading it once more.`);
+      await page.goto(url, { waitUntil: 'domcontentloaded' });
+    }
   } catch (e) {
     const msg = e.message || '';
     // Empty response: harmless, swallow.
