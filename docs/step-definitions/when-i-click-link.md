@@ -9,7 +9,11 @@ When (I|we)* click "([^"]*)?"
 
 ## Description
 
-This step definition functions as a command to click a link, ensuring correct navigation to the expected page. It allows you to define the step for clicking the link by its text.
+This step clicks a link or a button by its visible text: the first `a`, `button`, `[role="button"]`, `input[type="button"]` or `input[type="submit"]` whose whole text is the given text.
+
+The match is case-sensitive and covers the whole text, so `When I click "Read more"` does not click "Read more about us". White space around the text and inside it, the way a template prints it, does not count (since 2.0.13): `When I click "Read more"` clicks a link whose markup reads `<a> Read   more </a>`.
+
+To follow a link a person can see, use `When I follow "text"`: it takes the first visible link of that name, passing over a hidden copy in a closed menu, waits up to 5 seconds for one, and says so when every match is hidden (since 2.0.13).
 
 ## Example
 
