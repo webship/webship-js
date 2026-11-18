@@ -33,6 +33,63 @@ give the step words of its own (`When I click "Next" in the tour`), or
 start it with other words. See
 [Bare names and your own steps](03-selector-registry.md#bare-names-and-your-own-steps).
 
+## Can I load several step packs in one project?
+
+Yes, in two ways.
+
+**Packs for one site, in one profile.** `@webship-js/drupal-cms-steps`
+brings `@webship-js/drupal-core-steps` along, and
+`@webship-js/diffy-steps` (visual comparison) goes beside any pack: no step
+of these combinations is ambiguous and their hooks leave each other alone.
+`npm run test:packs` checks it against every pack on npm.
+
+**Packs for two sites, one profile each.** The platform packs share their
+phrases on purpose: `Given I am a logged in user with the "admin" user`,
+`When I log out` and `Then I should see the success message "Saved"` are
+steps of the Drupal, WordPress, Joomla, TYPO3, Odoo and django CMS packs
+alike, so a feature reads the same on every platform. Two such packs in one
+profile make those steps ambiguous, and each pack works against the one
+`launchUrl` and the one `users` registry of its profile anyway. A project
+that tests two systems, a CMS and its Jira or a store and its blog, gives
+each one a profile of its own in `cucumber.js`:
+
+```js
+const core = 'node_modules/webship-js/tests/step-definitions/**/*.js';
+const shared = {
+  requireModule: ['tsx/cjs'],
+  format: ['@cucumber/pretty-formatter', 'json:tests/reports/cucumber_report.json'],
+};
+
+module.exports = {
+  // npx cucumber-js: the Drupal CMS site, with visual comparison.
+  default: {
+    ...shared,
+    require: [
+      core,
+      'node_modules/@webship-js/drupal-cms-steps/tests/step-definitions/**/*.js',
+      'node_modules/@webship-js/diffy-steps/tests/step-definitions/**/*.js',
+    ],
+    paths: ['tests/features/site/**/*.feature'],
+    worldParameters: {
+      launchUrl: process.env.SITE_URL || 'https://site.example',
+      users: { admin: { username: 'admin', password: process.env.SITE_ADMIN_PASSWORD } },
+    },
+  },
+  // npx cucumber-js -p jira: the Jira site of the same team.
+  jira: {
+    ...shared,
+    require: [core, 'node_modules/@webship-js/jira-steps/tests/step-definitions/*.js'],
+    paths: ['tests/features/jira/**/*.feature'],
+    worldParameters: {
+      launchUrl: process.env.JIRA_URL || 'https://jira.example',
+      users: { admin: { username: 'admin', password: process.env.JIRA_ADMIN_PASSWORD } },
+    },
+  },
+};
+```
+
+`npx cucumber-js -p jira --dry-run` checks one profile without a browser.
+
 ## How does a custom step that changes the page wait?
 
 Call `this.smartSettle()` at its end. It runs the same smart wait the

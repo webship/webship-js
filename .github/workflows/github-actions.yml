@@ -56,6 +56,9 @@ jobs:
       - name: Check the step examples and the feature steps
         run: npm run test:examples
 
+      - name: Check the step packs on npm beside this webship-js
+        run: npm run test:packs
+
       - name: Check that a wait runs for the time the scenario gives it
         run: npm run test:time-limit
 
