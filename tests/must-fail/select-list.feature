@@ -13,3 +13,8 @@ Feature: Select steps that must fail, and what they say
     Fails with: The select list "Cars" has no option "Tesla".
     Given I am on "/select-by-label.html"
     When I select "Tesla" from "Cars"
+
+  Scenario: An option of a select list that is hidden
+    Fails with: the element is hidden or off-screen
+    Given I am on "/multi-value-fields.html"
+    When I select "0" from "field_topics[0][_weight]"
