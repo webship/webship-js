@@ -33,8 +33,8 @@ const CUCUMBER = path.join(ROOT, 'node_modules', '@cucumber', 'cucumber', 'bin',
 const NPM = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const PACKS = [
   'astro', 'backdrop-cms', 'bootstrap', 'codeigniter', 'craft-cms', 'diffy', 'django-cms', 'drupal-cms', 'drupal-core', 'gatsby',
-  'ghost', 'hubspot-cms', 'jira', 'joomla', 'laravel', 'magento', 'odoo', 'prestashop', 'squarespace', 'symfony', 'typo3', 'webflow',
-  'woocommerce', 'wordpress',
+  'ghost', 'hubspot-cms', 'jira', 'joomla', 'laravel', 'magento', 'odoo', 'prestashop', 'shopify', 'squarespace', 'symfony', 'typo3',
+  'webflow', 'woocommerce', 'wordpress',
 ];
 // A pack whose glob loads another pack's steps too.
 const BRINGS = { 'drupal-cms': ['drupal-core'], woocommerce: ['wordpress'] };
