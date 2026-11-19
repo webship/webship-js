@@ -34,10 +34,10 @@ const NPM = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const PACKS = [
   'astro', 'backdrop-cms', 'bootstrap', 'codeigniter', 'craft-cms', 'diffy', 'django-cms', 'drupal-cms', 'drupal-core', 'gatsby',
   'ghost', 'hubspot-cms', 'jira', 'joomla', 'laravel', 'magento', 'odoo', 'prestashop', 'squarespace', 'symfony', 'typo3', 'webflow',
-  'wordpress',
+  'woocommerce', 'wordpress',
 ];
 // A pack whose glob loads another pack's steps too.
-const BRINGS = { 'drupal-cms': ['drupal-core'] };
+const BRINGS = { 'drupal-cms': ['drupal-core'], woocommerce: ['wordpress'] };
 const COMPANION = 'diffy';
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'webship-js-packs-'));
