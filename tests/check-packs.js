@@ -32,9 +32,10 @@ const INIT = path.join(ROOT, 'bin', 'init-webship.js');
 const CUCUMBER = path.join(ROOT, 'node_modules', '@cucumber', 'cucumber', 'bin', 'cucumber.js');
 const NPM = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const PACKS = [
-  'astro', 'backdrop-cms', 'bootstrap', 'codeigniter', 'craft-cms', 'diffy', 'django', 'django-cms', 'docusaurus', 'drupal-cms',
-  'drupal-core', 'gatsby', 'ghost', 'hubspot-cms', 'jira', 'joomla', 'laravel', 'magento', 'mediawiki', 'moodle', 'nextjs', 'odoo',
-  'payload', 'prestashop', 'shopify', 'squarespace', 'strapi', 'symfony', 'typo3', 'webflow', 'woocommerce', 'wordpress',
+  'astro', 'backdrop-cms', 'bootstrap', 'codeigniter', 'craft-cms', 'diffy', 'discourse', 'django', 'django-cms', 'docusaurus',
+  'drupal-cms', 'drupal-core', 'gatsby', 'ghost', 'hubspot-cms', 'jira', 'joomla', 'laravel', 'magento', 'mediawiki', 'moodle',
+  'nextjs', 'odoo', 'payload', 'prestashop', 'shopify', 'squarespace', 'strapi', 'symfony', 'typo3', 'webflow', 'woocommerce',
+  'wordpress',
 ];
 // A pack whose glob loads another pack's steps too.
 const BRINGS = { 'drupal-cms': ['drupal-core'], woocommerce: ['wordpress'] };
