@@ -34,7 +34,7 @@ const NPM = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const PACKS = [
   'astro', 'backdrop-cms', 'bootstrap', 'codeigniter', 'craft-cms', 'diffy', 'django', 'django-cms', 'docusaurus', 'drupal-cms',
   'drupal-core', 'gatsby', 'ghost', 'hubspot-cms', 'jira', 'joomla', 'laravel', 'magento', 'mediawiki', 'moodle', 'nextjs', 'odoo',
-  'prestashop', 'shopify', 'squarespace', 'strapi', 'symfony', 'typo3', 'webflow', 'woocommerce', 'wordpress',
+  'payload', 'prestashop', 'shopify', 'squarespace', 'strapi', 'symfony', 'typo3', 'webflow', 'woocommerce', 'wordpress',
 ];
 // A pack whose glob loads another pack's steps too.
 const BRINGS = { 'drupal-cms': ['drupal-core'], woocommerce: ['wordpress'] };
