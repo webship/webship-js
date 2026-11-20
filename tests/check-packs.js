@@ -4,7 +4,7 @@
 // Checks this webship-js beside every step pack published on npm
 // (@webship-js/*-steps), without a browser:
 //
-//   1. each pack alone: every "Example #n:" line of its step definitions and
+//   1. each pack alone: every JSDoc "* Example #n:" line of its step definitions and
 //      every step of the features it ships resolve to exactly one definition
 //      among this webship-js and the pack (drupal-cms-steps together with the
 //      drupal-core-steps it loads), so a new built-in step never takes a
@@ -104,7 +104,8 @@ function writeCorpus(pack) {
   let n = 0;
   for (const file of walk(path.join(dir, 'tests', 'step-definitions'), '.js')) {
     for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
-      const m = line.match(/Example\s*#?\s*\d*\s*:\s*(.*)$/);
+      // A JSDoc line only: code such as a hint string (`Example: When I …`) is not an example.
+      const m = line.match(/^\s*\*\s*Example\s*#?\s*\d*\s*:\s*(.*)$/);
       if (!m) continue;
       const text = m[1].trim().replace(/^(Given|When|Then|And|But|\*)\s+/, '');
       if (!text) continue;
