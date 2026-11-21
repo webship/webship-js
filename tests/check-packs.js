@@ -32,7 +32,7 @@ const INIT = path.join(ROOT, 'bin', 'init-webship.js');
 const CUCUMBER = path.join(ROOT, 'node_modules', '@cucumber', 'cucumber', 'bin', 'cucumber.js');
 const NPM = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const PACKS = [
-  'astro', 'backdrop-cms', 'bootstrap', 'codeigniter', 'craft-cms', 'diffy', 'discourse', 'django', 'django-cms', 'docusaurus',
+  'aspnet-core', 'astro', 'backdrop-cms', 'bootstrap', 'codeigniter', 'craft-cms', 'diffy', 'discourse', 'django', 'django-cms', 'docusaurus',
   'drupal-cms', 'drupal-core', 'filament', 'gatsby', 'ghost', 'hubspot-cms', 'jira', 'joomla', 'keycloak', 'laravel', 'magento', 'mediawiki', 'moodle',
   'nextcloud', 'nextjs', 'odoo', 'payload', 'prestashop', 'shopify', 'spring-boot', 'squarespace', 'strapi', 'symfony', 'typo3', 'webflow', 'woocommerce',
   'wordpress',
