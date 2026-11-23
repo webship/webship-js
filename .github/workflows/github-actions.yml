@@ -22,6 +22,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        # 24: the lowest Node.js webship-js's engines field accepts (">= 24.0").
+        # 26: the latest LTS release.
+        node: ['24', '26']
 
     env:
       TEST_BASE_URL: http://localhost:8080
@@ -34,7 +40,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: '20.x'
+          node-version: ${{ matrix.node }}
           cache: npm
           cache-dependency-path: package.json
 

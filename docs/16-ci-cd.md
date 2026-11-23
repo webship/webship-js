@@ -51,10 +51,10 @@ GitHub's native CI/CD.
 
 Runs on a push to `2.0.x`, on a pull request to `2.0.x` and by hand (`Actions → Github Actions → Run workflow`). The token is read-only (`permissions: contents: read`). A newer push to the same pull request cancels the run in progress. A run on `2.0.x` and a run started by hand have a concurrency group of their own: they are never queued behind another run and never cancelled.
 
-Single job `build` on `ubuntu-latest`, 45-minute limit:
+Job `build` on `ubuntu-latest`, once on Node.js 24 and once on Node.js 26 (`strategy.matrix.node`, a failure in one does not cancel the other), 45-minute limit each:
 
 1. `actions/checkout@v7` — pulls the repo.
-2. `actions/setup-node@v7` — Node 20.x, with the npm cache keyed on `package.json`.
+2. `actions/setup-node@v7` — the job's Node.js (24 or 26), with the npm cache keyed on `package.json`.
 3. `npm install`.
 4. `npm run test:report` — generates an HTML report from a small JSON and checks it: no third-party icon, the project's own version, the place of execution.
 5. `npx playwright install --with-deps chromium`.

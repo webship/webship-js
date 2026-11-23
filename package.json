@@ -11,7 +11,7 @@
     "test": "test"
   },
   "engines": {
-    "node": ">= 20.0"
+    "node": ">= 24.0"
   },
   "scripts": {
     "postinstall": "node ./bin/postinstall.js",
@@ -61,7 +61,7 @@
     "@axe-core/playwright": "^4.11.3",
     "@cucumber/cucumber": "^12",
     "@cucumber/pretty-formatter": "~1",
-    "@types/node": "~20",
+    "@types/node": "^24.0.0",
     "@xmldom/xmldom": "^0.9.8",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",

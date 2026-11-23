@@ -17,7 +17,7 @@ must never reference those tools or imply that webship-js was ported from
 them. Treat webship-js as the source of truth.
 
 Current line: **2.0.x** (branch `2.0.x`; `1.0.x` is the older main branch).
-Node **≥ 20**.
+Node **≥ 24**.
 
 ## 1. Commands
 
