@@ -38,7 +38,7 @@ const PACKS = [
   'wordpress',
 ];
 // A pack whose glob loads another pack's steps too.
-const BRINGS = { bbpress: ['wordpress'], 'drupal-cms': ['drupal-core'], filament: ['laravel'], woocommerce: ['wordpress'] };
+const BRINGS = { bbpress: ['wordpress'], buddypress: ['wordpress'], 'drupal-cms': ['drupal-core'], filament: ['laravel'], woocommerce: ['wordpress'] };
 const COMPANION = 'diffy';
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'webship-js-packs-'));
