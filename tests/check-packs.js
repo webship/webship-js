@@ -32,13 +32,13 @@ const INIT = path.join(ROOT, 'bin', 'init-webship.js');
 const CUCUMBER = path.join(ROOT, 'node_modules', '@cucumber', 'cucumber', 'bin', 'cucumber.js');
 const NPM = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const PACKS = [
-  'aspnet-core', 'astro', 'backdrop-cms', 'bbpress', 'bootstrap', 'codeigniter', 'craft-cms', 'diffy', 'discourse', 'django', 'django-cms', 'docusaurus',
+  'aspnet-core', 'astro', 'backdrop-cms', 'bbpress', 'bootstrap', 'buddypress', 'codeigniter', 'craft-cms', 'diffy', 'discourse', 'django', 'django-cms', 'docusaurus',
   'drupal-cms', 'drupal-core', 'filament', 'gatsby', 'ghost', 'hubspot-cms', 'jira', 'joomla', 'keycloak', 'laravel', 'magento', 'mautic', 'mediawiki', 'moodle',
   'nextcloud', 'nextjs', 'odoo', 'payload', 'penpot', 'phpbb', 'prestashop', 'shopify', 'spring-boot', 'squarespace', 'strapi', 'symfony', 'typo3', 'wagtail', 'webflow', 'woocommerce',
   'wordpress',
 ];
 // A pack whose glob loads another pack's steps too.
-const BRINGS = { bbpress: ['wordpress'], 'drupal-cms': ['drupal-core'], filament: ['laravel'], woocommerce: ['wordpress'] };
+const BRINGS = { bbpress: ['wordpress'], buddypress: ['wordpress'], 'drupal-cms': ['drupal-core'], filament: ['laravel'], woocommerce: ['wordpress'] };
 const COMPANION = 'diffy';
 
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'webship-js-packs-'));
