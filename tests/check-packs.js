@@ -33,7 +33,7 @@ const CUCUMBER = path.join(ROOT, 'node_modules', '@cucumber', 'cucumber', 'bin',
 const NPM = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const PACKS = [
   'aspnet-core', 'astro', 'backdrop-cms', 'bbpress', 'bootstrap', 'codeigniter', 'craft-cms', 'diffy', 'discourse', 'django', 'django-cms', 'docusaurus',
-  'drupal-cms', 'drupal-core', 'filament', 'gatsby', 'ghost', 'hubspot-cms', 'jira', 'joomla', 'keycloak', 'laravel', 'magento', 'mediawiki', 'moodle',
+  'drupal-cms', 'drupal-core', 'filament', 'gatsby', 'ghost', 'hubspot-cms', 'jira', 'joomla', 'keycloak', 'laravel', 'magento', 'mautic', 'mediawiki', 'moodle',
   'nextcloud', 'nextjs', 'odoo', 'payload', 'phpbb', 'prestashop', 'shopify', 'spring-boot', 'squarespace', 'strapi', 'symfony', 'typo3', 'wagtail', 'webflow', 'woocommerce',
   'wordpress',
 ];
