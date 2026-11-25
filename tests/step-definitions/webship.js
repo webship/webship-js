@@ -82,8 +82,15 @@ if (process.env.WEBSHIP_FILTER_HOOK_LINES !== 'off') {
 //   2. DOMContentLoaded fired
 //   3. Playwright "networkidle" (500ms with no in-flight network)
 //   4. window.__webshipAjaxCount === 0       (custom fetch/XHR counter)
-//   5. window.__webshipPendingTimers === 0   (custom setTimeout counter)
+//   5. no setTimeout due before the budget ends (window.__webshipTimersDueBy)
 //   6. Date.now() - window.__webshipLastMutation >= quietMs (DOM-quiet)
+//
+// A timer due after the budget ends is no work a step should wait for: an
+// app's hourly update check (SvelteKit 3 polls /_app/version.json from a
+// one-hour setTimeout), a session timeout, an analytics heartbeat. Counting
+// it held every step on such a page for its whole budget. Intervals are not
+// counted at all: one never drains, so a page with a ticker would never
+// settle.
 //
 // Steps 4/5/6 are evaluated atomically in one page-side probe, so a
 // late-firing setTimeout that mutates the DOM re-arms the wait correctly.
@@ -144,7 +151,7 @@ async function pollPage(page, probe, arg, timeout, interval) {
  * pending-timer / DOM-quiet probe — the useful one — running. That probe is
  * the last stage, with nothing after it to starve: it gets everything the
  * earlier stages left, so a request or a timer of more than half the budget
- * is still waited for.
+ * is still waited for. A timer due after the budget ends is not counted.
  *
  * Returns within `timeout` ms even when nothing on the page ever settles.
  *
@@ -176,11 +183,13 @@ async function smartSettle(page, timeout) {
   if (!await stage(0.5, (t) => page.waitForLoadState('networkidle', { timeout: t }))) return;
   await stage(1, (t) => pollPage(
     page,
-    (quietMs) => {
+    ({ quietMs, until }) => {
       const ajax = window.__webshipAjaxCount;
-      const timers = window.__webshipPendingTimers;
       const last = window.__webshipLastMutation;
       const now = typeof window.__webshipNow === 'function' ? window.__webshipNow() : Date.now();
+      // Only the timers due before the budget ends: a later one is not work
+      // to wait for (the timers wrapper keeps when each is due).
+      const timers = typeof window.__webshipTimersDueBy === 'function' ? window.__webshipTimersDueBy(until) : window.__webshipPendingTimers;
       // Under a fake clock the page's timers are the clock's and run only
       // when it moves; the ones the probes count are the clock's own.
       const fakeClock = !!(window.Date && window.Date.isFake);
@@ -189,7 +198,7 @@ async function smartSettle(page, timeout) {
       if (typeof last === 'number' && now - last < quietMs) return false;
       return true;
     },
-    250,
+    { quietMs: 250, until: deadline },
     t
   ));
 }
@@ -1243,10 +1252,19 @@ function smartWaitProbes() {
   // Track pending setTimeout callbacks. Many client-side frameworks use
   // setTimeout to schedule UI updates (animation frames, throttled
   // re-renders, fade-out → display:none). BBR demands we wait for those
-  // timers to drain rather than guess a fixed delay.
+  // timers to drain rather than guess a fixed delay. Each one is kept with
+  // the (real) time it is due, so a wait counts only those due before its
+  // budget ends (__webshipTimersDueBy); __webshipPendingTimers counts them
+  // all.
   const origSetTimeout = window.setTimeout;
   const origClearTimeout = window.clearTimeout;
-  const liveTimers = new Set();
+  const liveTimers = new Map();
+  window.__webshipTimersDueBy = function (until) {
+    if (typeof until !== 'number') return liveTimers.size;
+    let due = 0;
+    for (const at of liveTimers.values()) if (at <= until) due += 1;
+    return due;
+  };
   if (typeof origSetTimeout === 'function') {
     window.setTimeout = function (cb, delay, ...args) {
       window.__webshipPendingTimers++;
@@ -1259,7 +1277,9 @@ function smartWaitProbes() {
         }
       };
       id = origSetTimeout(wrapped, delay);
-      liveTimers.add(id);
+      // The delay as the browser reads it: a 32-bit integer, 0 when negative
+      // (a delay past 2^31 - 1 ms runs at once).
+      liveTimers.set(id, realNow() + Math.max(0, Number(delay) | 0));
       return id;
     };
     if (typeof origClearTimeout === 'function') {

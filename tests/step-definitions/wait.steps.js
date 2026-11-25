@@ -471,12 +471,14 @@ When(/^(I |we )*wait until( the)* page is interactive$/, async function (pronoun
 });
 
 /**
- * Wait until every tracked `setTimeout` callback has fired.
+ * Wait until every tracked `setTimeout` callback due within the step's 10
+ * seconds has fired. A timer due later (an hourly update check, a session
+ * timeout) is not waited for: it would only use up the budget.
  *
  * Catches "fade-out then display:none" close transitions, debounced renders,
  * and any UI flow that schedules a delayed update without making a network
- * request. Reads `window.__webshipPendingTimers`, the counter installed by
- * webship.js's init script.
+ * request. Reads the timers kept by webship.js's init script
+ * (`window.__webshipTimersDueBy`).
  *
  * Under a fake clock (`Given the system time is "…"`, or a clock step that
  * installed one) the page's timers belong to the clock and run only when it
@@ -502,13 +504,14 @@ When(/^(I |we )*wait until pending timers settle$/, async function (pronounCase)
   }
   // Polled from Node: a poll on the page's own setTimeout would be counted as
   // one more pending timer, and the wait could never see the count reach zero.
+  const until = Date.now() + 10000;
   const settled = await pollPage(
     this.page,
-    () => {
-      const t = window.__webshipPendingTimers;
+    (end) => {
+      const t = typeof window.__webshipTimersDueBy === 'function' ? window.__webshipTimersDueBy(end) : window.__webshipPendingTimers;
       return typeof t !== 'number' || t <= 0;
     },
-    null, 10000, 100
+    until, 10000, 100
   );
   if (!settled) {
     throw friendly({

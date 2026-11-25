@@ -9,7 +9,7 @@ Webship-js installs a small init script in every browser context. It exposes fou
 | Signal | Counter / time | Source |
 | --- | --- | --- |
 | Fetch / XHR in flight | `window.__webshipAjaxCount` | wraps `window.fetch` and `XMLHttpRequest.send` |
-| Pending `setTimeout` | `window.__webshipPendingTimers` | wraps `window.setTimeout` / `clearTimeout` |
+| Pending `setTimeout` | `window.__webshipPendingTimers` (all), `window.__webshipTimersDueBy(time)` (those due by then) | wraps `window.setTimeout` / `clearTimeout`, keeping when each is due |
 | Last DOM mutation | `window.__webshipLastMutation` | `MutationObserver` on `<html>` |
 | Network idle | (Playwright internal) | `page.waitForLoadState('networkidle')` |
 
@@ -17,17 +17,21 @@ Webship-js installs a small init script in every browser context. It exposes fou
 
 ```
 __webshipAjaxCount === 0
-  && __webshipPendingTimers === 0
+  && __webshipTimersDueBy(end of the budget) === 0
   && (Date.now() - __webshipLastMutation) >= 250 ms
 ```
 
 …or when `budget` elapses, whichever comes first.
 
+Only the timers due before the budget ends count. A timer due later is no work a step should wait for:
+an app's update check (SvelteKit 3 polls `/_app/version.json` from a one-hour `setTimeout`), a session
+timeout, an analytics heartbeat. Counted, it held every step on such a page for its whole budget.
+
 The probe is polled from Node (`page.evaluate` in a loop), never from a timer
 inside the page. A poll that ran on the page's own `setTimeout` would be counted
 in `__webshipPendingTimers` like any other timer, so the wait would see its own
 next poll and never find the page quiet. `When I wait until pending timers settle`
-reads the count the same way.
+reads the timers the same way, those due within its 10 seconds.
 
 ### How the budget is shared
 
@@ -108,4 +112,4 @@ You generally don't. A few legitimate cases:
 
 - **Real animation** with a known duration (`wait 3 seconds` is fine — smart wait will exit early but the budget is still honored).
 - **Polling backend** that mutates without fetch/XHR (e.g. raw WebSocket pushes). Use a targeted edge wait: `wait for the text "..." to appear`.
-- **Off-by-design UI** that runs an `setInterval` heartbeat. The pending-timer counter only tracks `setTimeout`, so heartbeats do not block `smartSettle`.
+- **Off-by-design UI** that runs an `setInterval` heartbeat. The pending-timer counter only tracks `setTimeout`, so heartbeats do not block `smartSettle`: an interval never drains, and counted it would hold every step. A `setTimeout` due after the budget does not block it either.
