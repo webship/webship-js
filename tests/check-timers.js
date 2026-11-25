@@ -7,7 +7,8 @@
 // 300 ms timer that changes the page is still waited for, and so is one of
 // 2 seconds (network idle alone waits 500 ms: past it, only the count of
 // timers holds the step), and an interval (60 s, or a ticker of 1 s) never
-// holds a step, as an interval never drains.
+// holds a step, as an interval never drains. A timer given a string of code
+// runs, as in a browser without webship-js.
 //
 // The scenarios run three times: once as they are, and twice with Node's
 // clock an hour ahead of the page's and an hour behind it, as a browser on
@@ -42,6 +43,8 @@ const PAGES = {
   '/hour': page('An hourly check', 'setTimeout(function () { document.getElementById("status").textContent = "Checked"; }, 3600000);'),
   // A change of the page 300 ms after it loads.
   '/short': page('A short timer', 'setTimeout(function () { document.getElementById("status").textContent = "Done"; }, 300);'),
+  // A timer given a string of code, which the browser runs as a script (it is not counted).
+  '/string': page('A timer of code', 'setTimeout("document.getElementById(\\"status\\").textContent = \\"Done\\"", 100);'),
   // A change of the page 2 seconds after it loads: past network idle, only the count of timers holds the step.
   '/later': page('A later timer', 'setTimeout(function () { document.getElementById("status").textContent = "Done"; }, 2000);'),
   // An interval of a minute.
@@ -69,6 +72,7 @@ const SCENARIOS = [
   { name: 'The wait for pending timers leaves a one-hour timer', lines: ['Given I am on "/hour"', 'When I wait until pending timers settle'], fast: 'When I wait until pending timers settle', within: 1000 },
   { name: 'A 300 ms timer is waited for', lines: ['Given I am on "/short"', 'Then the status should already read "Done"'] },
   { name: 'A timer of 2 seconds is waited for', lines: ['Given I am on "/later"', 'Then the status should already read "Done"'] },
+  { name: 'A timer given a string of code runs', lines: ['Given I am on "/string"', 'Then the status should already read "Done"'] },
   { name: 'An interval of a minute does not hold the page', lines: ['Given I am on "/interval"', 'Then the status should already read "Nothing yet"'], fast: 'Given I am on "/interval"' },
   { name: 'A ticker does not hold the page', lines: ['Given I am on "/ticker"'], fast: 'Given I am on "/ticker"' },
 ];
@@ -113,7 +117,7 @@ server.listen(0, '127.0.0.1', async () => {
     process.exit(1);
   }
   console.log(lines.join('\n'));
-  console.log('The settle waits for the timers due within its budget (300 ms, 2 s), and neither a one-hour timer nor an interval holds a step, whichever time Node keeps.');
+  console.log('The settle waits for the timers due within its budget (300 ms, 2 s), and neither a one-hour timer nor an interval holds a step, whichever time Node keeps; a timer given a string of code runs.');
 });
 
 /** One run of the feature, with Node's clock moved by the pass's offset; what went wrong, and the times of the visits. */
