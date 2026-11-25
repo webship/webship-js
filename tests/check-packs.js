@@ -33,8 +33,7 @@ const CUCUMBER = path.join(ROOT, 'node_modules', '@cucumber', 'cucumber', 'bin',
 const NPM = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const PACKS = [
   'aspnet-core', 'astro', 'backdrop-cms', 'bbpress', 'bootstrap', 'buddypress', 'codeigniter', 'craft-cms', 'diffy', 'discourse', 'django', 'django-cms', 'docusaurus',
-  'drupal-cms', 'drupal-core', 'filament', 'gatsby', 'ghost', 'gitea', 'hubspot-cms', 'jira', 'joomla', 'keycloak', 'laravel', 'learnpress', 'magento', 'mautic', 'mediawiki', 'moodle',
-  'nextcloud', 'nextjs', 'odoo', 'opencart', 'openproject', 'payload', 'penpot', 'phpbb', 'prestashop', 'redmine', 'roundcube', 'shopify', 'spring-boot', 'squarespace', 'strapi', 'symfony', 'typo3', 'wagtail', 'webflow', 'woocommerce',
+  'drupal-cms', 'drupal-core', 'filament', 'gatsby', 'ghost', 'gitea', 'hubspot-cms', 'jira', 'joomla', 'keycloak', 'laravel', 'learnpress', 'magento', 'mautic', 'mediawiki', 'moodle', 'nextcloud', 'nextjs', 'odoo', 'opencart', 'openproject', 'payload', 'penpot', 'phpbb', 'prestashop', 'redmine', 'roundcube', 'shopify', 'spring-boot', 'squarespace', 'strapi', 'symfony', 'typo3', 'uikit', 'wagtail', 'webflow', 'woocommerce',
   'wordpress',
 ];
 // A pack whose glob loads another pack's steps too.
