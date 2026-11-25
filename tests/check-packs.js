@@ -138,11 +138,34 @@ function dryRun() {
     worldParameters: { launchUrl: 'http://localhost:8080' },
   }, null, 2)} };\n`);
   const messages = path.join(tmp, 'dry-run.ndjson');
-  run(process.execPath, [CUCUMBER, '--config', path.basename(config), '--dry-run', '--format', `message:${path.basename(messages)}`], {
-    cwd: tmp,
-    env: Object.assign({}, process.env, { WEBSHIP_REPORT_DISABLE: '1', FORCE_COLOR: '0' }),
-  });
+  // What Cucumber prints goes to a file, not through a pipe: its stdout formatter writes a character for each step and
+  // then every ambiguous step (the phrases packs share), 22 MB with 47 packs, and through the pipe the run died with
+  // "write EINVAL". The check reads the messages only; a failed run quotes the end of the file.
+  const output = path.join(tmp, 'dry-run.out');
+  const fd = fs.openSync(output, 'w');
+  try {
+    run(process.execPath, [CUCUMBER, '--config', path.basename(config), '--dry-run', '--format', `message:${path.basename(messages)}`], {
+      cwd: tmp,
+      env: Object.assign({}, process.env, { WEBSHIP_REPORT_DISABLE: '1', FORCE_COLOR: '0' }),
+      stdio: ['ignore', fd, 'pipe'],
+    });
+  } catch (e) {
+    throw new Error(`${e.message}\nThe end of what it printed:\n${tail(output)}`);
+  } finally {
+    fs.closeSync(fd);
+  }
   return readMessages(messages);
+}
+
+// The last few KB of a file.
+function tail(file, bytes = 4096) {
+  const size = fs.statSync(file).size;
+  const fd = fs.openSync(file, 'r');
+  try {
+    const buf = Buffer.alloc(Math.min(size, bytes));
+    fs.readSync(fd, buf, 0, buf.length, size - buf.length);
+    return buf.toString('utf8');
+  } finally { fs.closeSync(fd); }
 }
 
 // The dry run's messages, read a piece at a time: with every pack's examples the file
