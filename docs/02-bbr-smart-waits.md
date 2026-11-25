@@ -25,7 +25,10 @@ __webshipAjaxCount === 0
 
 Only the timers due before the budget ends count. A timer due later is no work a step should wait for:
 an app's update check (SvelteKit 3 polls `/_app/version.json` from a one-hour `setTimeout`), a session
-timeout, an analytics heartbeat. Counted, it held every step on such a page for its whole budget.
+timeout, an analytics heartbeat. Counted, it held every step on such a page for its whole budget. The page
+keeps each timer's due time by its own clock, so the end of the budget is moved into the page's time: a
+browser on another machine (a remote endpoint) may keep another time than Node, and the wait reads the
+offset once.
 
 The probe is polled from Node (`page.evaluate` in a loop), never from a timer
 inside the page. A poll that ran on the page's own `setTimeout` would be counted

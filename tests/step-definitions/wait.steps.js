@@ -11,7 +11,7 @@
 // so this file never duplicates BBR plumbing.
 
 const { When } = require('@cucumber/cucumber');
-const { smartSettle, pollPage, waitForModalState, friendly, failure, excerpt, isTimeout, pageTextLocator } = require('./webship');
+const { smartSettle, pollPage, pageClockOffset, waitForModalState, friendly, failure, excerpt, isTimeout, pageTextLocator } = require('./webship');
 
 // A step whose length the scenario gives ("I wait 2 minutes", "within 60
 // seconds") runs for that time, past the step timeout too (45 s,
@@ -502,9 +502,11 @@ When(/^(I |we )*wait until pending timers settle$/, async function (pronounCase)
       hint: 'advance the clock past the timers instead, for example: When I advance the clock by 5 seconds',
     });
   }
+  // The end of the 10 seconds in the page's time, which its timers' due times
+  // are kept by (a browser on another machine may keep another).
+  const until = Date.now() + 10000 + await pageClockOffset(this.page);
   // Polled from Node: a poll on the page's own setTimeout would be counted as
   // one more pending timer, and the wait could never see the count reach zero.
-  const until = Date.now() + 10000;
   const settled = await pollPage(
     this.page,
     (end) => {

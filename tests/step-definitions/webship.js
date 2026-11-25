@@ -109,6 +109,31 @@ if (process.env.WEBSHIP_FILTER_HOOK_LINES !== 'off') {
 const SETTLE_MIN_MS = 25;
 
 /**
+ * How far the page's clock is from Node's, in ms: the page's time minus Node's.
+ *
+ * A wait counts the timers due before its deadline, which Node sets, and the
+ * page keeps each timer's due time by its own clock. On one machine the two
+ * clocks agree; a browser on another machine (a remote endpoint) may keep
+ * another time. So a wait reads the offset once and moves its deadline into
+ * the page's time: the page's real clock (`window.__webshipNow`, the one the
+ * due times are kept by), read halfway through the round trip. 0 when the
+ * page cannot be read (it is between two documents).
+ *
+ * @param {import('playwright').Page} page
+ * @returns {Promise<number>}
+ */
+async function pageClockOffset(page) {
+  try {
+    const sent = Date.now();
+    const pageNow = await page.evaluate(() => (typeof window.__webshipNow === 'function' ? window.__webshipNow() : Date.now()));
+    const back = Date.now();
+    return typeof pageNow === 'number' && Number.isFinite(pageNow) ? Math.round(pageNow - (sent + back) / 2) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+/**
  * Poll a page-side probe from Node until it returns a truthy value or the
  * budget is spent.
  *
@@ -181,7 +206,9 @@ async function smartSettle(page, timeout) {
   if (!await stage(0.25, (t) => page.waitForSelector('body', { state: 'attached', timeout: t }))) return;
   if (!await stage(0.25, (t) => page.waitForLoadState('domcontentloaded', { timeout: t }))) return;
   if (!await stage(0.5, (t) => page.waitForLoadState('networkidle', { timeout: t }))) return;
-  await stage(1, (t) => pollPage(
+  // The deadline in the page's time: the page compares it with the due times
+  // of its timers (pageClockOffset).
+  await stage(1, async (t) => pollPage(
     page,
     ({ quietMs, until }) => {
       const ajax = window.__webshipAjaxCount;
@@ -198,7 +225,7 @@ async function smartSettle(page, timeout) {
       if (typeof last === 'number' && now - last < quietMs) return false;
       return true;
     },
-    { quietMs: 250, until: deadline },
+    { quietMs: 250, until: deadline + await pageClockOffset(page) },
     t
   ));
 }
@@ -1024,6 +1051,7 @@ function failure(page, message, details) {
 module.exports = {
   smartSettle,
   pollPage,
+  pageClockOffset,
   waitForPageLoad,
   getModalSelector,
   getModalLocator,
