@@ -108,11 +108,14 @@ type BrowserName = 'chromium' | 'firefox' | 'webkit';
 
 const browser = (process.env.BROWSER || 'chromium') as BrowserName;
 
+// No --disable-web-security: it turns off the same-origin policy a visitor's
+// browser has, and Chromium then sends a same-origin POST without its Origin
+// header, so a site that checks the origin of a form refuses it. Playwright
+// reaches the elements of a cross-origin frame without it.
 const chromiumArgs: string[] = [
   '--no-sandbox',
   '--disable-dev-shm-usage',
   '--disable-setuid-sandbox',
-  '--disable-web-security',
   '--ignore-certificate-errors',
   '--disable-extensions',
   '--incognito',

@@ -346,6 +346,18 @@ Chromium arguments (in a copy of the project kept for that check, if the
 rest of the suite runs against local sites). The first navigation to a page
 with a bad certificate then fails (`net::ERR_CERT_…`).
 
+## Why does a form answer 403 in the suite and not in a browser?
+
+The project's `playwright.config.ts` likely starts Chromium with
+`--disable-web-security`: the scaffold of webship-js 2.0.17 and older wrote
+it, and a project keeps its own config. The flag turns off the same-origin
+policy, and Chromium then sends a form posted with `fetch` to its own site
+without its `Origin` header. A site that checks the origin of a form refuses
+it: SvelteKit's form actions answer 403 "Cross-site POST form submissions are
+forbidden", for example. Remove `'--disable-web-security'` from
+`chromiumArgs`. The iframe steps reach a frame from another origin without
+it.
+
 ## How do I make CI fast?
 
 ```bash
