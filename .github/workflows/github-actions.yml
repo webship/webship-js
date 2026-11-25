@@ -113,6 +113,9 @@ jobs:
       - name: Check that a home page which rewrites its own address is the homepage
         run: npm run test:homepage-address
 
+      - name: Check that a form posted to its own site carries the page's Origin
+        run: npm run test:same-origin
+
       - name: Start virtual server
         run: npm start &
 

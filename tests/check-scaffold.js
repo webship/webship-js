@@ -121,6 +121,10 @@ async function main() {
       problems.push(`"npm test" is still the placeholder of npm init: ${placeholder}`);
     }
     if (!pkg.dependencies || !pkg.dependencies['webship-js']) problems.push('package.json does not depend on webship-js');
+    // The browser keeps the same-origin policy of a visitor's: a same-origin POST then carries its Origin
+    // header, which a site's check against cross-site forms reads (tests/check-same-origin.js).
+    const pwConfig = fs.existsSync(path.join(project, 'playwright.config.ts')) ? fs.readFileSync(path.join(project, 'playwright.config.ts'), 'utf8') : '';
+    if (/'--disable-web-security'/.test(pwConfig)) problems.push('the scaffolded playwright.config.ts starts Chromium with --disable-web-security');
 
     // 2. npm test in the new project, against the examples/ pages.
     linkDependencies(project);

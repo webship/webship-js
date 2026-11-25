@@ -58,6 +58,7 @@ suite — nearly every bundled feature loads a static fixture from `examples/`.
 | `npm run test:assets` | No server: in a project of its own, the attach, XML-file and YAML-file steps read its `tests/assets/` and paths from its root; a missing file fails plainly. |
 | `npm run test:screenshots` | No server: only a failed step leaves a failure screenshot (a skipped or pending one does not). |
 | `npm run test:scaffold` | Scaffolds a new project, runs its first `npm test` and one feature named on the command line. |
+| `npm run test:same-origin` | The browser keeps the same-origin policy: a form posted to its own site carries the page's `Origin` (no `--disable-web-security`), and a frame from another origin is reached. |
 | `npm run generate-reports` | HTML (+ optional PDF) report from `tests/reports/cucumber_report.json`. |
 
 Targeting a subset:

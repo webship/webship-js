@@ -37,6 +37,7 @@
     "test:settle-verbs": "node tests/check-settle-verbs.js",
     "test:network-changed": "node tests/check-network-changed.js",
     "test:homepage-address": "node tests/check-homepage-address.js",
+    "test:same-origin": "node tests/check-same-origin.js",
     "test:fast": "SLOW_MO=0 cucumber-js --config cucumber.js",
     "test:assets": "node tests/check-assets.js",
     "test:examples": "node tests/check-examples.js",
