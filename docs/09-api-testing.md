@@ -130,8 +130,22 @@ Then('the saved token is not empty', function () {
   if (!api.getPlaceholder('{{token}}')) throw new Error('no token was saved');
 });
 // Also: api.getApiResponse(), api.setPlaceholder(name, value),
-// api.replacePlaceHolder(text), api.getNestedProperty(object, path).
+// api.setHeader(name, value), api.replacePlaceHolder(text),
+// api.getNestedProperty(object, path).
 ```
+
+`api.setHeader(name, value)` sets a header for the requests the API steps send after it in the scenario, as `I set the header "…" to "…"` does. Placeholders in the value are replaced when a request is sent, and the next scenario starts without the header. A header of the same name in another letter case is replaced, and `null` removes it. A pack's sign-in step can use it to sign the requests of the built-in steps that follow:
+
+```js
+const api = require('webship-js/tests/step-definitions/api.steps');
+
+Given('I have a token for {string}', async function (user) {
+  const token = await signIn(user);            // the pack's own way to get a token
+  api.setHeader('Authorization', `Bearer ${token}`);
+});
+```
+
+It applies to the API steps of `api.steps.js`; the short-form REST steps below keep their own headers.
 
 For HTTP basic auth on the next page navigation, see also `path.steps.js`:
 

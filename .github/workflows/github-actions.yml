@@ -59,6 +59,9 @@ jobs:
       - name: Check that the relative API base URL follows the launch URL
         run: npm run test:api-launch-url
 
+      - name: Check that a pack's step sets a header for the built-in API steps
+        run: npm run test:api-set-header
+
       - name: Check the step examples and the feature steps
         run: npm run test:examples
 
