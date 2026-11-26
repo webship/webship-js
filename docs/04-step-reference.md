@@ -236,13 +236,25 @@ Settings (`worldParameters.javascript`):
 | --- | --- | --- | --- |
 | `mode` | `WEBSHIP_JS_ERROR_MODE` | `warn` | `warn` / `fail` / `off` |
 | `levels` | `WEBSHIP_JS_ERROR_LEVELS` | `['error']` | Console levels to capture (csv when via env: `error,warning`) |
-| `ignore` | `WEBSHIP_JS_ERROR_IGNORE` | _none_ | Regex; matching messages dropped before report |
+| `ignore` | `WEBSHIP_JS_ERROR_IGNORE` | _none_ | Regex; matching messages dropped before report. A console message is matched as its text and as `<text> @ <address>` |
 | `beforeScenario` | `WEBSHIP_JS_ERROR_BEFORE` | `false` | Snapshot pre-existing errors at scenario start |
 | `afterScenario` | `WEBSHIP_JS_ERROR_AFTER` | `true` | Report at scenario end |
 
 The explicit step `Then there should be no JavaScript errors` counts errors only — uncaught errors and `console.error`, not the warnings when `warning` is a captured level — always asserts (independent of `mode`) and leaves the errors out of the auto-report so a single error is not announced twice; `Then there should be no JavaScript warnings` does the same for the warnings. What a check did not read is still reported at the end of the scenario.
 
 `Then JavaScript errors should not match "…"` handles the errors it read in the same way: a page with noise it tolerates does not fail the scenario at its end in `fail` mode, only an error that matches the pattern fails it.
+
+A console message keeps the address it came from, and the reports print it after the text. A resource that fails to load logs the same text whatever its address ("Failed to load resource: the server responded with a status of 404 (Not Found)"), so `ignore` and `JavaScript errors should not match "…"` read each console message both as its text and as `<text> @ <address>`. A pattern can then name one resource and leave every other error counted. For example, take a front end whose `index.html` links a favicon (`/vite.svg`) that its build does not ship:
+
+```js
+javascript: {
+  mode: 'fail',
+  // index.html links /vite.svg and the build does not ship it: that one 404, by its address.
+  ignore: '\\(Not Found\\) @ https?://[^/]+/vite\\.svg$',
+}
+```
+
+A pattern that names only the text (`'^Failed to load resource'`) matches as before, for every address.
 
 ## Video recording
 
