@@ -215,7 +215,7 @@ Mid-scenario start / stop steps live in `video.steps.js`. Recording starts at co
 javascript: {
   mode: 'warn',                  // WEBSHIP_JS_ERROR_MODE — 'warn' | 'fail' | 'off'
   levels: ['error'],             // WEBSHIP_JS_ERROR_LEVELS (csv) — console levels to capture
-  ignore: '',                    // WEBSHIP_JS_ERROR_IGNORE — regex of messages to drop
+  ignore: '',                    // WEBSHIP_JS_ERROR_IGNORE — regex of messages to drop (a console message: its text, or "<text> @ <address>")
   beforeScenario: false,         // WEBSHIP_JS_ERROR_BEFORE — snapshot pre-existing errors
   afterScenario: true,           // WEBSHIP_JS_ERROR_AFTER — report at scenario end
 }
@@ -230,6 +230,15 @@ Tags override `mode` per scenario:
 | `@js-off` / `@js-errors` (legacy) | force `off` |
 
 The explicit step `Then there should be no JavaScript errors` always asserts (independent of mode).
+
+A console message keeps the address it came from, so `ignore` can let one known resource through and still count every other error. Each console message is matched as its text and as `<text> @ <address>`. A page that logs a 404 for a favicon its build does not ship (`/vite.svg`) is let through by that address alone:
+
+```js
+javascript: {
+  mode: 'fail',
+  ignore: '\\(Not Found\\) @ https?://[^/]+/vite\\.svg$',
+}
+```
 
 ---
 

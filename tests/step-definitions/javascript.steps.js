@@ -6,7 +6,8 @@
 // webship.js), so a step that replaces the browser context — restoring an
 // auth state, starting or stopping a video recording — keeps the capture:
 //   page.on('pageerror')           → uncaught errors
-//   page.on('console', level)      → console messages (filtered by config)
+//   page.on('console', level)      → console messages (filtered by config),
+//                                    each with the address it came from
 //
 // After every scenario the collector reports per the active "mode":
 //   - 'warn' (default)  → log a yellow warning, scenario still passes
@@ -77,13 +78,22 @@ function hasTag(scope, name) {
   return scope.pickle.tags.some((t) => t.name === name);
 }
 
+// An entry as a pattern reads it: its text, or, for a console message, its
+// text and the address it came from ("<text> @ <address>"). A resource that
+// fails to load logs the same text whatever its address, so a pattern can
+// name one resource exactly ("\(Not Found\) @ https?://[^/]+/vite\.svg$"),
+// and a pattern that names only the text matches as before.
+function matches(re, entry) {
+  return re.test(entry.message) || (!!entry.url && re.test(`${entry.message} @ ${entry.url}`));
+}
+
 function formatErrors(errs) {
-  return errs.map((e, i) => `  ${i + 1}. [${e.type}] ${e.message}`).join('\n');
+  return errs.map((e, i) => `  ${i + 1}. [${e.type}] ${e.message}${e.url ? ` @ ${e.url}` : ''}`).join('\n');
 }
 
 function filterErrors(errs, ignore) {
   if (!ignore) return errs;
-  return errs.filter((e) => !ignore.test(e.message));
+  return errs.filter((e) => !matches(ignore, e));
 }
 
 // The kind of a collected entry: "error" for an uncaught error or a
@@ -124,7 +134,8 @@ function captureErrors(world, page) {
   });
   page.on('console', (msg) => {
     if (levels.has(msg.type())) {
-      world._jsErrors.push({ type: `console.${msg.type()}`, message: msg.text() });
+      const where = typeof msg.location === 'function' ? msg.location() : null;
+      world._jsErrors.push({ type: `console.${msg.type()}`, message: msg.text(), url: (where && where.url) || '' });
     }
   });
 }
@@ -208,15 +219,18 @@ Then(/^there should be no JavaScript warnings$/, function () {
 /**
  * Assert that no collected JavaScript error message matches a regular
  * expression. Useful when some noise is unavoidable but a specific bug
- * pattern must never appear. Like the other two checks, it handles the
- * errors it read: the end-of-scenario report, in "fail" mode too, does not
- * fail the scenario on the noise the step tolerated.
+ * pattern must never appear. A console message is read with the address it
+ * came from too ("<text> @ <address>"), so a pattern can name a resource.
+ * Like the other two checks, it handles the errors it read: the
+ * end-of-scenario report, in "fail" mode too, does not fail the scenario on
+ * the noise the step tolerated.
  *
  * Example #1: Then JavaScript errors should not match "TypeError"
  * Example #2: Then JavaScript errors should not match "is not a function"
  * Example #3: And JavaScript errors should not match "Cannot read property"
  * Example #4: Then JavaScript errors should not match "ReferenceError: .* is not defined"
  * Example #5: Then JavaScript errors should not match "Uncaught"
+ * Example #6: Then JavaScript errors should not match "@ https?://[^/]+/api/"
  *
  */
 Then(/^JavaScript errors should not match "([^"]*)"$/, function (pattern) {
@@ -226,7 +240,7 @@ Then(/^JavaScript errors should not match "([^"]*)"$/, function (pattern) {
   catch (e) {
     assert.fail(`Invalid regular expression: "${pattern}" — ${e.message}`);
   }
-  const errs = (this._jsErrors || []).filter((e) => re.test(e.message));
+  const errs = (this._jsErrors || []).filter((e) => matches(re, e));
   if (errs.length === 0) return;
   assert.fail(`JavaScript errors matched /${pattern}/:\n${formatErrors(errs)}`);
 });
