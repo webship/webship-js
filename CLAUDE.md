@@ -44,6 +44,7 @@ suite — nearly every bundled feature loads a static fixture from `examples/`.
 | `npm run test:api-launch-url` | Needs browsers, no server of its own: the relative API base URL (`Given the API base URL is "/"`) is joined to `worldParameters.launchUrl`. |
 | `npm run test:paths` | No browser: a feature or a scenario (`file:line`) named on the command line runs alone; naming none runs the whole suite. |
 | `npm run test:settle-verbs` | A project's own step whose words carry a page-changing verb (add, log out, enter, open, delete, save) is followed by the settle; `wait for ajax to finish` reads in lower case. |
+| `npm run test:timers` | The settle waits for the timers due within its budget and only those: a one-hour `setTimeout` holds no step, a 300 ms and a 2 s one are waited for, an interval never holds a step; run with Node's clock as it is and an hour either way from the page's. |
 | `npm run test:config` | A `cucumber.js` whose `worldParameters` carry only the launch URL runs a scenario green and the run ends by itself. |
 | `npm run test:exit-report` | Needs browsers, no server: the HTML report built at the end of a run is built once with `--parallel`, from a JSON report written elsewhere, and says so in one line when there is none. |
 | `npm run test:world` | A project World that extends `PlaywrightWorld` keeps the viewport tag and `this.smartSettle()`; a World that replaces it is reported. |

@@ -35,6 +35,7 @@
     "test:world": "node tests/check-world.js",
     "test:clock": "node tests/check-clock.js",
     "test:settle-verbs": "node tests/check-settle-verbs.js",
+    "test:timers": "node tests/check-timers.js",
     "test:network-changed": "node tests/check-network-changed.js",
     "test:homepage-address": "node tests/check-homepage-address.js",
     "test:same-origin": "node tests/check-same-origin.js",
