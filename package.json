@@ -24,6 +24,7 @@
     "test:headed": "HEADLESS=false cucumber-js --config cucumber.js",
     "test:dry-run": "node tests/check-dry-run.js",
     "test:api-launch-url": "node tests/check-api-launch-url.js",
+    "test:api-set-header": "node tests/check-api-set-header.js",
     "test:must-fail": "node tests/check-must-fail.js",
     "test:js-errors": "node tests/check-javascript-errors.js",
     "test:js-error-addresses": "node tests/check-javascript-error-addresses.js",

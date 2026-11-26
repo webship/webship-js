@@ -978,10 +978,31 @@ When(/^(I |we )*save the JSON property "([^"]*)" as placeholder "([^"]*)"$/, fun
 
 // The state of the API steps for a custom step: the last response and the
 // placeholders of the scenario.
+/**
+ * Set a header for the requests the API steps send after it in the scenario,
+ * the way `I set the header "…" to "…"` sets one: placeholders in the value
+ * are replaced when a request is sent, and the next scenario starts without
+ * it. A header of the same name in another letter case is replaced. A value
+ * of null or undefined removes the header.
+ *
+ * For a pack's own step, as a sign-in that signs the requests of the steps
+ * that follow: api.setHeader('Authorization', `Bearer ${token}`).
+ */
+function setHeader(name, value) {
+  const key = String(name == null ? '' : name).trim();
+  if (!key) throw new Error('setHeader needs the name of a header.');
+  for (const existing of Object.keys(apiHeaders)) {
+    if (existing.toLowerCase() === key.toLowerCase()) delete apiHeaders[existing];
+  }
+  if (value === null || value === undefined) return;
+  apiHeaders[key] = String(value);
+}
+
 module.exports = {
   getApiResponse: () => apiResponse,
   setPlaceholder: (name, value) => { placeHolders[name] = String(value); },
   getPlaceholder: (name) => placeHolders[name],
+  setHeader,
   replacePlaceHolder,
   getNestedProperty,
 };
