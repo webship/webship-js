@@ -1295,6 +1295,10 @@ function smartWaitProbes() {
   };
   if (typeof origSetTimeout === 'function') {
     window.setTimeout = function (cb, delay, ...args) {
+      // A string of code (setTimeout("refresh()", 100)) goes to the browser as
+      // it is, which runs it as a script. It is not counted: nothing tells
+      // when such code has run.
+      if (typeof cb !== 'function') return origSetTimeout(cb, delay, ...args);
       window.__webshipPendingTimers++;
       let id;
       const wrapped = function () {
