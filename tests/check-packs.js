@@ -32,7 +32,7 @@ const INIT = path.join(ROOT, 'bin', 'init-webship.js');
 const CUCUMBER = path.join(ROOT, 'node_modules', '@cucumber', 'cucumber', 'bin', 'cucumber.js');
 const NPM = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const PACKS = [
-  'aspnet-core', 'astro', 'backdrop-cms', 'bbpress', 'bootstrap', 'buddypress', 'codeigniter', 'craft-cms', 'diffy', 'discourse', 'django', 'django-cms', 'docusaurus',
+  'angular', 'aspnet-core', 'astro', 'backdrop-cms', 'bbpress', 'bootstrap', 'buddypress', 'codeigniter', 'craft-cms', 'diffy', 'discourse', 'django', 'django-cms', 'docusaurus',
   'drupal-cms', 'drupal-core', 'filament', 'flutter', 'gatsby', 'ghost', 'gitea', 'hubspot-cms', 'jira', 'joomla', 'kanboard', 'keycloak', 'laravel', 'leantime', 'learnpress', 'magento', 'mautic', 'mediawiki', 'moodle',
   'nextcloud', 'nextjs', 'odoo', 'opencart', 'openproject', 'payload', 'penpot', 'phpbb', 'plane', 'prestashop', 'redmine', 'roundcube', 'shopify', 'spring-boot', 'squarespace', 'strapi', 'svelte', 'symfony', 'taiga', 'typo3', 'uikit', 'vikunja', 'vue', 'wagtail', 'webflow', 'wekan', 'woocommerce',
   'wordpress',
