@@ -13,7 +13,10 @@ const { buildSelector, fillField, fillLocator, friendly, failure, humanize, isTi
 
 /**
  * Fill an input field located by its label, placeholder, or name.
- * An empty value ("") empties the field.
+ * An empty value ("") empties the field. A label that names several fields,
+ * one of them visible (the others copies in the page's closed dialogs), fills
+ * the visible one; two visible fields under one label are an ambiguity, and
+ * the step says so.
  *
  * Example #1: When I fill in "Username" with "John Smith"
  * Example #2: When I fill in "Email" with "jon@example.com"
@@ -296,7 +299,8 @@ When(/^(I |we )*additionally select "([^"]*)" from "([^"]*)"$/, async function (
 /**
  * Checks the specified checkbox by label, id, class, or name. A toggle
  * switch whose slider covers its checkbox, and a checkbox whose label draws
- * the box, are clicked through their label, as a person does.
+ * the box, are clicked through their label, as a person does. A label that
+ * names several checkboxes, one of them visible, takes the visible one.
  *
  * Example #1: When I check "Remember me"
  * Example #2: When we check "Put site into maintenance mode"
@@ -329,7 +333,8 @@ When(/^(I |we )*check "([^"]*)?"$/, async function (pronounCase, item) {
 /**
  * Unchecks the specified checkbox by label, id, class, or name. A toggle
  * switch whose slider covers its checkbox, and a checkbox whose label draws
- * the box, are clicked through their label, as a person does.
+ * the box, are clicked through their label, as a person does. A label that
+ * names several checkboxes, one of them visible, takes the visible one.
  *
  * Example #1: When I uncheck "Remember me"
  * Example #2: When we uncheck "Put site into maintenance mode"
@@ -360,7 +365,8 @@ When(/^(I |we )*uncheck "([^"]*)?"$/, async function (pronounCase, item) {
 });
 
 /**
- * Selects a radio button by label, value, id, or class.
+ * Selects a radio button by label, value, id, or class. A label that names
+ * several radio buttons, one of them visible, takes the visible one.
  *
  * Example #1: When I select radio button "Male"
  * Example #2: When I select radio button "female"
