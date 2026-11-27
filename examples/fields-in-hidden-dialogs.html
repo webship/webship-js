@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Fields repeated in hidden dialogs</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    label { display: block; margin-top: 12px; }
+    .modal { display: none; }
+  </style>
+</head>
+<body>
+  <h1>Add a monitor</h1>
+  <!-- The page keeps its closed dialogs in its markup, each with its own copy of fields of the form, under the same
+       labels, as some apps do: a person sees one field of each label. -->
+  <form id="monitor-form">
+    <label for="type">Monitor Type</label>
+    <select id="type" name="type">
+      <option value="http">HTTP(s)</option>
+      <option value="push">Push</option>
+    </select>
+
+    <label for="name">Friendly Name</label>
+    <input id="name" name="name" type="text">
+
+    <label><input id="upside" type="checkbox"> Upside Down Mode</label>
+
+    <fieldset>
+      <legend>Method</legend>
+      <label><input id="get" type="radio" name="method" value="get-method"> GET request</label>
+      <label><input id="post" type="radio" name="method" value="post-method"> POST request</label>
+    </fieldset>
+
+    <!-- Two visible fields under one label: a real ambiguity. -->
+    <label for="nick-1">Nickname</label>
+    <input id="nick-1" type="text">
+    <label for="nick-2">Nickname</label>
+    <input id="nick-2" type="text">
+  </form>
+
+  <div class="modal" role="dialog" aria-label="Clone the monitor">
+    <label for="clone-type">Monitor Type</label>
+    <select id="clone-type">
+      <option value="http">HTTP(s)</option>
+      <option value="push">Push</option>
+    </select>
+    <label for="clone-name">Friendly Name</label>
+    <input id="clone-name" type="text">
+    <label><input id="clone-upside" type="checkbox"> Upside Down Mode</label>
+    <label><input id="clone-get" type="radio" name="clone-method" value="get-clone"> GET request</label>
+    <label for="secret-1">Secret</label>
+    <input id="secret-1" type="text">
+  </div>
+
+  <div class="modal" role="dialog" aria-label="Create a group">
+    <label for="group-name">Friendly Name</label>
+    <input id="group-name" type="text">
+    <label for="secret-2">Secret</label>
+    <input id="secret-2" type="text">
+  </div>
+</body>
+</html>
