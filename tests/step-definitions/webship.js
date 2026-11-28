@@ -524,9 +524,29 @@ async function gotoUrl(page, url) {
 }
 
 /**
+ * The field a label names, when it names several elements: a page that keeps closed dialogs in its markup holds a copy
+ * of a field in each of them, under the same label, and a person sees only the one that is shown.
+ *
+ * - Exactly one of them visible: that one.
+ * - Two or more visible: those, which an action refuses as a strict match: a real ambiguity on the page.
+ * - None visible: all of them, which an action refuses as hidden.
+ *
+ * One element, or none, is left as it is.
+ *
+ * @param {import('playwright').Locator} loc - The elements an exact label names.
+ * @returns {Promise<import('playwright').Locator>}
+ */
+async function oneVisible(loc) {
+  if (await loc.count() < 2) return loc;
+  const visible = loc.filter({ visible: true });
+  return await visible.count() > 0 ? visible : loc;
+}
+
+/**
  * Fill a form field located by label, placeholder, or `[name]`. Resolution
- * order: label → placeholder → name. Throws a friendly error when none
- * match, suggesting the by-attr variant.
+ * order: label → placeholder → name. A label that names several elements
+ * fills the one that is visible (see oneVisible). Throws a friendly error when
+ * none match, suggesting the by-attr variant.
  *
  * @param {import('playwright').Page} page
  * @param {string} field - Label / placeholder / name.
@@ -539,7 +559,7 @@ async function fillField(page, field, value, world) {
   value = value === undefined || value === null ? '' : String(value);
   const byLabel = page.getByLabel(field, { exact: true });
   if (await byLabel.count() > 0) {
-    await fillLocator(page, byLabel, value, field);
+    await fillLocator(page, await oneVisible(byLabel), value, field);
     return;
   }
   const byPlaceholder = page.getByPlaceholder(field, { exact: true });
@@ -1064,6 +1084,7 @@ module.exports = {
   sendRequest,
   fillField,
   fillLocator,
+  oneVisible,
   getLocatorText,
   locateByLabelOrSelector,
   resolveAssetFile,

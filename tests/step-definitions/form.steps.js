@@ -5,7 +5,7 @@
 // check / uncheck, radio buttons.
 
 const { When } = require('@cucumber/cucumber');
-const { buildSelector, fillField, fillLocator, friendly, failure, humanize, isTimeout, setChecked } = require('./webship');
+const { buildSelector, fillField, fillLocator, friendly, failure, humanize, isTimeout, oneVisible, setChecked } = require('./webship');
 
 // ---------------------------------------------------------------------------
 // Fill — by label, attribute, table, reverse syntax
@@ -13,7 +13,10 @@ const { buildSelector, fillField, fillLocator, friendly, failure, humanize, isTi
 
 /**
  * Fill an input field located by its label, placeholder, or name.
- * An empty value ("") empties the field.
+ * An empty value ("") empties the field. A label that names several fields,
+ * one of them visible (the others copies in the page's closed dialogs), fills
+ * the visible one; two visible fields under one label are an ambiguity, and
+ * the step says so.
  *
  * Example #1: When I fill in "Username" with "John Smith"
  * Example #2: When I fill in "Email" with "jon@example.com"
@@ -167,16 +170,23 @@ When(/^(I |we )*fill in( the)* following: by( its)*(?: "([^"]*)?")* (attribute|a
 /**
  * Find the `<select>` a step names. A CSS selector (it starts with `#`, `.`
  * or `[`) is used as written; any other text is the exact text of the label
- * of the select list, else its name, else its id, whatever its length.
+ * of the select list, else its name, else its id, whatever its length. A
+ * label that names several lists, exactly one of them visible, finds that one.
  *
  * @param {import('playwright').Page} page
  * @param {string} name
- * @returns {import('playwright').Locator}
+ * @returns {Promise<import('playwright').Locator>}
  */
-function selectList(page, name) {
+async function selectList(page, name) {
   if (/^[#.[]/.test(name)) return page.locator(name).first();
+  // A label that names several lists, one of them shown (the others in the page's closed dialogs): that one.
+  const byLabel = page.getByLabel(name, { exact: true });
+  if (await byLabel.count() > 1) {
+    const visible = byLabel.filter({ visible: true });
+    if (await visible.count() === 1) return visible;
+  }
   const value = name.replace(/["\\]/g, '\\$&');
-  return page.getByLabel(name, { exact: true })
+  return byLabel
     .or(page.locator(`select[name="${value}"]`))
     .or(page.locator(`select[id="${value}"]`))
     .first();
@@ -199,7 +209,7 @@ function selectList(page, name) {
  *
  */
 When(/^(I |we )*select "([^"]*)?" from "([^"]*)?"$/, async function (pronounCase, option, selectName) {
-  const loc = selectList(this.page, selectName);
+  const loc = await selectList(this.page, selectName);
   try {
     await loc.waitFor({ state: 'attached', timeout: 5000 });
   } catch (e) {
@@ -289,7 +299,8 @@ When(/^(I |we )*additionally select "([^"]*)" from "([^"]*)"$/, async function (
 /**
  * Checks the specified checkbox by label, id, class, or name. A toggle
  * switch whose slider covers its checkbox, and a checkbox whose label draws
- * the box, are clicked through their label, as a person does.
+ * the box, are clicked through their label, as a person does. A label that
+ * names several checkboxes, one of them visible, takes the visible one.
  *
  * Example #1: When I check "Remember me"
  * Example #2: When we check "Put site into maintenance mode"
@@ -305,7 +316,7 @@ When(/^(I |we )*check "([^"]*)?"$/, async function (pronounCase, item) {
     } else {
       const byLabel = this.page.getByLabel(item, { exact: true });
       if (await byLabel.count() > 0) {
-        await setChecked(byLabel, true);
+        await setChecked(await oneVisible(byLabel), true);
       } else {
         await setChecked(this.page.locator(`input[type="checkbox"][id="${item}"], input[type="checkbox"][name="${item}"], input[type="checkbox"][value="${item}"]`).first(), true);
       }
@@ -322,7 +333,8 @@ When(/^(I |we )*check "([^"]*)?"$/, async function (pronounCase, item) {
 /**
  * Unchecks the specified checkbox by label, id, class, or name. A toggle
  * switch whose slider covers its checkbox, and a checkbox whose label draws
- * the box, are clicked through their label, as a person does.
+ * the box, are clicked through their label, as a person does. A label that
+ * names several checkboxes, one of them visible, takes the visible one.
  *
  * Example #1: When I uncheck "Remember me"
  * Example #2: When we uncheck "Put site into maintenance mode"
@@ -338,7 +350,7 @@ When(/^(I |we )*uncheck "([^"]*)?"$/, async function (pronounCase, item) {
     } else {
       const byLabel = this.page.getByLabel(item, { exact: true });
       if (await byLabel.count() > 0) {
-        await setChecked(byLabel, false);
+        await setChecked(await oneVisible(byLabel), false);
       } else {
         await setChecked(this.page.locator(`input[type="checkbox"][id="${item}"], input[type="checkbox"][name="${item}"], input[type="checkbox"][value="${item}"]`).first(), false);
       }
@@ -353,7 +365,8 @@ When(/^(I |we )*uncheck "([^"]*)?"$/, async function (pronounCase, item) {
 });
 
 /**
- * Selects a radio button by label, value, id, or class.
+ * Selects a radio button by label, value, id, or class. A label that names
+ * several radio buttons, one of them visible, takes the visible one.
  *
  * Example #1: When I select radio button "Male"
  * Example #2: When I select radio button "female"
@@ -371,7 +384,7 @@ When(/^(I |we )*select radio button "([^"]*)?"$/, async function (pronounCase, i
       if (await byValue.count() > 0) {
         await byValue.first().check();
       } else {
-        await this.page.getByLabel(item, { exact: true }).check();
+        await (await oneVisible(this.page.getByLabel(item, { exact: true }))).check();
       }
     }
   } catch (e) {
