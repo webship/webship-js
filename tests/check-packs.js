@@ -34,7 +34,7 @@ const NPM = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const PACKS = [
   'angular', 'aspnet-core', 'astro', 'backdrop-cms', 'bbpress', 'bootstrap', 'buddypress', 'codeigniter', 'craft-cms', 'diffy', 'discourse', 'django', 'django-cms', 'docusaurus',
   'drupal-cms', 'drupal-core', 'fastapi', 'filament', 'flutter', 'gatsby', 'ghost', 'gitea', 'headless-ui', 'hubspot-cms', 'immich', 'jira', 'joomla', 'kanboard', 'keycloak', 'laravel', 'leantime', 'learnpress', 'magento', 'material-ui', 'mautic', 'mediawiki', 'moodle',
-  'nextcloud', 'nextjs', 'odoo', 'opencart', 'openproject', 'payload', 'penpot', 'phpbb', 'plane', 'prestashop', 'redmine', 'roundcube', 'shopify', 'spring-boot', 'squarespace', 'strapi', 'svelte', 'symfony', 'taiga', 'typo3', 'uikit', 'vikunja', 'vue', 'wagtail', 'webflow', 'wekan', 'woocommerce',
+  'nextcloud', 'nextjs', 'odoo', 'opencart', 'openproject', 'payload', 'penpot', 'phpbb', 'plane', 'prestashop', 'redmine', 'roundcube', 'shopify', 'spring-boot', 'squarespace', 'strapi', 'svelte', 'symfony', 'taiga', 'typo3', 'uikit', 'uptime-kuma', 'vikunja', 'vue', 'wagtail', 'webflow', 'wekan', 'woocommerce',
   'wordpress',
 ];
 // A pack whose glob loads another pack's steps too.
